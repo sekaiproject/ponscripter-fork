@@ -46,6 +46,9 @@ ScriptHandler::ScriptHandler()
 
     screen_size = SCREEN_SIZE_640x480;
     global_variable_border = 200;
+    
+	save_path = NULL;
+    game_identifier = NULL;
 }
 
 ScriptHandler::~ScriptHandler()
@@ -59,6 +62,8 @@ ScriptHandler::~ScriptHandler()
     delete[] string_buffer;
     delete[] saved_string_buffer;
     delete[] variable_data;
+    
+    if (game_identifier) delete[] game_identifier;
 }
 
 void ScriptHandler::reset()
@@ -112,10 +117,11 @@ void ScriptHandler::reset()
     }
 }
 
-FILE *ScriptHandler::fopen( const char *path, const char *mode )
+FILE *ScriptHandler::fopen( const char *path, const char *mode, const bool save )
 {
-    char * file_name = new char[strlen(archive_path)+strlen(path)+1];
-    sprintf( file_name, "%s%s", archive_path, path );
+    const char* root = save ? save_path : archive_path;
+    char * file_name = new char[strlen(root)+strlen(path)+1];
+    sprintf( file_name, "%s%s", root, path );
 
     FILE *fp = ::fopen( file_name, mode );
     delete[] file_name;
@@ -533,7 +539,7 @@ void ScriptHandler::saveKidokuData()
 {
     FILE *fp;
 
-    if ( ( fp = fopen( "kidoku.dat", "wb" ) ) == NULL ){
+    if ( ( fp = fopen( "kidoku.dat", "wb", true ) ) == NULL ){
         fprintf( stderr, "can't write kidoku.dat\n" );
         return;
     }
@@ -550,7 +556,7 @@ void ScriptHandler::loadKidokuData()
     kidoku_buffer = new char[ script_buffer_length/8 + 1 ];
     memset( kidoku_buffer, 0, script_buffer_length/8 + 1 );
 
-    if ( ( fp = fopen( "kidoku.dat", "rb" ) ) != NULL ){
+    if ( ( fp = fopen( "kidoku.dat", "rb", true ) ) != NULL ){
         fread( kidoku_buffer, 1, script_buffer_length/8, fp );
         fclose( fp );
     }
@@ -935,8 +941,22 @@ int ScriptHandler::readScript( char *path )
         else{
             break;
         }
-        if ( *buf != ',' ) break;
+        if ( *buf != ',' ){
+        	while ( *buf++ != '\n' );
+        	break;
+        }
         buf++;
+    }
+    if ( *buf++ == ';' ){
+    	while (*buf == ' ' || *buf == '\t') ++buf;
+    	if ( !strncmp( buf, "gameid ", 7 ) ){
+    		buf += 7;
+    		int i = 0;
+    		while ( buf[i++] != '\n' );
+    		game_identifier = new char[i];
+    		strncpy( game_identifier, buf, i - 1 );
+    		game_identifier[i - 1] = 0;
+    	}
     }
 
     return labelScript();

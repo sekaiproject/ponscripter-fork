@@ -1,0 +1,11 @@
+2006-09-05
+
+  Fix typo in usage summary.
+
+  Make archive path and save path separately configurable.  Game data no longer has to be
+  stored in a writable directory.
+  
+  OS X: make default archive path be the Resources folder of the application bundle, and
+  default save path be a new subfolder of the user's Documents.  The name of the subfolder
+  is derived from a new "game identifier" that should be specified at the top of 0.txt with
+  a ";gameid Whatever" line immediately after the modeline (if present).

@@ -95,6 +95,7 @@ public:
     void setFontFile(const char *filename);
     void setRegistryFile(const char *filename);
     void setDLLFile(const char *filename);
+    void setSavePath(const char *path);
     void setArchivePath(const char *path);
     void setFullscreenMode();
     void setWindowMode();

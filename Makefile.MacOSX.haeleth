@@ -6,8 +6,8 @@
 
 INCS = `/usr/local/bin/sdl-config --cflags` `/usr/local/bin/smpeg-config --cflags`
 
-LIBS = `/usr/local/bin/sdl-config --static-libs` `/usr/local/bin/smpeg-config --libs` `/usr/local/bin/freetype-config --libs` -lSDL_ttf -lSDL_image -lSDL_mixer libbz2.a -lm -ljpeg libogg.a libvorbis.a libvorbisfile.a libvorbisenc.a -lpng -framework QuickTime -framework CoreFoundation
-DEFS = -DMACOSX -DEXTERNAL_MIDI_PROGRAM -DUTF8_FILESYSTEM -DUSE_OGG_VORBIS -DENABLE_1BYTE_CHAR -DFORCE_1BYTE_CHAR -DINSANI
+LIBS = `/usr/local/bin/sdl-config --static-libs` `/usr/local/bin/smpeg-config --libs` `/usr/local/bin/freetype-config --libs` /usr/local/lib/libSDL_ttf.a /usr/local/lib/libSDL_image.a /usr/local/lib/libSDL_mixer.a ./libbz2.a -lm /usr/local/lib/libjpeg.a /usr/local/lib/libogg.a /usr/local/lib/libvorbis.a /usr/local/lib/libvorbisfile.a -lpng -framework QuickTime -framework CoreFoundation
+DEFS = -DMACOSX -DUTF8_FILESYSTEM -DUSE_OGG_VORBIS -DENABLE_1BYTE_CHAR -DFORCE_1BYTE_CHAR -DINSANI -DHAELETH
 
 EXESUFFIX =
 OBJSUFFIX = .o

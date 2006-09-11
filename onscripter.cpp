@@ -32,8 +32,14 @@ void optionHelp()
     printf( "  -f, --font file\tset a TTF font file\n");
     printf( "      --registry file\tset a registry file\n");
     printf( "      --dll file\tset a dll file\n");
+#ifndef MACOSX
     printf( "  -r, --root path\tset the root path to the archives\n");
-    printf( "      --fullcsreen\tstart in fullscreen mode\n");
+    printf( "  -s, --save path\tset the path to use for saved games (default: same as root path)\n");
+#else
+    printf( "  -r, --root path\tset the root path to the archives (default: Resources in ONScripter bundle)\n");
+    printf( "  -s, --save path\tset the path to use for saved games (default: folder in ~/Documents)\n");
+#endif
+    printf( "      --fullscreen\tstart in fullscreen mode\n");
     printf( "      --window\t\tstart in window mode\n");
     printf( "      --force-button-shortcut\tignore useescspc and getenter command\n");
     printf( "      --enable-wheeldown-advance\tadvance the text on mouse wheeldown event\n");
@@ -107,6 +113,11 @@ int main( int argc, char **argv )
                 argc--;
                 argv++;
                 ons.setArchivePath(argv[0]);
+            }
+            else if ( !strcmp( argv[0]+1, "s" ) || !strcmp( argv[0]+1, "-save" ) ){
+                argc--;
+                argv++;
+                ons.setSavePath(argv[0]);
             }
             else if ( !strcmp( argv[0]+1, "-fullscreen" ) ){
                 ons.setFullscreenMode();

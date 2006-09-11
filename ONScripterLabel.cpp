@@ -23,6 +23,14 @@
 
 #include "ONScripterLabel.h"
 
+#ifdef MACOSX
+namespace Carbon {
+#include <Carbon/Carbon.h>
+#include <CoreServices/CoreServices.h>
+}
+#include <sys/stat.h>
+#endif
+
 extern void initSJIS2UTF16();
 extern "C" void waveCallback( int channel );
 
@@ -253,8 +261,10 @@ void ONScripterLabel::initSDL()
         exit(-1);
     }
 
+#ifndef HAELETH
     if(SDL_InitSubSystem( SDL_INIT_JOYSTICK ) == 0 && SDL_JoystickOpen(0) != NULL)
         printf( "Initialize JOYSTICK\n");
+#endif
 
 #if defined(PSP) || defined(IPODLINUX)
     SDL_ShowCursor(SDL_DISABLE);
@@ -417,6 +427,13 @@ void ONScripterLabel::setArchivePath(const char *path)
     sprintf( archive_path, RELATIVEPATH "%s%c", path, DELIMITER );
 }
 
+void ONScripterLabel::setSavePath(const char *path)
+{
+    if (script_h.save_path) delete[] script_h.save_path;
+    script_h.save_path = new char[ RELATIVEPATHLENGTH + strlen(path) + 2 ];
+    sprintf( script_h.save_path, RELATIVEPATH "%s%c", path, DELIMITER );
+}
+
 void ONScripterLabel::setFullscreenMode()
 {
     fullscreen_mode = true;
@@ -454,7 +471,21 @@ void ONScripterLabel::setKeyEXE(const char *filename)
 
 int ONScripterLabel::init()
 {
-    if (archive_path == NULL) archive_path = "";
+    if (archive_path == NULL){
+#ifndef MACOSX
+    	archive_path = "";
+#else
+		using namespace Carbon;
+		ProcessSerialNumber psn;
+		GetCurrentProcess(&psn);
+		FSRef bundle;
+		GetProcessBundleLocation(&psn, &bundle);
+		char bpath[32768];
+		FSRefMakePath(&bundle, (UInt8*) bpath, 32768);
+		archive_path = new char[strlen(bpath) + 32];
+		sprintf(archive_path, "%s/Contents/Resources/", bpath);
+#endif
+	}
 
     if (key_exe_file){
         createKeyTable( key_exe_file );
@@ -463,6 +494,21 @@ int ONScripterLabel::init()
 
     if ( open() ) return -1;
 
+	if ( script_h.save_path == NULL ){
+#ifndef MACOSX
+    	script_h.save_path = archive_path;
+#else
+		using namespace Carbon;
+		FSRef home;
+		FSFindFolder(kUserDomain, kDocumentsFolderType, kDontCreateFolder, &home);
+		char hpath[32768];
+		FSRefMakePath(&home, (UInt8*) hpath, 32768);
+		const char *gameid = script_h.game_identifier ? script_h.game_identifier : "ONScripter";
+		script_h.save_path = new char[strlen(hpath) + strlen(gameid) + 8];
+		sprintf(script_h.save_path, "%s/%s Data/", hpath, gameid);
+		mkdir(script_h.save_path, 0755);
+#endif
+	}
 
     initSDL();
 

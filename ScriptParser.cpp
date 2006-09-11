@@ -499,7 +499,7 @@ void ScriptParser::allocFileIOBuf()
 int ScriptParser::saveFileIOBuf( const char *filename, int offset )
 {
     FILE *fp;
-    if ( (fp = fopen( filename, "wb" )) == NULL ) return -1;
+    if ( (fp = fopen( filename, "wb", true )) == NULL ) return -1;
     
     size_t ret = fwrite(file_io_buf+offset, 1, file_io_buf_ptr-offset, fp);
     fclose(fp);
@@ -512,7 +512,7 @@ int ScriptParser::saveFileIOBuf( const char *filename, int offset )
 int ScriptParser::loadFileIOBuf( const char *filename )
 {
     FILE *fp;
-    if ( (fp = fopen( filename, "rb" )) == NULL )
+    if ( (fp = fopen( filename, "rb", true )) == NULL )
         return -1;
     
     fseek(fp, 0, SEEK_END);
@@ -834,10 +834,11 @@ ScriptParser::EffectLink *ScriptParser::parseEffect()
     return NULL;
 }
 
-FILE *ScriptParser::fopen(const char *path, const char *mode)
+FILE *ScriptParser::fopen( const char *path, const char *mode, const bool save )
 {
     char filename[256];
-    sprintf( filename, "%s%s", archive_path, path );
+    const char *root = save ? script_h.save_path : archive_path;
+    sprintf( filename, "%s%s", root, path );
 
     return ::fopen( filename, mode );
 }
