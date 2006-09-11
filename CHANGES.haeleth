@@ -1,18 +1,3 @@
-This version of ONScripter has been hacked severely.  The changes have been made 
-with the goal of running very specific games better; features not required in 
-these specific games have been broken or removed altogether, and all games will 
-require extensive code changes to run properly in this interpreter.
-
-I repeat: this version of ONScripter can NOT be used to play original Japanese 
-games under any circumstances!
-
-PLEASE DO NOT USE THIS VERSION UNLESS YOU KNOW EXACTLY WHAT YOU'RE DOING, OR 
-UNLESS YOU NEED TO RUN A GAME THAT HAS BEEN DESIGNED TO BE PLAYED WITH IT.
-
-TODO: rename, to make it absolutely clear that this is a fork, not an enhanced 
-version suitable for the same purposes.
-
-
 Specific changes:
 * Use ;gameid and ;usefont directives at the start of a file (after modeline,
   in that order).

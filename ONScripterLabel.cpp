@@ -1,8 +1,8 @@
 /* -*- C++ -*-
  *
- *  ONScripterLabel.cpp - Execution block parser of ONScripter
+ *  ONScripterLabel.cpp - Execution block parser of PONScripter
  *
- *  Copyright (c) 2001-2006 Ogapee. All rights reserved.
+ *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
  *
@@ -34,7 +34,6 @@ namespace Carbon {
 #include <sys/stat.h>
 #endif
 
-extern void initSJIS2UTF16();
 extern "C" void waveCallback( int channel );
 
 #define DEFAULT_AUDIOBUF  4096
@@ -321,8 +320,6 @@ void ONScripterLabel::initSDL()
 	}
 	printf("Display: %d x %d (%d bpp)\n", screen_width, screen_height, screen_bpp);
 
-	initSJIS2UTF16();
-
 	wm_title_string = new char[ strlen(DEFAULT_WM_TITLE) + 1 ];
 	memcpy( wm_title_string, DEFAULT_WM_TITLE, strlen(DEFAULT_WM_TITLE) + 1 );
 	wm_icon_string = new char[ strlen(DEFAULT_WM_ICON) + 1 ];
@@ -505,10 +502,10 @@ int ONScripterLabel::init()
 #else
 		using namespace Carbon;
 		FSRef home;
-		FSFindFolder(kUserDomain, kDocumentsFolderType, kDontCreateFolder, &home);
+		FSFindFolder(kUserDomain, kPreferencesFolderType, kDontCreateFolder, &home);
 		char hpath[32768];
 		FSRefMakePath(&home, (UInt8*) hpath, 32768);
-		const char *gameid = script_h.game_identifier ? script_h.game_identifier : "ONScripter";
+		const char *gameid = script_h.game_identifier ? script_h.game_identifier : "PONScripter";
 		script_h.save_path = new char[strlen(hpath) + strlen(gameid) + 8];
 		sprintf(script_h.save_path, "%s/%s Data/", hpath, gameid);
 		mkdir(script_h.save_path, 0755);

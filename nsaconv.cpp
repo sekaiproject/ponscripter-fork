@@ -2,7 +2,7 @@
  * 
  *  nsaconv.cpp - Images in NSA archive are re-scaled to 320x240 size
  *
- *  Copyright (c) 2001-2006 Ogapee. All rights reserved.
+ *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
  *

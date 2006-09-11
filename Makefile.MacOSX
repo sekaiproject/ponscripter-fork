@@ -22,7 +22,7 @@ LD = c++ -o
 CFLAGS = -O3 -Wall -Wpointer-arith -pipe -c $(INCS) $(DEFS)
 RM = rm -f
 
-#TARGET = onscripter$(EXESUFFIX) sardec$(EXESUFFIX) nsadec$(EXESUFFIX) sarconv$(EXESUFFIX) nsaconv$(EXESUFFIX)
-TARGET = onscripter$(EXESUFFIX)
+#TARGET = ponscripter$(EXESUFFIX) sardec$(EXESUFFIX) nsadec$(EXESUFFIX) sarconv$(EXESUFFIX) nsaconv$(EXESUFFIX)
+TARGET = ponscripter$(EXESUFFIX)
 
-include Makefile.onscripter
+include Makefile.ponscripter

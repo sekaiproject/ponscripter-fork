@@ -57,8 +57,8 @@ CFLAGS = -g -Wall -Wpointer-arith -pipe -c $(INCS) $(DEFS)
 
 RM = rm -f
 
-TARGET = onscripter$(EXESUFFIX)
-#TARGET = onscripter$(EXESUFFIX) sardec$(EXESUFFIX) nsadec$(EXESUFFIX) sarconv$(EXESUFFIX) nsaconv$(EXESUFFIX) simple_aviplay$(EXESUFFIX)
+TARGET = ponscripter$(EXESUFFIX)
+#TARGET = ponscripter$(EXESUFFIX) sardec$(EXESUFFIX) nsadec$(EXESUFFIX) sarconv$(EXESUFFIX) nsaconv$(EXESUFFIX) simple_aviplay$(EXESUFFIX)
 #EXT_OBJS = AVIWrapper$(OBJSUFFIX)
 
-include Makefile.onscripter
+include Makefile.ponscripter

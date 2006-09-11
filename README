@@ -1,5 +1,5 @@
-PONScripter is a fork of ogapee's ONScripter, which in turn is an enhanced clone 
-of NScripter.
+PONScripter ("Proportional ONScripter") is a fork of ogapee's ONScripter, which 
+in turn is an enhanced clone of NScripter.
 
 While ONScripter adds basic support for Western text, it does so only insofar as 
 is easily done while retaining compatibility with unmodified Japanese games. 
@@ -9,8 +9,14 @@ architectural changes to better support Western games (proportionally spaced
 text, scripts encoded as UTF-8 rather than Shift_JIS).
 
 The end result is a somewhat less stable and VASTLY less compatible engine -- 
-but it more than makes up for that by making games look good, if one takes the 
-time to convert them to make proper use of the new capabilities.
+but it should more than make up for that by making games look good, if one takes 
+the time to convert them to make proper use of the new capabilities.
+
+I must repeat this for emphasis: unlike ONScripter, this can NOT be used to play 
+original Japanese games under any circumstances!
+
+PLEASE DO NOT USE THIS FORK UNLESS YOU KNOW EXACTLY WHAT YOU'RE DOING, OR 
+UNLESS YOU NEED TO RUN A GAME THAT HAS BEEN DESIGNED TO BE PLAYED WITH IT.
 
 If you want a portable game engine that works well with both Japanese and 
 English games, and that strives to implement an NScripter-compatible system that 

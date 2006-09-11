@@ -1,8 +1,8 @@
 /* -*- C++ -*-
  *
- *  ONScripterLabel_rmenu.cpp - Right click menu handler of ONScripter
+ *  ONScripterLabel_rmenu.cpp - Right click menu handler of PONScripter
  *
- *  Copyright (c) 2001-2006 Ogapee. All rights reserved.
+ *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
  *
@@ -306,7 +306,7 @@ void ONScripterLabel::executeSystemLoad()
         //uchar3 color = {0xff, 0xff, 0xff};
         // drawString( load_menu_name, color, &menu_font, true, accumulation_surface, NULL, &text_info );
         /* The following three lines are part of a hack allowing the menu name to show up when custom right-menus are in
-           existence.  As it stands in ONScripter, these menu names get drawn in the accumulation buffer one level below
+           existence.  As it stands in PONScripter, these menu names get drawn in the accumulation buffer one level below
            the menu itself -- i.e. onto the main playing field itself.  So when the user right-clicks out of the right-
            click menu, that string remains there for the rest of play.  I do not currently understand why this is, but
            I do know that using ButtonLink and getSelectableSentence to create a nonselectable text button instead of
@@ -391,7 +391,7 @@ void ONScripterLabel::executeSystemSave()
         //uchar3 color = {0xff, 0xff, 0xff};
         // drawString( save_menu_name, color, &menu_font, true, accumulation_surface, NULL, &text_info );
         /* The following three lines are part of a hack allowing the menu name to show up when custom right-menus are in
-           existence.  As it stands in ONScripter, these menu names get drawn in the accumulation buffer one level below
+           existence.  As it stands in PONScripter, these menu names get drawn in the accumulation buffer one level below
            the menu itself -- i.e. onto the main playing field itself.  So when the user right-clicks out of the right-
            click menu, that string remains there for the rest of play.  I do not currently understand why this is, but
            I do know that using ButtonLink and getSelectableSentence to create a nonselectable text button instead of
@@ -538,7 +538,7 @@ void ONScripterLabel::executeSystemYesNo()
 
         // drawString( name, color, &menu_font, true, accumulation_surface, NULL, &text_info );
         /* The following three lines are part of a hack allowing the menu name to show up when custom right-menus are in
-           existence.  As it stands in ONScripter, these menu names get drawn in the accumulation buffer one level below
+           existence.  As it stands in PONScripter, these menu names get drawn in the accumulation buffer one level below
            the menu itself -- i.e. onto the main playing field itself.  So when the user right-clicks out of the right-
            click menu, that string remains there for the rest of play.  I do not currently understand why this is, but
            I do know that using ButtonLink and getSelectableSentence to create a nonselectable text button instead of

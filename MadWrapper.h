@@ -2,7 +2,7 @@
  * 
  *  MadWrapper.h - SMPEG compatible wrapper functions for MAD: Mpeg Audio Decoder
  *
- *  Copyright (c) 2001-2004 Ogapee. All rights reserved.
+ *  Copyright (c) 2001-2004 Ogapee (original ONScripter, of which this is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
  *

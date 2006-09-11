@@ -1,8 +1,8 @@
 /* -*- C++ -*-
  *
- *  ONScripterLabel_file.cpp - FILE I/O of ONScripter
+ *  ONScripterLabel_file.cpp - FILE I/O of PONScripter
  *
- *  Copyright (c) 2001-2006 Ogapee. All rights reserved.
+ *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
  *
@@ -185,7 +185,7 @@ int ONScripterLabel::loadSaveFile( int no )
     }
     printf("Save file version is %d.%d\n", file_version/100, file_version%100 );
     if ( file_version > SAVEFILE_VERSION_MAJOR*100 + SAVEFILE_VERSION_MINOR ){
-        fprintf( stderr, "Save file is newer than %d.%d, please use the latest ONScripter.\n", SAVEFILE_VERSION_MAJOR, SAVEFILE_VERSION_MINOR );
+        fprintf( stderr, "Save file is newer than %d.%d, please use the latest PONScripter.\n", SAVEFILE_VERSION_MAJOR, SAVEFILE_VERSION_MINOR );
         return -1;
     }
 

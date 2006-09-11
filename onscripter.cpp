@@ -1,8 +1,8 @@
 /* -*- C++ -*-
  * 
- *  onscripter.cpp -- main function of ONScripter
+ *  onscripter.cpp -- main function of PONScripter
  *
- *  Copyright (c) 2001-2006 Ogapee. All rights reserved.
+ *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
  *
@@ -26,7 +26,7 @@
 
 void optionHelp()
 {
-    printf( "Usage: onscripter [option ...]\n" );
+    printf( "Usage: ponscripter [option ...]\n" );
     printf( "      --cdaudio\t\tuse CD audio if available\n");
     printf( "      --cdnumber no\tchoose the CD-ROM drive number\n");
     printf( "  -f, --font file\tset a TTF font file\n");
@@ -36,8 +36,8 @@ void optionHelp()
     printf( "  -r, --root path\tset the root path to the archives\n");
     printf( "  -s, --save path\tset the path to use for saved games (default: same as root path)\n");
 #else
-    printf( "  -r, --root path\tset the root path to the archives (default: Resources in ONScripter bundle)\n");
-    printf( "  -s, --save path\tset the path to use for saved games (default: folder in ~/Documents)\n");
+    printf( "  -r, --root path\tset the root path to the archives (default: Resources in PONScripter bundle)\n");
+    printf( "  -s, --save path\tset the path to use for saved games (default: folder in ~/Library/Preferences)\n");
 #endif
     printf( "      --fullscreen\tstart in fullscreen mode\n");
     printf( "      --window\t\tstart in window mode\n");
@@ -53,8 +53,8 @@ void optionHelp()
 
 void optionVersion()
 {
-    printf("Written by Ogapee <ogapee@aqua.dti2.ne.jp>\n\n");
-    printf("Copyright (c) 2001-2006 Ogapee.\n");
+    printf("Based on ONScripter by Ogapee <ogapee@aqua.dti2.ne.jp>\n\n");
+    printf("Copyright (c) 2001-2006 Ogapee, 2006 Haeleth.\n");
     printf("This is free software; see the source for copying conditions.\n");
     exit(0);
 }
@@ -66,7 +66,7 @@ extern "C" int main( int argc, char **argv )
 int main( int argc, char **argv )
 #endif
 {
-    printf("ONScripter version %s(%d.%02d)\n", ONS_VERSION, NSC_VERSION/100, NSC_VERSION%100 );
+    printf("PONScripter version %s (%d.%02d)\n", ONS_VERSION, NSC_VERSION/100, NSC_VERSION%100 );
 
     ONScripterLabel ons;
 
@@ -154,7 +154,7 @@ int main( int argc, char **argv )
     }
     
     // ----------------------------------------
-    // Run ONScripter
+    // Run PONScripter
 
     if (ons.init()) exit(-1);
     ons.eventLoop();
