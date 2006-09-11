@@ -181,9 +181,7 @@ public:
     int mspCommand();
     int mpegplayCommand();
     int mp3volCommand();
-#if defined(INSANI)
     int mp3fadeoutCommand();
-#endif
     int mp3Command();
     int movemousecursorCommand();
     int monocroCommand();
@@ -299,9 +297,7 @@ protected:
     int variable_edit_num;
     int variable_edit_sign;
 
-#if defined(INSANI)
 	int skip_to_wait;
-#endif
 
     void variableEditMode( SDL_KeyboardEvent *event );
     void keyDownEvent( SDL_KeyboardEvent *event );
@@ -636,10 +632,8 @@ private:
     char *music_file_name;
     unsigned char *mp3_buffer;
     SMPEG *mp3_sample;
-#if defined(INSANI)
     Uint32 mp3fadeout_start;
     Uint32 mp3fadeout_duration;
-#endif
     OVInfo *music_ovi;
     Mix_Music *music_info;
     char *loop_bgm_name[2];

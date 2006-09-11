@@ -3,32 +3,8 @@
 # Makefile.Linux - Makefile rules for linux
 #
 
-# without OggVorbis and AVI
-#INCS = `sdl-config --cflags` `smpeg-config --cflags`
-#LIBS = `sdl-config --libs` `smpeg-config --libs` -lSDL_ttf -lSDL_image -lSDL_mixer -lbz2 -ljpeg -lm
-#DEFS = -DLINUX
-
-INCS = `sdl-config --cflags` `smpeg-config --cflags`
-#INCS = `sdl-config --cflags` `smpeg-config --cflags` `avifile-config --cflags`
-# with OggVorbis and AVI
-#LIBS = `sdl-config --libs` `smpeg-config --libs` `avifile-config --libs` -lSDL_ttf -lSDL_image -lSDL_mixer -lbz2 -ljpeg -lm -lvorbis
-#DEFS = -DLINUX -DUSE_AVIFILE -DUSE_OGG_VORBIS
-
-# with Integer OggVorbis and AVI in PDA size
-#LIBS = `sdl-config --libs` `smpeg-config --libs` `avifile-config --libs` -lSDL_ttf -lSDL_image -lSDL_mixer -lbz2 -ljpeg -lm -lvorbisidec
-#DEFS = -DLINUX -DUSE_AVIFILE -DUSE_OGG_VORBIS -DINTEGER_OGG_VORBIS -DPDA -DPDA_VGA
-
-# with OggVorbis and AVI and English mode
-#LIBS = `sdl-config --libs` `smpeg-config --libs` `avifile-config --libs` -lSDL_ttf -lSDL_image -lSDL_mixer -lbz2 -ljpeg -lm -lvorbis
-#DEFS = -DLINUX -DUSE_AVIFILE -DUSE_OGG_VORBIS -DENABLE_1BYTE_CHAR -DFORCE_1BYTE_CHAR
-
-# with OggVorbis and English mode and insani
-#LIBS = -static -z muldefs -Wl,--start-group `sdl-config --static-libs` `smpeg-config --libs` -lSDL_ttf -lfreetype -lSDL_image -ltiff -lpng -lSDL_mixer -lbz2 -lz -ljpeg -lm -lvorbis -lvorbisenc -lvorbisfile -logg -lgpm -lncurses -lslang -ldirectfb -lfusion -ldirect -lvga -ldl -lesd -lartsc -lasound -lX11 -laa -Wl,--end-group
-#DEFS = -DLINUX -DUSE_OGG_VORBIS -DENABLE_1BYTE_CHAR -DFORCE_1BYTE_CHAR -DINSANI
-
-# super-special Haeleth-only configuration
 LIBS = `sdl-config --libs` `smpeg-config --libs` -lSDL_ttf -lfreetype -lSDL_mixer -lSDL_image -lbz2 -lz -ljpeg -lm -lvorbis -lvorbisfile -logg
-DEFS = -DLINUX -DUSE_OGG_VORBIS -DENABLE_1BYTE_CHAR -DFORCE_1BYTE_CHAR -DINSANI -DUSE_UTF8 -DHAELETH
+DEFS = -DLINUX -DUSE_OGG_VORBIS -DHAELETH
 
 EXESUFFIX =
 OBJSUFFIX = .o

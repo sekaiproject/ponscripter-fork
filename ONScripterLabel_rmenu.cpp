@@ -23,7 +23,6 @@
 
 #include "ONScripterLabel.h"
 
-#if defined(ENABLE_1BYTE_CHAR) && defined(FORCE_1BYTE_CHAR)
 #define MESSAGE_SAVE_EXIST "`%s%s    Date %s/%s    Time %s:%s"
 #define MESSAGE_SAVE_EMPTY "`%s%s    ------------------------"
 #define MESSAGE_SAVE_CONFIRM "`Save in slot %s%s?"
@@ -32,16 +31,6 @@
 #define MESSAGE_END_CONFIRM "`Quit?"
 #define MESSAGE_YES "Yes"
 #define MESSAGE_NO "No"
-#else
-#define MESSAGE_SAVE_EXIST "%s%s　%s月%s日%s時%s分"
-#define MESSAGE_SAVE_EMPTY "%s%s　－－－－－－－－－－－－"
-#define MESSAGE_SAVE_CONFIRM "%s%sにセーブします。よろしいですか？"
-#define MESSAGE_LOAD_CONFIRM "%s%sをロードします。よろしいですか？"
-#define MESSAGE_RESET_CONFIRM "リセットします。よろしいですか？"
-#define MESSAGE_END_CONFIRM "終了します。よろしいですか？"
-#define MESSAGE_YES "はい"
-#define MESSAGE_NO "いいえ"
-#endif
 
 void ONScripterLabel::enterSystemCall()
 {

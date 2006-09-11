@@ -41,9 +41,7 @@ int ONScripterLabel::setEffect( EffectLink *effect )
 int ONScripterLabel::doEffect( EffectLink *effect, AnimationInfo *anim, int effect_image )
 {
 	int prevduration = effect->duration;
-#if defined(INSANI)
 	if ( ctrl_pressed_status || skip_to_wait ) effect->duration = 1;
-#endif
     effect_start_time = SDL_GetTicks();
     if ( effect_counter == 0 ) effect_start_time_old = effect_start_time - 1;
     //printf("effect_counter %d timer between %d %d\n",effect_counter,effect_start_time,effect_start_time_old);
@@ -325,9 +323,7 @@ int ONScripterLabel::doEffect( EffectLink *effect, AnimationInfo *anim, int effe
     effect_counter += effect_timer_resolution;
     if ( effect_counter < effect->duration && effect_no != 1 ){
         if ( effect_no != 0 ) flush( REFRESH_NONE_MODE, NULL, false );
-#if defined(INSANI)
 		effect->duration = prevduration;
-#endif
         return RET_WAIT | RET_REREAD;
     }
     else{
@@ -335,9 +331,7 @@ int ONScripterLabel::doEffect( EffectLink *effect, AnimationInfo *anim, int effe
 
         if ( effect_no != 0 ) flush(REFRESH_NONE_MODE);
         if ( effect_no == 1 ) effect_counter = 0;
-#if defined(INSANI)
 		effect->duration = prevduration;
-#endif
         event_mode = IDLE_EVENT_MODE;
 
         return RET_CONTINUE;

@@ -120,9 +120,7 @@ static struct FuncLUT{
 	{"mp3stop", &ONScripterLabel::playstopCommand},
 	{"mp3save", &ONScripterLabel::mp3Command},
 	{"mp3loop", &ONScripterLabel::mp3Command},
-#if defined(INSANI)
 	{"mp3fadeout", &ONScripterLabel::mp3fadeoutCommand},
-#endif
 	{"mp3", &ONScripterLabel::mp3Command},
 	{"movemousecursor", &ONScripterLabel::movemousecursorCommand},
 	{"monocro", &ONScripterLabel::monocroCommand},
@@ -281,11 +279,6 @@ void ONScripterLabel::initSDL()
 		exit(-1);
 	}
 
-#if defined(INSANI)
-	SDL_WM_SetIcon(IMG_Load("icon.png"), NULL);
-	fprintf(stderr, "Encountered mutant insanity spirit! Use me not unless thou knowest what thou dost.\n");
-#endif
-
 #if defined(BPP16)
 	screen_bpp = 16;
 #else
@@ -376,9 +369,7 @@ ONScripterLabel::ONScripterLabel()
 	key_exe_file = NULL;
 	fullscreen_mode = false;
 	window_mode = false;
-#if defined(INSANI)
 	skip_to_wait = 0;
-#endif
 
 	for (int i=0 ; i<NUM_GLYPH_CACHE ; i++){
 		if (i != NUM_GLYPH_CACHE-1) glyph_cache[i].next = &glyph_cache[i+1];
@@ -488,6 +479,11 @@ int ONScripterLabel::init()
 		sprintf(archive_path, "%s/Contents/Resources/", bpath);
 #endif
 	}
+
+	char* icon_path = new char[strlen(archive_path) + 9];
+	sprintf(icon_path, "%sicon.png", archive_path);
+	SDL_WM_SetIcon(IMG_Load(icon_path), NULL);
+	delete[] icon_path;
 
 	if (key_exe_file){
 		createKeyTable( key_exe_file );

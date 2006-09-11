@@ -52,7 +52,7 @@ extern "C"{
     extern void mp3callback( void *userdata, Uint8 *stream, int len );
     extern void oggcallback( void *userdata, Uint8 *stream, int len );
     extern Uint32 SDLCALL cdaudioCallback( Uint32 interval, void *param );
-#if defined(MACOSX) && defined(INSANI)
+#ifdef MACOSX
 	extern Uint32 SDLCALL midiSDLCallback( Uint32 interval, void *param );
 #endif
 }
@@ -60,7 +60,7 @@ extern void midiCallback( int sig );
 extern void musicCallback( int sig );
 extern SDL_TimerID timer_cdaudio_id;
 
-#if defined(MACOSX) && defined(INSANI)
+#ifdef MACOSX
 extern SDL_TimerID timer_midi_id;
 #endif
 
@@ -166,9 +166,6 @@ int ONScripterLabel::playSound(const char *filename, int format, bool loop_flag,
         }
 
         mp3_sample = SMPEG_new_rwops( SDL_RWFromMem( buffer, length ), NULL, 0 );
- #if defined(INSANI)
-        /* music_volume = 100; */
- #endif
         if (playMP3() == 0){
             mp3_buffer = buffer;
             return SOUND_MP3;
@@ -215,9 +212,6 @@ void ONScripterLabel::playCDAudio()
     else{
         char filename[256];
         sprintf( filename, "cd\\track%2.2d.mp3", current_cd_track );
- #if defined(INSANI)
-        /* music_volume = 100; */
- #endif
         int ret = playSound( filename, SOUND_MP3, cd_play_loop_flag );
         if (ret == SOUND_MP3) return;
 
@@ -347,7 +341,7 @@ int ONScripterLabel::playMIDI(bool loop_flag)
 #endif
 
     Mix_VolumeMusic(music_volume);
-#if defined(MACOSX) && defined(INSANI)
+#ifdef MACOSX
 	// Emulate looping on MacOS ourselves to work around bug in SDL_Mixer
 	Mix_PlayMusic(midi_info, false);
 	timer_midi_id = SDL_AddTimer(1000, midiSDLCallback, NULL);
@@ -499,7 +493,7 @@ void ONScripterLabel::stopBGM( bool continue_flag )
 
     if ( midi_info ){
 
-#if defined(MACOSX) && defined(INSANI)
+#ifdef MACOSX
         if ( timer_midi_id ){
             SDL_RemoveTimer( timer_midi_id );
             timer_midi_id = NULL;

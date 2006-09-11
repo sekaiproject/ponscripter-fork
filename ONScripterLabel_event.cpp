@@ -35,9 +35,7 @@
 #define ONS_MUSIC_EVENT   (SDL_USEREVENT+5)
 
 // This sets up the fadeout event flag for use in mp3 fadeout.  Recommend for integration.  [Seung Park, 20060621]
-#if defined(INSANI)
 #define ONS_FADE_EVENT    (SDL_USEREVENT+6)
-#endif
 
 #define EDIT_MODE_PREFIX "[EDIT MODE]  "
 #define EDIT_SELECT_STRING "MP3 vol (m)  SE vol (s)  Voice vol (v)  Numeric variable (n)"
@@ -49,11 +47,9 @@ SDL_TimerID timer_cdaudio_id = NULL;
 // the reason we have a separate midi loop timer id here is that on Mac OS X, looping midis via SDL will cause SDL itself
 // to hard crash after the first play.  So, we work around that by manually causing the midis to loop.  This OS X midi
 // workaround is the work of Ben Carter.  Recommend for integration.  [Seung Park, 20060621]
-#if defined(INSANI)
 SDL_TimerID timer_mp3fadeout_id = NULL;
 #if defined(MACOSX)
 SDL_TimerID timer_midi_id = NULL;
-#endif
 #endif
 bool ext_music_play_once_flag = false;
 
@@ -105,7 +101,6 @@ extern "C" Uint32 cdaudioCallback( Uint32 interval, void *param )
 }
 
 // Pushes the mp3 fadeout event onto the stack.  Part of our mp3 fadeout enabling patch.  Recommend for integration.  [Seung Park, 20060621]
-#if defined(INSANI)
 extern "C" Uint32 SDLCALL mp3fadeoutCallback( Uint32 interval, void *param )
 {
     SDL_Event event;
@@ -114,7 +109,6 @@ extern "C" Uint32 SDLCALL mp3fadeoutCallback( Uint32 interval, void *param )
 
     return interval;
 }
-#endif
 
 SDLKey transKey(SDLKey key)
 {
@@ -206,7 +200,6 @@ void ONScripterLabel::flushEventSub( SDL_Event &event )
 
 // The event handler for the mp3 fadeout event itself.  Simply sets the volume of the mp3 being played lower and lower until it's 0,
 // and until the requisite mp3 fadeout time has passed.  Recommend for integration.  [Seung Park, 20060621]
-#if defined(INSANI)
     else if ( event.type == ONS_FADE_EVENT ){
 		if (skip_flag || draw_one_page_flag || ctrl_pressed_status || skip_to_wait ) {
 			mp3fadeout_duration = 0;
@@ -228,7 +221,6 @@ void ONScripterLabel::flushEventSub( SDL_Event &event )
             advancePhase();
         }
 	}
-#endif
 
     else if ( event.type == ONS_CDAUDIO_EVENT ){
         if ( cd_play_loop_flag ){
@@ -240,7 +232,7 @@ void ONScripterLabel::flushEventSub( SDL_Event &event )
         }
     }
     else if ( event.type == ONS_MIDI_EVENT ){
-#if defined(MACOSX) && defined(INSANI)
+#ifdef MACOSX
 		if (!Mix_PlayingMusic())
 		{
 			ext_music_play_once_flag = !midi_play_loop_flag;
@@ -326,7 +318,7 @@ void midiCallback( int sig )
 // Pushes the midi loop event onto the stack.  Part of a workaround for PONScripter
 // crashing in Mac OS X after a midi is looped for the first time.  Recommend for
 // integration.  This is the work of Ben Carter.  [Seung Park, 20060621]
-#if defined(MACOSX) && defined(INSANI)
+#ifdef MACOSX
 extern "C" Uint32 midiSDLCallback( Uint32 interval, void *param )
 {
 	SDL_Event event;
@@ -421,10 +413,7 @@ void ONScripterLabel::mousePressEvent( SDL_MouseButtonEvent *event )
               ( event->type == SDL_MOUSEBUTTONUP || btndown_flag ) ){
         current_button_state.button = current_over_button;
         volatile_button_state.button = current_over_button;
-#if defined(INSANI)
-		//fprintf(stderr, "event_mode = %d\n", event_mode);
 		if ( event_mode & WAIT_SLEEP_MODE) skip_to_wait=1;
-#endif
         if ( event->type == SDL_MOUSEBUTTONDOWN )
             current_button_state.down_flag = true;
     }
@@ -943,11 +932,9 @@ void ONScripterLabel::keyPressEvent( SDL_KeyboardEvent *event )
         }
     }
 
-#if defined(INSANI)
-		if ( event_mode & WAIT_SLEEP_MODE ) {
-			if ( event->keysym.sym == SDLK_RETURN || event->keysym.sym == SDLK_KP_ENTER || event->keysym.sym == SDLK_SPACE ) skip_to_wait = 1;
-		}
-#endif
+	if ( event_mode & WAIT_SLEEP_MODE ) {
+		if ( event->keysym.sym == SDLK_RETURN || event->keysym.sym == SDLK_KP_ENTER || event->keysym.sym == SDLK_SPACE ) skip_to_wait = 1;
+	}
 
     if ((event_mode & WAIT_TEXT_MODE ||
          usewheel_flag && event_mode & WAIT_BUTTON_MODE||
@@ -1137,12 +1124,7 @@ int ONScripterLabel::eventLoop()
 
           case ONS_SOUND_EVENT:
           case ONS_CDAUDIO_EVENT:
-
-// Just adds the case for ONS_FADE_EVENT.  This is part of our mp3 fadeout enablement patch.  Recommend for integration.  [Seung Park, 20060621]
-#if defined(INSANI)
           case ONS_FADE_EVENT:
-#endif
-
           case ONS_MIDI_EVENT:
           case ONS_MUSIC_EVENT:
             flushEventSub( event );

@@ -310,9 +310,7 @@ int ONScripterLabel::leaveTextDisplayMode()
 
 void ONScripterLabel::doClickEnd()
 {
-#if defined(INSANI)
 	skip_to_wait = 0;
-#endif
 
 	if ( automode_flag ){
 		event_mode =  WAIT_TEXT_MODE | WAIT_INPUT_MODE | WAIT_VOICE_MODE;
@@ -335,9 +333,7 @@ void ONScripterLabel::doClickEnd()
 
 int ONScripterLabel::clickWait( char *out_text )
 {
-#if defined(INSANI)
 	skip_to_wait = 0;
-#endif
 
 	if ( (skip_flag || draw_one_page_flag || ctrl_pressed_status) && !textgosub_label ){
 		clickstr_state = CLICK_NONE;
@@ -381,9 +377,7 @@ int ONScripterLabel::clickWait( char *out_text )
 
 int ONScripterLabel::clickNewPage( char *out_text )
 {
-#if defined(INSANI)
 	skip_to_wait = 0;
-#endif
 
 	clickstr_state = CLICK_NEWPAGE;
 	if ( out_text ){
@@ -585,7 +579,6 @@ int ONScripterLabel::processText()
 	}
 	else{
 		notacommand:
-#ifdef USE_UTF8
 		{
 			char bytes = CharacterBytes((char*)&ch);
 			char *buf = script_h.getStringBuffer() + string_buffer_offset;
@@ -593,12 +586,9 @@ int ONScripterLabel::processText()
 			string_buffer_offset += bytes - 1;
 			while (bytes--) *t++ = *buf++;
 		}
-#else
-		out_text[0] = ch;
-#endif
 
 		// Check for clickstr
-		// We can remove this, for simplicity's sake, because we won't be using clickstr in our releases.
+		// We can probably remove this, for simplicity's sake, because we won't be using clickstr in our releases.
 #ifdef HAELETH
 		clickstr_state = CLICK_NONE;
 #else

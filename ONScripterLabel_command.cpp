@@ -33,10 +33,8 @@
 
 #define CONTINUOUS_PLAY
 
-#if defined(INSANI)
 extern SDL_TimerID timer_mp3fadeout_id;
 extern "C" Uint32 SDLCALL mp3fadeoutCallback( Uint32 interval, void *param );
-#endif
 
 int ONScripterLabel::waveCommand()
 {
@@ -75,7 +73,6 @@ int ONScripterLabel::waittimerCommand()
 
 int ONScripterLabel::waitCommand()
 {
-#if defined(INSANI)
    int count = script_h.readInt();
 
    if( skip_flag || draw_one_page_flag || ctrl_pressed_status || skip_to_wait ) return RET_CONTINUE;
@@ -83,11 +80,6 @@ int ONScripterLabel::waitCommand()
 	   startTimer( count );
 	   return RET_WAIT;
    }
-#else
-    startTimer( script_h.readInt() );
-
-    return RET_WAIT;
-#endif
 }
 
 int ONScripterLabel::vspCommand()
@@ -991,14 +983,12 @@ int ONScripterLabel::quakeCommand()
     if ( tmp_effect.duration < tmp_effect.no * 4 ) tmp_effect.duration = tmp_effect.no * 4;
     tmp_effect.effect   = CUSTOM_EFFECT_NO + quake_type;
 
-#if defined(INSANI)
 	if ( ctrl_pressed_status || skip_to_wait )
 	{
 		dirty_rect.fill( screen_width, screen_height );
         SDL_BlitSurface( accumulation_surface, NULL, effect_dst_surface, NULL );
         return RET_CONTINUE;
 	}
-#endif
 
     if ( event_mode & EFFECT_EVENT_MODE ){
         return doEffect( &tmp_effect, NULL, DIRECT_EFFECT_IMAGE );
@@ -1195,7 +1185,6 @@ int ONScripterLabel::mp3volCommand()
     return RET_CONTINUE;
 }
 
-#if defined(INSANI)
 int ONScripterLabel::mp3fadeoutCommand()
 {
     mp3fadeout_start = SDL_GetTicks();
@@ -1206,7 +1195,6 @@ int ONScripterLabel::mp3fadeoutCommand()
     event_mode |= WAIT_TIMER_MODE;
     return RET_WAIT;
 }
-#endif
 
 int ONScripterLabel::mp3Command()
 {
@@ -1594,10 +1582,8 @@ int ONScripterLabel::isskipCommand()
         script_h.setInt( &script_h.current_variable, 2 );
     else if ( skip_flag )
         script_h.setInt( &script_h.current_variable, 1 );
-#if defined (INSANI)
     else if ( ctrl_pressed_status )
         script_h.setInt( &script_h.current_variable, 3 );
-#endif
     else
         script_h.setInt( &script_h.current_variable, 0 );
 

@@ -172,9 +172,6 @@ const char *ScriptHandler::readToken()
              ch == '@' || ch == '\\' || ch == '/' ||
              ch == '%' || ch == '?' || ch == '$' ||
              ch == '[' || ch == '(' ||
-#ifndef ENABLE_1BYTE_CHAR
-             ch == '`' ||
-#endif
              ch == '!' || ch == '#' || ch == ',' || ch == '"'){ // text
         bool loop_flag = true;
         bool ignore_click_flag = false;
@@ -205,24 +202,18 @@ const char *ScriptHandler::readToken()
                     if (ch == '_') ignore_click_flag = true;
                 }
                 if (ch>='0' && ch<='9' && (*buf == ' ' || *buf == '\t'
-#ifdef ENABLE_1BYTE_CHAR
                     || *buf == '`'
-#endif
                      ) && string_counter%2 == 1) addStringBuffer( ' ' );
                 ch = *buf;
                 if (ch == 0x0a || ch == '\0' || !loop_flag
-#ifdef ENABLE_1BYTE_CHAR
                     || ch == '`'
-#endif
                     ) break;
                 SKIP_SPACE(buf);
                 ch = *buf;
             }
         }
         while (ch != 0x0a && ch != '\0' && loop_flag
-#ifdef ENABLE_1BYTE_CHAR
                && ch != '`'
-#endif
                );
         if (loop_flag && ch == 0x0a && !(textgosub_flag && linepage_flag)){
             addStringBuffer( ch );
@@ -231,7 +222,6 @@ const char *ScriptHandler::readToken()
 
         text_flag = true;
     }
-#ifdef ENABLE_1BYTE_CHAR
     else if (ch == '`'){
         ch = *++buf;
         while (ch != '`' && ch != 0x0a && ch !='\0'){
@@ -251,7 +241,6 @@ const char *ScriptHandler::readToken()
         text_flag = true;
         end_status |= END_1BYTE_CHAR;
     }
-#endif
     else if ((ch >= 'a' && ch <= 'z') ||
              (ch >= 'A' && ch <= 'Z') ||
              ch == '_'){ // command
@@ -608,13 +597,11 @@ int ScriptHandler::checkClickstr(const char *buf, bool recursive_flag)
     bool double_byte_check = true;
     char *click_buf = clickstr_list;
     while(click_buf[0]){
-#ifdef ENABLE_1BYTE_CHAR
         if (click_buf[0] == '`'){
             click_buf++;
             double_byte_check = false;
             continue;
         }
-#endif
         if (double_byte_check){
             if ( click_buf[0] == buf[0] && click_buf[1] == buf[1] ){
                 if (!recursive_flag && checkClickstr(buf+2, true) > 0) return 0;
@@ -742,7 +729,6 @@ int ScriptHandler::getStringFromInteger( char *buffer, int no, int num_column, b
         num_digit -= num_digit+num_minus-num_column;
     }
 
-#if defined(ENABLE_1BYTE_CHAR) && defined(FORCE_1BYTE_CHAR)
     if (num_minus == 1) no = -no;
     char format[6];
     if (is_zero_inserted)
@@ -752,36 +738,6 @@ int ScriptHandler::getStringFromInteger( char *buffer, int no, int num_column, b
     sprintf(buffer, format, no);
 
     return num_column;
-#else
-    int c = 0;
-    if (is_zero_inserted){
-        for (i=0 ; i<num_space ; i++){
-            buffer[c++] = ((char*)"‚O")[0];
-            buffer[c++] = ((char*)"‚O")[1];
-        }
-    }
-    else{
-    for (i=0 ; i<num_space ; i++){
-        buffer[c++] = ((char*)"@")[0];
-        buffer[c++] = ((char*)"@")[1];
-    }
-    }
-    if (num_minus == 1){
-        buffer[c++] = "|"[0];
-        buffer[c++] = "|"[1];
-    }
-    c = (num_column-1)*2;
-    char num_str[] = "‚O‚P‚Q‚R‚S‚T‚U‚V‚W‚X";
-    for (i=0 ; i<num_digit ; i++){
-        buffer[c]   = num_str[ no % 10 * 2];
-        buffer[c+1] = num_str[ no % 10 * 2 + 1];
-        no /= 10;
-        c -= 2;
-    }
-    buffer[num_column*2] = '\0';
-
-    return num_column*2;
-#endif
 }
 
 int ScriptHandler::readScriptSub( FILE *fp, char **buf, int encrypt_mode )
@@ -1191,7 +1147,6 @@ void ScriptHandler::parseStr( char **buf )
         if ( **buf == '"' ) (*buf)++;
         current_variable.type |= VAR_CONST;
     }
-#ifdef ENABLE_1BYTE_CHAR
     else if ( **buf == '`' ){
         int c=0;
         str_string_buffer[c++] = *(*buf)++;
@@ -1202,7 +1157,6 @@ void ScriptHandler::parseStr( char **buf )
         current_variable.type |= VAR_CONST;
         end_status |= END_1BYTE_CHAR;
     }
-#endif
     else if ( **buf == '#' ){ // for color
         for ( int i=0 ; i<7 ; i++ )
             str_string_buffer[i] = *(*buf)++;
