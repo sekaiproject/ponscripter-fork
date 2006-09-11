@@ -122,7 +122,7 @@ int ScriptParser::textgosubCommand()
 
     setStr( &textgosub_label, script_h.readLabel()+1 );
     script_h.enableTextgosub(true);
-    
+
     return RET_CONTINUE;
 }
 

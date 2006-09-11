@@ -225,6 +225,7 @@ const char *ScriptHandler::readToken()
         while (ch != '`' && ch != 0x0a && ch !='\0'){
         	char bytes = CharacterBytes(&ch);
             while (bytes--) addStringBuffer(*buf++);
+            ch = *buf;
         }
         if (ch == '`') ++buf;
         if (ch == 0x0a && !(textgosub_flag && linepage_flag)){

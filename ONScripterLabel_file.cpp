@@ -174,7 +174,6 @@ int ONScripterLabel::loadSaveFile( int no )
 
         file_io_buf_ptr = 0;
         if ( !ons_ver0_flag ){
-            printf("Save file version is unknown\n" );
             return loadSaveFile2( SAVEFILE_VERSION_MAJOR*100 + SAVEFILE_VERSION_MINOR );
         }
         file_version = 0;
@@ -183,7 +182,6 @@ int ONScripterLabel::loadSaveFile( int no )
         file_version = readChar() * 100;
         file_version += readChar();
     }
-    printf("Save file version is %d.%d\n", file_version/100, file_version%100 );
     if ( file_version > SAVEFILE_VERSION_MAJOR*100 + SAVEFILE_VERSION_MINOR ){
         fprintf( stderr, "Save file is newer than %d.%d, please use the latest PONScripter.\n", SAVEFILE_VERSION_MAJOR, SAVEFILE_VERSION_MINOR );
         return -1;
@@ -196,7 +194,7 @@ int ONScripterLabel::loadSaveFile( int no )
 
     /* ---------------------------------------- */
     /* Load text history */
-// FIXME: this will NOT work with UTF-8 and proportional text...
+// FIXME: this will (probably) NOT work with UTF-8 and proportional text...
     if ( file_version >= 107 ) readInt();
     int text_history_num = readInt();
     for ( i=0 ; i<text_history_num ; i++ ){
@@ -536,8 +534,7 @@ int ONScripterLabel::saveSaveFile( int no )
 
         size_t magic_len = strlen(SAVEFILE_MAGIC_NUMBER)+2;
         sprintf( filename, RELATIVEPATH "sav%csave%d.dat", DELIMITER, no );
-        if (saveFileIOBuf( filename, magic_len ))
-            fprintf( stderr, "can't open save file %s for writing (not an error)\n", filename );
+        saveFileIOBuf( filename, magic_len );
     }
 
     return 0;

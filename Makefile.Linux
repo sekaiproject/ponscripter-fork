@@ -4,7 +4,7 @@
 #
 
 LIBS = `sdl-config --libs` `smpeg-config --libs` -lSDL_ttf -lfreetype -lSDL_mixer -lSDL_image -lbz2 -lz -ljpeg -lm -lvorbis -lvorbisfile -logg
-DEFS = -DLINUX -DUSE_OGG_VORBIS -DHAELETH
+DEFS = -DLINUX -DUSE_OGG_VORBIS -DHAELETH -DUSE_INTERNAL_FONT
 
 EXESUFFIX =
 OBJSUFFIX = .o
@@ -33,8 +33,6 @@ CFLAGS = -O3 -Wall -fomit-frame-pointer -pipe -c $(INCS) $(DEFS)
 
 RM = rm -f
 
-TARGET = ponscripter$(EXESUFFIX)
-#TARGET = ponscripter$(EXESUFFIX) sardec$(EXESUFFIX) nsadec$(EXESUFFIX) sarconv$(EXESUFFIX) nsaconv$(EXESUFFIX) simple_aviplay$(EXESUFFIX)
-#EXT_OBJS = AVIWrapper$(OBJSUFFIX)
+TARGET = ponscr$(EXESUFFIX)
 
 include Makefile.ponscripter

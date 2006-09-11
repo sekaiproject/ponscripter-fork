@@ -7,7 +7,7 @@
 INCS = `/usr/local/bin/sdl-config --cflags` `/usr/local/bin/smpeg-config --cflags`
 
 LIBS = `/usr/local/bin/sdl-config --static-libs` `/usr/local/bin/smpeg-config --libs` `/usr/local/bin/freetype-config --libs` /usr/local/lib/libSDL_ttf.a /usr/local/lib/libSDL_image.a /usr/local/lib/libSDL_mixer.a ./libbz2.a -lm /usr/local/lib/libjpeg.a /usr/local/lib/libogg.a /usr/local/lib/libvorbis.a /usr/local/lib/libvorbisfile.a -lpng -framework QuickTime -framework CoreFoundation
-DEFS = -DMACOSX -DUTF8_FILESYSTEM -DUSE_OGG_VORBIS -DHAELETH
+DEFS = -DMACOSX -DUTF8_FILESYSTEM -DUSE_OGG_VORBIS -DHAELETH -DUSE_INTERNAL_FONT
 
 EXESUFFIX =
 OBJSUFFIX = .o
@@ -22,7 +22,6 @@ LD = c++ -o
 CFLAGS = -O3 -Wall -Wpointer-arith -pipe -c $(INCS) $(DEFS)
 RM = rm -f
 
-#TARGET = ponscripter$(EXESUFFIX) sardec$(EXESUFFIX) nsadec$(EXESUFFIX) sarconv$(EXESUFFIX) nsaconv$(EXESUFFIX)
-TARGET = ponscripter$(EXESUFFIX)
+TARGET = ponscr$(EXESUFFIX)
 
 include Makefile.ponscripter

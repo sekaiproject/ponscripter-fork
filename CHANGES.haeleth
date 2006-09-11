@@ -1,6 +1,7 @@
 Specific changes:
 * Use ;gameid and ;usefont directives at the start of a file (after modeline,
-  in that order).
+  in that order).  Note that ;gameid is mandatory, as it is used to determine
+  whether a game has been checked for PONScripter compatibility or not.
 * All(?) horizontal text positioning commands now operate in pixels, 
   not zenkaku characters as before.  Vertical positioning still operates
   in lines.  This means that for example all instances of [locate] will be
@@ -10,17 +11,20 @@ Specific changes:
 * New commands h_textextent and h_centreline (see ONScripterLabel_haeleth.cpp)
 
 
+Significant changes:
+
+2006-09-08
+
+  Default font & icon embedded in interpreter.  (These are game-specific;
+  users are expected to use custom builds with these replaced.)
+
 2006-09-06
 
-  Highly experimental UTF-8 and proportional text support. Note that many things 
-  will be seriously broken at this stage, including line breaking and possibly 
-  even fundamentals like saved games and text history.
+  Highly experimental UTF-8 and proportional text support.
   
   Ruby and tategaki support removed.
 
 2006-09-05
-
-  Fix typo in usage summary.
 
   Make archive path and save path separately configurable.  Game data no longer 
   has to be stored in a writable directory.
@@ -30,4 +34,3 @@ Specific changes:
   name of the subfolder is derived from a new "game identifier" that should be 
   specified at the top of 0.txt with a ";gameid Whatever" line immediately after 
   the modeline (if present).
-  TODO: use ~/Library/Preferences rather than ~/Documents in future. ^^

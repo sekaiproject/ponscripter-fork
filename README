@@ -13,7 +13,8 @@ but it should more than make up for that by making games look good, if one takes
 the time to convert them to make proper use of the new capabilities.
 
 I must repeat this for emphasis: unlike ONScripter, this can NOT be used to play 
-original Japanese games under any circumstances!
+original Japanese games under any circumstances!  Nor can it be used to play any 
+existing English releases!
 
 PLEASE DO NOT USE THIS FORK UNLESS YOU KNOW EXACTLY WHAT YOU'RE DOING, OR 
 UNLESS YOU NEED TO RUN A GAME THAT HAS BEEN DESIGNED TO BE PLAYED WITH IT.
@@ -22,9 +23,9 @@ If you want a portable game engine that works well with both Japanese and
 English games, and that strives to implement an NScripter-compatible system that 
 conforms to all the games and technical documentation out there, then avoid 
 PONScripter like the plague and stick with ONScripter, which does an admirable 
-job at that. If you want pretty Western text, and are willing to work to get it, 
-then converting your game to PONScripter is likely to be easier than rewriting 
-from scratch in Ren'Py.
+job at that. If you want pretty Western text on Windows, OS X, or X11, and are 
+willing to work to get it, then converting your game to PONScripter is likely to 
+be easier than rewriting from scratch in Ren'Py.
 
 Note that PONScripter is still very much a work in progress: it is largely
 untested, and there is very little detailed documentation of the many changes.

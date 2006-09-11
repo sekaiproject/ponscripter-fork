@@ -26,6 +26,10 @@
 #include <stdio.h>
 #include <SDL_ttf.h>
 
+#ifdef USE_INTERNAL_FONT
+#include "resources.h"
+#endif
+
 char* font_file = NULL;
 int screen_ratio1 = 1, screen_ratio2 = 1;
 
@@ -77,10 +81,20 @@ void *FontInfo::openFont()
     if ( !fc->next ){
         fc->next = new FontContainer();
         fc->next->size = font_size;
-        FILE *fp = fopen( font_file, "r" );
-        if ( fp == NULL ) return NULL;
-        fclose( fp );
-        fc->next->font = TTF_OpenFont( font_file, font_size * screen_ratio1 / screen_ratio2 );
+        if ( font_file ) {
+	        FILE *fp = fopen( font_file, "r" );
+	        if ( fp == NULL ) return NULL;
+	        fclose( fp );
+	        fc->next->font = TTF_OpenFont( font_file, font_size * screen_ratio1 / screen_ratio2 );
+	    }
+	    else {
+#ifdef USE_INTERNAL_FONT
+	    	SDL_RWops* rwfont = SDL_RWFromConstMem( internal_font_buffer, internal_font_size );
+	    	fc->next->font = TTF_OpenFontRW( rwfont, 0, font_size * screen_ratio1 / screen_ratio2 );
+#else
+			return NULL;
+#endif
+	    }
     }
 
 	if (fc->next->font) {

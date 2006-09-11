@@ -22,7 +22,7 @@
  */
 
 #include "ONScripterLabel.h"
-
+#include "resources.h"
 #include "utf8_util.h"
 #include <ctype.h>
 
@@ -279,6 +279,9 @@ void ONScripterLabel::initSDL()
 		exit(-1);
 	}
 
+	SDL_RWops* rwicon = SDL_RWFromConstMem( internal_icon_buffer, internal_icon_size );
+	SDL_WM_SetIcon(IMG_Load_RW(rwicon, 0), NULL);
+
 #if defined(BPP16)
 	screen_bpp = 16;
 #else
@@ -311,7 +314,7 @@ void ONScripterLabel::initSDL()
 				 screen_width, screen_height, screen_bpp, SDL_GetError() );
 		exit(-1);
 	}
-	printf("Display: %d x %d (%d bpp)\n", screen_width, screen_height, screen_bpp);
+	//printf("Display: %d x %d (%d bpp)\n", screen_width, screen_height, screen_bpp);
 
 	wm_title_string = new char[ strlen(DEFAULT_WM_TITLE) + 1 ];
 	memcpy( wm_title_string, DEFAULT_WM_TITLE, strlen(DEFAULT_WM_TITLE) + 1 );
@@ -339,9 +342,9 @@ void ONScripterLabel::openAudio()
 		int channels;
 
 		Mix_QuerySpec( &freq, &format, &channels);
-		printf("Audio: %d Hz %d bit %s\n", freq,
-			   (format&0xFF),
-			   (channels > 1) ? "stereo" : "mono");
+		//printf("Audio: %d Hz %d bit %s\n", freq,
+		//	   (format&0xFF),
+		//	   (channels > 1) ? "stereo" : "mono");
 		audio_format.format = format;
 		audio_format.freq = freq;
 		audio_format.channels = channels;
@@ -480,11 +483,6 @@ int ONScripterLabel::init()
 #endif
 	}
 
-	char* icon_path = new char[strlen(archive_path) + 9];
-	sprintf(icon_path, "%sicon.png", archive_path);
-	SDL_WM_SetIcon(IMG_Load(icon_path), NULL);
-	delete[] icon_path;
-
 	if (key_exe_file){
 		createKeyTable( key_exe_file );
 		script_h.setKeyTable( key_table );
@@ -507,7 +505,16 @@ int ONScripterLabel::init()
 		mkdir(script_h.save_path, 0755);
 #endif
 	}
-	if ( script_h.game_identifier ) { delete[] script_h.game_identifier; script_h.game_identifier = NULL; }
+	if ( script_h.game_identifier ) {
+		delete[] script_h.game_identifier; 
+		script_h.game_identifier = NULL; 
+	}
+	else {
+		fprintf(stderr, "This game is not intended to be played with PONScripter.\n"
+						"Please play it with NScripter instead, or with a properly compatible clone\n"
+						"such as ONScripter.\n");
+		exit(-1);
+	}
 
 	initSDL();
 
@@ -528,8 +535,13 @@ int ONScripterLabel::init()
 	// ----------------------------------------
 	// Initialize font
 	if ( script_h.script_defined_font ){
-		font_file = new char[ strlen(archive_path) + strlen(script_h.script_defined_font) + 1 ];
-		sprintf( font_file, "%s%s", archive_path, script_h.script_defined_font );
+		if (strcmp(script_h.script_defined_font, "internal") == 0) {
+			font_file = NULL;
+		}
+		else {
+			font_file = new char[ strlen(archive_path) + strlen(script_h.script_defined_font) + 1 ];
+			sprintf( font_file, "%s%s", archive_path, script_h.script_defined_font );
+		}
     	delete[] script_h.script_defined_font;
     	script_h.script_defined_font = NULL;
 	}
@@ -1023,7 +1035,10 @@ SDL_Surface *ONScripterLabel::loadImage( char *file_name )
 	if ( !file_name ) return NULL;
 	unsigned long length = script_h.cBR->getFileLength( file_name );
 	if ( length == 0 ){
-		fprintf( stderr, " *** can't find file [%s] ***\n", file_name );
+		if (strcmp(file_name, DEFAULT_LOOKBACK_NAME0) != 0 && strcmp(file_name, DEFAULT_LOOKBACK_NAME1) != 0 &&
+		    strcmp(file_name, DEFAULT_LOOKBACK_NAME2) != 0 && strcmp(file_name, DEFAULT_LOOKBACK_NAME3) != 0 &&
+		    strcmp(file_name, DEFAULT_CURSOR1) != 0)
+			fprintf( stderr, " *** can't find file [%s] ***\n", file_name );
 		return NULL;
 	}
 	if ( filelog_flag )

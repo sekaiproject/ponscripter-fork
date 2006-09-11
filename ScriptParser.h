@@ -47,6 +47,10 @@
 #define DEFAULT_LOOKBACK_NAME1 "uoffcur.bmp"
 #define DEFAULT_LOOKBACK_NAME2 "doncur.bmp"
 #define DEFAULT_LOOKBACK_NAME3 "doffcur.bmp"
+#define DEFAULT_CURSOR0 "cursor0.bmp"
+#define DEFAULT_CURSOR1 "cursor1.bmp"
+#define DEFAULT_CURSOR_WAIT    ":l/3,160,2;cursor0.bmp"
+#define DEFAULT_CURSOR_NEWPAGE ":l/3,160,2;cursor1.bmp"
 
 typedef unsigned char uchar3[3];
 

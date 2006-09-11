@@ -29,9 +29,6 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
-#define DEFAULT_CURSOR_WAIT    ":l/3,160,2;cursor0.bmp"
-#define DEFAULT_CURSOR_NEWPAGE ":l/3,160,2;cursor1.bmp"
-
 #define CONTINUOUS_PLAY
 
 extern SDL_TimerID timer_mp3fadeout_id;
@@ -1774,7 +1771,7 @@ int ONScripterLabel::gettagCommand()
     }
     while(end_status & ScriptHandler::END_COMMA);
 
-    if (zenkakko_flag && UnicodeOfUTF8(buf) == 0x3010 /*y */)) buf += CharacterBytes(buf);
+    if (zenkakko_flag && UnicodeOfUTF8(buf) == 0x3010 /*y */) buf += CharacterBytes(buf);
     else if (*buf == ']') buf++;
     while(*buf == ' ' || *buf == '\t') buf++;
     last_nest_info->next_script = buf;

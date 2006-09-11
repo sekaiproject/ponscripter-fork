@@ -1,0 +1,36 @@
+# -*- Makefile -*-
+#
+# Makefile.MinGW - Makefile rules for MinGW / MSYS
+#
+
+INCS = `sdl-config --cflags` `smpeg-config --cflags`
+
+LIBS = -static -Wl,--start-group `sdl-config --static-libs` `smpeg-config --libs` \
+       -lSDL_ttf   -lfreetype                   \
+       -lSDL_image -ljpeg -lpng -lz             \
+       -lSDL_mixer -logg -lvorbis -lvorbisfile  \
+       -lbz2 -Wl,--end-group
+DEFS = -DWIN32 -DUSE_OGG_VORBIS -DHAELETH -DUSE_INTERNAL_FONT
+
+EXESUFFIX = .exe
+OBJSUFFIX = .o
+
+.SUFFIXES:
+.SUFFIXES: $(OBJSUFFIX) .cpp .h
+
+# for GNU g++
+CC = g++ 
+LD = g++ -o 
+
+CFLAGS = -O2 -Wall -Wpointer-arith -pipe -c $(INCS) $(DEFS)
+
+RM = rm -f
+
+TARGET = ponscr$(EXESUFFIX)
+
+EXT_OBJS = win32rc.o
+
+include Makefile.ponscripter
+
+win32rc.o: ponscr.rc
+	windres $< -o $@

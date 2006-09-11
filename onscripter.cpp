@@ -26,10 +26,11 @@
 
 void optionHelp()
 {
+    printf( "PONScripter version %s (NScr %d.%02d)\n", ONS_VERSION, NSC_VERSION/100, NSC_VERSION%100 );
     printf( "Usage: ponscripter [option ...]\n" );
     printf( "      --cdaudio\t\tuse CD audio if available\n");
     printf( "      --cdnumber no\tchoose the CD-ROM drive number\n");
-    printf( "  -f, --font file\tset a TTF font file\n");
+    printf( "  -f, --font file\tset a font file (TrueType)\n");
     printf( "      --registry file\tset a registry file\n");
     printf( "      --dll file\tset a dll file\n");
 #ifndef MACOSX
@@ -53,6 +54,7 @@ void optionHelp()
 
 void optionVersion()
 {
+    printf("PONScripter version %s (NScr %d.%02d)\n", ONS_VERSION, NSC_VERSION/100, NSC_VERSION%100 );
     printf("Based on ONScripter by Ogapee <ogapee@aqua.dti2.ne.jp>\n\n");
     printf("Copyright (c) 2001-2006 Ogapee, 2006 Haeleth.\n");
     printf("This is free software; see the source for copying conditions.\n");
@@ -66,8 +68,6 @@ extern "C" int main( int argc, char **argv )
 int main( int argc, char **argv )
 #endif
 {
-    printf("PONScripter version %s (%d.%02d)\n", ONS_VERSION, NSC_VERSION/100, NSC_VERSION%100 );
-
     ONScripterLabel ons;
 
 #if defined(PSP)

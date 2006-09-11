@@ -1,1 +1,2 @@
-Probably loads, but I don't know what right now. ^^;
+Line wrapping fails: tokens break on hyphen, but the next token is not re-scanned.
+(i.e. "three-mi|nute", because "three-" fits on the line, and "minute" is not checked.)
