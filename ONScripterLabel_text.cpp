@@ -24,27 +24,6 @@
 #include "ONScripterLabel.h"
 #include "utf8_util.h"
 
-#define IS_KINSOKU(x)	\
-		( *(x) == (char)0x81 && *((x)+1) == (char)0x41 || \
-		  *(x) == (char)0x81 && *((x)+1) == (char)0x42 || \
-		  *(x) == (char)0x81 && *((x)+1) == (char)0x48 || \
-		  *(x) == (char)0x81 && *((x)+1) == (char)0x49 || \
-		  *(x) == (char)0x81 && *((x)+1) == (char)0x76 || \
-		  *(x) == (char)0x81 && *((x)+1) == (char)0x78 || \
-		  *(x) == (char)0x81 && *((x)+1) == (char)0x5b )
-
-#define IS_ROTATION_REQUIRED(x)	\
-		( !IS_TWO_BYTE(*(x)) || \
-		  *(x) == (char)0x81 && *((x)+1) == (char)0x50 || \
-		  *(x) == (char)0x81 && *((x)+1) == (char)0x51 || \
-		  *(x) == (char)0x81 && *((x)+1) >= 0x5b && *((x)+1) <= 0x5d || \
-		  *(x) == (char)0x81 && *((x)+1) >= 0x60 && *((x)+1) <= 0x64 || \
-		  *(x) == (char)0x81 && *((x)+1) >= 0x69 && *((x)+1) <= 0x7a || \
-		  *(x) == (char)0x81 && *((x)+1) == (char)0x80 )
-
-#define IS_TRANSLATION_REQUIRED(x)	\
-		( *(x) == (char)0x81 && *((x)+1) >= 0x41 && *((x)+1) <= 0x44 )
-
 SDL_Surface *ONScripterLabel::renderGlyph(TTF_Font *font, Uint16 text)
 {
 	GlyphCache *gc = root_glyph_cache;
@@ -415,8 +394,7 @@ int ONScripterLabel::textCommand()
 		(line_enter_status == 0 ||
 		 (line_enter_status == 1 &&
 		  (script_h.getStringBuffer()[string_buffer_offset] == '[' ||
-		   zenkakko_flag && script_h.getStringBuffer()[string_buffer_offset] == "y"[0] &&
-		   script_h.getStringBuffer()[string_buffer_offset+1] == "y"[1]))) ){
+		   zenkakko_flag && UnicodeOfUTF8(script_h.getStringBuffer()) == 0x3010 /*y */))) ){
 		gosubReal( pretextgosub_label, script_h.getCurrent() );
 		line_enter_status = 1;
 		return RET_CONTINUE;
@@ -468,7 +446,7 @@ int ONScripterLabel::processText()
 		else if ( script_h.getStringBuffer()[ string_buffer_offset + 1 ] &&
 				  script_h.getStringBuffer()[ string_buffer_offset + 1 ] != 0x0a &&
 				  !(script_h.getEndStatus() & ScriptHandler::END_1BYTE_CHAR) ){
-			string_buffer_offset += 2;
+			string_buffer_offset += 2; // CHECKME: is this a relic of DBCS assumptions?
 		}
 		else
 			string_buffer_offset++;

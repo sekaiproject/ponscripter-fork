@@ -23,6 +23,7 @@
 
 #include "ONScripterLabel.h"
 #include "version.h"
+#include "utf8_util.h"
 
 #if defined(MACOSX) && (SDL_COMPILEDVERSION >= 1208)
 #include <CoreFoundation/CoreFoundation.h>
@@ -1731,8 +1732,8 @@ int ONScripterLabel::gettagCommand()
     bool end_flag = false;
     char *buf = last_nest_info->next_script;
     while(*buf == ' ' || *buf == '\t') buf++;
-    if (zenkakko_flag && buf[0] == "y"[0] && buf[1] == "y"[1])
-        buf += 2;
+    if (zenkakko_flag && UnicodeOfUTF8(buf) == 0x3010 /*y */)
+        buf += CharacterBytes(buf);
     else if (*buf == '[')
         buf++;
     else
@@ -1757,13 +1758,10 @@ int ONScripterLabel::gettagCommand()
                 setStr( &script_h.variable_data[ script_h.pushed_variable.var_no ].str, NULL);
             else{
                 const char *buf_start = buf;
-                while(*buf != '/' &&
-                      (!zenkakko_flag || (buf[0] != "z"[0] || buf[1] != "z"[1])) &&
-                      *buf != ']'){
-                    if (IS_TWO_BYTE(*buf))
-                        buf += 2;
-                    else
-                        buf++;
+                while(*buf != '/' 
+                      && (!zenkakko_flag || UnicodeOfUTF8(buf) != 0x3011 /* z*/) 
+                      && *buf != ']'){
+                    buf += CharacterBytes(buf);
                 }
                 setStr( &script_h.variable_data[ script_h.pushed_variable.var_no ].str, buf_start, buf-buf_start );
             }
@@ -1776,7 +1774,7 @@ int ONScripterLabel::gettagCommand()
     }
     while(end_status & ScriptHandler::END_COMMA);
 
-    if (zenkakko_flag && buf[0] == "z"[0] && buf[1] == "z"[1]) buf += 2;
+    if (zenkakko_flag && UnicodeOfUTF8(buf) == 0x3010 /*y */)) buf += CharacterBytes(buf);
     else if (*buf == ']') buf++;
     while(*buf == ' ' || *buf == '\t') buf++;
     last_nest_info->next_script = buf;

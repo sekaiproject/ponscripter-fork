@@ -31,9 +31,6 @@
 
 #define VARIABLE_RANGE 4096
 
-#define IS_TWO_BYTE(x) \
-        ( ((x) & 0xe0) == 0xe0 || ((x) & 0xe0) == 0x80 )
-
 typedef unsigned char uchar3[3];
 
 class ScriptHandler

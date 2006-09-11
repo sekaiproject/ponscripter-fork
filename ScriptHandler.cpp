@@ -22,6 +22,7 @@
  */
 
 #include "ScriptHandler.h"
+#include "utf8_util.h"
 
 #define TMP_SCRIPT_BUF_LEN 4096
 #define STRING_BUFFER_LENGTH 2048
@@ -176,13 +177,10 @@ const char *ScriptHandler::readToken()
         bool loop_flag = true;
         bool ignore_click_flag = false;
         do{
-            if ( IS_TWO_BYTE(ch) ){
+            char bytes = CharacterBytes(&ch);
+            if (bytes > 1) {
                 if ( textgosub_flag && !ignore_click_flag && checkClickstr(buf) > 0) loop_flag = false;
-                addStringBuffer( ch );
-                ch = *++buf;
-                if (ch == 0x0a || ch == '\0') break;
-                addStringBuffer( ch );
-                buf++;
+                while (bytes--) addStringBuffer(*buf++);
                 SKIP_SPACE(buf);
                 ch = *buf;
             }
@@ -225,14 +223,10 @@ const char *ScriptHandler::readToken()
     else if (ch == '`'){
         ch = *++buf;
         while (ch != '`' && ch != 0x0a && ch !='\0'){
-            if ( IS_TWO_BYTE(ch) ){
-                addStringBuffer( ch );
-                ch = *++buf;
-            }
-            addStringBuffer( ch );
-            ch = *++buf;
+        	char bytes = CharacterBytes(&ch);
+            while (bytes--) addStringBuffer(*buf++);
         }
-        if (ch == '`') buf++;
+        if (ch == '`') ++buf;
         if (ch == 0x0a && !(textgosub_flag && linepage_flag)){
             addStringBuffer( ch );
             markAsKidoku( buf++ );
@@ -371,12 +365,9 @@ void ScriptHandler::skipToken()
         if ( *buf == 0x0a ||
              (!quat_flag && !text_flag && (*buf == ':' || *buf == ';') ) ) break;
         if ( *buf == '"' ) quat_flag = !quat_flag;
-        if ( IS_TWO_BYTE(*buf) ){
-            buf += 2;
-            if ( !quat_flag ) text_flag = true;
-        }
-        else
-            buf++;
+        const char bytes = CharacterBytes(buf);
+        if ( bytes > 1 && !quat_flag ) text_flag = true;
+        buf += bytes;
     }
     next_script = buf;
 }
