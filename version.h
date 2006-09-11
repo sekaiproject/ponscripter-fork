@@ -1,2 +1,2 @@
-#define ONS_VERSION "20060906-insani+haeleth"
+#define ONS_VERSION "0.000001"
 #define NSC_VERSION 255

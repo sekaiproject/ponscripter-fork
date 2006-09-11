@@ -1,52 +1,33 @@
-ONScripter
+PONScripter is a fork of ogapee's ONScripter, which in turn is an enhanced clone 
+of NScripter.
 
-0. はじめに
+While ONScripter adds basic support for Western text, it does so only insofar as 
+is easily done while retaining compatibility with unmodified Japanese games. 
+PONScripter builds on the ONScripter source code, but removes many 
+Japanese-specific features (vertical text, ruby), and makes some fundamental 
+architectural changes to better support Western games (proportionally spaced 
+text, scripts encoded as UTF-8 rather than Shift_JIS).
 
-	高橋直樹氏作の NScripter 用に作成されたスクリプトを独自に解釈して実行します。
+The end result is a somewhat less stable and VASTLY less compatible engine -- 
+but it more than makes up for that by making games look good, if one takes the 
+time to convert them to make proper use of the new capabilities.
 
+If you want a portable game engine that works well with both Japanese and 
+English games, and that strives to implement an NScripter-compatible system that 
+conforms to all the games and technical documentation out there, then avoid 
+PONScripter like the plague and stick with ONScripter, which does an admirable 
+job at that. If you want pretty Western text, and are willing to work to get it, 
+then converting your game to PONScripter is likely to be easier than rewriting 
+from scratch in Ren'Py.
 
-1. 動作環境
+Note that PONScripter is still very much a work in progress: it is largely
+untested, and there is very little detailed documentation of the many changes.
+If you use this, you do so at your own risk, and I will not be held liable for
+any damage that ensues.
 
-	libjpeg 6b, bzip2-1.0.2, SDL-1.2.6, SDL_image-1.2.3, SDL_mixer-1.2.5, SDL_ttf-2.0.6, 及び SMPEG-0.4.4 が動作する環境です。
-	Linux 2.4.27 + XFree86 4.3.0 + g++ (gcc 3.3.4) で開発しています。
-	Linux, Windows 2000 (Visual C++ 6.0), Zaurus (SL-5500,SL-C700)上で動作確認をしています。
-	MacOS X および MacOS 9, FreeBSD, Solaris, Tru64 UNIX, PSP, OS/Warp, iPod, Dreamcast 上での動作報告をいただいています。
+Please do not bug ogapee with any problems you encounter herein.  (In fact, 
+please don't bug me with them either, unless you're using a binary I built to 
+run a game I intended it to run, or else unless you have solutions to offer.)
 
-
-2. コンパイル・起動方法
-
-	コンパイル・起動方法は以下の通りです。
-	ただし、onscripter を実行する場所に default.ttf, スクリプト, アーカイブがなければいけません。
-	詳しくは同梱の www/onscripter.html を参照してください。
-
-	Linux もしくは FreeBSD, Solaris の場合
-	$ make -f Makefile.Linux
-	$ onscripter
-
-	Windows の場合 (DOS プロンプトで)
-	$ libjpeg 6b, bzip2, SDL と SMPEG のインストール場所に合わせて Makefile.Win を修正
-	$ nmake -f Makefile.Win
-	$ onscripter.exe
-
-	MacOS X の場合
-	$ make -f Makefile.MacOSX
-	$ onscripter
-
-	Zaurus (SL-5500, SL-A300, SL-B500, SL-C700) の場合
-	別のマシン(Linux 等)上でクロスコンパイル
-	$ make -f Makefile.ARMLinux
-	Zaurus の Qtopia 上から実行
-	$ onscripter
-
-	それ以外のプラットフォームでは、Makefile.Linux を雛形にして Makefile.### を作ってください。
-
-	ONScripter は、カレントディレクトリの 0.txt もしくは nscript.dat を自動的に読み込み、それにしたがってカレントディレクトリの arc.sar もしくは arc.nsa を読み込みます。
-
-
-3. 連絡先
-
-	本ソフトウェアに関する問い合わせは
-
-	ogapee@aqua.dti2.ne.jp
-
-	まで電子メールにてお願いします。
+  -- Peter Jolly (Haeleth)
+     September 2006
