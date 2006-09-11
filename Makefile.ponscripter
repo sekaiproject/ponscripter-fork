@@ -8,10 +8,6 @@ GUI_OBJS = ONScripterLabel$(OBJSUFFIX) ONScripterLabel_command$(OBJSUFFIX) ONScr
 	ONScripterLabel_animation$(OBJSUFFIX) ONScripterLabel_sound$(OBJSUFFIX) ONScripterLabel_file$(OBJSUFFIX) \
 	ONScripterLabel_file2$(OBJSUFFIX) ONScripterLabel_image$(OBJSUFFIX) ONScripterLabel_haeleth$(OBJSUFFIX) \
 	AnimationInfo$(OBJSUFFIX) FontInfo$(OBJSUFFIX) DirtyRect$(OBJSUFFIX) resize_image$(OBJSUFFIX)
-SARDEC_OBJS  = sardec$(OBJSUFFIX) DirectReader$(OBJSUFFIX) SarReader$(OBJSUFFIX)
-SARCONV_OBJS = sarconv$(OBJSUFFIX) conv_shared$(OBJSUFFIX) resize_image$(OBJSUFFIX) DirectReader$(OBJSUFFIX) SarReader$(OBJSUFFIX)
-NSADEC_OBJS  = nsadec$(OBJSUFFIX) DirectReader$(OBJSUFFIX) SarReader$(OBJSUFFIX) NsaReader$(OBJSUFFIX)
-NSACONV_OBJS = nsaconv$(OBJSUFFIX) conv_shared$(OBJSUFFIX) resize_image$(OBJSUFFIX) DirectReader$(OBJSUFFIX) SarReader$(OBJSUFFIX) NsaReader$(OBJSUFFIX)
 DECODER_OBJS = DirectReader$(OBJSUFFIX) SarReader$(OBJSUFFIX) NsaReader$(OBJSUFFIX)
 ONSCRIPTER_OBJS = onscripter$(OBJSUFFIX) $(DECODER_OBJS) ScriptHandler$(OBJSUFFIX) ScriptParser$(OBJSUFFIX) ScriptParser_command$(OBJSUFFIX) \
 	$(GUI_OBJS) $(EXT_OBJS)
@@ -19,21 +15,6 @@ PARSER_HEADER = BaseReader.h SarReader.h NsaReader.h DirectReader.h ScriptHandle
 ONSCRIPTER_HEADER = ONScripterLabel.h $(PARSER_HEADER)
 
 ALL: $(TARGET)
-
-sardec$(EXESUFFIX): $(SARDEC_OBJS)
-	$(LD)$@ $(SARDEC_OBJS) $(LIBS)
-
-sarconv$(EXESUFFIX): $(SARCONV_OBJS)
-	$(LD)$@ $(SARCONV_OBJS) $(LIBS)
-
-nsadec$(EXESUFFIX): $(NSADEC_OBJS)
-	$(LD)$@ $(NSADEC_OBJS) $(LIBS)
-
-nsaconv$(EXESUFFIX): $(NSACONV_OBJS)
-	$(LD)$@ $(NSACONV_OBJS) $(LIBS)
-
-simple_aviplay$(EXESUFFIX): simple_aviplay$(OBJSUFFIX) AVIWrapper$(OBJSUFFIX)
-	$(LD)$@ simple_aviplay$(OBJSUFFIX) AVIWrapper$(OBJSUFFIX) $(LIBS)
 
 ponscripter$(EXESUFFIX): $(ONSCRIPTER_OBJS)
 	$(LD)$@ $(ONSCRIPTER_OBJS) $(LIBS)
@@ -51,14 +32,6 @@ DirectReader$(OBJSUFFIX): BaseReader.h DirectReader.h
 ScriptHandler$(OBJSUFFIX): ScriptHandler.h
 ScriptParser$(OBJSUFFIX): $(PARSER_HEADER)
 ScriptParser_command$(OBJSUFFIX): $(PARSER_HEADER)
-
-sardec$(OBJSUFFIX): BaseReader.h SarReader.h 
-sarconv$(OBJSUFFIX): BaseReader.h SarReader.h 
-nsadec$(OBJSUFFIX): BaseReader.h SarReader.h NsaReader.h 
-nsaconv$(OBJSUFFIX): BaseReader.h SarReader.h NsaReader.h 
-simple_aviplay$(OBJSUFFIX): AVIWrapper.h
-conv_shared$(OBJSUFFIX): resize_image.h
-
 onscripter$(OBJSUFFIX): $(ONSCRIPTER_HEADER) version.h
 ONScripterLabel$(OBJSUFFIX): $(ONSCRIPTER_HEADER) utf8_util.h
 ONScripterLabel_command$(OBJSUFFIX): $(ONSCRIPTER_HEADER) version.h
