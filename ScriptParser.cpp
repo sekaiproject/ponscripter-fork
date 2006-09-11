@@ -220,7 +220,6 @@ void ScriptParser::reset()
     useescspc_flag = false;
     mode_saya_flag = false;
     mode_ext_flag = false;
-    rubyon_flag = false;
     zenkakko_flag = false;
     string_buffer_offset = 0;
 
@@ -258,7 +257,6 @@ void ScriptParser::reset()
     /* Text related variables */
     sentence_font.reset();
     menu_font.reset();
-    ruby_font.reset();
 
     current_font = &sentence_font;
     shade_distance[0] = 1;

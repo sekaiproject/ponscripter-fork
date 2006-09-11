@@ -1,3 +1,17 @@
+This version of ONScripter has been hacked severely.  The changes have been made with the
+goal of running very specific games better; features not required in these specific games
+have been broken or removed, and the added features require changes to games to use them
+properly.  Please do not use this version unless you know exactly what you're doing, or
+unless you need to run a game that has been designed to be played with it.
+
+2006-09-06
+
+  Highly experimental UTF-8 script encoding support. Note that line breaking will be
+  severely broken at this stage.
+  
+  Ruby and tategaki support removed in preparation for hopefully supporting proportional
+  text rendering instead.
+
 2006-09-05
 
   Fix typo in usage summary.

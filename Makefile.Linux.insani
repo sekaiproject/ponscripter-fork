@@ -23,8 +23,12 @@ INCS = `sdl-config --cflags` `smpeg-config --cflags`
 #DEFS = -DLINUX -DUSE_AVIFILE -DUSE_OGG_VORBIS -DENABLE_1BYTE_CHAR -DFORCE_1BYTE_CHAR
 
 # with OggVorbis and English mode and insani
-LIBS = -static -z muldefs -Wl,--start-group `sdl-config --static-libs` `smpeg-config --libs` -lSDL_ttf -lfreetype -lSDL_image -ltiff -lpng -lSDL_mixer -lbz2 -lz -ljpeg -lm -lvorbis -lvorbisenc -lvorbisfile -logg -lgpm -lncurses -lslang -ldirectfb -lfusion -ldirect -lvga -ldl -lesd -lartsc -lasound -lX11 -laa -Wl,--end-group
-DEFS = -DLINUX -DUSE_OGG_VORBIS -DENABLE_1BYTE_CHAR -DFORCE_1BYTE_CHAR -DINSANI
+#LIBS = -static -z muldefs -Wl,--start-group `sdl-config --static-libs` `smpeg-config --libs` -lSDL_ttf -lfreetype -lSDL_image -ltiff -lpng -lSDL_mixer -lbz2 -lz -ljpeg -lm -lvorbis -lvorbisenc -lvorbisfile -logg -lgpm -lncurses -lslang -ldirectfb -lfusion -ldirect -lvga -ldl -lesd -lartsc -lasound -lX11 -laa -Wl,--end-group
+#DEFS = -DLINUX -DUSE_OGG_VORBIS -DENABLE_1BYTE_CHAR -DFORCE_1BYTE_CHAR -DINSANI
+
+# super-special Haeleth-only configuration
+LIBS = `sdl-config --libs` `smpeg-config --libs` -lSDL_ttf -lfreetype -lSDL_mixer -lSDL_image -lbz2 -lz -ljpeg -lm -lvorbis -lvorbisfile -logg
+DEFS = -DLINUX -DUSE_OGG_VORBIS -DENABLE_1BYTE_CHAR -DFORCE_1BYTE_CHAR -DINSANI -DUSE_UTF8 -DHAELETH
 
 EXESUFFIX =
 OBJSUFFIX = .o
@@ -53,7 +57,7 @@ CFLAGS = -O3 -Wall -fomit-frame-pointer -pipe -c $(INCS) $(DEFS)
 
 RM = rm -f
 
-TARGET = onscripter$(EXESUFFIX) sardec$(EXESUFFIX) nsadec$(EXESUFFIX) sarconv$(EXESUFFIX) nsaconv$(EXESUFFIX)
+TARGET = onscripter$(EXESUFFIX)
 #TARGET = onscripter$(EXESUFFIX) sardec$(EXESUFFIX) nsadec$(EXESUFFIX) sarconv$(EXESUFFIX) nsaconv$(EXESUFFIX) simple_aviplay$(EXESUFFIX)
 #EXT_OBJS = AVIWrapper$(OBJSUFFIX)
 

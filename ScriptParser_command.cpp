@@ -260,35 +260,25 @@ int ScriptParser::savenameCommand()
 
 int ScriptParser::rubyonCommand()
 {
-    rubyon_flag = true;
-
+    // disabled
     char *buf = script_h.getNext();
     if ( buf[0] == 0x0a || buf[0] == ':' || buf[0] == ';' ){
-        ruby_struct.font_size_xy[0] = -1;
-        ruby_struct.font_size_xy[1] = -1;
-        setStr( &ruby_struct.font_name, NULL );
     }
     else{
-        ruby_struct.font_size_xy[0] = script_h.readInt();
-        ruby_struct.font_size_xy[1] = script_h.readInt();
+        script_h.readInt();
+        script_h.readInt();
 
         if ( script_h.getEndStatus() & ScriptHandler::END_COMMA ){
-            setStr( &ruby_struct.font_name, script_h.readStr() );
-        }
-        else{
-            setStr( &ruby_struct.font_name, NULL );
+            script_h.readStr();
         }
     }
-    sentence_font.setRubyOnFlag(true);
 
     return RET_CONTINUE;
 }
 
 int ScriptParser::rubyoffCommand()
 {
-    rubyon_flag = false;
-    sentence_font.setRubyOnFlag(false);
-
+	// disabled
     return RET_CONTINUE;
 }
 

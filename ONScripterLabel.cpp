@@ -279,7 +279,7 @@ void ONScripterLabel::initSDL()
 
 #if defined(INSANI)
 	SDL_WM_SetIcon(IMG_Load("icon.png"), NULL);
-	fprintf(stderr, "Autodetect: insanity spirit detected!\n");
+	fprintf(stderr, "Encountered mutant insanity spirit! Use me not unless thou knowest what thou dost.\n");
 #endif
 
 #if defined(BPP16)
@@ -1258,8 +1258,6 @@ void ONScripterLabel::clearCurrentTextBuffer()
     sentence_font.clear();
 
     int num = (sentence_font.num_xy[0]*2+1)*sentence_font.num_xy[1];
-    if (sentence_font.getTateyokoMode() == FontInfo::TATE_MODE)
-        num = (sentence_font.num_xy[1]*2+1)*sentence_font.num_xy[1];
 
     if ( current_text_buffer->buffer2 &&
          current_text_buffer->num != num ){
@@ -1370,10 +1368,7 @@ struct ONScripterLabel::ButtonLink *ONScripterLabel::getSelectableSentence( char
     button_link->select_rect = button_link->image_rect = anim->pos;
 
     info->newLine();
-    if (info->getTateyokoMode() == FontInfo::YOKO_MODE)
-        info->xy[0] = current_text_xy[0];
-    else
-        info->xy[1] = current_text_xy[1];
+    info->xy[0] = current_text_xy[0];
 
     dirty_rect.add( button_link->image_rect );
 

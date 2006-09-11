@@ -324,12 +324,12 @@ int ONScripterLabel::loadSaveFile2( int file_version )
     }
 
     if ( file_version >= 201 ){
-        if ( readInt() == 1 ) rubyon_flag = true;
-        else                  rubyon_flag = false;
-        ruby_struct.font_size_xy[0] = readInt();
-        ruby_struct.font_size_xy[1] = readInt();
-        readStr( &ruby_struct.font_name );
-        sentence_font.setRubyOnFlag(rubyon_flag);
+    	char *ignored;
+        readInt();
+        readInt();
+        readInt();
+        readStr( &ignored );
+        if (ignored) delete[] ignored;
     }
     
     int text_num = readInt();
@@ -547,10 +547,10 @@ void ONScripterLabel::saveSaveFile2( bool output_flag )
     writeStr( loop_bgm_name[0], output_flag );
     writeStr( loop_bgm_name[1], output_flag );
 
-    writeInt( (rubyon_flag)?1:0, output_flag );
-    writeInt( ruby_struct.font_size_xy[0], output_flag );
-    writeInt( ruby_struct.font_size_xy[1], output_flag );
-    writeStr( ruby_struct.font_name, output_flag );
+    writeInt( 0, output_flag );
+    writeInt( 0, output_flag );
+    writeInt( 0, output_flag );
+    writeStr( "", output_flag );
     
     TextBuffer *tb = current_text_buffer;
     int text_num = 0;

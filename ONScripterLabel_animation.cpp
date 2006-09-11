@@ -129,7 +129,6 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
         if (info) f_info = *info;
 
         if ( anim->font_size_xy[0] >= 0 ){ // in case of Sprite, not rclick menu
-            f_info.setTateyokoMode(0);
             f_info.top_xy[0] = anim->pos.x * screen_ratio2 / screen_ratio1;
             f_info.top_xy[1] = anim->pos.y * screen_ratio2 / screen_ratio1;
             if (anim->is_single_line)
@@ -170,7 +169,6 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
         anim->allocImage( pos.w*anim->num_of_cells, pos.h );
         anim->fill( 0, 0, 0, 0 );
         
-        f_info.setRubyOnFlag(false);
         f_info.top_xy[0] = f_info.top_xy[1] = 0;
         for ( int i=0 ; i<anim->num_of_cells ; i++ ){
             f_info.clear();

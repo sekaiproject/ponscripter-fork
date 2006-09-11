@@ -218,7 +218,6 @@ protected:
     bool mode_saya_flag;
     bool mode_ext_flag;
     bool force_button_shortcut_flag;
-    bool rubyon_flag;
     bool zenkakko_flag;
     
     int string_buffer_offset;
@@ -365,31 +364,7 @@ protected:
      
     /* ---------------------------------------- */
     /* Font related variables */
-    FontInfo *current_font, sentence_font, menu_font, ruby_font;
-    struct RubyStruct{
-        enum { NONE,
-               BODY,
-               RUBY };
-        int stage;
-        int body_count;
-        char *ruby_start;
-        char *ruby_end;
-        int ruby_count;
-        int margin;
-
-        int font_size_xy[2];
-        char *font_name;
-
-        RubyStruct(){
-            stage = NONE;
-            font_size_xy[0] = 0;
-            font_size_xy[1] = 0;
-            font_name = NULL;
-        };
-        ~RubyStruct(){
-            if ( font_name ) delete[] font_name;
-        };
-    } ruby_struct;
+    FontInfo *current_font, sentence_font, menu_font;
     int shade_distance[2];
 
     /* ---------------------------------------- */

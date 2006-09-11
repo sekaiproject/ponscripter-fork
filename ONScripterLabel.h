@@ -561,8 +561,6 @@ private:
     void doClickEnd();
     int  clickWait( char *out_text );
     int  clickNewPage( char *out_text );
-    void startRuby(char *buf, FontInfo &info);
-    void endRuby(bool flush_flag, bool lookback_flag, SDL_Surface *surface);
     int  textCommand();
     int  processText();
 

@@ -220,7 +220,7 @@ int ONScripterLabel::texecCommand()
 
 int ONScripterLabel::tateyokoCommand()
 {
-    sentence_font.setTateyokoMode( script_h.readInt() );
+    // Ignored in this version
 
     return RET_CONTINUE;
 }
@@ -2020,12 +2020,10 @@ int ONScripterLabel::getenterCommand()
 int ONScripterLabel::getcursorposCommand()
 {
     script_h.readInt();
-    //script_h.setInt( &script_h.current_variable, sentence_font.x() );
-    script_h.setInt( &script_h.current_variable, sentence_font.x()-sentence_font.ruby_offset_xy[0] ); // workaround for possibly a bug in the original
+    script_h.setInt( &script_h.current_variable, sentence_font.x() );
 
     script_h.readInt();
-    //script_h.setInt( &script_h.current_variable, sentence_font.y() );
-    script_h.setInt( &script_h.current_variable, sentence_font.y()-sentence_font.ruby_offset_xy[1] ); // workaround for possibly a bug in the original
+    script_h.setInt( &script_h.current_variable, sentence_font.y() );
 
     return RET_CONTINUE;
 }
@@ -2552,7 +2550,6 @@ int ONScripterLabel::cselbtnCommand()
     int button_no = script_h.readInt();
 
     FontInfo csel_info = sentence_font;
-    csel_info.setRubyOnFlag(false);
     csel_info.top_xy[0] = script_h.readInt();
     csel_info.top_xy[1] = script_h.readInt();
 
@@ -2706,7 +2703,7 @@ int ONScripterLabel::btnwaitCommand()
 {
     bool del_flag=false, textbtn_flag=false;
 
-    if ( script_h.isName( "btnwait2" ) ){
+	if ( script_h.isName( "btnwait2" ) ){
         display_mode = next_display_mode = NORMAL_DISPLAY_MODE;
     }
     else if ( script_h.isName( "btnwait" ) ){
