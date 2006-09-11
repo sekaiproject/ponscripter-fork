@@ -196,19 +196,18 @@ int ONScripterLabel::loadSaveFile( int no )
 
     /* ---------------------------------------- */
     /* Load text history */
+// FIXME: this will NOT work with UTF-8 and proportional text...
     if ( file_version >= 107 ) readInt();
     int text_history_num = readInt();
     for ( i=0 ; i<text_history_num ; i++ ){
         int num_xy[2];
         num_xy[0] = readInt();
         num_xy[1] = readInt();
-        current_text_buffer->num = (num_xy[0]*2+1)*num_xy[1];
+        //current_text_buffer->num = (num_xy[0]*2+1)*num_xy[1];
         int xy[2];
         xy[0] = readInt();
         xy[1] = readInt();
-        if ( current_text_buffer->buffer2 ) delete[] current_text_buffer->buffer2;
-        current_text_buffer->buffer2 = new char[ current_text_buffer->num ];
-        current_text_buffer->buffer2_count = 0;
+        current_text_buffer->clear();
 
         char ch1, ch2;
         for ( j=0, k=0 ; j<num_xy[0] * num_xy[1] ; j++ ){
@@ -245,39 +244,43 @@ int ONScripterLabel::loadSaveFile( int no )
     /* Load sentence font */
     j = readInt();
     //sentence_font.is_valid = (j==1)?true:false;
-    sentence_font.font_size_xy[0] = readInt();
+    sentence_font.font_size_x = readInt();
     if ( file_version >= 100 ){
-        sentence_font.font_size_xy[1] = readInt();
+        sentence_font.font_size_y = readInt();
     }
     else{
-        sentence_font.font_size_xy[1] = sentence_font.font_size_xy[0];
+        sentence_font.font_size_y = sentence_font.font_size_x;
     }
-    sentence_font.top_xy[0] = readInt();
-    sentence_font.top_xy[1] = readInt();
-    sentence_font.num_xy[0] = readInt();
-    sentence_font.num_xy[1] = readInt();
-    sentence_font.xy[0] = readInt()*2;
-    sentence_font.xy[1] = readInt()*2;
-    sentence_font.pitch_xy[0] = readInt();
-    sentence_font.pitch_xy[1] = readInt();
+    sentence_font.top_x = readInt();
+    sentence_font.top_y = readInt();
+    sentence_font.area_x = readInt();
+    sentence_font.area_y = readInt();
+    sentence_font.pos_x = readInt();
+    sentence_font.pos_y = readInt();
+    sentence_font.pitch_x = readInt();
+    sentence_font.pitch_y = readInt();
     sentence_font.wait_time = readInt();
     sentence_font.is_bold = (readInt()==1)?true:false;
     sentence_font.is_shadow = (readInt()==1)?true:false;
     sentence_font.is_transparent = (readInt()==1)?true:false;
 
-    for (j=0, k=0, i=0 ; i<current_text_buffer->buffer2_count ; i++){
-        if (j == sentence_font.xy[1] &&
-            (k > sentence_font.xy[0] ||
-             current_text_buffer->buffer2[i] == 0x0a)) break;
-
-        if (current_text_buffer->buffer2[i] == 0x0a){
-            j+=2;
-            k=0;
-        }
-        else
-            k++;
-    }
-    current_text_buffer->buffer2_count = i;
+// FIXME: not sure what this does, but it'll be broken.
+// Actually, looking at it, it doesn't appear to be essential...?
+//    const char *buffer = current_text_buffer->contents.c_str();
+//    int count = current_text_buffer->contents.size();
+//    for (j=0, k=0, i=0 ; i<count ; i++){
+//        if (j == sentence_font.pos_y &&
+//            (k > sentence_font.pos_x ||
+//             buffer[i] == 0x0a)) break;
+//
+//        if (buffer[i] == 0x0a){
+//            j+=2;
+//            k=0;
+//        }
+//        else
+//            k++;
+//    }
+//    current_text_buffer->buffer2_count = i;
 
     /* Dummy, must be removed later !! */
     for ( i=0 ; i<8 ; i++ ){

@@ -22,8 +22,12 @@
  */
 
 #include "FontInfo.h"
+#include "utf8_util.h"
 #include <stdio.h>
 #include <SDL_ttf.h>
+
+char* font_file = NULL;
+int screen_ratio1 = 1, screen_ratio2 = 1;
 
 static struct FontContainer{
     FontContainer *next;
@@ -61,13 +65,9 @@ void FontInfo::reset()
     is_newline_accepted = false;
 }
 
-void *FontInfo::openFont( char *font_file, int ratio1, int ratio2 )
+void *FontInfo::openFont()
 {
-    int font_size;
-    if ( font_size_xy[0] < font_size_xy[1] )
-        font_size = font_size_xy[0];
-    else
-        font_size = font_size_xy[1];
+    int font_size = font_size_x < font_size_y ? font_size_x : font_size_y;
 
     FontContainer *fc = &root_font_container;
     while( fc->next ){
@@ -80,86 +80,129 @@ void *FontInfo::openFont( char *font_file, int ratio1, int ratio2 )
         FILE *fp = fopen( font_file, "r" );
         if ( fp == NULL ) return NULL;
         fclose( fp );
-        fc->next->font = TTF_OpenFont( font_file, font_size * ratio1 / ratio2 );
+        fc->next->font = TTF_OpenFont( font_file, font_size * screen_ratio1 / screen_ratio2 );
     }
+
+	if (fc->next->font) {
+		line_space_ = TTF_FontLineSkip(fc->next->font);
+		TTF_GlyphMetrics(fc->next->font, 'M', NULL, NULL, NULL, NULL, &em_width_);
+	}
 
     ttf_font = (void*)fc->next->font;
     
     return fc->next->font;
 }
 
+int FontInfo::em_width()
+{
+	bool was_open = ttf_font;
+	if (!ttf_font) openFont();
+	int rv = em_width_;
+	if (!was_open) ttf_font = NULL;
+	return rv;
+}
+int FontInfo::line_space()
+{
+	bool was_open = ttf_font;
+	if (!ttf_font) openFont();
+	int rv = line_space_;
+	if (!was_open) ttf_font = NULL;
+	return rv;
+}
+
+int FontInfo::GlyphAdvance(unsigned short unicode)
+{
+	int rv;
+	bool was_open = ttf_font;
+	if (!ttf_font) openFont();
+	TTF_GlyphMetrics((TTF_Font*) ttf_font, unicode, NULL, NULL, NULL, NULL, &rv);
+	if (!was_open) ttf_font = NULL;
+	return rv + pitch_x;
+}
+
+int FontInfo::StringAdvance(const char* string) 
+{
+	int rv = 0;
+	bool was_open = ttf_font;
+	if (!ttf_font) openFont();
+	while (*string) {
+		unsigned short unicode = UnicodeOfUTF8(string);
+		string += CharacterBytes(string);
+		rv += GlyphAdvance(unicode);
+	}
+	if (!was_open) ttf_font = NULL;
+	return rv;
+}
 
 int FontInfo::getRemainingLine()
 {
-    return num_xy[1] - xy[1]/2;
+    return area_y - pos_y;
 }
 
-int FontInfo::x()
+int FontInfo::GetX()
 {
-    return xy[0]*pitch_xy[0]/2 + top_xy[0];
+    return pos_x + top_x;
 }
 
-int FontInfo::y()
+int FontInfo::GetY()
 {
-    return xy[1]*pitch_xy[1]/2 + top_xy[1];
+    return pos_y * (line_space() + pitch_y) + top_y;
 }
 
-void FontInfo::setXY( int x, int y )
+void FontInfo::SetXY( int x, int y )
 {
-    if ( x != -1 ) xy[0] = x*2;
-    if ( y != -1 ) xy[1] = y*2;
+    if ( x != -1 ) pos_x = x;
+    if ( y != -1 ) pos_y = y;
 }
 
 void FontInfo::clear()
 {
-    setXY(0, 0);
+    SetXY(0, 0);
 }
 
 void FontInfo::newLine()
 {
-    xy[0] = 0;
-    xy[1] += 2;
+    pos_x = 0;
+    pos_y += 1;
 }
 
 void FontInfo::setLineArea(int num)
 {
-    num_xy[0] = num;
-    num_xy[1] = 1;
+    area_x = num;
+    area_y = 1;
 }
 
-bool FontInfo::isEndOfLine(int margin)
+bool FontInfo::isNoRoomFor(int margin)
 {
-    if (xy[0] + margin >= num_xy[0]*2) return true;
-
-    return false;
+    return pos_x + margin >= area_x;
 }
 
 bool FontInfo::isLineEmpty()
 {
-    if (xy[0] == 0) return true;
-
-    return false;
+    return pos_x == 0;
 }
 
-void FontInfo::advanceCharInHankaku(int offset)
+void FontInfo::advanceBy(int offset)
 {
-    xy[0] += offset;
+    pos_x += offset;
 }
+
 
 SDL_Rect FontInfo::calcUpdatedArea(int start_xy[2], int ratio1, int ratio2)
 {
     SDL_Rect rect;
     
-    if (start_xy[1] == xy[1]){
-        rect.x = top_xy[0] + pitch_xy[0]*start_xy[0]/2;
-        rect.w = pitch_xy[0]*(xy[0]-start_xy[0]+2)/2;
+    if (start_xy[1] == pos_y){
+        rect.x = top_x + start_xy[0];
+        rect.w = pos_x - start_xy[0];
     }
     else{
-        rect.x = top_xy[0];
-        rect.w = pitch_xy[0]*num_xy[0];
+        rect.x = top_x;
+        rect.w = area_x;
     }
-    rect.y = top_xy[1] + start_xy[1]*pitch_xy[1]/2;
-    rect.h = pitch_xy[1]*(xy[1]-start_xy[1]+2)/2;
+    const int lsp = line_space() + pitch_y;
+    rect.y = top_y + start_xy[1] * lsp;
+    rect.h = lsp * (pos_y - start_xy[1] + 2);
 
     rect.x = rect.x * ratio1 / ratio2;
     rect.y = rect.y * ratio1 / ratio2;

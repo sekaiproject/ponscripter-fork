@@ -73,7 +73,7 @@ void AnimationInfo::reset()
     visible = false;
     abs_flag = true;
 
-    font_size_xy[0] = font_size_xy[1] = -1;
+    font_size_x = font_size_y = -1;
     font_pitch = -1;
 }
 

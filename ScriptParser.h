@@ -29,6 +29,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <string>
 
 #include "ScriptHandler.h"
 #include "NsaReader.h"
@@ -228,7 +229,6 @@ protected:
 
     /* ---------------------------------------- */
     /* Global definitions */
-    int screen_ratio1, screen_ratio2;
     int screen_width, screen_height;
     int screen_texture_width, screen_texture_height;
     int screen_bpp;
@@ -309,22 +309,14 @@ protected:
     int default_text_speed[3];
     struct TextBuffer{
         struct TextBuffer *next, *previous;
-        char *buffer2;
-        int num;
-        int buffer2_count;
+        std::string contents;
 
-        TextBuffer(){
-            buffer2 = NULL;
-            buffer2_count = 0;
-        }
-        ~TextBuffer(){
-            if (buffer2) delete[] buffer2;
-        }
         int addBuffer( char ch ){
-            if ( buffer2_count >= num ) return -1;
-            buffer2[buffer2_count++] = ch;
-            return 0;
+            contents.push_back(ch);
+	        return 0;
         };
+        void clear() { contents.clear(); }
+        bool empty() { return contents.empty(); }
     } *text_buffer, *start_text_buffer, *current_text_buffer; // ring buffer
     int  max_text_buffer;
     int  clickstr_line;

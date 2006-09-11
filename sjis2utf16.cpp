@@ -2,6 +2,7 @@
 unsigned short sjis_2_utf16[0xfcfc - 0x8140 + 1];
 
 static unsigned short sjis_2_utf16_org[][2] = {
+#ifndef USE_UTF8
 	{0x8140,0x3000},
 	{0x8141,0x3001},
 	{0x8142,0x3002},
@@ -11377,6 +11378,7 @@ static unsigned short sjis_2_utf16_org[][2] = {
 	{0xfcfb,0xffff},
 	{0xfcfc,0xffff},
 	{0xfcfc,0xffff},
+#endif
 	{0,0}
 };
 

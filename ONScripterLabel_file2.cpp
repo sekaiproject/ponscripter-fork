@@ -63,14 +63,14 @@ int ONScripterLabel::loadSaveFile2( int file_version )
 
     sentence_font.clear();
     sentence_font.ttf_font  = NULL;
-    sentence_font.top_xy[0] = readInt();
-    sentence_font.top_xy[1] = readInt();
-    sentence_font.num_xy[0] = readInt();
-    sentence_font.num_xy[1] = readInt();
-    sentence_font.font_size_xy[0] = readInt();
-    sentence_font.font_size_xy[1] = readInt();
-    sentence_font.pitch_xy[0] = readInt();
-    sentence_font.pitch_xy[1] = readInt();
+    sentence_font.top_x = readInt();
+    sentence_font.top_y = readInt();
+    sentence_font.area_x = readInt();
+    sentence_font.area_y = readInt();
+    sentence_font.font_size_x = readInt();
+    sentence_font.font_size_y = readInt();
+    sentence_font.pitch_x = readInt();
+    sentence_font.pitch_y = readInt();
     for ( i=0 ; i<3 ; i++ )
         sentence_font.window_color[2-i] = readChar();
     if ( readChar() == 0x00 ) sentence_font.is_transparent = true;
@@ -273,8 +273,8 @@ int ONScripterLabel::loadSaveFile2( int file_version )
             prnum_info[i]->param = j;
             prnum_info[i]->pos.x = readInt() * screen_ratio1 / screen_ratio2;
             prnum_info[i]->pos.y = readInt() * screen_ratio1 / screen_ratio2;
-            prnum_info[i]->font_size_xy[0] = readInt();
-            prnum_info[i]->font_size_xy[1] = readInt();
+            prnum_info[i]->font_size_x = readInt();
+            prnum_info[i]->font_size_y = readInt();
             for ( j=0 ; j<3 ; j++ )
                 prnum_info[i]->color_list[0][2-j] = readChar();
             readChar(); // 0x00
@@ -324,7 +324,7 @@ int ONScripterLabel::loadSaveFile2( int file_version )
     }
 
     if ( file_version >= 201 ){
-    	char *ignored;
+    	char *ignored = NULL;
         readInt();
         readInt();
         readInt();
@@ -336,11 +336,8 @@ int ONScripterLabel::loadSaveFile2( int file_version )
     start_text_buffer = current_text_buffer;
     for ( i=0 ; i<text_num ; i++ ){
         clearCurrentTextBuffer();
-        do{
-            current_text_buffer->buffer2[current_text_buffer->buffer2_count] = readChar();
-        }
-        while( current_text_buffer->buffer2[current_text_buffer->buffer2_count++] );
-        current_text_buffer->buffer2_count--;
+		char c;
+		while ((c = readChar())) current_text_buffer->addBuffer(c);
         current_text_buffer = current_text_buffer->next;
     }
     clearCurrentTextBuffer();
@@ -388,14 +385,14 @@ void ONScripterLabel::saveSaveFile2( bool output_flag )
     writeInt( window_effect.duration, output_flag );
     writeStr( window_effect.anim.image_name, output_flag ); // probably
     
-    writeInt( sentence_font.top_xy[0], output_flag );
-    writeInt( sentence_font.top_xy[1], output_flag );
-    writeInt( sentence_font.num_xy[0], output_flag );
-    writeInt( sentence_font.num_xy[1], output_flag );
-    writeInt( sentence_font.font_size_xy[0], output_flag );
-    writeInt( sentence_font.font_size_xy[1], output_flag );
-    writeInt( sentence_font.pitch_xy[0], output_flag );
-    writeInt( sentence_font.pitch_xy[1], output_flag );
+    writeInt( sentence_font.top_x, output_flag );
+    writeInt( sentence_font.top_y, output_flag );
+    writeInt( sentence_font.area_x, output_flag );
+    writeInt( sentence_font.area_y, output_flag );
+    writeInt( sentence_font.font_size_x, output_flag );
+    writeInt( sentence_font.font_size_y, output_flag );
+    writeInt( sentence_font.pitch_x, output_flag );
+    writeInt( sentence_font.pitch_y, output_flag );
     for ( i=0 ; i<3 ; i++ )
         writeChar( sentence_font.window_color[2-i], output_flag );
     writeChar( ( sentence_font.is_transparent )?0x00:0xff, output_flag ); 
@@ -516,8 +513,8 @@ void ONScripterLabel::saveSaveFile2( bool output_flag )
             writeInt( prnum_info[i]->param, output_flag );
             writeInt( prnum_info[i]->pos.x * screen_ratio2 / screen_ratio1, output_flag );
             writeInt( prnum_info[i]->pos.y * screen_ratio2 / screen_ratio1, output_flag );
-            writeInt( prnum_info[i]->font_size_xy[0], output_flag );
-            writeInt( prnum_info[i]->font_size_xy[1], output_flag );
+            writeInt( prnum_info[i]->font_size_x, output_flag );
+            writeInt( prnum_info[i]->font_size_y, output_flag );
             for ( j=0 ; j<3 ; j++ )
                 writeChar( prnum_info[i]->color_list[0][2-j], output_flag );
             writeChar( 0x00, output_flag );
@@ -561,8 +558,8 @@ void ONScripterLabel::saveSaveFile2( bool output_flag )
     writeInt( text_num, output_flag );
 
     for ( i=0 ; i<text_num ; i++ ){
-        for ( j=0 ; j<tb->buffer2_count ; j++ )
-            writeChar( tb->buffer2[j], output_flag );
+        const char* buf = tb->contents.c_str();
+        while (*buf) writeChar( *buf++, output_flag );
         writeChar( 0, output_flag );
         tb = tb->next;
     }

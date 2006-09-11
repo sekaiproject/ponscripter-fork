@@ -291,14 +291,15 @@ int ONScripterLabel::strspCommand()
     fi.is_newline_accepted = true;
     ai->pos.x = script_h.readInt();
     ai->pos.y = script_h.readInt();
-    fi.num_xy[0] = script_h.readInt();
-    fi.num_xy[1] = script_h.readInt();
-    fi.font_size_xy[0] = script_h.readInt();
-    fi.font_size_xy[1] = script_h.readInt();
-    fi.pitch_xy[0] = script_h.readInt() + fi.font_size_xy[0];
-    fi.pitch_xy[1] = script_h.readInt() + fi.font_size_xy[1];
+    int num_x = script_h.readInt();
+    fi.area_y = script_h.readInt();
+    fi.font_size_x = script_h.readInt();
+    fi.font_size_y = script_h.readInt();
+    fi.pitch_x = script_h.readInt();
+    fi.pitch_y = script_h.readInt();
     fi.is_bold = script_h.readInt()?true:false;
     fi.is_shadow = script_h.readInt()?true:false;
+    fi.area_x = num_x * (fi.font_size_x + fi.pitch_x);
 
     char *buffer = script_h.getNext();
     while(script_h.getEndStatus() & ScriptHandler::END_COMMA){
@@ -321,7 +322,6 @@ int ONScripterLabel::strspCommand()
     ai->is_single_line = false;
     ai->is_tight_region = false;
     setupAnimationInfo(ai, &fi);
-
     return RET_CONTINUE;
 }
 
@@ -544,18 +544,19 @@ int ONScripterLabel::sevolCommand()
 void ONScripterLabel::setwindowCore()
 {
     sentence_font.ttf_font  = NULL;
-    sentence_font.top_xy[0] = script_h.readInt();
-    sentence_font.top_xy[1] = script_h.readInt();
-    sentence_font.num_xy[0] = script_h.readInt();
-    sentence_font.num_xy[1] = script_h.readInt();
-    sentence_font.font_size_xy[0] = script_h.readInt();
-    sentence_font.font_size_xy[1] = script_h.readInt();
-    sentence_font.pitch_xy[0] = script_h.readInt() + sentence_font.font_size_xy[0];
-    sentence_font.pitch_xy[1] = script_h.readInt() + sentence_font.font_size_xy[1];
+    sentence_font.top_x = script_h.readInt();
+    sentence_font.top_y = script_h.readInt();
+    int num_x = script_h.readInt();
+    sentence_font.area_y = script_h.readInt();
+    sentence_font.font_size_x = script_h.readInt();
+    sentence_font.font_size_y = script_h.readInt();
+    sentence_font.pitch_x = script_h.readInt();
+    sentence_font.pitch_y = script_h.readInt();
     sentence_font.wait_time = script_h.readInt();
     sentence_font.is_bold = script_h.readInt()?true:false;
     sentence_font.is_shadow = script_h.readInt()?true:false;
-
+	sentence_font.area_x = num_x * (sentence_font.font_size_x + sentence_font.pitch_x);
+    
     const char *buf = script_h.readStr();
     dirty_rect.add( sentence_font_info.pos );
     if ( buf[0] == '#' ){
@@ -718,8 +719,8 @@ int ONScripterLabel::selectCommand()
         shortcut_mouse_line = -1;
 
         int xy[2];
-        xy[0] = sentence_font.xy[0];
-        xy[1] = sentence_font.xy[1];
+        xy[0] = sentence_font.pos_x;
+        xy[1] = sentence_font.pos_y;
 
         if ( selectvoice_file_name[SELECTVOICE_OPEN] )
             playSound(selectvoice_file_name[SELECTVOICE_OPEN],
@@ -808,8 +809,8 @@ int ONScripterLabel::selectCommand()
         }
         skip_flag = false;
         automode_flag = false;
-        sentence_font.xy[0] = xy[0];
-        sentence_font.xy[1] = xy[1];
+        sentence_font.pos_x = xy[0];
+        sentence_font.pos_y = xy[1];
 
         flush( refreshMode() );
 
@@ -1027,11 +1028,11 @@ int ONScripterLabel::puttextCommand()
         if (!sentence_font.isLineEmpty() && !new_line_skip_flag){
             current_text_buffer->addBuffer( 0x0a );
             sentence_font.newLine();
-            for (int i=0 ; i<indent_offset ; i++){
-                current_text_buffer->addBuffer(((char*)"　")[0]);
-                current_text_buffer->addBuffer(((char*)"　")[1]);
-                sentence_font.advanceCharInHankaku(2);
-            }
+            //for (int i=0 ; i<indent_offset ; i++){
+            //    current_text_buffer->addBuffer(((char*)"　")[0]);
+            //    current_text_buffer->addBuffer(((char*)"　")[1]);
+            //    sentence_font.advanceCharInHankaku(2);
+            //}
         }
     }
     if (ret != RET_CONTINUE){
@@ -1072,8 +1073,8 @@ int ONScripterLabel::prnumCommand()
     prnum_info[no]->param = script_h.readInt();
     prnum_info[no]->pos.x = script_h.readInt() * screen_ratio1 / screen_ratio2;
     prnum_info[no]->pos.y = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    prnum_info[no]->font_size_xy[0] = script_h.readInt();
-    prnum_info[no]->font_size_xy[1] = script_h.readInt();
+    prnum_info[no]->font_size_x = script_h.readInt();
+    prnum_info[no]->font_size_y = script_h.readInt();
 
     const char *buf = script_h.readStr();
     readColor( &prnum_info[no]->color_list[0], buf );
@@ -1381,7 +1382,7 @@ int ONScripterLabel::lookbackflushCommand()
 {
     current_text_buffer = current_text_buffer->next;
     for ( int i=0 ; i<max_text_buffer-1 ; i++ ){
-        current_text_buffer->buffer2_count = 0;
+        current_text_buffer->clear();
         current_text_buffer = current_text_buffer->next;
     }
     clearCurrentTextBuffer();
@@ -1420,15 +1421,15 @@ int ONScripterLabel::logspCommand()
 
     si.trans_mode = AnimationInfo::TRANS_STRING;
     if (logsp2_flag){
-        si.font_size_xy[0] = script_h.readInt();
-        si.font_size_xy[1] = script_h.readInt();
-        si.font_pitch = script_h.readInt() + si.font_size_xy[0];
+        si.font_size_x = script_h.readInt();
+        si.font_size_y = script_h.readInt();
+        si.font_pitch = script_h.readInt() + si.font_size_x;
         script_h.readInt(); // dummy read for y pitch
     }
     else{
-        si.font_size_xy[0] = sentence_font.font_size_xy[0];
-        si.font_size_xy[1] = sentence_font.font_size_xy[1];
-        si.font_pitch = sentence_font.pitch_xy[0];
+        si.font_size_x = sentence_font.font_size_x;
+        si.font_size_y = sentence_font.font_size_y;
+        si.font_pitch = sentence_font.pitch_x;
     }
 
     char *current = script_h.getNext();
@@ -1467,8 +1468,9 @@ int ONScripterLabel::locateCommand()
 {
     int x = script_h.readInt();
     int y = script_h.readInt();
-    sentence_font.setXY( x, y );
+    sentence_font.SetXY( x, y );
 
+	fprintf(stderr, " warning: [locate] may not behave as expected!\n");
     return RET_CONTINUE;
 }
 
@@ -1643,7 +1645,7 @@ int ONScripterLabel::inputCommand()
 int ONScripterLabel::indentCommand()
 {
     indent_offset = script_h.readInt();
-
+	fprintf(stderr, " warning: [indent] command is broken\n");
     return RET_CONTINUE;
 }
 
@@ -1721,11 +1723,11 @@ int ONScripterLabel::gettextCommand()
     script_h.readStr();
     int no = script_h.current_variable.var_no;
 
-    char *buf = new char[ current_text_buffer->buffer2_count + 1 ];
-    int i, j;
-    for ( i=0, j=0 ; i<current_text_buffer->buffer2_count ; i++ ){
-        if ( current_text_buffer->buffer2[i] != 0x0a )
-            buf[j++] = current_text_buffer->buffer2[i];
+    char *buf = new char[ current_text_buffer->contents.size() + 1 ];
+    unsigned int i, j;
+    for ( i=0, j=0 ; i<current_text_buffer->contents.size() ; i++ ){
+        if ( current_text_buffer->contents[i] != 0x0a )
+            buf[j++] = current_text_buffer->contents[i];
     }
     buf[j] = '\0';
 
@@ -1990,7 +1992,7 @@ int ONScripterLabel::getlogCommand()
     if (page_no > 0)
         setStr( &script_h.variable_data[ script_h.pushed_variable.var_no ].str, NULL );
     else
-        setStr( &script_h.variable_data[ script_h.pushed_variable.var_no ].str, t_buf->buffer2, t_buf->buffer2_count );
+        setStr( &script_h.variable_data[ script_h.pushed_variable.var_no ].str, t_buf->contents.c_str(), t_buf->contents.size() );
 
     return RET_CONTINUE;
 }
@@ -2020,10 +2022,10 @@ int ONScripterLabel::getenterCommand()
 int ONScripterLabel::getcursorposCommand()
 {
     script_h.readInt();
-    script_h.setInt( &script_h.current_variable, sentence_font.x() );
+    script_h.setInt( &script_h.current_variable, sentence_font.GetX() );
 
     script_h.readInt();
-    script_h.setInt( &script_h.current_variable, sentence_font.y() );
+    script_h.setInt( &script_h.current_variable, sentence_font.GetY() );
 
     return RET_CONTINUE;
 }
@@ -2550,8 +2552,8 @@ int ONScripterLabel::cselbtnCommand()
     int button_no = script_h.readInt();
 
     FontInfo csel_info = sentence_font;
-    csel_info.top_xy[0] = script_h.readInt();
-    csel_info.top_xy[1] = script_h.readInt();
+    csel_info.top_x = script_h.readInt();
+    csel_info.top_y = script_h.readInt();
 
     int counter = 0;
     SelectLink *link = root_select_link.next;
@@ -2562,7 +2564,7 @@ int ONScripterLabel::cselbtnCommand()
     if ( link == NULL || link->text == NULL || *link->text == '\0' )
         return RET_CONTINUE;
 
-    csel_info.setLineArea( strlen(link->text)/2+1 );
+    csel_info.setLineArea( csel_info.StringAdvance(link->text) );
     csel_info.clear();
     ButtonLink *button = getSelectableSentence( link->text, &csel_info );
     root_button_link.insert( button );

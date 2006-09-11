@@ -26,21 +26,22 @@
 
 #include <SDL.h>
 
+extern char* font_file;
+extern int screen_ratio1, screen_ratio2;
+
 typedef unsigned char uchar3[3];
 
 class FontInfo{
+	int em_width_, line_space_; // Width and height of a character
 public:
-    enum { YOKO_MODE = 0,
-           TATE_MODE = 1
-    };
     void *ttf_font;
     uchar3 color;
     uchar3 on_color, off_color, nofile_color;
-    int font_size_xy[2];
-    int top_xy[2]; // Top left origin
-    int num_xy[2]; // Row and column of the text windows
-    int xy[2]; // Current position
-    int pitch_xy[2]; // Width and height of a character
+    int font_size_x, font_size_y;
+    int top_x, top_y; // Top left origin
+    int area_x, area_y; // Size of the text windows
+    int pos_x, pos_y; // Current position
+    int pitch_x, pitch_y; // additional spacing
     int wait_time;
     bool is_bold;
     bool is_shadow;
@@ -48,34 +49,30 @@ public:
     bool is_newline_accepted;
     uchar3  window_color;
 
-    int line_offset_xy[2]; // ruby offset for each line
-    int ruby_offset_xy[2]; // ruby offset for the whole sentence
-    bool rubyon_flag;
-    int tateyoko_mode;
+	int em_width();
+	int line_space();
 
     FontInfo();
     void reset();
-    void *openFont( char *font_file, int ratio1, int ratio2 );
-    void setTateyokoMode( int tateyoko_mode );
-    int getTateyokoMode();
-    int getRemainingLine();
+    void *openFont();
+    int getRemainingLine(); // # of lines remaining on the screen, that is
     
-    int x();
-    int y();
-    void setXY( int x=-1, int y=-1 );
+    int GetX();
+    int GetY();
+    void SetXY( int x=-1, int y=-1 );
     void clear();
     void newLine();
     void setLineArea(int num);
 
-    bool isEndOfLine(int margin=0);
+	int GlyphAdvance(unsigned short unicode);
+	int StringAdvance(const char* string);
+
+    bool isNoRoomFor(int margin=0);
     bool isLineEmpty();
-    void advanceCharInHankaku(int offest);
-    void addLineOffset(int margin);
-    void setRubyOnFlag(bool flag);
+    void advanceBy(int offset);
 
     SDL_Rect calcUpdatedArea(int start_xy[2], int ratio1, int ratio2 );
     void addShadeArea(SDL_Rect &rect, int shade_distance[2] );
-    int initRuby(FontInfo &body_info, int body_count, int ruby_count);
 };
 
 #endif // __FONT_INFO_H__

@@ -289,14 +289,14 @@ void ScriptParser::reset()
 
     /* ---------------------------------------- */
     /* Menu related variables */
-    menu_font.font_size_xy[0] = DEFAULT_FONT_SIZE;
-    menu_font.font_size_xy[1] = DEFAULT_FONT_SIZE;
-    menu_font.top_xy[0] = 0;
-    menu_font.top_xy[1] = 16;
-    menu_font.num_xy[0] = 32;
-    menu_font.num_xy[1] = 23;
-    menu_font.pitch_xy[0] = menu_font.font_size_xy[0];
-    menu_font.pitch_xy[1] = 2 + menu_font.font_size_xy[1];
+    menu_font.font_size_x = DEFAULT_FONT_SIZE;
+    menu_font.font_size_y = DEFAULT_FONT_SIZE;
+    menu_font.top_x = 0;
+    menu_font.top_y = 16;
+    menu_font.area_x = 32 * DEFAULT_FONT_SIZE;
+    menu_font.area_y = 23;
+    menu_font.pitch_x = 0;
+    menu_font.pitch_y = 0;
     menu_font.window_color[0] = menu_font.window_color[1] = menu_font.window_color[2] = 0xcc;
 
     deleteRMenuLink();

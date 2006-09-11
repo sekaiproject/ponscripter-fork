@@ -183,13 +183,14 @@ void ONScripterLabel::executeSystemMenu()
         text_info.fill( 0, 0, 0, 0 );
         flush( refreshMode() );
 
-        menu_font.num_xy[0] = rmenu_link_width;
-        menu_font.num_xy[1] = rmenu_link_num;
-        menu_font.top_xy[0] = (screen_width * screen_ratio2 / screen_ratio1 - menu_font.num_xy[0] * menu_font.pitch_xy[0]) / 2;
-        menu_font.top_xy[1] = (screen_height * screen_ratio2 / screen_ratio1  - menu_font.num_xy[1] * menu_font.pitch_xy[1]) / 2;
-        menu_font.setXY( (menu_font.num_xy[0] - rmenu_link_width) / 2,
-                         (menu_font.num_xy[1] - rmenu_link_num) / 2 );
-
+        //menu_font.num_xy[0] = rmenu_link_width;
+        //menu_font.num_xy[1] = rmenu_link_num;
+        //menu_font.top_xy[0] = (screen_width * screen_ratio2 / screen_ratio1 - menu_font.num_xy[0] * menu_font.pitch_xy[0]) / 2;
+        //menu_font.top_xy[1] = (screen_height * screen_ratio2 / screen_ratio1  - menu_font.num_xy[1] * menu_font.pitch_xy[1]) / 2;
+        //menu_font.setXY( (menu_font.num_xy[0] - rmenu_link_width) / 2,
+        //                 (menu_font.num_xy[1] - rmenu_link_num) / 2 );
+        fprintf(stderr, "Expect imminent problems, 'cos you just ran into a bunch of stuff I commented out on the assumption I'll never need it.\n");
+          
         link = root_rmenu_link.next;
         while( link ){
             ButtonLink *button = getSelectableSentence( link->label, &menu_font, false );
@@ -295,12 +296,14 @@ void ONScripterLabel::executeSystemLoad()
 
         text_info.fill( 0, 0, 0, 0 );
 
-        menu_font.num_xy[0] = (strlen(save_item_name)+1)/2+2+13;
-        menu_font.num_xy[1] = num_save_file+2;
-        menu_font.top_xy[0] = (screen_width * screen_ratio2 / screen_ratio1 - menu_font.num_xy[0] * menu_font.pitch_xy[0]) / 2;
-        menu_font.top_xy[1] = (screen_height * screen_ratio2 / screen_ratio1  - menu_font.num_xy[1] * menu_font.pitch_xy[1]) / 2;
-        menu_font.setXY( (menu_font.num_xy[0] - strlen( load_menu_name ) / 2) / 2, 0 );
-        uchar3 color = {0xff, 0xff, 0xff};
+        //menu_font.num_xy[0] = (strlen(save_item_name)+1)/2+2+13;
+        //menu_font.num_xy[1] = num_save_file+2;
+        //menu_font.top_xy[0] = (screen_width * screen_ratio2 / screen_ratio1 - menu_font.num_xy[0] * menu_font.pitch_xy[0]) / 2;
+        //menu_font.top_xy[1] = (screen_height * screen_ratio2 / screen_ratio1  - menu_font.num_xy[1] * menu_font.pitch_xy[1]) / 2;
+        //menu_font.setXY( (menu_font.num_xy[0] - strlen( load_menu_name ) / 2) / 2, 0 );
+        fprintf(stderr, "Expect imminent problems, 'cos you just ran into a bunch of stuff I commented out on the assumption I'll never need it.\n");
+        
+        //uchar3 color = {0xff, 0xff, 0xff};
         // drawString( load_menu_name, color, &menu_font, true, accumulation_surface, NULL, &text_info );
         /* The following three lines are part of a hack allowing the menu name to show up when custom right-menus are in
            existence.  As it stands in ONScripter, these menu names get drawn in the accumulation buffer one level below
@@ -323,7 +326,8 @@ void ONScripterLabel::executeSystemLoad()
 
         for ( unsigned int i=1 ; i<=num_save_file ; i++ ){
             searchSaveFile( save_file_info, i );
-            menu_font.setXY( (menu_font.num_xy[0] - (strlen( save_item_name ) / 2 + 15) ) / 2 );
+            //menu_font.setXY( (menu_font.num_xy[0] - (strlen( save_item_name ) / 2 + 15) ) / 2 );
+	        fprintf(stderr, "Expect imminent problems, 'cos you just ran into a bunch of stuff I commented out on the assumption I'll never need it.\n");
 
             if ( save_file_info.valid ){
                 sprintf( buffer, MESSAGE_SAVE_EXIST,
@@ -377,12 +381,14 @@ void ONScripterLabel::executeSystemSave()
 
         text_info.fill( 0, 0, 0, 0 );
 
-        menu_font.num_xy[0] = (strlen(save_item_name)+1)/2+2+13;
-        menu_font.num_xy[1] = num_save_file+2;
-        menu_font.top_xy[0] = (screen_width * screen_ratio2 / screen_ratio1 - menu_font.num_xy[0] * menu_font.pitch_xy[0]) / 2;
-        menu_font.top_xy[1] = (screen_height * screen_ratio2 / screen_ratio1  - menu_font.num_xy[1] * menu_font.pitch_xy[1]) / 2;
-        menu_font.setXY((menu_font.num_xy[0] - strlen( save_menu_name ) / 2 ) / 2, 0);
-        uchar3 color = {0xff, 0xff, 0xff};
+        //menu_font.num_xy[0] = (strlen(save_item_name)+1)/2+2+13;
+        //menu_font.num_xy[1] = num_save_file+2;
+        //menu_font.top_xy[0] = (screen_width * screen_ratio2 / screen_ratio1 - menu_font.num_xy[0] * menu_font.pitch_xy[0]) / 2;
+        //menu_font.top_xy[1] = (screen_height * screen_ratio2 / screen_ratio1  - menu_font.num_xy[1] * menu_font.pitch_xy[1]) / 2;
+        //menu_font.setXY((menu_font.num_xy[0] - strlen( save_menu_name ) / 2 ) / 2, 0);
+        fprintf(stderr, "Expect imminent problems, 'cos you just ran into a bunch of stuff I commented out on the assumption I'll never need it.\n");        
+
+        //uchar3 color = {0xff, 0xff, 0xff};
         // drawString( save_menu_name, color, &menu_font, true, accumulation_surface, NULL, &text_info );
         /* The following three lines are part of a hack allowing the menu name to show up when custom right-menus are in
            existence.  As it stands in ONScripter, these menu names get drawn in the accumulation buffer one level below
@@ -406,7 +412,8 @@ void ONScripterLabel::executeSystemSave()
         for ( unsigned int i=1 ; i<=num_save_file ; i++ ){
             SaveFileInfo save_file_info;
             searchSaveFile( save_file_info, i );
-            menu_font.setXY( (menu_font.num_xy[0] - (strlen( save_item_name ) / 2 + 15) ) / 2 );
+            //menu_font.setXY( (menu_font.num_xy[0] - (strlen( save_item_name ) / 2 + 15) ) / 2 );
+	        fprintf(stderr, "Expect imminent problems, 'cos you just ran into a bunch of stuff I commented out on the assumption I'll never need it.\n");
 
             if ( save_file_info.valid ){
                 sprintf( buffer, MESSAGE_SAVE_EXIST,
@@ -520,12 +527,14 @@ void ONScripterLabel::executeSystemYesNo()
             strcpy( name, MESSAGE_END_CONFIRM );
 
 
-        menu_font.num_xy[0] = strlen(name)/2;
-        menu_font.num_xy[1] = 3;
-        menu_font.top_xy[0] = (screen_width * screen_ratio2 / screen_ratio1 - menu_font.num_xy[0] * menu_font.pitch_xy[0]) / 2;
-        menu_font.top_xy[1] = (screen_height * screen_ratio2 / screen_ratio1  - menu_font.num_xy[1] * menu_font.pitch_xy[1]) / 2;
-        menu_font.setXY(0, 0);
-        uchar3 color = {0xff, 0xff, 0xff};
+        //menu_font.num_xy[0] = strlen(name)/2;
+        //menu_font.num_xy[1] = 3;
+        //menu_font.top_xy[0] = (screen_width * screen_ratio2 / screen_ratio1 - menu_font.num_xy[0] * menu_font.pitch_xy[0]) / 2;
+        //menu_font.top_xy[1] = (screen_height * screen_ratio2 / screen_ratio1  - menu_font.num_xy[1] * menu_font.pitch_xy[1]) / 2;
+        //menu_font.setXY(0, 0);
+        fprintf(stderr, "Expect imminent problems, 'cos you just ran into a bunch of stuff I commented out on the assumption I'll never need it.\n");
+
+        //uchar3 color = {0xff, 0xff, 0xff};
 
         // drawString( name, color, &menu_font, true, accumulation_surface, NULL, &text_info );
         /* The following three lines are part of a hack allowing the menu name to show up when custom right-menus are in
@@ -544,13 +553,15 @@ void ONScripterLabel::executeSystemYesNo()
         int offset1 = strlen(name)/5;
         int offset2 = strlen(name)/2 - offset1;
         strcpy( name, MESSAGE_YES );
-        menu_font.setXY(offset1-2, 2);
+        //menu_font.setXY(offset1-2, 2);
+fprintf(stderr, "Expect imminent problems, 'cos you just ran into a bunch of stuff I commented out on the assumption I'll never need it.\n");
         ButtonLink *button = getSelectableSentence( name, &menu_font, false );
         root_button_link.insert( button );
         button->no = 1;
 
         strcpy( name, MESSAGE_NO );
-        menu_font.setXY(offset2, 2);
+        //menu_font.setXY(offset2, 2);
+fprintf(stderr, "Expect imminent problems, 'cos you just ran into a bunch of stuff I commented out on the assumption I'll never need it.\n");
         button = getSelectableSentence( name, &menu_font, false );
         root_button_link.insert( button );
         button->no = 2;
@@ -568,7 +579,7 @@ void ONScripterLabel::setupLookbackButton()
 
     /* ---------------------------------------- */
     /* Previous button check */
-    if ( (current_text_buffer->previous->buffer2_count > 0 ) &&
+    if ( !current_text_buffer->previous->empty() &&
          current_text_buffer != start_text_buffer ){
         ButtonLink *button = new ButtonLink();
         root_button_link.insert( button );
@@ -673,7 +684,7 @@ void ONScripterLabel::executeSystemLookback()
     }
     else{
         current_text_buffer = current_text_buffer->previous;
-        if ( current_text_buffer->buffer2_count == 0 ){
+        if ( current_text_buffer->empty() ){
             if ( lookback_sp[0] >= 0 )
                 sprite_info[ lookback_sp[0] ].visible = false;
             if ( lookback_sp[1] >= 0 )

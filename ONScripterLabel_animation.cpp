@@ -54,8 +54,8 @@ int ONScripterLabel::proceedAnimation()
         if ( anim->visible && anim->is_animatable ){
             SDL_Rect dst_rect = anim->pos;
             if ( !anim->abs_flag ){
-                dst_rect.x += sentence_font.x() * screen_ratio1 / screen_ratio2;
-                dst_rect.y += sentence_font.y() * screen_ratio1 / screen_ratio2;
+                dst_rect.x += sentence_font.GetX() * screen_ratio1 / screen_ratio2;
+                dst_rect.y += sentence_font.GetY() * screen_ratio1 / screen_ratio2;
             }
 
             minimum_duration = estimateNextDuration( anim, dst_rect, minimum_duration );
@@ -128,52 +128,54 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
         FontInfo f_info = sentence_font;
         if (info) f_info = *info;
 
-        if ( anim->font_size_xy[0] >= 0 ){ // in case of Sprite, not rclick menu
-            f_info.top_xy[0] = anim->pos.x * screen_ratio2 / screen_ratio1;
-            f_info.top_xy[1] = anim->pos.y * screen_ratio2 / screen_ratio1;
-            if (anim->is_single_line)
-                f_info.setLineArea( strlen(anim->file_name)/2+1 );
+        if ( anim->font_size_x >= 0 ){ // in case of Sprite, not rclick menu
+            f_info.top_x = anim->pos.x * screen_ratio2 / screen_ratio1;
+            f_info.top_y = anim->pos.y * screen_ratio2 / screen_ratio1;
             f_info.clear();
             
-            f_info.pitch_xy[0] = f_info.pitch_xy[0] - f_info.font_size_xy[0] + anim->font_size_xy[0];
-            f_info.font_size_xy[0] = anim->font_size_xy[0];
-            f_info.pitch_xy[1] = f_info.pitch_xy[1] - f_info.font_size_xy[1] + anim->font_size_xy[1];
-            f_info.font_size_xy[1] = anim->font_size_xy[1];
+            f_info.font_size_x = anim->font_size_x;
+            f_info.font_size_x = anim->font_size_y;
             if ( anim->font_pitch >= 0 )
-                f_info.pitch_xy[0] = anim->font_pitch;
+                f_info.pitch_x = anim->font_pitch;
             f_info.ttf_font = NULL;
+            if (anim->is_single_line) {
+            	f_info.area_x = f_info.StringAdvance(anim->file_name);
+            	f_info.area_y = 1;
+            }
         }
 
         SDL_Rect pos;
         if (anim->is_tight_region){
-        drawString( anim->file_name, anim->color_list[ anim->current_cell ], &f_info, false, NULL, &pos );
+        	drawString( anim->file_name, anim->color_list[ anim->current_cell ], &f_info, false, NULL, &pos );
         }
         else{
             int xy_bak[2];
-            xy_bak[0] = f_info.xy[0];
-            xy_bak[1] = f_info.xy[1];
+            xy_bak[0] = f_info.pos_x;
+            xy_bak[1] = f_info.pos_y;
             
             int xy[2] = {0, 0};
-            f_info.setXY(f_info.num_xy[0]-1, f_info.num_xy[1]-1);
+            //f_info.setXY(f_info.num_xy[0]-1, f_info.num_xy[1]-1);
+            f_info.pos_x = f_info.area_x;
+            f_info.pos_y = f_info.area_y * (f_info.line_space() + f_info.pitch_y);
             pos = f_info.calcUpdatedArea(xy, screen_ratio1, screen_ratio2);
 
-            f_info.xy[0] = xy_bak[0];
-            f_info.xy[1] = xy_bak[1];
+            f_info.pos_x = xy_bak[0];
+            f_info.pos_y = xy_bak[1];
         }
         
         if (info != NULL){
-            info->xy[0] = f_info.xy[0];
-            info->xy[1] = f_info.xy[1];
+            info->pos_x = f_info.pos_x;
+            info->pos_y = f_info.pos_y;
         }
         
         anim->allocImage( pos.w*anim->num_of_cells, pos.h );
         anim->fill( 0, 0, 0, 0 );
         
-        f_info.top_xy[0] = f_info.top_xy[1] = 0;
+        f_info.top_x = f_info.top_y = 0;
         for ( int i=0 ; i<anim->num_of_cells ; i++ ){
             f_info.clear();
             drawString( anim->file_name, anim->color_list[i], &f_info, false, NULL, NULL, anim );
-            f_info.top_xy[0] += anim->pos.w * screen_ratio2 / screen_ratio1;
+            f_info.top_x += anim->pos.w * screen_ratio2 / screen_ratio1;
         }
     }
     else{
@@ -229,9 +231,9 @@ void ONScripterLabel::parseTaggedString( AnimationInfo *anim )
                 script_h.getNext();
                 
                 script_h.pushCurrent( buffer );
-                anim->font_size_xy[0] = script_h.readInt();
-                anim->font_size_xy[1] = script_h.readInt();
-                anim->font_pitch = script_h.readInt() + anim->font_size_xy[0];
+                anim->font_size_x = script_h.readInt();
+                anim->font_size_y = script_h.readInt();
+                anim->font_pitch = script_h.readInt();
                 if ( script_h.getEndStatus() & ScriptHandler::END_COMMA ){
                     script_h.readInt(); // 0 ... normal, 1 ... no anti-aliasing, 2 ... Fukuro
                 }
@@ -239,9 +241,9 @@ void ONScripterLabel::parseTaggedString( AnimationInfo *anim )
                 script_h.popCurrent();
             }
             else{
-                anim->font_size_xy[0] = sentence_font.font_size_xy[0];
-                anim->font_size_xy[1] = sentence_font.font_size_xy[1];
-                anim->font_pitch = sentence_font.pitch_xy[0];
+                anim->font_size_x = sentence_font.font_size_x;
+                anim->font_size_y = sentence_font.font_size_y;
+                anim->font_pitch = sentence_font.pitch_x;
             }
             while(buffer[0] != '#' && buffer[0] != '\0') buffer++;
             i=0;
@@ -325,8 +327,8 @@ void ONScripterLabel::drawTaggedSurface( SDL_Surface *dst_surface, AnimationInfo
 {
     SDL_Rect poly_rect = anim->pos;
     if ( !anim->abs_flag ){
-        poly_rect.x += sentence_font.x() * screen_ratio1 / screen_ratio2;
-        poly_rect.y += sentence_font.y() * screen_ratio1 / screen_ratio2;
+        poly_rect.x += sentence_font.GetX() * screen_ratio1 / screen_ratio2;
+        poly_rect.y += sentence_font.GetY() * screen_ratio1 / screen_ratio2;
     }
 
     anim->blendOnSurface( dst_surface, poly_rect.x, poly_rect.y,
@@ -352,8 +354,8 @@ void ONScripterLabel::stopAnimation( int click )
     SDL_Rect dst_rect = cursor_info[ no ].pos;
 
     if ( !cursor_info[ no ].abs_flag ){
-        dst_rect.x += sentence_font.x() * screen_ratio1 / screen_ratio2;
-        dst_rect.y += sentence_font.y() * screen_ratio1 / screen_ratio2;
+        dst_rect.x += sentence_font.GetX() * screen_ratio1 / screen_ratio2;
+        dst_rect.y += sentence_font.GetY() * screen_ratio1 / screen_ratio2;
     }
 
     flushDirect( dst_rect, refreshMode() );

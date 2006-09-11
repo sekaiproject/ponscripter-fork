@@ -524,13 +524,13 @@ int ScriptParser::midCommand()
 
 int ScriptParser::menusetwindowCommand()
 {
-    menu_font.ttf_font        = NULL;
-    menu_font.font_size_xy[0] = script_h.readInt();
-    menu_font.font_size_xy[1] = script_h.readInt();
-    menu_font.pitch_xy[0]     = script_h.readInt() + menu_font.font_size_xy[0];
-    menu_font.pitch_xy[1]     = script_h.readInt() + menu_font.font_size_xy[1];
-    menu_font.is_bold         = script_h.readInt()?true:false;
-    menu_font.is_shadow       = script_h.readInt()?true:false;
+    menu_font.ttf_font    = NULL;
+    menu_font.font_size_x = script_h.readInt();
+    menu_font.font_size_y = script_h.readInt();
+    menu_font.pitch_x     = script_h.readInt();
+    menu_font.pitch_y     = script_h.readInt();
+    menu_font.is_bold     = script_h.readInt()?true:false;
+    menu_font.is_shadow   = script_h.readInt()?true:false;
 
     const char *buf = script_h.readStr();
     if ( strlen(buf) ){ // Comma may or may not be appeared in this case.

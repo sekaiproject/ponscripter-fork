@@ -119,6 +119,10 @@ public:
 
     /* ---------------------------------------- */
     /* Commands */
+	// my extensions
+	int haeleth_text_extentCommand();
+	int haeleth_centre_lineCommand();
+	// regular NScripter stuff
     int wavestopCommand();
     int waveCommand();
     int waittimerCommand();
@@ -533,7 +537,6 @@ private:
     /* Text related variables */
     AnimationInfo text_info;
     AnimationInfo sentence_font_info;
-    char *font_file;
     int erase_text_window_mode;
     bool text_on_flag; // suppress the effect of erase_text_window_mode
     bool draw_cursor_flag;
@@ -553,7 +556,6 @@ private:
     SDL_Surface *renderGlyph(TTF_Font *font, Uint16 text);
     void drawGlyph( SDL_Surface *dst_surface, FontInfo *info, SDL_Color &color, char *text, int xy[2], bool shadow_flag, AnimationInfo *cache_info, SDL_Rect *clip, SDL_Rect &dst_rect );
     void drawChar( char* text, FontInfo *info, bool flush_flag, bool lookback_flag, SDL_Surface *surface, AnimationInfo *cache_info, SDL_Rect *clip=NULL );
-    void drawDoubleChars( char* text, FontInfo *info, bool flush_flag, bool lookback_flag, SDL_Surface *surface, AnimationInfo *cache_info, SDL_Rect *clip=NULL );
     void drawString( const char *str, uchar3 color, FontInfo *info, bool flush_flag, SDL_Surface *surface, SDL_Rect *rect = NULL, AnimationInfo *cache_info=NULL );
     void restoreTextBuffer();
     int  enterTextDisplayMode(bool text_flag = true);
