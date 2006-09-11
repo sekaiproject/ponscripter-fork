@@ -1,0 +1,78 @@
+# -*- Makefile -*-
+#
+# Makefile.onscripter - General makefile rules for ONScripter
+#
+
+GUI_OBJS = ONScripterLabel$(OBJSUFFIX) ONScripterLabel_command$(OBJSUFFIX) ONScripterLabel_text$(OBJSUFFIX) \
+	ONScripterLabel_effect$(OBJSUFFIX) ONScripterLabel_event$(OBJSUFFIX) ONScripterLabel_rmenu$(OBJSUFFIX) \
+	ONScripterLabel_animation$(OBJSUFFIX) ONScripterLabel_sound$(OBJSUFFIX) ONScripterLabel_file$(OBJSUFFIX) \
+	ONScripterLabel_file2$(OBJSUFFIX) ONScripterLabel_image$(OBJSUFFIX) \
+	AnimationInfo$(OBJSUFFIX) FontInfo$(OBJSUFFIX) DirtyRect$(OBJSUFFIX) resize_image$(OBJSUFFIX)
+SARDEC_OBJS  = sardec$(OBJSUFFIX) DirectReader$(OBJSUFFIX) SarReader$(OBJSUFFIX)
+SARCONV_OBJS = sarconv$(OBJSUFFIX) conv_shared$(OBJSUFFIX) resize_image$(OBJSUFFIX) DirectReader$(OBJSUFFIX) SarReader$(OBJSUFFIX)
+NSADEC_OBJS  = nsadec$(OBJSUFFIX) DirectReader$(OBJSUFFIX) SarReader$(OBJSUFFIX) NsaReader$(OBJSUFFIX)
+NSACONV_OBJS = nsaconv$(OBJSUFFIX) conv_shared$(OBJSUFFIX) resize_image$(OBJSUFFIX) DirectReader$(OBJSUFFIX) SarReader$(OBJSUFFIX) NsaReader$(OBJSUFFIX)
+DECODER_OBJS = DirectReader$(OBJSUFFIX) SarReader$(OBJSUFFIX) NsaReader$(OBJSUFFIX)
+ONSCRIPTER_OBJS = onscripter$(OBJSUFFIX) $(DECODER_OBJS) ScriptHandler$(OBJSUFFIX) ScriptParser$(OBJSUFFIX) ScriptParser_command$(OBJSUFFIX) \
+	$(GUI_OBJS) sjis2utf16$(OBJSUFFIX) $(EXT_OBJS)
+PARSER_HEADER = BaseReader.h SarReader.h NsaReader.h DirectReader.h ScriptHandler.h ScriptParser.h AnimationInfo.h FontInfo.h DirtyRect.h
+ONSCRIPTER_HEADER = ONScripterLabel.h $(PARSER_HEADER)
+
+ALL: $(TARGET)
+
+sardec$(EXESUFFIX): $(SARDEC_OBJS)
+	$(LD)$@ $(SARDEC_OBJS) $(LIBS)
+
+sarconv$(EXESUFFIX): $(SARCONV_OBJS)
+	$(LD)$@ $(SARCONV_OBJS) $(LIBS)
+
+nsadec$(EXESUFFIX): $(NSADEC_OBJS)
+	$(LD)$@ $(NSADEC_OBJS) $(LIBS)
+
+nsaconv$(EXESUFFIX): $(NSACONV_OBJS)
+	$(LD)$@ $(NSACONV_OBJS) $(LIBS)
+
+simple_aviplay$(EXESUFFIX): simple_aviplay$(OBJSUFFIX) AVIWrapper$(OBJSUFFIX)
+	$(LD)$@ simple_aviplay$(OBJSUFFIX) AVIWrapper$(OBJSUFFIX) $(LIBS)
+
+onscripter$(EXESUFFIX): $(ONSCRIPTER_OBJS)
+	$(LD)$@ $(ONSCRIPTER_OBJS) $(LIBS)
+
+clean:
+	-$(RM) $(TARGET)
+	-$(RM) *$(OBJSUFFIX)
+
+.cpp$(OBJSUFFIX):
+	$(CC) $(CFLAGS) $<
+
+SarReader$(OBJSUFFIX):    BaseReader.h SarReader.h 
+NsaReader$(OBJSUFFIX):    BaseReader.h SarReader.h NsaReader.h 
+DirectReader$(OBJSUFFIX): BaseReader.h DirectReader.h
+ScriptHandler$(OBJSUFFIX): ScriptHandler.h
+ScriptParser$(OBJSUFFIX): $(PARSER_HEADER)
+ScriptParser_command$(OBJSUFFIX): $(PARSER_HEADER)
+
+sardec$(OBJSUFFIX): BaseReader.h SarReader.h 
+sarconv$(OBJSUFFIX): BaseReader.h SarReader.h 
+nsadec$(OBJSUFFIX): BaseReader.h SarReader.h NsaReader.h 
+nsaconv$(OBJSUFFIX): BaseReader.h SarReader.h NsaReader.h 
+simple_aviplay$(OBJSUFFIX): AVIWrapper.h
+conv_shared$(OBJSUFFIX): resize_image.h
+
+onscripter$(OBJSUFFIX): $(ONSCRIPTER_HEADER) version.h
+ONScripterLabel$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
+ONScripterLabel_command$(OBJSUFFIX): $(ONSCRIPTER_HEADER) version.h
+ONScripterLabel_text$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
+ONScripterLabel_effect$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
+ONScripterLabel_event$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
+ONScripterLabel_rmenu$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
+ONScripterLabel_animation$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
+ONScripterLabel_sound$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
+ONScripterLabel_file$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
+ONScripterLabel_file2$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
+ONScripterLabel_image$(OBJSUFFIX): $(ONSCRIPTER_HEADER) resize_image.h
+AnimationInfo$(OBJSUFFIX): AnimationInfo.h
+FontInfo$(OBJSUFFIX): FontInfo.h
+DirtyRect$(OBJSUFFIX) : DirtyRect.h
+MadWrapper$(OBJSUFFIX): MadWrapper.h
+AVIWrapper$(OBJSUFFIX): AVIWrapper.h

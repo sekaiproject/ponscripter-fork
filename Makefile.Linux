@@ -1,0 +1,55 @@
+# -*- Makefile -*-
+#
+# Makefile.Linux - Makefile rules for linux
+#
+
+# without OggVorbis and AVI
+#INCS = `sdl-config --cflags` `smpeg-config --cflags`
+#LIBS = `sdl-config --libs` `smpeg-config --libs` -lSDL_ttf -lSDL_image -lSDL_mixer -lbz2 -ljpeg -lm
+#DEFS = -DLINUX
+
+INCS = `sdl-config --cflags` `smpeg-config --cflags` `avifile-config --cflags`
+# with OggVorbis and AVI
+LIBS = `sdl-config --libs` `smpeg-config --libs` `avifile-config --libs` -lSDL_ttf -lSDL_image -lSDL_mixer -lbz2 -ljpeg -lm -lvorbis
+DEFS = -DLINUX -DUSE_AVIFILE -DUSE_OGG_VORBIS
+
+# with Integer OggVorbis and AVI in PDA size
+#LIBS = `sdl-config --libs` `smpeg-config --libs` `avifile-config --libs` -lSDL_ttf -lSDL_image -lSDL_mixer -lbz2 -ljpeg -lm -lvorbisidec
+#DEFS = -DLINUX -DUSE_AVIFILE -DUSE_OGG_VORBIS -DINTEGER_OGG_VORBIS -DPDA -DPDA_WIDTH=640
+
+# with OggVorbis and AVI and English mode
+#LIBS = `sdl-config --libs` `smpeg-config --libs` `avifile-config --libs` -lSDL_ttf -lSDL_image -lSDL_mixer -lbz2 -ljpeg -lm -lvorbis
+#DEFS = -DLINUX -DUSE_AVIFILE -DUSE_OGG_VORBIS -DENABLE_1BYTE_CHAR -DFORCE_1BYTE_CHAR
+
+EXESUFFIX =
+OBJSUFFIX = .o
+
+.SUFFIXES:
+.SUFFIXES: $(OBJSUFFIX) .cpp .h
+
+# for GNU g++
+CC = g++ 
+LD = g++ -o 
+
+#CFLAGS = -g -Wall -pipe -c $(INCS) $(DEFS)
+CFLAGS = -O3 -Wall -fomit-frame-pointer -pipe -c $(INCS) $(DEFS)
+
+# for GCC on PowerPC specfied
+#CC = powerpc-unknown-linux-gnu-g++
+#LD = powerpc-unknown-linux-gnu-g++ -o
+
+#CFLAGS = -O3 -mtune=G4 -maltivec -mabi=altivec -mpowerpc-gfxopt -mmultiple -mstring -Wall -fomit-frame-pointer -pipe -c $(INCS) $(DEFS)
+
+# for Intel compiler
+#CC = icc
+#LD = icc -o
+
+#CFLAGS = -O3 -tpp6 -xK -c $(INCS) $(DEFS)
+
+RM = rm -f
+
+#TARGET = onscripter$(EXESUFFIX) sardec$(EXESUFFIX) nsadec$(EXESUFFIX) sarconv$(EXESUFFIX) nsaconv$(EXESUFFIX)
+TARGET = onscripter$(EXESUFFIX) sardec$(EXESUFFIX) nsadec$(EXESUFFIX) sarconv$(EXESUFFIX) nsaconv$(EXESUFFIX) simple_aviplay$(EXESUFFIX)
+EXT_OBJS = AVIWrapper$(OBJSUFFIX)
+
+include Makefile.onscripter
