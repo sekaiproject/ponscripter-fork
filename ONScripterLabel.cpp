@@ -149,6 +149,7 @@ static struct FuncLUT{
 	{"indent", &ONScripterLabel::indentCommand},
 	{"humanorder", &ONScripterLabel::humanorderCommand},
 	{"h_textextent", &ONScripterLabel::haeleth_text_extentCommand},
+	{"h_indentstr", &ONScripterLabel::haeleth_indent_charCommand},
 	{"h_centreline", &ONScripterLabel::haeleth_centre_lineCommand},
 	{"getzxc", &ONScripterLabel::getzxcCommand},
 	{"getvoicevol", &ONScripterLabel::getvoicevolCommand},
@@ -542,8 +543,8 @@ int ONScripterLabel::init()
 			font_file = new char[ strlen(archive_path) + strlen(script_h.script_defined_font) + 1 ];
 			sprintf( font_file, "%s%s", archive_path, script_h.script_defined_font );
 		}
-    	delete[] script_h.script_defined_font;
-    	script_h.script_defined_font = NULL;
+		delete[] script_h.script_defined_font;
+		script_h.script_defined_font = NULL;
 	}
 	else if ( default_font ){
 		font_file = new char[ strlen(default_font) + 1 ];
@@ -717,6 +718,8 @@ void ONScripterLabel::resetSub()
 	for (i=0 ; i<2 ; i++) cursor_info[i].reset();
 	for (i=0 ; i<4 ; i++) lookback_info[i].reset();
 	sentence_font_info.reset();
+
+	if (indent_chars) { delete[] indent_chars; indent_chars = NULL; }
 
 	dirty_rect.fill( screen_width, screen_height );
 }
@@ -932,6 +935,30 @@ void ONScripterLabel::executeLabel()
 	endCommand();
 }
 
+inline bool is_break_char(const unsigned short c)
+{
+	return c == ' ' || c == '-' || c == 0x2013 || c == 0x2014;
+}
+
+bool ONScripterLabel::is_indent_char(const unsigned short c) const
+{
+	if (indent_chars) {
+printf("ch U+%04x : ", c);		
+		const unsigned short* istr = indent_chars;
+		do {
+printf("U+%04x, ", *istr);		
+			if (c == *istr) {
+printf("yes\n");
+				return true;
+			}
+		} while (*(++istr));
+printf("no\n");
+	}
+else printf("indent_chars not set\n");
+	return false;
+}
+
+
 int ONScripterLabel::parseLine( )
 {
 	int ret, lut_counter = 0;
@@ -963,22 +990,36 @@ int ONScripterLabel::parseLine( )
 
 	/* Text */
 	if ( current_mode == DEFINE_MODE ) errorAndExit( "text cannot be displayed in define section." );
+
+//--------INDENT ROUTINE-----------------------------------------------------------------------------------
+	if (sentence_font.GetXOffset() == 0 && sentence_font.GetLine() == 0) {
+		const unsigned short first_ch = UnicodeOfUTF8(script_h.getStringBuffer() + string_buffer_offset);
+		if (is_indent_char(first_ch))
+			sentence_font.SetIndent(first_ch);
+		else
+			sentence_font.ClearIndent();
+	}
+//--------END INDENT ROUTINE-------------------------------------------------------------------------------
+
 	ret = textCommand();
 
 //--------LINE BREAKING ROUTINE----------------------------------------------------------------------------
 	// I think this is only called AFTER the first character of the line has been printed...?
 	// i.e. at any rate, the ` should be out of the way...?
-	if (script_h.getStringBuffer()[string_buffer_offset] == ' '){
-		char *it = script_h.getStringBuffer() + string_buffer_offset + 1;
-		int len = sentence_font.GlyphAdvance(' ');
+
+	const unsigned short first_ch = UnicodeOfUTF8(script_h.getStringBuffer() + string_buffer_offset);
+	if (is_break_char(first_ch)){
+		int len = sentence_font.GlyphAdvance(first_ch);
+		char *it = script_h.getStringBuffer() + string_buffer_offset 
+				 + CharacterBytes(script_h.getStringBuffer() + string_buffer_offset);
 		while (1) {
 			// For each character (not char!) before a break is found, get unicode.
 			unsigned short ch = UnicodeOfUTF8(it);
 			it += CharacterBytes(it);
 
 			// Check for token breaks.
-			if (!ch || ch == ' ' || ch == '\n' || ch == '-' || ch == 0x2013 || ch == 0x2014 
-					|| ch == '@' || ch == '\\') 
+			if (!ch || ch == '\n' || ch == '@' || ch == '\\'
+				|| is_break_char(ch))
 				break;
 			
 			// Look for an inline command.
@@ -1036,8 +1077,8 @@ SDL_Surface *ONScripterLabel::loadImage( char *file_name )
 	unsigned long length = script_h.cBR->getFileLength( file_name );
 	if ( length == 0 ){
 		if (strcmp(file_name, DEFAULT_LOOKBACK_NAME0) != 0 && strcmp(file_name, DEFAULT_LOOKBACK_NAME1) != 0 &&
-		    strcmp(file_name, DEFAULT_LOOKBACK_NAME2) != 0 && strcmp(file_name, DEFAULT_LOOKBACK_NAME3) != 0 &&
-		    strcmp(file_name, DEFAULT_CURSOR1) != 0)
+			strcmp(file_name, DEFAULT_LOOKBACK_NAME2) != 0 && strcmp(file_name, DEFAULT_LOOKBACK_NAME3) != 0 &&
+			strcmp(file_name, DEFAULT_CURSOR1) != 0)
 			fprintf( stderr, " *** can't find file [%s] ***\n", file_name );
 		return NULL;
 	}

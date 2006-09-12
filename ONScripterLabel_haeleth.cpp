@@ -22,6 +22,7 @@
  */
 
 #include "ONScripterLabel.h"
+#include "utf8_util.h"
 
 /* h_textextent <ivar>,<string>
  *
@@ -57,5 +58,25 @@ int ONScripterLabel::haeleth_centre_lineCommand()
 	const char *buf = script_h.readStr();
 	if (*buf == '`') ++buf;
 	sentence_font.SetXY(screen_width / 2 - sentence_font.StringAdvance(buf) / 2 - sentence_font.top_x, -1);
+	return RET_CONTINUE;
+}
+
+/* h_indentstr <string>
+ *
+ * Characters in the given <string> will set indents if they occur at the start of a screen.
+ * If the first character of a screen is not in the given string, any set indent will be cleared.
+ */
+int ONScripterLabel::haeleth_indent_charCommand()
+{
+	if (indent_chars) { delete[] indent_chars; indent_chars = NULL; }
+	const char* buf = script_h.readStr();
+	if (*buf == '`') ++buf;
+	indent_chars = new unsigned short[UTF8Length(buf) + 1];
+	int idx = 0;
+	while (*buf) {
+		indent_chars[idx++] = UnicodeOfUTF8(buf);
+		buf += CharacterBytes(buf);
+	}
+	indent_chars[idx] = 0;
 	return RET_CONTINUE;
 }

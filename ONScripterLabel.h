@@ -122,6 +122,7 @@ public:
 	// my extensions
 	int haeleth_text_extentCommand();
 	int haeleth_centre_lineCommand();
+	int haeleth_indent_charCommand();
 	// regular NScripter stuff
     int wavestopCommand();
     int waveCommand();
@@ -561,6 +562,9 @@ private:
     int  clickNewPage( char *out_text );
     int  textCommand();
     int  processText();
+
+	unsigned short* indent_chars;
+	bool is_indent_char(const unsigned short c) const;
 
     /* ---------------------------------------- */
     /* Effect related variables */

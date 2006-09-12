@@ -7,7 +7,8 @@ GUI_OBJS = ONScripterLabel$(OBJSUFFIX) ONScripterLabel_command$(OBJSUFFIX) ONScr
 	ONScripterLabel_effect$(OBJSUFFIX) ONScripterLabel_event$(OBJSUFFIX) ONScripterLabel_rmenu$(OBJSUFFIX) \
 	ONScripterLabel_animation$(OBJSUFFIX) ONScripterLabel_sound$(OBJSUFFIX) ONScripterLabel_file$(OBJSUFFIX) \
 	ONScripterLabel_file2$(OBJSUFFIX) ONScripterLabel_image$(OBJSUFFIX) ONScripterLabel_haeleth$(OBJSUFFIX) \
-	AnimationInfo$(OBJSUFFIX) FontInfo$(OBJSUFFIX) DirtyRect$(OBJSUFFIX) resize_image$(OBJSUFFIX) resources$(OBJSUFFIX)
+	AnimationInfo$(OBJSUFFIX) FontInfo$(OBJSUFFIX) DirtyRect$(OBJSUFFIX) resize_image$(OBJSUFFIX) \
+	resources$(OBJSUFFIX) utf8_util$(OBJSUFFIX)
 DECODER_OBJS = DirectReader$(OBJSUFFIX) SarReader$(OBJSUFFIX) NsaReader$(OBJSUFFIX)
 ONSCRIPTER_OBJS = onscripter$(OBJSUFFIX) $(DECODER_OBJS) ScriptHandler$(OBJSUFFIX) ScriptParser$(OBJSUFFIX) ScriptParser_command$(OBJSUFFIX) \
 	$(GUI_OBJS) $(EXT_OBJS)
@@ -36,7 +37,7 @@ ScriptParser_command$(OBJSUFFIX): $(PARSER_HEADER)
 onscripter$(OBJSUFFIX): $(ONSCRIPTER_HEADER) version.h
 ONScripterLabel$(OBJSUFFIX): $(ONSCRIPTER_HEADER) utf8_util.h
 ONScripterLabel_command$(OBJSUFFIX): $(ONSCRIPTER_HEADER) version.h utf8_util.h
-ONScripterLabel_haeleth$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
+ONScripterLabel_haeleth$(OBJSUFFIX): $(ONSCRIPTER_HEADER) utf8_util.h
 ONScripterLabel_text$(OBJSUFFIX): $(ONSCRIPTER_HEADER) utf8_util.h
 ONScripterLabel_effect$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
 ONScripterLabel_event$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
@@ -52,6 +53,7 @@ FontInfo$(OBJSUFFIX): FontInfo.h utf8_util.h resources.h
 DirtyRect$(OBJSUFFIX) : DirtyRect.h
 MadWrapper$(OBJSUFFIX): MadWrapper.h
 AVIWrapper$(OBJSUFFIX): AVIWrapper.h
+utf8_util$(OBJSUFFIX): utf8_util.h
 
 resources.cpp: embed$(EXESUFFIX) internal.font internal.icon
 	echo '#include "resources.h"' > $@

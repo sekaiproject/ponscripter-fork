@@ -33,46 +33,53 @@ typedef unsigned char uchar3[3];
 
 class FontInfo{
 	int em_width_, line_space_; // Width and height of a character
+	int indent;
 public:
-    void *ttf_font;
-    uchar3 color;
-    uchar3 on_color, off_color, nofile_color;
-    int font_size_x, font_size_y;
-    int top_x, top_y; // Top left origin
-    int area_x, area_y; // Size of the text windows
-    int pos_x, pos_y; // Current position
-    int pitch_x, pitch_y; // additional spacing
-    int wait_time;
-    bool is_bold;
-    bool is_shadow;
-    bool is_transparent;
-    bool is_newline_accepted;
-    uchar3  window_color;
+	void *ttf_font;
+	uchar3 color;
+	uchar3 on_color, off_color, nofile_color;
+	int font_size_x, font_size_y;
+	int top_x, top_y; // Top left origin
+	int area_x, area_y; // Size of the text windows
+	int pos_x, pos_y; // Current position
+	int pitch_x, pitch_y; // additional spacing
+	int wait_time;
+	bool is_bold;
+	bool is_shadow;
+	bool is_transparent;
+	bool is_newline_accepted;
+	uchar3  window_color;
 
 	int em_width();
 	int line_space();
 
-    FontInfo();
-    void reset();
-    void *openFont();
-    int getRemainingLine(); // # of lines remaining on the screen, that is
-    
-    int GetX();
-    int GetY();
-    void SetXY( int x=-1, int y=-1 );
-    void clear();
-    void newLine();
-    void setLineArea(int num);
+	void SetIndent(const unsigned short indent_char) { indent = GlyphAdvance(indent_char); }
+	void ClearIndent() { indent = 0; }
+
+	FontInfo();
+	void reset();
+	void *openFont();
+	int getRemainingLine(); // # of lines remaining on the screen, that is
+
+	int GetXOffset() { return pos_x; }
+	int GetLine() { return pos_y; }	
+	int GetX() { return pos_x + top_x; }
+	int GetY() { return pos_y * (line_space() + pitch_y) + top_y; };
+	
+	void SetXY( int x=-1, int y=-1 );
+	void clear();
+	void newLine();
+	void setLineArea(int num);
 
 	int GlyphAdvance(unsigned short unicode);
 	int StringAdvance(const char* string);
 
-    bool isNoRoomFor(int margin=0);
-    bool isLineEmpty();
-    void advanceBy(int offset);
+	bool isNoRoomFor(int margin=0);
+	bool isLineEmpty();
+	void advanceBy(int offset);
 
-    SDL_Rect calcUpdatedArea(int start_xy[2], int ratio1, int ratio2 );
-    void addShadeArea(SDL_Rect &rect, int shade_distance[2] );
+	SDL_Rect calcUpdatedArea(int start_xy[2], int ratio1, int ratio2 );
+	void addShadeArea(SDL_Rect &rect, int shade_distance[2] );
 };
 
 #endif // __FONT_INFO_H__

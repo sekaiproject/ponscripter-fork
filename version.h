@@ -1,2 +1,2 @@
-#define ONS_VERSION "0.000001"
+#define ONS_VERSION "1.00"
 #define NSC_VERSION 255

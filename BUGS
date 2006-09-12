@@ -1,2 +1,10 @@
+We should check for very short sentence starts (e.g. rather than "foo. I|think", break as "foo.|I think").
+
 Line wrapping fails: tokens break on hyphen, but the next token is not re-scanned.
 (i.e. "three-mi|nute", because "three-" fits on the line, and "minute" is not checked.)
+(Fixed?)
+
+Finally, some way of setting an indent. ^^
+(Fixed?)
+
+Indents are not preserved in the backlog.
