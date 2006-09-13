@@ -207,7 +207,7 @@ SDL_Rect FontInfo::calcUpdatedArea(int start_xy[2], int ratio1, int ratio2)
 	}
 	const int lsp = line_space() + pitch_y;
 	rect.y = top_y + start_xy[1] * lsp;
-	rect.h = lsp * (pos_y - start_xy[1] + 2);
+	rect.h = lsp * (pos_y - start_xy[1] + 1) - pitch_y;
 
 	rect.x = rect.x * ratio1 / ratio2;
 	rect.y = rect.y * ratio1 / ratio2;

@@ -62,6 +62,7 @@ public:
     bool is_animatable;
     bool is_single_line;
     bool is_tight_region; // valid under TRANS_STRING
+    bool is_centered_text;
         
     char *file_name;
     char *mask_file_name;

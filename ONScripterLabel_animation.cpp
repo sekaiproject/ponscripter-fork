@@ -134,13 +134,17 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
             f_info.clear();
             
             f_info.font_size_x = anim->font_size_x;
-            f_info.font_size_x = anim->font_size_y;
+            f_info.font_size_y = anim->font_size_y;
             if ( anim->font_pitch >= 0 )
                 f_info.pitch_x = anim->font_pitch;
             f_info.ttf_font = NULL;
             if (anim->is_single_line) {
             	f_info.area_x = f_info.StringAdvance(anim->file_name);
             	f_info.area_y = 1;
+            }
+            if (anim->is_centered_text) {
+            	anim->pos.x -= f_info.area_x / 2;
+            	f_info.top_x = anim->pos.x * screen_ratio2 / screen_ratio1;
             }
         }
 
@@ -154,9 +158,8 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
             xy_bak[1] = f_info.pos_y;
             
             int xy[2] = {0, 0};
-            //f_info.setXY(f_info.num_xy[0]-1, f_info.num_xy[1]-1);
             f_info.pos_x = f_info.area_x;
-            f_info.pos_y = f_info.area_y * (f_info.line_space() + f_info.pitch_y);
+            f_info.pos_y = f_info.area_y - 1;
             pos = f_info.calcUpdatedArea(xy, screen_ratio1, screen_ratio2);
 
             f_info.pos_x = xy_bak[0];
@@ -222,8 +225,9 @@ void ONScripterLabel::parseTaggedString( AnimationInfo *anim )
             anim->trans_mode = AnimationInfo::TRANS_COPY;
             buffer++;
         }
-        else if ( buffer[0] == 's' ){
+        else if ( buffer[0] == 's' || buffer[0] == 'S' ){
             anim->trans_mode = AnimationInfo::TRANS_STRING;
+            anim->is_centered_text = buffer[0] == 'S';
             buffer++;
             anim->num_of_cells = 0;
             if ( *buffer == '/' ){
