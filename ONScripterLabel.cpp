@@ -943,21 +943,24 @@ inline bool is_break_char(const unsigned short c)
 bool ONScripterLabel::is_indent_char(const unsigned short c) const
 {
 	if (indent_chars) {
-printf("ch U+%04x : ", c);		
 		const unsigned short* istr = indent_chars;
 		do {
-printf("U+%04x, ", *istr);		
-			if (c == *istr) {
-printf("yes\n");
-				return true;
-			}
+			if (c == *istr) return true;
 		} while (*(++istr));
-printf("no\n");
 	}
-else printf("indent_chars not set\n");
 	return false;
 }
 
+bool ONScripterLabel::check_orphan_control()
+{
+	// Check whether the current break point follows a logical break in the text.
+	// This is used to prevent short words being stranded at the end of a line.
+	if (string_buffer_offset < 5) return false;
+	const unsigned short p = UnicodeOfUTF8(PreviousCharacter(script_h.getStringBuffer() + string_buffer_offset));
+	return p == '.' || p == 0xff0e || p == ',' || p == 0xff0c
+	    || p == ':' || p == 0xff1a || p == ';' || p == 0xff1b
+	    || p == '!' || p == 0xff01 || p == '?' || p == 0xff1f;
+}
 
 int ONScripterLabel::parseLine( )
 {
@@ -1004,9 +1007,6 @@ int ONScripterLabel::parseLine( )
 	ret = textCommand();
 
 //--------LINE BREAKING ROUTINE----------------------------------------------------------------------------
-	// I think this is only called AFTER the first character of the line has been printed...?
-	// i.e. at any rate, the ` should be out of the way...?
-
 	const unsigned short first_ch = UnicodeOfUTF8(script_h.getStringBuffer() + string_buffer_offset);
 	if (is_break_char(first_ch)){
 		int len = sentence_font.GlyphAdvance(first_ch);
@@ -1044,6 +1044,26 @@ int ONScripterLabel::parseLine( )
 			
 			// No inline command?  Use the glyph metrics, then!
 			len += sentence_font.GlyphAdvance(ch);
+		}
+		if (check_orphan_control()) {
+			// If this is the start of a sentence, or follows some other punctuation that makes this
+			// desirable, we pretend short words have a minimum length.
+			// Consider the case where we are rendering "We all of us love pies. I eat them every day"
+			// in a fixed-width font in a text window 25 characters wide.  A naive approach would lead
+			// to rendering this as
+			//    -------------------------
+			//    We all of us love pies. I
+			//    eat them every day.
+			//    -------------------------
+			// By treating the second "I", which follows a full stop, as though it was four letters
+			// long, we get instead the more readable layout
+			//    -------------------------
+			//    We all of us love pies.
+			//    I eat them every day.
+			//    -------------------------
+			// Currently we use four em widths, which is an arbtrary figure that may need tweaking.
+			const int minlen = sentence_font.em_width() * 4;
+			if (len < minlen) len = minlen;
 		}
 		if (len > 0 && sentence_font.isNoRoomFor(len)) {
 			current_text_buffer->addBuffer(0x0a);

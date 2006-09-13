@@ -565,6 +565,7 @@ private:
 
 	unsigned short* indent_chars;
 	bool is_indent_char(const unsigned short c) const;
+	bool check_orphan_control();
 
     /* ---------------------------------------- */
     /* Effect related variables */

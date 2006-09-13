@@ -1,10 +1,12 @@
-We should check for very short sentence starts (e.g. rather than "foo. I|think", break as "foo.|I think").
+? We should check for very short sentence starts (e.g. rather than "foo. I|think", break as "foo.|I think").
+  (Fixed?)
 
-Line wrapping fails: tokens break on hyphen, but the next token is not re-scanned.
-(i.e. "three-mi|nute", because "three-" fits on the line, and "minute" is not checked.)
-(Fixed?)
+? Line wrapping fails: tokens break on hyphen, but the next token is not re-scanned.
+  (i.e. "three-mi|nute", because "three-" fits on the line, and "minute" is not checked.)
+  (Fixed? Need to check edge cases, allow for nbhy, etc.)
 
-Finally, some way of setting an indent. ^^
-(Fixed?)
+* Indents are not preserved in the backlog.
 
-Indents are not preserved in the backlog.
+* Text button hit testing extends too far below a button by a considerable distance.
+
+* Maybe add an extended lsp that automatically handles text centering?
