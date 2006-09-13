@@ -221,7 +221,11 @@ void ONScripterLabel::restoreTextBuffer()
 	f_info.clear();
 	const char *buffer = current_text_buffer->contents.c_str();
 	int buffer_count = current_text_buffer->contents.size();
-	for ( int i=0 ; i<buffer_count ; i++ ){
+	
+	const unsigned short first_ch = UnicodeOfUTF8(buffer);
+	if (is_indent_char(first_ch)) f_info.SetIndent(first_ch);
+	
+	for ( int i=0 ; i<buffer_count ; ++i ){
 		if ( buffer[i] == 0x0a ){
 			f_info.newLine();
 		}
