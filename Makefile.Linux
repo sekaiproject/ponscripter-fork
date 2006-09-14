@@ -4,7 +4,7 @@
 #
 
 LIBS = `sdl-config --libs` `smpeg-config --libs` -lSDL_ttf -lfreetype -lSDL_mixer -lSDL_image -lbz2 -lz -ljpeg -lm -lvorbis -lvorbisfile -logg
-DEFS = -DLINUX -DUSE_OGG_VORBIS -DHAELETH -DUSE_INTERNAL_FONT
+DEFS = -DLINUX -DUSE_OGG_VORBIS -DHAELETH
 
 EXESUFFIX =
 OBJSUFFIX = .o

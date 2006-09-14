@@ -7,11 +7,24 @@ Specific changes:
   in lines.  This means that for example all instances of [locate] will be
   broken.
 * Window sizing is changed invisibly: the window size is set in pixels to what
-  it would have been in characters.
-* New commands h_textextent and h_centreline (see ONScripterLabel_haeleth.cpp)
+  it would have been in characters.  (This is subject to change; it makes
+  porting easier but maintaining ports harder.)
+* New commands (see ONScripterLabel_haeleth.cpp).
+* New sprite tag :S, equivalent to :s but causes the x position to locate the
+  centre of the string rather than the left edge.
 
 
 Significant changes:
+
+2006-09-14
+
+  Multi-style support using transformations of Unicode to alternative glyphs
+  in the private-use area.
+  
+  Adjusted font embedding to work from source code rather than a binary.  This 
+  means that the build process now depends on FontForge (if you wish to use an 
+  embedded font).  However, it also means the source distribution will be pure
+  source code (apart from icons etc), which is a bonus.
 
 2006-09-08
 
@@ -20,9 +33,9 @@ Significant changes:
 
 2006-09-06
 
-  Highly experimental UTF-8 and proportional text support.
+  UTF-8 and proportional text support.
   
-  Ruby and tategaki support removed.
+  Ruby, clickstr, and tategaki support removed.
 
 2006-09-05
 

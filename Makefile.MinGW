@@ -3,6 +3,8 @@
 # Makefile.MinGW - Makefile rules for MinGW / MSYS
 #
 
+WIN32 = true
+
 INCS = `sdl-config --cflags` `smpeg-config --cflags`
 
 LIBS = -static -Wl,--start-group `sdl-config --static-libs` `smpeg-config --libs` \
@@ -10,7 +12,7 @@ LIBS = -static -Wl,--start-group `sdl-config --static-libs` `smpeg-config --libs
        -lSDL_image -ljpeg -lpng -lz             \
        -lSDL_mixer -logg -lvorbis -lvorbisfile  \
        -lbz2 -Wl,--end-group
-DEFS = -DWIN32 -DUSE_OGG_VORBIS -DHAELETH -DUSE_INTERNAL_FONT
+DEFS = -DWIN32 -DUSE_OGG_VORBIS -DHAELETH
 
 EXESUFFIX = .exe
 OBJSUFFIX = .o

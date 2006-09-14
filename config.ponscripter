@@ -1,3 +1,15 @@
-# Extra settings for PONScripter
+# Extra settings for PONScripter.
+# These will want changing depending on the program to be used!
 
 CFLAGS += -D DEFAULT_WM_TITLE='"Narcissu Side 2nd mini-demo"'
+
+FONT_SOURCE = narcissu_font.sfd
+
+FINAL_TARGET = $(if $(WIN32),"Narcissu 2 mini-demo.exe",narcissu2$(EXESUFFIX))
+
+.PHONY: final
+final: $(TARGET)
+	-strip $(TARGET)
+	-upx --best $(TARGET)
+	$(RM) $(FINAL_TARGET)
+	mv $(TARGET) $(FINAL_TARGET)

@@ -3,7 +3,16 @@
 # Makefile.ponscripter - General makefile rules for PONScripter
 #
 
--include config.ponscripter
+.PHONY: all
+all: $(TARGET)
+
+include config.ponscripter
+
+ifdef FONT_SOURCE
+  FONTFORGE=fontforge
+  HAVE_FONTFORGE := $(shell $(FONTFORGE) -version >/dev/null 2>&1 && echo yes)
+  CFLAGS += $(if $(HAVE_FONTFORGE),-DUSE_INTERNAL_FONT)
+endif
 
 GUI_OBJS = ONScripterLabel$(OBJSUFFIX) ONScripterLabel_command$(OBJSUFFIX) ONScripterLabel_text$(OBJSUFFIX) \
 	ONScripterLabel_effect$(OBJSUFFIX) ONScripterLabel_event$(OBJSUFFIX) ONScripterLabel_rmenu$(OBJSUFFIX) \
@@ -17,15 +26,13 @@ ONSCRIPTER_OBJS = onscripter$(OBJSUFFIX) $(DECODER_OBJS) ScriptHandler$(OBJSUFFI
 PARSER_HEADER = BaseReader.h SarReader.h NsaReader.h DirectReader.h ScriptHandler.h ScriptParser.h AnimationInfo.h FontInfo.h DirtyRect.h
 ONSCRIPTER_HEADER = ONScripterLabel.h $(PARSER_HEADER)
 
-ALL: $(TARGET)
-
 ponscr$(EXESUFFIX): $(ONSCRIPTER_OBJS)
 	$(LD)$@ $(ONSCRIPTER_OBJS) $(LIBS)
 
 clean:
 	-$(RM) $(TARGET)
 	-$(RM) *$(OBJSUFFIX)
-	-$(RM) resources.cpp embed$(EXESUFFIX)
+	-$(RM) resources.cpp embed$(EXESUFFIX) $(if $(HAVE_FONTFORGE),internal.ttf)
 
 .cpp$(OBJSUFFIX):
 	$(CC) $(CFLAGS) $<
@@ -57,11 +64,16 @@ MadWrapper$(OBJSUFFIX): MadWrapper.h
 AVIWrapper$(OBJSUFFIX): AVIWrapper.h
 utf8_util$(OBJSUFFIX): utf8_util.h
 
-resources.cpp: embed$(EXESUFFIX) internal.font internal.icon
+ifdef HAVE_FONTFORGE
+internal.ttf: $(FONT_SOURCE)
+	$(FONTFORGE) -c 'Open("$<");Generate("$@","",0x88)'
+endif
+
+resources.cpp: embed$(EXESUFFIX) $(if $(HAVE_FONTFORGE),internal.ttf) internal.icon
 	echo '#include "resources.h"' > $@
 	echo >> $@
 	echo '#ifdef USE_INTERNAL_FONT' >> $@
-	./embed internal_font internal.font >> $@
+	./embed internal_font $(if $(HAVE_FONTFORGE),internal.ttf) >> $@
 	echo '#endif' >> $@
 	echo >> $@
 	./embed internal_icon internal.icon >> $@
