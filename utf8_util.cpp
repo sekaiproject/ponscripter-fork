@@ -1,5 +1,39 @@
 #include "utf8_util.h"
 
+char
+CharacterBytes(const char* string)
+{
+	const unsigned char c = *(const unsigned char*) string;
+	if ((c & 0xc0) == 0x80) fprintf(stderr, "Warning: CharacterBytes called on incomplete character\n");
+#ifdef LIGATE_FI
+	if (c == 'f' && string[1] == 'i') return 2;
+#endif
+#ifdef LIGATE_FL
+	if (c == 'f' && string[1] == 'l') return 2;
+#endif
+	return c < 0x80 ? 1 : (c < 0xe0 ? 2 : (c < 0xf0 ? 3 : 4));
+}
+
+unsigned short
+UnicodeOfUTF8(const char* string)
+{
+	const unsigned char* t = (const unsigned char*) string;
+	if ((t[0] & 0xc0) == 0x80) fprintf(stderr, "Warning: UnicodeOfUTF8 called on incomplete character\n");
+#ifdef LIGATE_FI
+	if (t[0] == 'f' && t[1] == 'i') return 0xfb01;
+#endif
+#ifdef LIGATE_FL
+	if (t[0] == 'f' && t[1] == 'l') return 0xfb02;
+#endif
+	if (t[0] < 0x80)
+		return t[0];
+	else if (t[0] < 0xe0)
+		return (t[0] - 0xc0) << 6 | t[1] & 0x7f;
+	else if (t[0] < 0xf0)
+		return ((t[0] - 0xe0) << 6 | t[1] & 0x7f) << 6 | t[2] & 0x7f;
+	return (((t[0] - 0xe0) << 6 | t[1] & 0x7f) << 6 | t[2] & 0x7f) << 6 | t[3] & 0x7f;
+}
+
 const char*
 PreviousCharacter(const char* string)
 {
@@ -19,23 +53,28 @@ UTF8Length(const char* string)
 	return rv;
 }
 
-void
+int
 UTF8OfUnicode(const unsigned short ch, char* out)
 {
 	unsigned char* b = (unsigned char*) out;
 	if (ch <= 0x80) {
 		*b++ = ch;
+		*b = 0;
+		return 1;
 	}
 	else if (ch < 0x800) {
 		*b++ = 0xc0 | ch >> 6;
 		*b++ = 0x80 | ch & 0x3f;
+		*b = 0;
+		return 2;
 	}
 	else {
 		*b++ = 0xe0 | ch >> 12;
 		*b++ = 0x80 | ch >> 6 & 0x3f;
 		*b++ = 0x80 | ch & 0x3f;
+		*b = 0;
+		return 3;
 	}
-	*b++ = 0;
 }
 
 static const unsigned short extra_chars[] = {
@@ -70,13 +109,5 @@ get_encoded_char(const char encoding, const unsigned short original)
 	case 'e': return compact_enc + 0xe5c8; // sans bold
 	case 'g': return compact_enc + 0xe6f0; // sans bold italic
 	}
-	return 0;
+	return original;
 }
-
-//unsigned short
-//get_encoded_char(const char encoding, const unsigned short original)
-//{
-//	unsigned short v = get_encoded_char2(encoding, original);
-//	//fprintf(stderr, "U+%04x -> U+%04x\n", original, v);fflush(stderr);
-//	return v;
-//}

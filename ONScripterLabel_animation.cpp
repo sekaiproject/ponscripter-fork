@@ -146,18 +146,11 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
 					if (ch == '~') ch = *++buf;
 					continue;
 				}
-				if (encoding != 'r') {
-					const unsigned short uc = UnicodeOfUTF8(buf);
-					buf += CharacterBytes(&ch);
-					char b2[5];
-					UTF8OfUnicode(get_encoded_char(encoding, uc), b2);
-					dest.append(b2);
-				}
-				else {
-					char bytes = CharacterBytes(&ch);
-					dest.append(buf, bytes);
-					buf += bytes;
-				}
+				const unsigned short uc = UnicodeOfUTF8(buf);
+				buf += CharacterBytes(buf);
+				char b2[5];
+				UTF8OfUnicode(get_encoded_char(encoding, uc), b2);
+				dest.append(b2);
 				ch = *buf;
 			}
 			setStr(&anim->file_name, dest.c_str());

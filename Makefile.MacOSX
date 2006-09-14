@@ -4,9 +4,13 @@
 #   Thanks adas-san, Takano-san, and tmkk-san
 #
 
-INCS = `/usr/local/bin/sdl-config --cflags` `/usr/local/bin/smpeg-config --cflags`
+INCS := $(shell /usr/local/bin/sdl-config --cflags) $(shell /usr/local/bin/smpeg-config --cflags) $(shell /usr/local/bin/freetype-config --cflags)
 
-LIBS = `/usr/local/bin/sdl-config --static-libs` `/usr/local/bin/smpeg-config --libs` `/usr/local/bin/freetype-config --libs` /usr/local/lib/libSDL_ttf.a /usr/local/lib/libSDL_image.a /usr/local/lib/libSDL_mixer.a ./libbz2.a -lm /usr/local/lib/libjpeg.a /usr/local/lib/libogg.a /usr/local/lib/libvorbis.a /usr/local/lib/libvorbisfile.a -lpng -framework QuickTime -framework CoreFoundation
+LIBS := $(shell /usr/local/bin/sdl-config --static-libs) $(shell /usr/local/bin/smpeg-config --libs) $(shell /usr/local/bin/freetype-config --libs) \
+        /usr/local/lib/libSDL_image.a /usr/local/lib/libSDL_mixer.a ./libbz2.a -lm /usr/local/lib/libjpeg.a \
+        /usr/local/lib/libogg.a /usr/local/lib/libvorbis.a /usr/local/lib/libvorbisfile.a -lpng \
+        -framework QuickTime -framework CoreFoundation
+
 DEFS = -DMACOSX -DUTF8_FILESYSTEM -DUSE_OGG_VORBIS -DHAELETH 
 
 EXESUFFIX =

@@ -179,7 +179,7 @@ const char *ScriptHandler::readToken()
 		bool loop_flag = true;
 		bool ignore_click_flag = false;
 		do{
-			char bytes = CharacterBytes(&ch);
+			char bytes = CharacterBytes(buf);
 			if (bytes > 1) {
 				if ( textgosub_flag && !ignore_click_flag && checkClickstr(buf) > 0) loop_flag = false;
 				while (bytes--) addStringBuffer(*buf++);
@@ -237,17 +237,9 @@ const char *ScriptHandler::readToken()
 				if (ch == '~') ch = *++buf;
 				continue;
 			}
-			if (encoding != 'r') {
-				const unsigned short uc = UnicodeOfUTF8(buf);
-				buf += CharacterBytes(&ch);
-				char b2[5];
-				UTF8OfUnicode(get_encoded_char(encoding, uc), b2);
-				for (int i = 0; b2[i]; ++i) addStringBuffer(b2[i]);
-			}
-			else {
-				char bytes = CharacterBytes(&ch);
-				while (bytes--) addStringBuffer(*buf++);
-			}
+			const unsigned short uc = UnicodeOfUTF8(buf);
+			buf += CharacterBytes(buf);
+			string_counter += UTF8OfUnicode(get_encoded_char(encoding, uc), string_buffer + string_counter);
 			ch = *buf;
 		}
 		if (ch == '`') ++buf;
@@ -1173,9 +1165,6 @@ void ScriptHandler::parseStr( char **buf )
 		int c=0;
 		str_string_buffer[c++] = *(*buf)++;
 
-//		while ( **buf != '`' && **buf != 0x0a )
-//			str_string_buffer[c++] = *(*buf)++;
-
 		char encoding = default_encoding;
 		char ch = **buf;
 		while (ch != '`' && ch != 0x0a && ch !='\0'){
@@ -1185,17 +1174,9 @@ void ScriptHandler::parseStr( char **buf )
 				if (ch == '~') ch = *++(*buf);
 				continue;
 			}
-			if (encoding != 'r') {
-				const unsigned short uc = UnicodeOfUTF8(*buf);
-				*buf += CharacterBytes(&ch);
-				char b2[5];
-				UTF8OfUnicode(get_encoded_char(encoding, uc), b2);
-				for (int i = 0; b2[i]; ++i) str_string_buffer[c++] = b2[i];
-			}
-			else {
-				char bytes = CharacterBytes(&ch);
-				while (bytes--) str_string_buffer[c++] = *(*buf)++;
-			}
+			const unsigned short uc = UnicodeOfUTF8(*buf);
+			*buf += CharacterBytes(*buf);
+			c += UTF8OfUnicode(get_encoded_char(encoding, uc), str_string_buffer + c);
 			ch = **buf;
 		}
 

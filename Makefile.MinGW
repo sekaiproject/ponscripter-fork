@@ -5,13 +5,14 @@
 
 WIN32 = true
 
-INCS = `sdl-config --cflags` `smpeg-config --cflags`
+INCS := $(shell sdl-config --cflags) $(shell smpeg-config --cflags) $(shell freetype-config --cflags)
 
-LIBS = -static -Wl,--start-group `sdl-config --static-libs` `smpeg-config --libs` \
-       -lSDL_ttf   -lfreetype                   \
-       -lSDL_image -ljpeg -lpng -lz             \
-       -lSDL_mixer -logg -lvorbis -lvorbisfile  \
-       -lbz2 -Wl,--end-group
+LIBS := -static -Wl,--start-group \
+        $(shell sdl-config --static-libs) $(shell smpeg-config --libs) $(shell freetype-config --libs) \
+        -lSDL_image -ljpeg -lpng -lz             \
+        -lSDL_mixer -logg -lvorbis -lvorbisfile  \
+        -lbz2 -Wl,--end-group
+
 DEFS = -DWIN32 -DUSE_OGG_VORBIS -DHAELETH
 
 EXESUFFIX = .exe

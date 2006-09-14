@@ -1,7 +1,12 @@
 # Extra settings for PONScripter.
-# These will want changing depending on the program to be used!
 
-CFLAGS += -D DEFAULT_WM_TITLE='"Narcissu Side 2nd mini-demo"'
+# These particular settings are for Narcissu 2; they should probably not be used for
+# other titles, unless you _want_ them to look identical to Narcissu 2.  :P
+
+CFLAGS += -D DEFAULT_WM_TITLE='"Narcissu Side 2nd mini-demo"' -DLIGATE_FI -DLIGATE_FL
+
+# Kids, don't try this at home.
+CFLAGS += -D EMBOLDEN='(ch < 0xe128 || ch > 0xf000) && (dst->rows < 20)'
 
 FONT_SOURCE = narcissu_font.sfd
 

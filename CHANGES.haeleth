@@ -25,6 +25,9 @@ Significant changes:
   means that the build process now depends on FontForge (if you wish to use an 
   embedded font).  However, it also means the source distribution will be pure
   source code (apart from icons etc), which is a bonus.
+  
+  Include SDL_ttf locally, since the official version is broken and doesn't
+  work with Freetype 2.
 
 2006-09-08
 
