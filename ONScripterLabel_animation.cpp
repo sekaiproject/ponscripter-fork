@@ -132,10 +132,13 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
 		// handle private-use encodings
 		{
 			std::string dest;
-			char ch;
+			char encoding = 'r';
 			const char* buf = anim->file_name;
-			ch = *buf;
-			char encoding = script_h.default_encoding;
+			char ch = *buf;
+			if (ch == '`') {
+				dest.push_back(ch);
+				ch = *++buf;
+			}
 			while (ch) {
 				if (ch == '~' && (ch = *++buf) != '~') {
 					encoding = ch;

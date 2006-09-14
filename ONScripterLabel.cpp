@@ -1015,20 +1015,6 @@ int ONScripterLabel::parseLine( )
 
 	ret = textCommand();
 
-//{
-//	char* it = script_h.getStringBuffer() + string_buffer_offset;
-//	while (*it && *it != '\n') {
-//		printf("%04x ", UnicodeOfUTF8(it));
-//		char b = CharacterBytes(it);
-//		while (b--) fprintf(stderr, "%02x", (unsigned char) *it++);
-//		putc(' ', stderr);
-//	}
-//	putchar('\n');
-//	putc('\n', stderr);
-//	fflush(stdout);
-//	fflush(stderr);
-//}
-
 //--------LINE BREAKING ROUTINE----------------------------------------------------------------------------
 	const unsigned short first_ch = UnicodeOfUTF8(script_h.getStringBuffer() + string_buffer_offset);
 //printf("U+%04x (%s)\n", first_ch, is_break_char(first_ch) ? "yes" : "no");fflush(stdout);
