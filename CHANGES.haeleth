@@ -19,7 +19,10 @@ Significant changes:
 2006-09-14
 
   Multi-style support using transformations of Unicode to alternative glyphs
-  in the private-use area.
+  in the private-use area.  For Narcissu, create a fontset based on Bitstream
+  Charter and URW Nimbus Sans, with added Euros and additional ligatures.
+  
+  Automatic ligature support (hardwired, just ff/fi/fl/ffi/ffl for now).
   
   Adjusted font embedding to work from source code rather than a binary.  This 
   means that the build process now depends on FontForge (if you wish to use an 
@@ -27,7 +30,8 @@ Significant changes:
   source code (apart from icons etc), which is a bonus.
   
   Include SDL_ttf locally, since the official version is broken and doesn't
-  work with Freetype 2.
+  work with Freetype 2.  Alter artificial boldening to operate by adjusting
+  tone curve rather than by adding pixels.
 
 2006-09-08
 

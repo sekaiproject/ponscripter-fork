@@ -5,13 +5,13 @@
 
 WIN32 = true
 
-INCS := $(shell sdl-config --cflags) $(shell smpeg-config --cflags) $(shell freetype-config --cflags)
+INCS = `sdl-config --cflags` `smpeg-config --cflags` `freetype-config --cflags`
 
-LIBS := -static -Wl,--start-group \
-        $(shell sdl-config --static-libs) $(shell smpeg-config --libs) $(shell freetype-config --libs) \
-        -lSDL_image -ljpeg -lpng -lz             \
-        -lSDL_mixer -logg -lvorbis -lvorbisfile  \
-        -lbz2 -Wl,--end-group
+LIBS = -static -Wl,--start-group \
+       `sdl-config --static-libs` `smpeg-config --libs` `freetype-config --libs` \
+       -lSDL_image -ljpeg -lpng -lz             \
+       -lSDL_mixer -logg -lvorbis -lvorbisfile  \
+       -lbz2 -Wl,--end-group
 
 DEFS = -DWIN32 -DUSE_OGG_VORBIS -DHAELETH
 
@@ -25,7 +25,7 @@ OBJSUFFIX = .o
 CC = g++ 
 LD = g++ -o 
 
-CFLAGS = -O2 -Wall -Wpointer-arith -pipe -c $(INCS) $(DEFS)
+CFLAGS = -O3 -Wall -Wpointer-arith -pipe -c $(INCS) $(DEFS)
 
 RM = rm -f
 

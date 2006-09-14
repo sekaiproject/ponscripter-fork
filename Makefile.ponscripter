@@ -74,6 +74,7 @@ internal.ttf: $(FONT_SOURCE)
 endif
 
 resources.cpp: embed$(EXESUFFIX) $(if $(HAVE_FONTFORGE),internal.ttf) internal.icon
+	-$(RM) $@
 	echo '#include "resources.h"' > $@
 	echo >> $@
 	echo '#ifdef USE_INTERNAL_FONT' >> $@

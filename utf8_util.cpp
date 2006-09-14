@@ -11,6 +11,9 @@ CharacterBytes(const char* string)
 #ifdef LIGATE_FL
 	if (c == 'f' && string[1] == 'l') return 2;
 #endif
+#ifdef LIGATE_FF
+	if (c == 'f' && string[1] == 'f') return (string[2] == 'i' || string[2] == 'l') ? 3 : 2;
+#endif
 	return c < 0x80 ? 1 : (c < 0xe0 ? 2 : (c < 0xf0 ? 3 : 4));
 }
 
@@ -24,6 +27,9 @@ UnicodeOfUTF8(const char* string)
 #endif
 #ifdef LIGATE_FL
 	if (t[0] == 'f' && t[1] == 'l') return 0xfb02;
+#endif
+#ifdef LIGATE_FF
+	if (t[0] == 'f' && t[1] == 'f') return t[2] == 'i' ? 0xfb03 : (t[2] == 'l' ? 0xfb04 : 0xfb00);
 #endif
 	if (t[0] < 0x80)
 		return t[0];
@@ -82,7 +88,7 @@ static const unsigned short extra_chars[] = {
 	0x2013, 0x2020, 0x2021, 0x2022, 0x201a, 0x201e, 0x201d, 0x2026, 0x2030, 
 	0x02c6, 0x02dc, 0x02d8, 0x02d9, 0x02da, 0x02dd, 0x02db, 0x02c7, 0x2014, 
 	0x0141, 0x0152, 0x0131, 0x0142, 0x0153, 0x0160, 0x0178, 0x017d, 0x0161, 
-	0x017e, 0x2122, 0x2212, 0x20ac, 0
+	0x017e, 0x2122, 0x2212, 0x20ac, 0xfb00, 0xfb03, 0xfb04, 0
 };
 
 // Used to support proprietary encoding of italic, etc. in private use area.
