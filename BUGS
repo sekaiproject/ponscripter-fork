@@ -1,2 +1,15 @@
+MINOR
+
+* Line-breaking takes place consistently one character too soon when fast-forwarding.
+
+AESTHETIC
+
+* Charter italic: f (and ligs) rather narrow in "product" section.
+* Paragraph spacing -- a whole blank line is far too deep. Time to make y positioning pixel-based? :/
+
+FEATURES
+
 * Ligatures: do we perhaps need a ZWNJ?  ^^;
 * SHY, NBHY would be nice too... ;)
+* OSFs in italic, too, at minimum.
+* Kerning?  :P

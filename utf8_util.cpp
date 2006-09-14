@@ -1,5 +1,20 @@
 #include "utf8_util.h"
 
+#ifdef LIGATE_ALL
+#ifndef LIGATE_FI
+#define LIGATE_FI
+#endif
+#ifndef LIGATE_FL
+#define LIGATE_FL
+#endif
+#ifndef LIGATE_FF
+#define LIGATE_FF
+#endif
+#ifndef LIGATE_ELLIPSIS
+#define LIGATE_ELLIPSIS
+#endif
+#endif
+
 char
 CharacterBytes(const char* string)
 {
@@ -13,6 +28,9 @@ CharacterBytes(const char* string)
 #endif
 #ifdef LIGATE_FF
 	if (c == 'f' && string[1] == 'f') return (string[2] == 'i' || string[2] == 'l') ? 3 : 2;
+#endif
+#ifdef LIGATE_ELLIPSIS
+	if (c == '.' && string[1] == '.' && string[2] == '.') return 3;
 #endif
 	return c < 0x80 ? 1 : (c < 0xe0 ? 2 : (c < 0xf0 ? 3 : 4));
 }
@@ -30,6 +48,9 @@ UnicodeOfUTF8(const char* string)
 #endif
 #ifdef LIGATE_FF
 	if (t[0] == 'f' && t[1] == 'f') return t[2] == 'i' ? 0xfb03 : (t[2] == 'l' ? 0xfb04 : 0xfb00);
+#endif
+#ifdef LIGATE_ELLIPSIS
+	if (t[0] == '.' && t[1] == '.' && t[2] == '.') return 0x2026;
 #endif
 	if (t[0] < 0x80)
 		return t[0];
