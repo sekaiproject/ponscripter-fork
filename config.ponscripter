@@ -8,6 +8,8 @@ CFLAGS := $(CFLAGS) -D 'DEFAULT_WM_TITLE="Narcissu Side 2nd mini-demo"' -DLIGATE
 # Kids, don't try this at home.
 CFLAGS := $(CFLAGS) -D 'EMBOLDEN=(ch < 0xe128 || ch > 0xf000) && (dst->rows < 20)'
 
+RCFILE = narci2.rc
+
 FONT_SOURCE = narcissu_font.sfd
 
 FINAL_TARGET = $(if $(WIN32),"Narcissu 2 mini-demo.exe",narcissu2$(EXESUFFIX))

@@ -35,5 +35,6 @@ EXT_OBJS = win32rc.o
 
 include Makefile.ponscripter
 
-win32rc.o: ponscr.rc
+RCFILE ?= ponscr.rc
+win32rc.o: $(RCFILE)
 	windres $< -o $@

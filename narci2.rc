@@ -1,0 +1,25 @@
+ONSCRICON ICON "narci2.ico"
+
+1 VERSIONINFO
+FILEVERSION 1, 0, 0, 0
+PRODUCTVERSION 1, 0, 0, 0
+FILEFLAGS 32
+FILEOS 4
+FILETYPE 1
+{
+   BLOCK "StringFileInfo" {
+       BLOCK "080904b0" {
+           VALUE "FileDescription", "Narcissu 2"
+           VALUE "OriginalFilename", "Narcissu2.exe"
+           VALUE "CompanyName", "Stage-Nana/Haeleth"
+           VALUE "FileVersion", "2006-09-14"
+           VALUE "LegalCopyright", "Copyright (c) 2006 Stage-Nana/Haeleth. Engine copyright (c) 1998-2005 Studio O.G.A, 2005-2006 insani, 2006 Haeleth. Data portions copyright (c) 1989-1992, Bitstream Inc., 1999 (URW)++, 2006 Haeleth."
+           VALUE "ProductName", "Narcissu 2"
+           VALUE "ProductVersion", "1"
+           VALUE "Comments", "This English version runs on Ponscripter (Proportional ONScripter), a fork of Ogapee's ONScripter. Ponscripter is licensed under the GNU General Public License: see GPL.txt."
+       }
+   }
+   BLOCK "VarFileInfo" {
+       VALUE "Translation", 0x0809, 0x04B0
+   }
+}

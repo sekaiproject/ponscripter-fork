@@ -14,6 +14,19 @@ Specific changes:
   centre of the string rather than the left edge.
 
 
+Style tags:
+
+  ~r~   Charter Roman OSF (default)
+  ~o~   Charter Roman
+  ~i~   Charter Italic
+  ~b~   Charter Bold
+  ~h~   Charter Bold Italic
+  ~s~   Nimbus Sans
+  ~j~   Nimbus Sans Italic
+  ~e~   Nimbus Sans Bold
+  ~g~   Nimbus Sans Bold Italic
+
+
 Significant changes:
 
 2006-09-14

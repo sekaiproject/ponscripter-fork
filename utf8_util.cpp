@@ -96,6 +96,7 @@ unsigned short
 get_encoded_char(const char encoding, const unsigned short original)
 {
 	if (encoding == 'r') return original;
+	if (encoding == 'o') return (original >= '0' && original <= '9') ? original + (0xe000 - '0') : original;
 	unsigned short compact_enc;
 	if (original <= 0xff)
 		compact_enc = original;
