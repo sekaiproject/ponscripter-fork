@@ -1,0 +1,3 @@
+# Extra settings for PONScripter
+
+CFLAGS += -D DEFAULT_WM_TITLE='"Narcissu Side 2nd mini-demo"'
