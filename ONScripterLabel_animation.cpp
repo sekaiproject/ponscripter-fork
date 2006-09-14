@@ -22,6 +22,7 @@
  */
 
 #include "ONScripterLabel.h"
+#include "utf8_util.h"
 
 int ONScripterLabel::proceedAnimation()
 {
@@ -127,6 +128,37 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
     if ( anim->trans_mode == AnimationInfo::TRANS_STRING ){
         FontInfo f_info = sentence_font;
         if (info) f_info = *info;
+
+		// handle private-use encodings
+		{
+			std::string dest;
+			char ch;
+			const char* buf = anim->file_name;
+			ch = *buf;
+			char encoding = script_h.default_encoding;
+			while (ch) {
+				if (ch == '~' && (ch = *++buf) != '~') {
+					encoding = ch;
+					ch = *++buf;
+					if (ch == '~') ch = *++buf;
+					continue;
+				}
+				if (encoding != 'r') {
+					const unsigned short uc = UnicodeOfUTF8(buf);
+					buf += CharacterBytes(&ch);
+					char b2[5];
+					UTF8OfUnicode(get_encoded_char(encoding, uc), b2);
+					dest.append(b2);
+				}
+				else {
+					char bytes = CharacterBytes(&ch);
+					dest.append(buf, bytes);
+					buf += bytes;
+				}
+				ch = *buf;
+			}
+			setStr(&anim->file_name, dest.c_str());
+		}
 
         if ( anim->font_size_x >= 0 ){ // in case of Sprite, not rclick menu
             f_info.top_x = anim->pos.x * screen_ratio2 / screen_ratio1;

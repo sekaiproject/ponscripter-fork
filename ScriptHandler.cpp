@@ -118,6 +118,8 @@ void ScriptHandler::reset()
 		delete[] clickstr_list;
 		clickstr_list = NULL;
 	}
+
+	default_encoding = 'r';
 }
 
 FILE *ScriptHandler::fopen( const char *path, const char *mode, const bool save )
@@ -222,9 +224,30 @@ const char *ScriptHandler::readToken()
 	}
 	else if (ch == '`'){
 		ch = *++buf;
-		while (ch != '`' && ch != 0x0a && ch !='\0'){
-			char bytes = CharacterBytes(&ch);
-			while (bytes--) addStringBuffer(*buf++);
+		char encoding = default_encoding;
+		while (ch != '`' && ch != 0x0a && ch !='\0') {
+			if ((ch == '\\' || ch == '@') && (buf[1] == 0x0a || buf[1] == 0)) {
+				addStringBuffer(*buf++);
+				ch = *buf;
+				break;
+			}
+			if (ch == '~' && (ch = *++buf) != '~') {
+				encoding = ch;
+				ch = *++buf;
+				if (ch == '~') ch = *++buf;
+				continue;
+			}
+			if (encoding != 'r') {
+				const unsigned short uc = UnicodeOfUTF8(buf);
+				buf += CharacterBytes(&ch);
+				char b2[5];
+				UTF8OfUnicode(get_encoded_char(encoding, uc), b2);
+				for (int i = 0; b2[i]; ++i) addStringBuffer(b2[i]);
+			}
+			else {
+				char bytes = CharacterBytes(&ch);
+				while (bytes--) addStringBuffer(*buf++);
+			}
 			ch = *buf;
 		}
 		if (ch == '`') ++buf;
@@ -586,27 +609,34 @@ int ScriptHandler::checkClickstr(const char *buf, bool recursive_flag)
 
 	if (clickstr_list == NULL) return 0;
 
-	bool double_byte_check = true;
+	//bool double_byte_check = true;
 	char *click_buf = clickstr_list;
 	while(click_buf[0]){
 		if (click_buf[0] == '`'){
 			click_buf++;
-			double_byte_check = false;
+			//double_byte_check = false;
 			continue;
 		}
-		if (double_byte_check){
-			if ( click_buf[0] == buf[0] && click_buf[1] == buf[1] ){
-				if (!recursive_flag && checkClickstr(buf+2, true) > 0) return 0;
-				return 2;
-			}
-			click_buf += 2;
-		}
-		else{
-			if ( click_buf[0] == buf[0] ){
-				if (!recursive_flag && checkClickstr(buf+1, true) > 0) return 0;
-				return 1;
-			}
-			click_buf++;
+		//if (double_byte_check){
+		//	if ( click_buf[0] == buf[0] && click_buf[1] == buf[1] ){
+		//		if (!recursive_flag && checkClickstr(buf+2, true) > 0) return 0;
+		//		return 2;
+		//	}
+		//	click_buf += 2;
+		//}
+		//else{
+		//	if ( click_buf[0] == buf[0] ){
+		//		if (!recursive_flag && checkClickstr(buf+1, true) > 0) return 0;
+		//		return 1;
+		//	}
+		//	click_buf++;
+		//}
+		char bytes = CharacterBytes(click_buf);
+		bool match = true;
+		for (int i = 0; i < bytes; ++i) match &= click_buf[i] == buf[i];
+		if (match) {
+			if (!recursive_flag && checkClickstr(buf + bytes, true) > 0) return 0;
+			return bytes;
 		}
 	}
 
@@ -1142,8 +1172,33 @@ void ScriptHandler::parseStr( char **buf )
 	else if ( **buf == '`' ){
 		int c=0;
 		str_string_buffer[c++] = *(*buf)++;
-		while ( **buf != '`' && **buf != 0x0a )
-			str_string_buffer[c++] = *(*buf)++;
+
+//		while ( **buf != '`' && **buf != 0x0a )
+//			str_string_buffer[c++] = *(*buf)++;
+
+		char encoding = default_encoding;
+		char ch = **buf;
+		while (ch != '`' && ch != 0x0a && ch !='\0'){
+			if (ch == '~' && (ch = *++(*buf)) != '~') {
+				encoding = ch;
+				ch = *++(*buf);
+				if (ch == '~') ch = *++(*buf);
+				continue;
+			}
+			if (encoding != 'r') {
+				const unsigned short uc = UnicodeOfUTF8(*buf);
+				*buf += CharacterBytes(&ch);
+				char b2[5];
+				UTF8OfUnicode(get_encoded_char(encoding, uc), b2);
+				for (int i = 0; b2[i]; ++i) str_string_buffer[c++] = b2[i];
+			}
+			else {
+				char bytes = CharacterBytes(&ch);
+				while (bytes--) str_string_buffer[c++] = *(*buf)++;
+			}
+			ch = **buf;
+		}
+
 		str_string_buffer[c] = '\0';
 		if ( **buf == '`' ) (*buf)++;
 		current_variable.type |= VAR_CONST;

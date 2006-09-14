@@ -398,7 +398,7 @@ int ONScripterLabel::textCommand()
 		(line_enter_status == 0 ||
 		 (line_enter_status == 1 &&
 		  (script_h.getStringBuffer()[string_buffer_offset] == '[' ||
-		   zenkakko_flag && UnicodeOfUTF8(script_h.getStringBuffer()) == 0x3010 /*y */))) ){
+		   zenkakko_flag && UnicodeOfUTF8(script_h.getStringBuffer() + string_buffer_offset) == 0x3010 /*y */))) ){
 		gosubReal( pretextgosub_label, script_h.getCurrent() );
 		line_enter_status = 1;
 		return RET_CONTINUE;
@@ -423,20 +423,7 @@ int ONScripterLabel::processText()
 
 	if ( event_mode & (WAIT_INPUT_MODE | WAIT_SLEEP_MODE) ){
 		draw_cursor_flag = false;
-		if ( clickstr_state == CLICK_WAIT ){
-			if (script_h.checkClickstr(script_h.getStringBuffer() + string_buffer_offset) != 1) string_buffer_offset++;
-			string_buffer_offset++;
-			clickstr_state = CLICK_NONE;
-		}
-		else if ( clickstr_state == CLICK_NEWPAGE ){
-			event_mode = IDLE_EVENT_MODE;
-			if (script_h.checkClickstr(script_h.getStringBuffer() + string_buffer_offset) != 1) string_buffer_offset++;
-			string_buffer_offset++;
-			newPage( true );
-			clickstr_state = CLICK_NONE;
-			return RET_CONTINUE | RET_NOREAD;
-		}
-		else if ( script_h.getStringBuffer()[ string_buffer_offset ] == '!' ){
+		if ( script_h.getStringBuffer()[ string_buffer_offset ] == '!' ){
 			string_buffer_offset++;
 			if ( script_h.getStringBuffer()[ string_buffer_offset ] == 'w' || script_h.getStringBuffer()[ string_buffer_offset ] == 'd' ){
 				string_buffer_offset++;
@@ -447,13 +434,8 @@ int ONScripterLabel::processText()
 					   script_h.getStringBuffer()[ string_buffer_offset ] == '\t') string_buffer_offset++;
 			}
 		}
-		else if ( script_h.getStringBuffer()[ string_buffer_offset + 1 ] &&
-				  script_h.getStringBuffer()[ string_buffer_offset + 1 ] != 0x0a &&
-				  !(script_h.getEndStatus() & ScriptHandler::END_1BYTE_CHAR) ){
-			string_buffer_offset += 2; // CHECKME: is this a relic of DBCS assumptions?
-		}
-		else
-			string_buffer_offset++;
+		else 
+			string_buffer_offset += CharacterBytes(script_h.getStringBuffer() + string_buffer_offset);
 
 		event_mode = IDLE_EVENT_MODE;
 	}
@@ -565,79 +547,20 @@ int ONScripterLabel::processText()
 			char bytes = CharacterBytes((char*)&ch);
 			char *buf = script_h.getStringBuffer() + string_buffer_offset;
 			char *t = out_text;
-			string_buffer_offset += bytes - 1;
 			while (bytes--) *t++ = *buf++;
 		}
 
-		// Check for clickstr
-		// We can probably remove this, for simplicity's sake, because we won't be using clickstr in our releases.
-#ifdef HAELETH
 		clickstr_state = CLICK_NONE;
-#else
-		if ( clickstr_state == CLICK_IGNORE ){
-			clickstr_state = CLICK_NONE;
-		}
-		else{
-			int matched_len = script_h.checkClickstr(script_h.getStringBuffer() + string_buffer_offset);
-			// matched_len = 0 if no clickstr found, else length of clickstr
-			
-			if (matched_len > 0){
-				if (matched_len == 2) out_text[1] = script_h.getStringBuffer()[ string_buffer_offset + 1 ];
-				if (sentence_font.getRemainingLine() <= clickstr_line)
-					return clickNewPage( out_text );
-				else
-					return clickWait( out_text );
-			}
-			else if (script_h.getStringBuffer()[ string_buffer_offset + 1 ] &&
-					 script_h.checkClickstr(&script_h.getStringBuffer()[string_buffer_offset+1]) == 1){
-				if ( script_h.getStringBuffer()[ string_buffer_offset + 2 ] &&
-					 script_h.checkClickstr(&script_h.getStringBuffer()[string_buffer_offset+2]) > 0){
-					clickstr_state = CLICK_NONE;
-				}
-				else if (script_h.getStringBuffer()[ string_buffer_offset + 1 ] == '@'){
-					return clickWait( out_text );
-				}
-				else if (script_h.getStringBuffer()[ string_buffer_offset + 1 ] == '\\'){
-					return clickNewPage( out_text );
-				}
-				else{
-					out_text[1] = script_h.getStringBuffer()[ string_buffer_offset + 1 ];
-					if (sentence_font.getRemainingLine() <= clickstr_line)
-						return clickNewPage( out_text );
-					else
-						return clickWait( out_text );
-				}
-			}
-			else{
-				clickstr_state = CLICK_NONE;
-			}
-		}
-#endif
 
 		bool flush_flag = true;
 		if ( skip_flag || draw_one_page_flag || ctrl_pressed_status )
 			flush_flag = false;
-		/*if ( script_h.getStringBuffer()[ string_buffer_offset + 1 ] != 0x00 &&
-			 script_h.getStringBuffer()[ string_buffer_offset + 1 ] != 0x0a &&
-			 !(script_h.getEndStatus() & ScriptHandler::END_1BYTE_CHAR)){
-			out_text[1] = script_h.getStringBuffer()[ string_buffer_offset + 1 ];
-			drawDoubleChars( out_text, &sentence_font, flush_flag, true, accumulation_surface, &text_info );
-			num_chars_in_sentence++;
-		}
-		else if (script_h.getEndStatus() & ScriptHandler::END_1BYTE_CHAR){
-			drawDoubleChars( out_text, &sentence_font, flush_flag, true, accumulation_surface, &text_info );
-			num_chars_in_sentence++;
-		}*/
 		
 		drawChar( out_text, &sentence_font, flush_flag, true, accumulation_surface, &text_info );
 		++num_chars_in_sentence;
 		
 		if ( skip_flag || draw_one_page_flag || ctrl_pressed_status ){
-			if ( script_h.getStringBuffer()[ string_buffer_offset + 1 ] &&
-				 script_h.getStringBuffer()[ string_buffer_offset + 1 ] != 0x0a &&
-				 !(script_h.getEndStatus() & ScriptHandler::END_1BYTE_CHAR))
-				string_buffer_offset++;
-			string_buffer_offset++;
+			string_buffer_offset += CharacterBytes(script_h.getStringBuffer() + string_buffer_offset);
 			return RET_CONTINUE | RET_NOREAD;
 		}
 		else{

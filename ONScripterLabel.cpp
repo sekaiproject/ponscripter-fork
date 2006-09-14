@@ -149,8 +149,10 @@ static struct FuncLUT{
 	{"indent", &ONScripterLabel::indentCommand},
 	{"humanorder", &ONScripterLabel::humanorderCommand},
 	{"h_textextent", &ONScripterLabel::haeleth_text_extentCommand},
-	{"h_indentstr", &ONScripterLabel::haeleth_indent_charCommand},
+	{"h_indentstr", &ONScripterLabel::haeleth_char_setCommand},
+	{"h_fontstyle", &ONScripterLabel::haeleth_font_styleCommand},
 	{"h_centreline", &ONScripterLabel::haeleth_centre_lineCommand},
+	{"h_breakstr", &ONScripterLabel::haeleth_char_setCommand},
 	{"getzxc", &ONScripterLabel::getzxcCommand},
 	{"getvoicevol", &ONScripterLabel::getvoicevolCommand},
 	{"getversion", &ONScripterLabel::getversionCommand},
@@ -935,9 +937,16 @@ void ONScripterLabel::executeLabel()
 	endCommand();
 }
 
-inline bool is_break_char(const unsigned short c)
+bool ONScripterLabel::is_break_char(const unsigned short c) const
 {
-	return c == ' ' || c == '-' || c == 0x2013 || c == 0x2014;
+	if (break_chars) {
+		const unsigned short* istr = break_chars;
+		do {
+			if (c == *istr) return true;
+		} while (*(++istr));
+		return false;
+	}
+	return c == ' ';
 }
 
 bool ONScripterLabel::is_indent_char(const unsigned short c) const
@@ -1006,8 +1015,23 @@ int ONScripterLabel::parseLine( )
 
 	ret = textCommand();
 
+//{
+//	char* it = script_h.getStringBuffer() + string_buffer_offset;
+//	while (*it && *it != '\n') {
+//		printf("%04x ", UnicodeOfUTF8(it));
+//		char b = CharacterBytes(it);
+//		while (b--) fprintf(stderr, "%02x", (unsigned char) *it++);
+//		putc(' ', stderr);
+//	}
+//	putchar('\n');
+//	putc('\n', stderr);
+//	fflush(stdout);
+//	fflush(stderr);
+//}
+
 //--------LINE BREAKING ROUTINE----------------------------------------------------------------------------
 	const unsigned short first_ch = UnicodeOfUTF8(script_h.getStringBuffer() + string_buffer_offset);
+//printf("U+%04x (%s)\n", first_ch, is_break_char(first_ch) ? "yes" : "no");fflush(stdout);
 	if (is_break_char(first_ch)){
 		int len = sentence_font.GlyphAdvance(first_ch);
 		char *it = script_h.getStringBuffer() + string_buffer_offset 

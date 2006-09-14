@@ -122,7 +122,8 @@ public:
 	// my extensions
 	int haeleth_text_extentCommand();
 	int haeleth_centre_lineCommand();
-	int haeleth_indent_charCommand();
+	int haeleth_char_setCommand();
+	int haeleth_font_styleCommand();
 	// regular NScripter stuff
     int wavestopCommand();
     int waveCommand();
@@ -564,7 +565,9 @@ private:
     int  processText();
 
 	unsigned short* indent_chars;
+	unsigned short* break_chars;
 	bool is_indent_char(const unsigned short c) const;
+	bool is_break_char(const unsigned short c) const;
 	bool check_orphan_control();
 
     /* ---------------------------------------- */

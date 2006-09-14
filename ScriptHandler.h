@@ -111,6 +111,8 @@ public:
     int  parseInt( char **buf );
     void skipToken();
 
+	char default_encoding;
+
     // function for string access
     inline char *getStringBuffer(){ return string_buffer; };
     char *saveStringBuffer();
@@ -303,7 +305,7 @@ private:
     int  string_counter;
     char *saved_string_buffer; // updated only by saveStringBuffer
     char *str_string_buffer; // updated only by readStr
-
+	
     LabelInfo *label_info;
     int num_of_labels;
 

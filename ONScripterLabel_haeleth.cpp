@@ -66,17 +66,26 @@ int ONScripterLabel::haeleth_centre_lineCommand()
  * Characters in the given <string> will set indents if they occur at the start of a screen.
  * If the first character of a screen is not in the given string, any set indent will be cleared.
  */
-int ONScripterLabel::haeleth_indent_charCommand()
+int ONScripterLabel::haeleth_char_setCommand()
 {
-	if (indent_chars) { delete[] indent_chars; indent_chars = NULL; }
+	unsigned short*& char_set = script_h.isName("h_indentstr") ? indent_chars : break_chars;
+	if (indent_chars) { delete[] char_set; char_set = NULL; }
 	const char* buf = script_h.readStr();
 	if (*buf == '`') ++buf;
-	indent_chars = new unsigned short[UTF8Length(buf) + 1];
+	char_set = new unsigned short[UTF8Length(buf) + 1];
 	int idx = 0;
 	while (*buf) {
-		indent_chars[idx++] = UnicodeOfUTF8(buf);
+		char_set[idx++] = UnicodeOfUTF8(buf);
 		buf += CharacterBytes(buf);
 	}
-	indent_chars[idx] = 0;
+	char_set[idx] = 0;
+	return RET_CONTINUE;
+}
+
+int ONScripterLabel::haeleth_font_styleCommand()
+{
+	const char *buf = script_h.readStr();
+	if (*buf == '`') ++buf;
+	script_h.default_encoding = *buf;
 	return RET_CONTINUE;
 }
