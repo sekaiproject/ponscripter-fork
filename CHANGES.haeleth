@@ -16,24 +16,32 @@ Specific changes:
 
 Style tags:
 
-  ~r~   Charter Roman OSF (default)
-  ~o~   Charter Roman
-  ~i~   Charter Italic
-  ~b~   Charter Bold
-  ~h~   Charter Bold Italic
-  ~s~   Nimbus Sans
-  ~j~   Nimbus Sans Italic
-  ~e~   Nimbus Sans Bold
-  ~g~   Nimbus Sans Bold Italic
+  ~d~   Restore all defaults
+  
+  ~r~   Roman (default)
+  ~i~   Italic
+  
+  ~t~   Text (default)
+  ~b~   Bold
+  
+  ~f~   Serif (default)
+  ~s~   Sans serif
+
+  ~o~   Old-style figures (default)
+  ~l~   Lining figures
+  
+  The "default" tags always restore those settings, while the non-default tags
+  are toggles.  Hence `foo ~i~bar~r~` and `foo ~i~bar~i~` are equivalent.
 
 
 Significant changes:
 
 2006-09-14
 
-  Multi-style support using transformations of Unicode to alternative glyphs
-  in the private-use area.  For Narcissu, create a fontset based on Bitstream
-  Charter and URW Nimbus Sans, with added Euros and additional ligatures.
+  Multi-style support using transformations of Unicode to alternative glyphs in 
+  the private-use area.  For Narcissu, created a fontset based on Bitstream 
+  Charter and URW Nimbus Sans, with added Euros, old-style figures, and 
+  additional ligatures.
   
   Automatic ligature support (hardwired, just ff/fi/fl/ffi/ffl for now).
   

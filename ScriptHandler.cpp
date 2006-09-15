@@ -119,7 +119,7 @@ void ScriptHandler::reset()
 		clickstr_list = NULL;
 	}
 
-	default_encoding = 'r';
+	default_encoding = 0;
 }
 
 FILE *ScriptHandler::fopen( const char *path, const char *mode, const bool save )
@@ -224,7 +224,7 @@ const char *ScriptHandler::readToken()
 	}
 	else if (ch == '`'){
 		ch = *++buf;
-		char encoding = default_encoding;
+		int encoding = default_encoding;
 		while (ch != '`' && ch != 0x0a && ch !='\0') {
 			if ((ch == '\\' || ch == '@') && (buf[1] == 0x0a || buf[1] == 0)) {
 				addStringBuffer(*buf++);
@@ -232,9 +232,11 @@ const char *ScriptHandler::readToken()
 				break;
 			}
 			if (ch == '~' && (ch = *++buf) != '~') {
-				encoding = ch;
+				while (ch != '~') {
+					SetEncoding(encoding, ch);
+					ch = *++buf;
+				}
 				ch = *++buf;
-				if (ch == '~') ch = *++buf;
 				continue;
 			}
 			const unsigned short uc = UnicodeOfUTF8(buf);
@@ -1165,13 +1167,15 @@ void ScriptHandler::parseStr( char **buf )
 		int c=0;
 		str_string_buffer[c++] = *(*buf)++;
 
-		char encoding = default_encoding;
+		int encoding = default_encoding;
 		char ch = **buf;
 		while (ch != '`' && ch != 0x0a && ch !='\0'){
 			if (ch == '~' && (ch = *++(*buf)) != '~') {
-				encoding = ch;
+				while (ch != '~') {
+					SetEncoding(encoding, ch);
+					ch = *++(*buf);
+				}
 				ch = *++(*buf);
-				if (ch == '~') ch = *++(*buf);
 				continue;
 			}
 			const unsigned short uc = UnicodeOfUTF8(*buf);

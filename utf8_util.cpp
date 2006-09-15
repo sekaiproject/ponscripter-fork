@@ -1,4 +1,6 @@
 #include "utf8_util.h"
+#include "stdlib.h"
+#include "stdio.h"
 
 #ifdef LIGATE_ALL
 #ifndef LIGATE_FI
@@ -10,8 +12,8 @@
 #ifndef LIGATE_FF
 #define LIGATE_FF
 #endif
-#ifndef LIGATE_ELLIPSIS
-#define LIGATE_ELLIPSIS
+#ifndef LIGATE_PUNCTUATION
+#define LIGATE_PUNCTUATION
 #endif
 #endif
 
@@ -29,8 +31,9 @@ CharacterBytes(const char* string)
 #ifdef LIGATE_FF
 	if (c == 'f' && string[1] == 'f') return (string[2] == 'i' || string[2] == 'l') ? 3 : 2;
 #endif
-#ifdef LIGATE_ELLIPSIS
+#ifdef LIGATE_PUNCTUATION
 	if (c == '.' && string[1] == '.' && string[2] == '.') return 3;
+	if (c == '-' && string[1] == '-') return (string[2] == '-') ? 3 : 2;
 #endif
 	return c < 0x80 ? 1 : (c < 0xe0 ? 2 : (c < 0xf0 ? 3 : 4));
 }
@@ -49,8 +52,9 @@ UnicodeOfUTF8(const char* string)
 #ifdef LIGATE_FF
 	if (t[0] == 'f' && t[1] == 'f') return t[2] == 'i' ? 0xfb03 : (t[2] == 'l' ? 0xfb04 : 0xfb00);
 #endif
-#ifdef LIGATE_ELLIPSIS
+#ifdef LIGATE_PUNCTUATION
 	if (t[0] == '.' && t[1] == '.' && t[2] == '.') return 0x2026;
+	if (t[0] == '-' && t[1] == '-') return t[2] == '-' ? 0x2014 : 0x2013;
 #endif
 	if (t[0] < 0x80)
 		return t[0];
@@ -112,11 +116,28 @@ static const unsigned short extra_chars[] = {
 	0x017e, 0x2122, 0x2212, 0x20ac, 0xfb00, 0xfb03, 0xfb04, 0
 };
 
+static const unsigned short offset[] = {
+	0x0000, // Roman
+	0xe000, // Italic
+	0xe128, // Bold
+	0xe250, // Bold Italic
+	0xe378, // Sans
+	0xe4a0, // Sans Italic
+	0xe5c8, // Sans Bold
+	0xe6f0  // Sans Bold Italic
+};
+
 // Used to support proprietary encoding of italic, etc. in private use area.
 unsigned short
-get_encoded_char(const char encoding, const unsigned short original)
+get_encoded_char(const int encoding, const unsigned short original)
 {
-	if (encoding == 'r') return original;
+	if (encoding == 0) return original;
+
+	if (encoding & Altern && original >= '0' && original <= '9') {
+		if (encoding ^ Altern == Default) return original + 0xe000 - '0';
+		return original + offset[encoding ^ Altern] + 0x20;
+	}	
+	
 	if (encoding == 'o') return (original >= '0' && original <= '9') ? original + (0xe000 - '0') : original;
 	unsigned short compact_enc;
 	if (original <= 0xff)
@@ -128,14 +149,27 @@ get_encoded_char(const char encoding, const unsigned short original)
 			break;
 		}
 	}
-	if (compact_enc) switch (encoding) {
-	case 'i': return compact_enc + 0xe000; // serif italic
-	case 'b': return compact_enc + 0xe128; // serif bold
-	case 'h': return compact_enc + 0xe250; // serif bold italic
-	case 's': return compact_enc + 0xe378; // sans roman
-	case 'j': return compact_enc + 0xe4a0; // sans italic
-	case 'e': return compact_enc + 0xe5c8; // sans bold
-	case 'g': return compact_enc + 0xe6f0; // sans bold italic
+	return compact_enc 
+	     ? compact_enc + offset[encoding & ~Altern] 
+	     : original;
+}
+
+void SetEncoding(int& encoding, const char flag)
+{
+	switch (flag) {
+	case 'd': encoding  =  Default; return;
+	case 'r': encoding &= ~Italic;  return;
+	case 'i': encoding ^=  Italic;  return;
+	case 't': encoding &= ~Bold;    return;
+	case 'b': encoding ^=  Bold;    return;
+	case 'f': encoding &= ~Sans;    return;
+	case 's': encoding ^=  Sans;    return;
+	case 'o': encoding &= ~Altern;  return;
+	case 'l': encoding ^=  Altern;  return;
+	case 0:
+		fprintf(stderr, "Error: non-matching ~tags~\n");
+		exit(1);
+	default:
+		fprintf(stderr, "Warning: unknown tag ~%c~\n", flag);
 	}
-	return original;
 }

@@ -82,10 +82,16 @@ int ONScripterLabel::haeleth_char_setCommand()
 	return RET_CONTINUE;
 }
 
+/* h_fontstyle <string>
+ *
+ * Sets default font styling.  Equivalent to inserting ~d<string>~ at the start of every subsequent
+ * text display command.  Note that this has no effect on text sprites.
+ */
 int ONScripterLabel::haeleth_font_styleCommand()
 {
 	const char *buf = script_h.readStr();
 	if (*buf == '`') ++buf;
-	script_h.default_encoding = *buf;
+	script_h.default_encoding = 0;
+	while (*buf && *buf != '`' && *buf != '"') SetEncoding(script_h.default_encoding, *buf++);
 	return RET_CONTINUE;
 }

@@ -132,7 +132,7 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
 		// handle private-use encodings
 		{
 			std::string dest;
-			char encoding = 'r';
+			int encoding = 0;
 			const char* buf = anim->file_name;
 			char ch = *buf;
 			if (ch == '`') {
@@ -141,9 +141,11 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
 			}
 			while (ch) {
 				if (ch == '~' && (ch = *++buf) != '~') {
-					encoding = ch;
+					while (ch != '~') {
+						SetEncoding(encoding, ch);
+						ch = *++buf;
+					}
 					ch = *++buf;
-					if (ch == '~') ch = *++buf;
 					continue;
 				}
 				const unsigned short uc = UnicodeOfUTF8(buf);

@@ -111,7 +111,7 @@ public:
     int  parseInt( char **buf );
     void skipToken();
 
-	char default_encoding;
+	int default_encoding;
 
     // function for string access
     inline char *getStringBuffer(){ return string_buffer; };

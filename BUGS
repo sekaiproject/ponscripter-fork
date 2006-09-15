@@ -4,12 +4,17 @@ MINOR
 
 AESTHETIC
 
-* Charter italic: f (and ligs) rather narrow in "product" section.
+* Charter italic: f (and ligs) still slightly narrow in "product" section...
 * Paragraph spacing -- a whole blank line is far too deep. Time to make y positioning pixel-based? :/
 
 FEATURES
 
+* Automatic typographic quotes (initial right quote can be done manually).
 * Ligatures: do we perhaps need a ZWNJ?  ^^;
 * SHY, NBHY would be nice too... ;)
-* OSFs in italic, too, at minimum.
+* OSFs in other styles (bold/bold-italic).  Proportional figures in sans styles?
+* Variable text size. (Requires pixel positioning? Compatible with backlog?)
 * Kerning?  :P
+  Should be doable... just peek at next char when determining glyph advance.
+
+* Subpixel rendering when running windowed on an LCD?  (Okay, now I'm getting silly...)
