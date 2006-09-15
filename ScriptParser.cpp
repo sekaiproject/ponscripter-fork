@@ -772,9 +772,7 @@ void ScriptParser::readToken()
     if (script_h.isText()) string_buffer_offset = 0;
 
     if (script_h.isText() && linepage_mode > 0){
-        char ch = '@'; // click wait
-        if (linepage_mode == 1 || sentence_font.getRemainingLine() <= clickstr_line)
-            ch = '\\'; // newline
+        char ch = (linepage_mode == 1) ? '\\' : '@';
 
         // ugly work around
         unsigned int len = strlen(script_h.getStringBuffer());

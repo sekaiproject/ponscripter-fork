@@ -124,7 +124,7 @@ int FontInfo::line_space()
 	return rv;
 }
 
-int FontInfo::GlyphAdvance(unsigned short unicode)
+int FontInfo::GlyphAdvance(unsigned short unicode, unsigned short next)
 {
 	int rv;
 	bool was_open = ttf_font;
@@ -139,18 +139,16 @@ int FontInfo::StringAdvance(const char* string)
 	int rv = 0;
 	bool was_open = ttf_font;
 	if (!ttf_font) openFont();
+	unsigned short unicode, next;
+	unicode = UnicodeOfUTF8(string);
 	while (*string) {
-		unsigned short unicode = UnicodeOfUTF8(string);
 		string += CharacterBytes(string);
-		rv += GlyphAdvance(unicode);
+		next = UnicodeOfUTF8(string);
+		rv += GlyphAdvance(unicode, next);
+		unicode = next;
 	}
 	if (!was_open) ttf_font = NULL;
 	return rv;
-}
-
-int FontInfo::getRemainingLine()
-{
-	return area_y - pos_y;
 }
 
 void FontInfo::SetXY( int x, int y )
@@ -165,16 +163,16 @@ void FontInfo::clear()
 	indent = 0;
 }
 
-void FontInfo::newLine()
+void FontInfo::newLine(const float proportion)
 {
 	pos_x = indent;
-	pos_y += 1;
+	pos_y += (int)((float)(line_space() + pitch_y) * proportion);
 }
 
 void FontInfo::setLineArea(int num)
 {
 	area_x = num;
-	area_y = 1;
+	area_y = line_space();
 }
 
 bool FontInfo::isNoRoomFor(int margin)
@@ -184,7 +182,7 @@ bool FontInfo::isNoRoomFor(int margin)
 
 bool FontInfo::isLineEmpty()
 {
-	return pos_x == 0;
+	return pos_x == indent;
 }
 
 void FontInfo::advanceBy(int offset)
@@ -192,22 +190,32 @@ void FontInfo::advanceBy(int offset)
 	pos_x += offset;
 }
 
+SDL_Rect FontInfo::getFullArea(int ratio1, int ratio2)
+{
+	SDL_Rect rect;
+	rect.x = top_x * ratio1 / ratio2;
+	rect.y = top_y * ratio1 / ratio2;
+	rect.w = area_x * ratio1 / ratio2;
+	rect.h = area_y * ratio1 / ratio2;
+	return rect;
+}
 
 SDL_Rect FontInfo::calcUpdatedArea(int start_xy[2], int ratio1, int ratio2)
 {
 	SDL_Rect rect;
 	
-	if (start_xy[1] == pos_y){
+	if (start_xy[1] == pos_y){ 
+		// if single line, return minimum width
 		rect.x = top_x + start_xy[0];
 		rect.w = pos_x - start_xy[0];
 	}
 	else{
+		// multi-line: return full width
 		rect.x = top_x;
 		rect.w = area_x;
 	}
-	const int lsp = line_space() + pitch_y;
-	rect.y = top_y + start_xy[1] * lsp;
-	rect.h = lsp * (pos_y - start_xy[1] + 1) - pitch_y;
+	rect.y = top_y + start_xy[1];
+	rect.h = pos_y - start_xy[1] + line_space();
 
 	rect.x = rect.x * ratio1 / ratio2;
 	rect.y = rect.y * ratio1 / ratio2;

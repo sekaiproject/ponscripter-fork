@@ -170,7 +170,7 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
             f_info.ttf_font = NULL;
             if (anim->is_single_line) {
             	f_info.area_x = f_info.StringAdvance(anim->file_name);
-            	f_info.area_y = 1;
+            	f_info.area_y = f_info.line_space();
             }
             if (anim->is_centered_text) {
             	anim->pos.x -= f_info.area_x / 2;
@@ -183,22 +183,11 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
         	drawString( anim->file_name, anim->color_list[ anim->current_cell ], &f_info, false, NULL, &pos );
         }
         else{
-            int xy_bak[2];
-            xy_bak[0] = f_info.pos_x;
-            xy_bak[1] = f_info.pos_y;
-            
-            int xy[2] = {0, 0};
-            f_info.pos_x = f_info.area_x;
-            f_info.pos_y = f_info.area_y - 1;
-            pos = f_info.calcUpdatedArea(xy, screen_ratio1, screen_ratio2);
-
-            f_info.pos_x = xy_bak[0];
-            f_info.pos_y = xy_bak[1];
+            pos = f_info.getFullArea(screen_ratio1, screen_ratio2);
         }
         
         if (info != NULL){
-            info->pos_x = f_info.pos_x;
-            info->pos_y = f_info.pos_y;
+            info->SetXY(f_info.GetXOffset(), f_info.GetYOffset());
         }
         
         anim->allocImage( pos.w*anim->num_of_cells, pos.h );

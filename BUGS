@@ -1,11 +1,13 @@
 MINOR
 
 * Line-breaking takes place consistently one character too soon when fast-forwarding.
+  (The problem is that character advancing takes place immediately before the text is
+   rendered in regular mode, and immediately after in fast-forward mode.)
+  (So far I can't find a fix. The code is too crufty.)
 
 AESTHETIC
 
 * Charter italic: f (and ligs) still slightly narrow in "product" section...
-* Paragraph spacing -- a whole blank line is far too deep. Time to make y positioning pixel-based? :/
 
 FEATURES
 
@@ -13,7 +15,7 @@ FEATURES
 * Ligatures: do we perhaps need a ZWNJ?  ^^;
 * SHY, NBHY would be nice too... ;)
 * OSFs in other styles (bold/bold-italic).  Proportional figures in sans styles?
-* Variable text size. (Requires pixel positioning? Compatible with backlog?)
+* Variable text size.
 * Kerning?  :P
   Should be doable... just peek at next char when determining glyph advance.
 

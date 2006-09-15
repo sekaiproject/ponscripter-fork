@@ -57,10 +57,8 @@ SDL_Surface *ONScripterLabel::renderGlyph(TTF_Font *font, Uint16 text)
 	return gc->surface;
 }
 
-void ONScripterLabel::drawGlyph( SDL_Surface *dst_surface, FontInfo *info, SDL_Color &color, char* text, int xy[2], bool shadow_flag, AnimationInfo *cache_info, SDL_Rect *clip, SDL_Rect &dst_rect )
+void ONScripterLabel::drawGlyph( SDL_Surface *dst_surface, FontInfo *info, SDL_Color &color, unsigned short unicode, int xy[2], bool shadow_flag, AnimationInfo *cache_info, SDL_Rect *clip, SDL_Rect &dst_rect )
 {
-	unsigned short unicode = UnicodeOfUTF8(text);
-
 	int minx, maxx, miny, maxy, advanced;
 #if 0
 	if (TTF_GetFontStyle( (TTF_Font*)info->ttf_font ) !=
@@ -102,10 +100,8 @@ void ONScripterLabel::drawGlyph( SDL_Surface *dst_surface, FontInfo *info, SDL_C
 	}
 }
 
-void ONScripterLabel::drawChar( char* text, FontInfo *info, bool flush_flag, bool lookback_flag, SDL_Surface *surface, AnimationInfo *cache_info, SDL_Rect *clip )
+void ONScripterLabel::drawChar( const char* text, FontInfo *info, bool flush_flag, bool lookback_flag, SDL_Surface *surface, AnimationInfo *cache_info, SDL_Rect *clip )
 {
-	//printf("draw %x-%x[%s] %d, %d\n", text[0], text[1], text, info->xy[0], info->xy[1] );
-
 	if ( info->ttf_font == NULL ){
 		if ( info->openFont() == NULL ){
 			fprintf( stderr, "can't open font file: %s\n", font_file );
@@ -114,19 +110,14 @@ void ONScripterLabel::drawChar( char* text, FontInfo *info, bool flush_flag, boo
 		}
 	}
 
-	int advance = info->GlyphAdvance(UnicodeOfUTF8(text));
+	int bytes = CharacterBytes(text);
+	unsigned short unicode = UnicodeOfUTF8(text);
+	int advance = info->GlyphAdvance(unicode, UnicodeOfUTF8(text + bytes));
 
 	if ( info->isNoRoomFor(advance) ){
 		info->newLine();
-		//for (int i=0 ; i<indent_offset ; i++)
-		//	sentence_font.advanceCharInHankaku(2);
-
 		if ( lookback_flag ){
 			current_text_buffer->addBuffer( 0x0a );
-			//for (int i=0 ; i<indent_offset ; i++){
-			//	current_text_buffer->addBuffer(((char*)"@")[0]);
-			//	current_text_buffer->addBuffer(((char*)"@")[1]);
-			//}
 		}
 	}
 
@@ -138,12 +129,12 @@ void ONScripterLabel::drawChar( char* text, FontInfo *info, bool flush_flag, boo
 	SDL_Rect dst_rect;
 	if ( info->is_shadow ){
 		color.r = color.g = color.b = 0;
-		drawGlyph(surface, info, color, text, xy, true, cache_info, clip, dst_rect);
+		drawGlyph(surface, info, color, unicode, xy, true, cache_info, clip, dst_rect);
 	}
 	color.r = info->color[0];
 	color.g = info->color[1];
 	color.b = info->color[2];
-	drawGlyph( surface, info, color, text, xy, false, cache_info, clip, dst_rect );
+	drawGlyph( surface, info, color, unicode, xy, false, cache_info, clip, dst_rect );
 
 	if ( surface == accumulation_surface &&
 		 !flush_flag &&
@@ -159,7 +150,7 @@ void ONScripterLabel::drawChar( char* text, FontInfo *info, bool flush_flag, boo
 	/* Update text buffer */
 	info->advanceBy(advance);
 	if ( lookback_flag ){
-		while ( *text ) 
+		while ( bytes-- ) 
 			current_text_buffer->addBuffer( *text++ );
 	}
 }
@@ -169,8 +160,8 @@ void ONScripterLabel::drawString( const char *str, uchar3 color, FontInfo *info,
 	int i;
 
 	int start_xy[2];
-	start_xy[0] = info->pos_x;
-	start_xy[1] = info->pos_y;
+	start_xy[0] = info->GetXOffset();
+	start_xy[1] = info->GetYOffset();
 
 	/* ---------------------------------------- */
 	/* Draw selected characters */
@@ -179,7 +170,6 @@ void ONScripterLabel::drawString( const char *str, uchar3 color, FontInfo *info,
 	for ( i=0 ; i<3 ; i++ ) info->color[i] = color[i];
 
 	bool skip_whitespace_flag = true;
-	char text[5] = { '\0', '\0', '\0', '\0', '\0' };
 	while( *str ){
 		while (*str == ' ' && skip_whitespace_flag) str++;
 
@@ -193,10 +183,8 @@ void ONScripterLabel::drawString( const char *str, uchar3 color, FontInfo *info,
 			str++;
 		}
 		else{
-			char bytes = CharacterBytes(str);
-			char *t = text;
-			while (bytes--) *t++ = *str++;
-			drawChar( text, info, false, false, surface, cache_info );
+			drawChar( str, info, false, false, surface, cache_info );
+			str += CharacterBytes(str);
 		}
 	}
 	for ( i=0 ; i<3 ; i++ ) info->color[i] = org_color[i];
@@ -216,7 +204,6 @@ void ONScripterLabel::restoreTextBuffer()
 {
 	text_info.fill( 0, 0, 0, 0 );
 
-	char out_text[5] = { '\0','\0','\0','\0','\0' };
 	FontInfo f_info = sentence_font;
 	f_info.clear();
 	const char *buffer = current_text_buffer->contents.c_str();
@@ -230,10 +217,8 @@ void ONScripterLabel::restoreTextBuffer()
 			f_info.newLine();
 		}
 		else{
-			char bytes = CharacterBytes(buffer + i);
-			for (int j = 0; j < bytes; ++j) out_text[j] = buffer[i + j];
-			i += bytes - 1;
-			drawChar( out_text, &f_info, false, false, NULL, &text_info );
+			drawChar( buffer + i, &f_info, false, false, NULL, &text_info );
+			i += CharacterBytes(buffer + i) - 1;
 		}
 	}
 }
@@ -314,20 +299,14 @@ void ONScripterLabel::doClickEnd()
 	num_chars_in_sentence = 0;
 }
 
-int ONScripterLabel::clickWait( char *out_text )
+int ONScripterLabel::clickWait()
 {
 	skip_to_wait = 0;
 
 	if ( (skip_flag || draw_one_page_flag || ctrl_pressed_status) && !textgosub_label ){
 		clickstr_state = CLICK_NONE;
-		if ( out_text ){
-			drawChar( out_text, &sentence_font, false, true, accumulation_surface, &text_info );
-			string_buffer_offset += CharacterBytes(out_text);
-		}
-		else{ // called on '@'
-			flush(refreshMode());
-			string_buffer_offset++;
-		}
+		flush(refreshMode());
+		string_buffer_offset++;
 		num_chars_in_sentence = 0;
 
 		return RET_CONTINUE | RET_NOREAD;
@@ -335,10 +314,6 @@ int ONScripterLabel::clickWait( char *out_text )
 	else{
 		clickstr_state = CLICK_WAIT;
 		key_pressed_flag = false;
-		if ( out_text ){
-			drawChar( out_text, &sentence_font, true, true, accumulation_surface, &text_info );
-			num_chars_in_sentence++;
-		}
 		if ( textgosub_label ){
 			saveoffCommand();
 
@@ -358,15 +333,11 @@ int ONScripterLabel::clickWait( char *out_text )
 	}
 }
 
-int ONScripterLabel::clickNewPage( char *out_text )
+int ONScripterLabel::clickNewPage()
 {
 	skip_to_wait = 0;
 
 	clickstr_state = CLICK_NEWPAGE;
-	if ( out_text ){
-		drawChar( out_text, &sentence_font, true, true, accumulation_surface, &text_info );
-		num_chars_in_sentence++;
-	}
 	if ( skip_flag || draw_one_page_flag || ctrl_pressed_status ) flush( refreshMode() );
 
 	if ( (skip_flag || ctrl_pressed_status) && !textgosub_label  ){
@@ -418,9 +389,6 @@ int ONScripterLabel::textCommand()
 
 int ONScripterLabel::processText()
 {
-	//printf("textCommand %c %d %d %d\n", script_h.getStringBuffer()[ string_buffer_offset ], string_buffer_offset, event_mode, line_enter_status);
-	char out_text[5] = { '\0', '\0', '\0', '\0', '\0' };
-
 	if ( event_mode & (WAIT_INPUT_MODE | WAIT_SLEEP_MODE) ){
 		draw_cursor_flag = false;
 		if ( script_h.getStringBuffer()[ string_buffer_offset ] == '!' ){
@@ -440,15 +408,12 @@ int ONScripterLabel::processText()
 		event_mode = IDLE_EVENT_MODE;
 	}
 
-
 	if (script_h.getStringBuffer()[string_buffer_offset] == 0x0a){
 		indent_offset = 0; // redundant
 		return RET_CONTINUE;
 	}
 
 	new_line_skip_flag = false;
-
-	//printf("*** textCommand %d (%d,%d)\n", string_buffer_offset, sentence_font.xy[0], sentence_font.xy[1]);
 
 	while( (!(script_h.getEndStatus() & ScriptHandler::END_1BYTE_CHAR) &&
 			script_h.getStringBuffer()[ string_buffer_offset ] == ' ') ||
@@ -457,10 +422,10 @@ int ONScripterLabel::processText()
 	char ch = script_h.getStringBuffer()[string_buffer_offset];
 
 	if ( ch == '@' ){ // wait for click
-		return clickWait( NULL );
+		return clickWait();
 	}
 	else if ( ch == '\\' ){ // new page
-		return clickNewPage( NULL );
+		return clickNewPage();
 	}
 	else if ( ch == '_' ){ // Ignore following forced return
 		clickstr_state = CLICK_IGNORE;
@@ -536,27 +501,18 @@ int ONScripterLabel::processText()
 		else{ // skip new line
 			new_line_skip_flag = true;
 			string_buffer_offset++;
-			if (script_h.getStringBuffer()[string_buffer_offset] != 0x0a)
-				errorAndExit( "'new line' must follow '/'." );
 			return RET_CONTINUE; // skip the following eol
 		}
 	}
 	else{
 		notacommand:
-		{
-			char bytes = CharacterBytes((char*)&ch);
-			char *buf = script_h.getStringBuffer() + string_buffer_offset;
-			char *t = out_text;
-			while (bytes--) *t++ = *buf++;
-		}
+
 
 		clickstr_state = CLICK_NONE;
 
-		bool flush_flag = true;
-		if ( skip_flag || draw_one_page_flag || ctrl_pressed_status )
-			flush_flag = false;
-		
-		drawChar( out_text, &sentence_font, flush_flag, true, accumulation_surface, &text_info );
+		bool flush_flag = !(skip_flag || draw_one_page_flag || ctrl_pressed_status);
+				
+		drawChar(script_h.getStringBuffer() + string_buffer_offset, &sentence_font, flush_flag, true, accumulation_surface, &text_info);
 		++num_chars_in_sentence;
 		
 		if ( skip_flag || draw_one_page_flag || ctrl_pressed_status ){

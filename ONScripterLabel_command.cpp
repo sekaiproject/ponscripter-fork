@@ -281,7 +281,7 @@ int ONScripterLabel::strspCommand()
     fi.is_newline_accepted = true;
     ai->pos.x = script_h.readInt();
     ai->pos.y = script_h.readInt();
-    int num_x = script_h.readInt();
+    fi.area_x = script_h.readInt();
     fi.area_y = script_h.readInt();
     fi.font_size_x = script_h.readInt();
     fi.font_size_y = script_h.readInt();
@@ -289,7 +289,6 @@ int ONScripterLabel::strspCommand()
     fi.pitch_y = script_h.readInt();
     fi.is_bold = script_h.readInt()?true:false;
     fi.is_shadow = script_h.readInt()?true:false;
-    fi.area_x = num_x * (fi.font_size_x + fi.pitch_x);
 
     char *buffer = script_h.getNext();
     while(script_h.getEndStatus() & ScriptHandler::END_COMMA){
@@ -536,7 +535,7 @@ void ONScripterLabel::setwindowCore()
     sentence_font.ttf_font  = NULL;
     sentence_font.top_x = script_h.readInt();
     sentence_font.top_y = script_h.readInt();
-    int num_x = script_h.readInt();
+    sentence_font.area_x = script_h.readInt();
     sentence_font.area_y = script_h.readInt();
     sentence_font.font_size_x = script_h.readInt();
     sentence_font.font_size_y = script_h.readInt();
@@ -545,7 +544,6 @@ void ONScripterLabel::setwindowCore()
     sentence_font.wait_time = script_h.readInt();
     sentence_font.is_bold = script_h.readInt()?true:false;
     sentence_font.is_shadow = script_h.readInt()?true:false;
-	sentence_font.area_x = num_x * (sentence_font.font_size_x + sentence_font.pitch_x);
     
     const char *buf = script_h.readStr();
     dirty_rect.add( sentence_font_info.pos );
@@ -709,8 +707,8 @@ int ONScripterLabel::selectCommand()
         shortcut_mouse_line = -1;
 
         int xy[2];
-        xy[0] = sentence_font.pos_x;
-        xy[1] = sentence_font.pos_y;
+        xy[0] = sentence_font.GetXOffset();
+        xy[1] = sentence_font.GetYOffset();
 
         if ( selectvoice_file_name[SELECTVOICE_OPEN] )
             playSound(selectvoice_file_name[SELECTVOICE_OPEN],
@@ -799,8 +797,7 @@ int ONScripterLabel::selectCommand()
         }
         skip_flag = false;
         automode_flag = false;
-        sentence_font.pos_x = xy[0];
-        sentence_font.pos_y = xy[1];
+        sentence_font.SetXY(xy[0], xy[1]);
 
         flush( refreshMode() );
 
@@ -2886,7 +2883,7 @@ int ONScripterLabel::brCommand()
     int ret = enterTextDisplayMode();
     if ( ret != RET_NOMATCH ) return ret;
 
-    sentence_font.newLine();
+    sentence_font.newLine(0.5);
     current_text_buffer->addBuffer( 0x0a );
 
     return RET_CONTINUE;

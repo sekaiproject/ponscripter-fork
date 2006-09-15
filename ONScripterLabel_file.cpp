@@ -253,8 +253,8 @@ int ONScripterLabel::loadSaveFile( int no )
     sentence_font.top_y = readInt();
     sentence_font.area_x = readInt();
     sentence_font.area_y = readInt();
-    sentence_font.pos_x = readInt();
-    sentence_font.pos_y = readInt();
+    const int px = readInt();
+    sentence_font.SetXY(px, readInt());
     sentence_font.pitch_x = readInt();
     sentence_font.pitch_y = readInt();
     sentence_font.wait_time = readInt();

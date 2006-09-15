@@ -733,8 +733,8 @@ void ONScripterLabel::resetSentenceFont()
 	sentence_font.font_size_y = DEFAULT_FONT_SIZE;
 	sentence_font.top_x       = 21;
 	sentence_font.top_y       = 16;
-	sentence_font.area_x      = 23 * sentence_font.em_width();
-	sentence_font.area_y      = 16;
+	sentence_font.area_x      = screen_width - 21;
+	sentence_font.area_y      = screen_height - 16;
 	sentence_font.pitch_x     = 0;
 	sentence_font.pitch_y     = 0;
 	sentence_font.wait_time   = 20;
@@ -1004,7 +1004,7 @@ int ONScripterLabel::parseLine( )
 	if ( current_mode == DEFINE_MODE ) errorAndExit( "text cannot be displayed in define section." );
 
 //--------INDENT ROUTINE-----------------------------------------------------------------------------------
-	if (sentence_font.GetXOffset() == 0 && sentence_font.GetLine() == 0) {
+	if (sentence_font.GetXOffset() == 0 && sentence_font.GetYOffset() == 0) {
 		const unsigned short first_ch = UnicodeOfUTF8(script_h.getStringBuffer() + string_buffer_offset);
 		if (is_indent_char(first_ch))
 			sentence_font.SetIndent(first_ch);
@@ -1017,11 +1017,10 @@ int ONScripterLabel::parseLine( )
 
 //--------LINE BREAKING ROUTINE----------------------------------------------------------------------------
 	const unsigned short first_ch = UnicodeOfUTF8(script_h.getStringBuffer() + string_buffer_offset);
-//printf("U+%04x (%s)\n", first_ch, is_break_char(first_ch) ? "yes" : "no");fflush(stdout);
-	if (is_break_char(first_ch)){
-		int len = sentence_font.GlyphAdvance(first_ch);
+	if (is_break_char(first_ch) && !new_line_skip_flag){
 		char *it = script_h.getStringBuffer() + string_buffer_offset 
 				 + CharacterBytes(script_h.getStringBuffer() + string_buffer_offset);
+		int len = sentence_font.GlyphAdvance(first_ch, UnicodeOfUTF8(it));
 		while (1) {
 			// For each character (not char!) before a break is found, get unicode.
 			unsigned short ch = UnicodeOfUTF8(it);
@@ -1053,7 +1052,7 @@ int ONScripterLabel::parseLine( )
 			}
 			
 			// No inline command?  Use the glyph metrics, then!
-			len += sentence_font.GlyphAdvance(ch);
+			len += sentence_font.GlyphAdvance(ch, UnicodeOfUTF8(it));
 		}
 		if (check_orphan_control()) {
 			// If this is the start of a sentence, or follows some other punctuation that makes this
@@ -1087,12 +1086,6 @@ int ONScripterLabel::parseLine( )
 		if (!sentence_font.isLineEmpty() && !new_line_skip_flag){
 			current_text_buffer->addBuffer( 0x0a );
 			sentence_font.newLine();
-// Let's not worry about the indent command for now... it's not like we use it.
-//			for (int i=0 ; i<indent_offset ; i++){
-//				current_text_buffer->addBuffer(((char*)"@")[0]);
-//				current_text_buffer->addBuffer(((char*)"@")[1]);
-//				sentence_font.advanceCharInHankaku(2);
-//			}
 		}
 		//event_mode = IDLE_EVENT_MODE;
 		line_enter_status = 0;
@@ -1269,7 +1262,7 @@ void ONScripterLabel::newPage( bool next_flag )
 struct ONScripterLabel::ButtonLink *ONScripterLabel::getSelectableSentence( char *buffer, FontInfo *info, bool flush_flag, bool nofile_flag )
 {
 	int current_x;
-	current_x = info->pos_x;
+	current_x = info->GetXOffset();
 
 	ButtonLink *button_link = new ButtonLink();
 	button_link->button_type = ButtonLink::TMP_SPRITE_BUTTON;
@@ -1298,7 +1291,7 @@ struct ONScripterLabel::ButtonLink *ONScripterLabel::getSelectableSentence( char
 	button_link->select_rect = button_link->image_rect = anim->pos;
 
 	info->newLine();
-	info->pos_x = current_x;
+	info->SetXY(current_x);
 
 	dirty_rect.add( button_link->image_rect );
 
