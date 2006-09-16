@@ -7,9 +7,8 @@ MINOR
 
 FEATURES
 
-* Ligatures: do we perhaps need a ZWNJ?  ^^;
 * SHY, NBHY would be nice too... ;)
 * OSFs in other styles (bold/bold-italic).  Proportional figures in sans styles?
-* Variable text size.
+* Variable text size?
 
 * Subpixel rendering when running windowed on an LCD?  (Okay, now I'm getting silly...)

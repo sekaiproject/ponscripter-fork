@@ -34,6 +34,24 @@ Style tags:
   are toggles.  Hence ^foo ~i~bar~r~^ and ^foo ~i~bar~i~^ are equivalent.
 
 
+Ligatures and nice punctuation:
+
+  fi
+  fl
+  ff
+  ffi
+  ffl
+  `   (single opening quote)
+  ``  (double opening quote)
+  '   (single closing quote)
+  ''  (double closing quote)
+  --  (en dash)
+  --- (em dash)
+  ... (ellipsis)
+  |   (zero-width non-joiner: ignored, but inhibits ligatures)
+  ||  (to get a | character)
+
+
 Significant changes:
 
 2006-09-14
@@ -43,7 +61,7 @@ Significant changes:
   Charter and URW Nimbus Sans, with added Euros, old-style figures, and 
   additional ligatures.
   
-  Automatic ligature support (hardwired, just ff/fi/fl/ffi/ffl for now).
+  Automatic ligature support.
   
   Adjusted font embedding to work from source code rather than a binary.  This 
   means that the build process now depends on FontForge (if you wish to use an 

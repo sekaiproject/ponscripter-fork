@@ -16,12 +16,19 @@
 #define LIGATE_PUNCTUATION
 #endif
 #endif
+#if defined(LIGATE_ALL) || defined(LIGATE_FI) || defined(LIGATE_FL) || defined(LIGATE_FF) || defined(LIGATE_PUNCTUATION)
+#define LIGATURES
+#endif
 
 char
 CharacterBytes(const char* string)
 {
 	const unsigned char c = *(const unsigned char*) string;
 	if ((c & 0xc0) == 0x80) fprintf(stderr, "Warning: CharacterBytes called on incomplete character\n");
+	if (c == 0xe2 && string[1] == (char)0x80 && string[2] == (char)0x8c) return 3 + CharacterBytes(string + 3); // ZWNJ
+#ifdef LIGATURES
+	if (c == '|') return (string[1] == '|') ? 2 : 1 + CharacterBytes(string + 1);
+#endif
 #ifdef LIGATE_FI
 	if (c == 'f' && string[1] == 'i') return 2;
 #endif
@@ -34,8 +41,8 @@ CharacterBytes(const char* string)
 #ifdef LIGATE_PUNCTUATION
 	if (c == '.' && string[1] == '.' && string[2] == '.') return 3;
 	if (c == '-' && string[1] == '-') return (string[2] == '-') ? 3 : 2;
-	if (c == '`') return string[1] == '`' ? 2 : 1;
-	if (c == '\'') return string[1] == '\'' ? 2 : 1;
+	if (c == '`') return (string[1] == '`') ? 2 : 1;
+	if (c == '\'') return (string[1] == '\'') ? 2 : 1;
 #endif
 	return c < 0x80 ? 1 : (c < 0xe0 ? 2 : (c < 0xf0 ? 3 : 4));
 }
@@ -45,6 +52,10 @@ UnicodeOfUTF8(const char* string)
 {
 	const unsigned char* t = (const unsigned char*) string;
 	if ((t[0] & 0xc0) == 0x80) fprintf(stderr, "Warning: UnicodeOfUTF8 called on incomplete character\n");
+	if (t[0] == 0xe2 && t[1] == 0x80 && t[2] == 0x8c) return UnicodeOfUTF8(string + 3); // ZWNJ
+#ifdef LIGATURES
+	if (t[0] == '|') return (t[1] == '|') ? '|' : UnicodeOfUTF8(string + 1);
+#endif
 #ifdef LIGATE_FI
 	if (t[0] == 'f' && t[1] == 'i') return 0xfb01;
 #endif
