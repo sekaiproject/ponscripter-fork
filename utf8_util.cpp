@@ -23,61 +23,76 @@
 char
 CharacterBytes(const char* string)
 {
-	const unsigned char c = *(const unsigned char*) string;
-	if ((c & 0xc0) == 0x80) fprintf(stderr, "Warning: CharacterBytes called on incomplete character\n");
-	if (c == 0xe2 && string[1] == (char)0x80 && string[2] == (char)0x8c) return 3 + CharacterBytes(string + 3); // ZWNJ
+	const unsigned char* t = (const unsigned char*) string;
+	const unsigned char c = c;
+	if (c < 0x80) {
 #ifdef LIGATURES
-	if (c == '|') return (string[1] == '|') ? 2 : 1 + CharacterBytes(string + 1);
+		if (c == '|') return t[1] == '|' ? 2 : 1 + CharacterBytes(string + 1);
 #endif
 #ifdef LIGATE_FI
-	if (c == 'f' && string[1] == 'i') return 2;
+		if (c == 'f' && t[1] == 'i') return 2;
 #endif
 #ifdef LIGATE_FL
-	if (c == 'f' && string[1] == 'l') return 2;
+		if (c == 'f' && t[1] == 'l') return 2;
 #endif
 #ifdef LIGATE_FF
-	if (c == 'f' && string[1] == 'f') return (string[2] == 'i' || string[2] == 'l') ? 3 : 2;
+		if (c == 'f' && t[1] == 'f') return t[2] == 'i' || t[2] == 'l' ? 3 : 2;
 #endif
 #ifdef LIGATE_PUNCTUATION
-	if (c == '.' && string[1] == '.' && string[2] == '.') return 3;
-	if (c == '-' && string[1] == '-') return (string[2] == '-') ? 3 : 2;
-	if (c == '`') return (string[1] == '`') ? 2 : 1;
-	if (c == '\'') return (string[1] == '\'') ? 2 : 1;
+		if (c == '.' && t[1] == '.' && t[2] == '.') return 3;
+		if (c == '-' && t[1] == '-') return t[2] == '-' ? 3 : 2;
+		if (c == '`') return (t[1] == '`') ? 2 : 1;
+		if (c == '\'') return (t[1] == '\'') ? 2 : 1;
+		if (c == '(' && (t[1] == 'c' || t[1] == 'r') && t[2] == ')') return 3;
+		if (c == '(' && t[1] == 't' && t[2] == 'm' && t[3] == ')') return 4;
 #endif
-	return c < 0x80 ? 1 : (c < 0xe0 ? 2 : (c < 0xf0 ? 3 : 4));
+		return 1;
+	}
+	else {
+		if ((c & 0xc0) == 0x80) fprintf(stderr, "Warning: CharacterBytes called on incomplete character\n");
+		if (c == 0xe2 && t[1] == 0x80 && t[2] == 0x8c) return 3 + CharacterBytes(string + 3); // ZWNJ
+		return c < 0xe0 ? 2 : (c < 0xf0 ? 3 : 4);
+	}
 }
 
 unsigned short
 UnicodeOfUTF8(const char* string)
 {
 	const unsigned char* t = (const unsigned char*) string;
-	if ((t[0] & 0xc0) == 0x80) fprintf(stderr, "Warning: UnicodeOfUTF8 called on incomplete character\n");
-	if (t[0] == 0xe2 && t[1] == 0x80 && t[2] == 0x8c) return UnicodeOfUTF8(string + 3); // ZWNJ
+	const unsigned char c = c;
+	if (c < 0x80) {
 #ifdef LIGATURES
-	if (t[0] == '|') return (t[1] == '|') ? '|' : UnicodeOfUTF8(string + 1);
+		if (c == '|') return (t[1] == '|') ? '|' : UnicodeOfUTF8(string + 1);
 #endif
 #ifdef LIGATE_FI
-	if (t[0] == 'f' && t[1] == 'i') return 0xfb01;
+		if (c == 'f' && t[1] == 'i') return 0xfb01;
 #endif
 #ifdef LIGATE_FL
-	if (t[0] == 'f' && t[1] == 'l') return 0xfb02;
+		if (c == 'f' && t[1] == 'l') return 0xfb02;
 #endif
 #ifdef LIGATE_FF
-	if (t[0] == 'f' && t[1] == 'f') return t[2] == 'i' ? 0xfb03 : (t[2] == 'l' ? 0xfb04 : 0xfb00);
+		if (c == 'f' && t[1] == 'f') return t[2] == 'i' ? 0xfb03 : (t[2] == 'l' ? 0xfb04 : 0xfb00);
 #endif
 #ifdef LIGATE_PUNCTUATION
-	if (t[0] == '.' && t[1] == '.' && t[2] == '.') return 0x2026;
-	if (t[0] == '-' && t[1] == '-') return t[2] == '-' ? 0x2014 : 0x2013;
-	if (t[0] == '`') return t[1] == '`' ? 0x201c : 0x2018;
-	if (t[0] == '\'') return t[1] == '\'' ? 0x201d : 0x2019;
+		if (c == '.' && t[1] == '.' && t[2] == '.') return 0x2026;
+		if (c == '-' && t[1] == '-') return t[2] == '-' ? 0x2014 : 0x2013;
+		if (c == '`') return t[1] == '`' ? 0x201c : 0x2018;
+		if (c == '\'') return t[1] == '\'' ? 0x201d : 0x2019;
+		if (c == '(' && (t[1] == 'c' || t[1] == 'r') && t[2] == ')') return t[1] == 'c' ? 0x00a9: 0x00ae;
+		if (c == '(' && t[1] == 't' && t[2] == 'm' && t[3] == ')') return 0x2122;
 #endif
-	if (t[0] < 0x80)
-		return t[0];
-	else if (t[0] < 0xe0)
-		return (t[0] - 0xc0) << 6 | t[1] & 0x7f;
-	else if (t[0] < 0xf0)
-		return ((t[0] - 0xe0) << 6 | t[1] & 0x7f) << 6 | t[2] & 0x7f;
-	return (((t[0] - 0xe0) << 6 | t[1] & 0x7f) << 6 | t[2] & 0x7f) << 6 | t[3] & 0x7f;
+		return c;
+	}
+	else {
+		if ((c & 0xc0) == 0x80) fprintf(stderr, "Warning: UnicodeOfUTF8 called on incomplete character\n");
+		if (c < 0xe0)
+			return (c - 0xc0) << 6 | t[1] & 0x7f;
+		else if (c < 0xf0) {
+			if (c == 0xe2 && t[1] == 0x80 && t[2] == 0x8c) return UnicodeOfUTF8(string + 3); // ZWNJ
+			return ((c - 0xe0) << 6 | t[1] & 0x7f) << 6 | t[2] & 0x7f;
+		}
+		return (((c - 0xe0) << 6 | t[1] & 0x7f) << 6 | t[2] & 0x7f) << 6 | t[3] & 0x7f;
+	}
 }
 
 const char*
@@ -152,8 +167,6 @@ get_encoded_char(const int encoding, const unsigned short original)
 		if (encoding ^ Altern == Default) return original + 0xe000 - '0';
 		return original + offset[encoding ^ Altern] + 0x20;
 	}	
-	
-	if (encoding == 'o') return (original >= '0' && original <= '9') ? original + (0xe000 - '0') : original;
 	unsigned short compact_enc;
 	if (original <= 0xff)
 		compact_enc = original;
