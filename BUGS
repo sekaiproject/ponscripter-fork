@@ -1,10 +1,3 @@
-MINOR
-
-* Line-breaking takes place consistently one character too soon when fast-forwarding.
-  (The problem is that character advancing takes place immediately before the text is
-   rendered in regular mode, and immediately after in fast-forward mode.)
-  (So far I can't find a fix. The code is too crufty.)
-
 FEATURES
 
 * SHY, NBHY would be nice too... ;)

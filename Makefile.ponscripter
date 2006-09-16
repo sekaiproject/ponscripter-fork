@@ -73,7 +73,9 @@ internal.ttf: $(FONT_SOURCE)
 	$(FONTFORGE) -c 'Open("$<");Generate("$@","",0x808)'
 endif
 
-resources.cpp: embed$(EXESUFFIX) $(if $(HAVE_FONTFORGE),internal.ttf) internal.icon
+ICON_SOURCE ?= internal.icon
+
+resources.cpp: embed$(EXESUFFIX) $(if $(HAVE_FONTFORGE),internal.ttf) $(ICON_SOURCE)
 	-$(RM) $@
 	echo '#include "resources.h"' > $@
 	echo >> $@
@@ -81,7 +83,7 @@ resources.cpp: embed$(EXESUFFIX) $(if $(HAVE_FONTFORGE),internal.ttf) internal.i
 	./embed internal_font $(if $(HAVE_FONTFORGE),internal.ttf) >> $@
 	echo '#endif' >> $@
 	echo >> $@
-	./embed internal_icon internal.icon >> $@
+	./embed internal_icon $(ICON_SOURCE) >> $@
 
 embed$(EXESUFFIX): embed.c
 	$(CC) $< -o $@

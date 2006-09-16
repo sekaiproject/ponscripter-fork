@@ -1,22 +1,29 @@
 # Extra settings for PONScripter.
 
-# These particular settings are for Narcissu 2; they should probably not be used for
-# other titles, unless you _want_ them to look identical to Narcissu 2.  :P
-
-CFLAGS := $(CFLAGS) -D 'DEFAULT_WM_TITLE="Narcissu Side 2nd mini-demo"' -DLIGATE_ALL -DKERNING
-
-# Kids, don't try this at home.
-CFLAGS := $(CFLAGS) -D 'EMBOLDEN=(ch < 0xe128 || ch > 0xf000) && (dst->rows < 20)'
-
+ifdef NARCISSU2
+ICON_SOURCE = narci2.png
 RCFILE = narci2.rc
-
-FONT_SOURCE = narcissu_font.sfd
-
 FINAL_TARGET = $(if $(WIN32),"Narcissu 2 mini-demo.exe",narcissu2$(EXESUFFIX))
+CFLAGS := $(CFLAGS) -D 'DEFAULT_WM_TITLE="Narcissu Side 2nd mini-demo"'
+NARCI = true
+endif
 
+ifdef NARCISSU
+ICON_SOURCE = narci.png
+RCFILE = narci.rc
+FINAL_TARGET = $(if $(WIN32),"Narcissu.exe",narcissu$(EXESUFFIX))
+CFLAGS := $(CFLAGS) -D 'DEFAULT_WM_TITLE="Narcissu"'
+NARCI = true
+endif
+
+ifdef NARCI
+CFLAGS := $(CFLAGS) -D 'EMBOLDEN=(ch < 0xe128 || ch > 0xf000) && (dst->rows < 20)' \
+                    -DLIGATE_ALL -DKERNING -DFIX_SKIP_WRAPPING
+FONT_SOURCE = narcissu_font.sfd
 .PHONY: final
 final: $(TARGET)
 	-strip $(TARGET)
 	-upx --best $(TARGET)
 	$(RM) $(FINAL_TARGET)
 	mv $(TARGET) $(FINAL_TARGET)
+endif

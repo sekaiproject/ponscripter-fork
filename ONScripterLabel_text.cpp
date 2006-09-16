@@ -516,8 +516,15 @@ int ONScripterLabel::processText()
 		++num_chars_in_sentence;
 		
 		if ( skip_flag || draw_one_page_flag || ctrl_pressed_status ){
+#ifdef BROKEN_SKIP_WRAPPING
 			string_buffer_offset += CharacterBytes(script_h.getStringBuffer() + string_buffer_offset);
 			return RET_CONTINUE | RET_NOREAD;
+#else
+			skip_to_wait = 1;
+			event_mode = WAIT_SLEEP_MODE;
+			advancePhase( 0 );
+			return RET_WAIT | RET_NOREAD;
+#endif
 		}
 		else{
 			event_mode = WAIT_SLEEP_MODE;
