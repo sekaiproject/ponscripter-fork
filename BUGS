@@ -5,10 +5,6 @@ MINOR
    rendered in regular mode, and immediately after in fast-forward mode.)
   (So far I can't find a fix. The code is too crufty.)
 
-AESTHETIC
-
-* Charter italic: f (and ligs) still slightly narrow in "product" section...
-
 FEATURES
 
 * Automatic typographic quotes (initial right quote can be done manually).

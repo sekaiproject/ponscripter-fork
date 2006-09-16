@@ -471,8 +471,8 @@ void ScriptParser::saveGlovalData()
     allocFileIOBuf();
     writeVariables( script_h.global_variable_border, VARIABLE_RANGE, true );
 
-    if (saveFileIOBuf( "gloval.sav" )){
-        fprintf( stderr, "can't open gloval.sav for writing\n");
+    if (saveFileIOBuf( "global.sav" )){
+        fprintf( stderr, "can't open global.sav for writing\n");
         exit(-1);
     }
 }

@@ -668,8 +668,7 @@ void ONScripterLabel::reset()
 
 	/* ---------------------------------------- */
 	/* Load global variables if available */
-	if ( loadFileIOBuf( "gloval.sav" ) == 0 ||
-		 loadFileIOBuf( "global.sav" ) == 0 )
+	if ( loadFileIOBuf( "global.sav" ) == 0 )
 		readVariables( script_h.global_variable_border, VARIABLE_RANGE );
 }
 
