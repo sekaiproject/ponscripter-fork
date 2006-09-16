@@ -28,7 +28,7 @@
 #include "DirtyRect.h"
 #include <SDL.h>
 #include <SDL_image.h>
-#include <SDL_ttf.h>
+#include "SDL_ttf.h"
 #include <SDL_mixer.h>
 
 #if defined(MP3_MAD)

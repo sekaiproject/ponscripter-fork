@@ -24,7 +24,7 @@ DECODER_OBJS = DirectReader$(OBJSUFFIX) SarReader$(OBJSUFFIX) NsaReader$(OBJSUFF
 ONSCRIPTER_OBJS = onscripter$(OBJSUFFIX) $(DECODER_OBJS) ScriptHandler$(OBJSUFFIX) ScriptParser$(OBJSUFFIX) ScriptParser_command$(OBJSUFFIX) \
 	$(GUI_OBJS) $(EXT_OBJS) SDL_ttf$(OBJSUFFIX)
 PARSER_HEADER = BaseReader.h SarReader.h NsaReader.h DirectReader.h ScriptHandler.h ScriptParser.h AnimationInfo.h FontInfo.h DirtyRect.h
-ONSCRIPTER_HEADER = ONScripterLabel.h $(PARSER_HEADER)
+ONSCRIPTER_HEADER = ONScripterLabel.h SDL_ttf.h $(PARSER_HEADER)
 
 ponscr$(EXESUFFIX): $(ONSCRIPTER_OBJS)
 	$(LD)$@ $(ONSCRIPTER_OBJS) $(LIBS)
@@ -62,7 +62,7 @@ ONScripterLabel_file2$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
 ONScripterLabel_image$(OBJSUFFIX): $(ONSCRIPTER_HEADER) resize_image.h
 AnimationInfo$(OBJSUFFIX): AnimationInfo.h
 resources$(OBJSUFFIX): resources.h
-FontInfo$(OBJSUFFIX): FontInfo.h utf8_util.h resources.h
+FontInfo$(OBJSUFFIX): FontInfo.h utf8_util.h resources.h SDL_ttf.h
 DirtyRect$(OBJSUFFIX) : DirtyRect.h
 MadWrapper$(OBJSUFFIX): MadWrapper.h
 AVIWrapper$(OBJSUFFIX): AVIWrapper.h
@@ -70,7 +70,7 @@ utf8_util$(OBJSUFFIX): utf8_util.h
 
 ifdef HAVE_FONTFORGE
 internal.ttf: $(FONT_SOURCE)
-	$(FONTFORGE) -c 'Open("$<");Generate("$@","",0x88)'
+	$(FONTFORGE) -c 'Open("$<");Generate("$@","",0x808)'
 endif
 
 resources.cpp: embed$(EXESUFFIX) $(if $(HAVE_FONTFORGE),internal.ttf) internal.icon

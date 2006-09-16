@@ -24,7 +24,7 @@
 #include "FontInfo.h"
 #include "utf8_util.h"
 #include <stdio.h>
-#include <SDL_ttf.h>
+#include "SDL_ttf.h"
 
 #ifdef USE_INTERNAL_FONT
 #include "resources.h"
@@ -130,6 +130,14 @@ int FontInfo::GlyphAdvance(unsigned short unicode, unsigned short next)
 	bool was_open = ttf_font;
 	if (!ttf_font) openFont();
 	TTF_GlyphMetrics((TTF_Font*) ttf_font, unicode, NULL, NULL, NULL, NULL, &rv);
+#ifdef KERNING
+	if (next) {
+		FT_Face& face = TTF_GetFace((TTF_Font*) ttf_font);
+		FT_Vector kern;
+		FT_Error err = FT_Get_Kerning(face, FT_Get_Char_Index(face, unicode), FT_Get_Char_Index(face, next), FT_KERNING_DEFAULT, &kern);
+		if (!err) rv += kern.x >> 6;
+	}
+#endif
 	if (!was_open) ttf_font = NULL;
 	return rv + pitch_x;
 }

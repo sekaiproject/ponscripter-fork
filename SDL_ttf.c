@@ -2,6 +2,8 @@
     SDL_ttf:  A companion library to SDL for working with TrueType (tm) fonts
     Copyright (C) 1997-2004 Sam Lantinga
 
+	Various major brokennesses fixed 2006 Haeleth.
+
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
     License as published by the Free Software Foundation; either
@@ -42,11 +44,6 @@
 #define ALLOCA(n) malloc(n)
 #define FREEA(p) free(p)
 #endif
-
-#include <ft2build.h>
-#include FT_FREETYPE_H
-#include FT_OUTLINE_H
-#include FT_TRUETYPE_IDS_H
 
 #include "SDL.h"
 #include "SDL_endian.h"
@@ -1741,4 +1738,9 @@ void TTF_Quit( void )
 int TTF_WasInit( void )
 {
 	return TTF_initialized;
+}
+
+FT_Face& TTF_GetFace( TTF_Font* font )
+{
+	return font->face;
 }

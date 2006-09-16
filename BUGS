@@ -16,7 +16,5 @@ FEATURES
 * SHY, NBHY would be nice too... ;)
 * OSFs in other styles (bold/bold-italic).  Proportional figures in sans styles?
 * Variable text size.
-* Kerning?  :P
-  Should be doable... just peek at next char when determining glyph advance.
 
 * Subpixel rendering when running windowed on an LCD?  (Okay, now I'm getting silly...)

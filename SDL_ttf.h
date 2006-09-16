@@ -30,6 +30,11 @@
 #ifndef _SDL_TTF_H
 #define _SDL_TTF_H
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include FT_OUTLINE_H
+#include FT_TRUETYPE_IDS_H
+
 #include "SDL.h"
 #include "begin_code.h"
 
@@ -220,6 +225,8 @@ extern DECLSPEC void SDLCALL TTF_Quit(void);
 
 /* Check if the TTF engine is initialized */
 extern DECLSPEC int SDLCALL TTF_WasInit(void);
+
+extern DECLSPEC FT_Face& TTF_GetFace(TTF_Font* font);
 
 /* We'll use SDL for reporting errors */
 #define TTF_SetError	SDL_SetError
