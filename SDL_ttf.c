@@ -2,8 +2,6 @@
     SDL_ttf:  A companion library to SDL for working with TrueType (tm) fonts
     Copyright (C) 1997-2004 Sam Lantinga
 
-	Various major brokennesses fixed 2006 Haeleth.
-
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
     License as published by the Free Software Foundation; either
@@ -20,6 +18,13 @@
 
     Sam Lantinga
     slouken@libsdl.org
+*/
+
+/*
+	Modified September 2006 by Peter Jolly:
+	  * Fix Freetype 2 compatibility
+	  * Improve artificial strengthening technique
+	  * Allow sub-pixel size selection
 */
 
 /* $Id: SDL_ttf.c 2304 2006-05-01 09:26:07Z slouken $ */
@@ -291,8 +296,8 @@ TTF_Font* TTF_OpenFontIndexRW( SDL_RWops *src, int freesrc, int ptsize, long ind
 	/* Make sure that our font face is scalable (global metrics) */
 	if ( FT_IS_SCALABLE(face) ) {
 
-	  	/* Set the character size and use default DPI (72) */
-	  	error = FT_Set_Char_Size( font->face, 0, ptsize * 64, 0, 0 );
+	  	/* Set the character size, in pixels (positive) or 1/64 pixels (negative) */
+	  	error = FT_Set_Char_Size( font->face, 0, ptsize * (ptsize < 0 ? -1 : 64), 0, 0 );
 			if( error ) {
 	    	TTF_SetFTError( "Couldn't set font size", error );
 	    	TTF_CloseFont( font );

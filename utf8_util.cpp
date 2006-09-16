@@ -34,6 +34,8 @@ CharacterBytes(const char* string)
 #ifdef LIGATE_PUNCTUATION
 	if (c == '.' && string[1] == '.' && string[2] == '.') return 3;
 	if (c == '-' && string[1] == '-') return (string[2] == '-') ? 3 : 2;
+	if (c == '`') return string[1] == '`' ? 2 : 1;
+	if (c == '\'') return string[1] == '\'' ? 2 : 1;
 #endif
 	return c < 0x80 ? 1 : (c < 0xe0 ? 2 : (c < 0xf0 ? 3 : 4));
 }
@@ -55,6 +57,8 @@ UnicodeOfUTF8(const char* string)
 #ifdef LIGATE_PUNCTUATION
 	if (t[0] == '.' && t[1] == '.' && t[2] == '.') return 0x2026;
 	if (t[0] == '-' && t[1] == '-') return t[2] == '-' ? 0x2014 : 0x2013;
+	if (t[0] == '`') return t[1] == '`' ? 0x201c : 0x2018;
+	if (t[0] == '\'') return t[1] == '\'' ? 0x201d : 0x2019;
 #endif
 	if (t[0] < 0x80)
 		return t[0];

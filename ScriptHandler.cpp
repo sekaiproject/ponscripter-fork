@@ -202,18 +202,18 @@ const char *ScriptHandler::readToken()
 					if (ch == '_') ignore_click_flag = true;
 				}
 				if (ch>='0' && ch<='9' && (*buf == ' ' || *buf == '\t'
-					|| *buf == '`'
+					|| *buf == '^'
 					 ) && string_counter%2 == 1) addStringBuffer( ' ' );
 				ch = *buf;
 				if (ch == 0x0a || ch == '\0' || !loop_flag
-					|| ch == '`'
+					|| ch == '^'
 					) break;
 				SKIP_SPACE(buf);
 				ch = *buf;
 			}
 		}
 		while (ch != 0x0a && ch != '\0' && loop_flag
-			   && ch != '`'
+			   && ch != '^'
 			   );
 		if (loop_flag && ch == 0x0a && !(textgosub_flag && linepage_flag)){
 			addStringBuffer( ch );
@@ -222,10 +222,10 @@ const char *ScriptHandler::readToken()
 
 		text_flag = true;
 	}
-	else if (ch == '`'){
+	else if (ch == '^'){
 		ch = *++buf;
 		int encoding = default_encoding;
-		while (ch != '`' && ch != 0x0a && ch !='\0') {
+		while (ch != '^' && ch != 0x0a && ch !='\0') {
 			if ((ch == '\\' || ch == '@') && (buf[1] == 0x0a || buf[1] == 0)) {
 				addStringBuffer(*buf++);
 				ch = *buf;
@@ -244,7 +244,7 @@ const char *ScriptHandler::readToken()
 			string_counter += UTF8OfUnicode(get_encoded_char(encoding, uc), string_buffer + string_counter);
 			ch = *buf;
 		}
-		if (ch == '`') ++buf;
+		if (ch == '^') ++buf;
 		if (ch == 0x0a && !(textgosub_flag && linepage_flag)){
 			addStringBuffer( ch );
 			markAsKidoku( buf++ );
@@ -606,7 +606,7 @@ int ScriptHandler::checkClickstr(const char *buf, bool recursive_flag)
 	//bool double_byte_check = true;
 	char *click_buf = clickstr_list;
 	while(click_buf[0]){
-		if (click_buf[0] == '`'){
+		if (click_buf[0] == '^'){
 			click_buf++;
 			//double_byte_check = false;
 			continue;
@@ -1163,13 +1163,13 @@ void ScriptHandler::parseStr( char **buf )
 		if ( **buf == '"' ) (*buf)++;
 		current_variable.type |= VAR_CONST;
 	}
-	else if ( **buf == '`' ){
+	else if ( **buf == '^' ){
 		int c=0;
 		str_string_buffer[c++] = *(*buf)++;
 
 		int encoding = default_encoding;
 		char ch = **buf;
-		while (ch != '`' && ch != 0x0a && ch !='\0'){
+		while (ch != '^' && ch != 0x0a && ch !='\0'){
 			if (ch == '~' && (ch = *++(*buf)) != '~') {
 				while (ch != '~') {
 					SetEncoding(encoding, ch);
@@ -1185,7 +1185,7 @@ void ScriptHandler::parseStr( char **buf )
 		}
 
 		str_string_buffer[c] = '\0';
-		if ( **buf == '`' ) (*buf)++;
+		if ( **buf == '^' ) (*buf)++;
 		current_variable.type |= VAR_CONST;
 		end_status |= END_1BYTE_CHAR;
 	}

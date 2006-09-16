@@ -23,12 +23,12 @@
 
 #include "ONScripterLabel.h"
 
-#define MESSAGE_SAVE_EXIST "`%s%s    Date %s/%s    Time %s:%s"
-#define MESSAGE_SAVE_EMPTY "`%s%s    ------------------------"
-#define MESSAGE_SAVE_CONFIRM "`Save in slot %s%s?"
-#define MESSAGE_LOAD_CONFIRM "`Load from slot %s%s?"
-#define MESSAGE_RESET_CONFIRM "`Return to Title Menu?"
-#define MESSAGE_END_CONFIRM "`Quit?"
+#define MESSAGE_SAVE_EXIST "^%s%s    Date %s/%s    Time %s:%s"
+#define MESSAGE_SAVE_EMPTY "^%s%s    ------------------------"
+#define MESSAGE_SAVE_CONFIRM "^Save in slot %s%s?"
+#define MESSAGE_LOAD_CONFIRM "^Load from slot %s%s?"
+#define MESSAGE_RESET_CONFIRM "^Return to Title Menu?"
+#define MESSAGE_END_CONFIRM "^Quit?"
 #define MESSAGE_YES "Yes"
 #define MESSAGE_NO "No"
 

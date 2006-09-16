@@ -12,7 +12,7 @@ Specific changes:
 * New commands (see ONScripterLabel_haeleth.cpp).
 * New sprite tag :S, equivalent to :s but causes the x position to locate the
   centre of the string rather than the left edge.
-
+* UTF-8 text (not that there's a useful other sort) is now marked with ^, not `.
 
 Style tags:
 
@@ -31,7 +31,7 @@ Style tags:
   ~l~   Lining figures
   
   The "default" tags always restore those settings, while the non-default tags
-  are toggles.  Hence `foo ~i~bar~r~` and `foo ~i~bar~i~` are equivalent.
+  are toggles.  Hence ^foo ~i~bar~r~^ and ^foo ~i~bar~i~^ are equivalent.
 
 
 Significant changes:

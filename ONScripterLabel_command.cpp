@@ -1005,7 +1005,7 @@ int ONScripterLabel::puttextCommand()
     script_h.addStringBuffer(0x0a);
     if (script_h.getEndStatus() & ScriptHandler::END_1BYTE_CHAR &&
         string_buffer_offset == 0)
-        string_buffer_offset = 1; // skip the heading `
+        string_buffer_offset = 1; // skip the heading ^
 
     ret = processText();
     if (script_h.getStringBuffer()[string_buffer_offset] == 0x0a){

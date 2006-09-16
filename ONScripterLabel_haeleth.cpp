@@ -33,7 +33,7 @@ int ONScripterLabel::haeleth_text_extentCommand()
 	script_h.readInt();
 	script_h.pushVariable();
 	const char *buf = script_h.readStr();
-	if (*buf == '`') ++buf;
+	if (*buf == '^') ++buf;
 	char localbuf[1024];
 	strcpy(localbuf, buf);
 	FontInfo f = sentence_font;
@@ -56,7 +56,7 @@ int ONScripterLabel::haeleth_text_extentCommand()
 int ONScripterLabel::haeleth_centre_lineCommand()
 {
 	const char *buf = script_h.readStr();
-	if (*buf == '`') ++buf;
+	if (*buf == '^') ++buf;
 	sentence_font.SetXY(screen_width / 2 - sentence_font.StringAdvance(buf) / 2 - sentence_font.top_x, -1);
 	return RET_CONTINUE;
 }
@@ -71,7 +71,7 @@ int ONScripterLabel::haeleth_char_setCommand()
 	unsigned short*& char_set = script_h.isName("h_indentstr") ? indent_chars : break_chars;
 	if (indent_chars) { delete[] char_set; char_set = NULL; }
 	const char* buf = script_h.readStr();
-	if (*buf == '`') ++buf;
+	if (*buf == '^') ++buf;
 	char_set = new unsigned short[UTF8Length(buf) + 1];
 	int idx = 0;
 	while (*buf) {
@@ -90,8 +90,8 @@ int ONScripterLabel::haeleth_char_setCommand()
 int ONScripterLabel::haeleth_font_styleCommand()
 {
 	const char *buf = script_h.readStr();
-	if (*buf == '`') ++buf;
+	if (*buf == '^') ++buf;
 	script_h.default_encoding = 0;
-	while (*buf && *buf != '`' && *buf != '"') SetEncoding(script_h.default_encoding, *buf++);
+	while (*buf && *buf != '^' && *buf != '"') SetEncoding(script_h.default_encoding, *buf++);
 	return RET_CONTINUE;
 }

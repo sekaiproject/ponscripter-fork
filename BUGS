@@ -7,7 +7,6 @@ MINOR
 
 FEATURES
 
-* Automatic typographic quotes (initial right quote can be done manually).
 * Ligatures: do we perhaps need a ZWNJ?  ^^;
 * SHY, NBHY would be nice too... ;)
 * OSFs in other styles (bold/bold-italic).  Proportional figures in sans styles?

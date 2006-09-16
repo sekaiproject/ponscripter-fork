@@ -135,7 +135,7 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
 			int encoding = 0;
 			const char* buf = anim->file_name;
 			char ch = *buf;
-			if (ch == '`') {
+			if (ch == '^') {
 				dest.push_back(ch);
 				ch = *++buf;
 			}

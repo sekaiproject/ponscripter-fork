@@ -173,7 +173,7 @@ void ONScripterLabel::drawString( const char *str, uchar3 color, FontInfo *info,
 	while( *str ){
 		while (*str == ' ' && skip_whitespace_flag) str++;
 
-		if ( *str == '`' ){
+		if ( *str == '^' ){
 			str++;
 			skip_whitespace_flag = false;
 			continue;
