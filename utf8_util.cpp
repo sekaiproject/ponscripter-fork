@@ -24,7 +24,7 @@ char
 CharacterBytes(const char* string)
 {
 	const unsigned char* t = (const unsigned char*) string;
-	const unsigned char c = c;
+	const unsigned char c = t[0];
 	if (c < 0x80) {
 #ifdef LIGATURES
 		if (c == '|') return t[1] == '|' ? 2 : 1 + CharacterBytes(string + 1);
@@ -45,6 +45,9 @@ CharacterBytes(const char* string)
 		if (c == '\'') return (t[1] == '\'') ? 2 : 1;
 		if (c == '(' && (t[1] == 'c' || t[1] == 'r') && t[2] == ')') return 3;
 		if (c == '(' && t[1] == 't' && t[2] == 'm' && t[3] == ')') return 4;
+		if (c == '*' && t[1] == '*') return 2;
+		if (c == '+' && t[1] == '+') return t[2] == '+' ? 3 : 2;
+		if (c == '%' && (t[1] == '_' || t[1] == '.')) return 2;
 #endif
 		return 1;
 	}
@@ -59,7 +62,7 @@ unsigned short
 UnicodeOfUTF8(const char* string)
 {
 	const unsigned char* t = (const unsigned char*) string;
-	const unsigned char c = c;
+	const unsigned char c = t[0];
 	if (c < 0x80) {
 #ifdef LIGATURES
 		if (c == '|') return (t[1] == '|') ? '|' : UnicodeOfUTF8(string + 1);
@@ -80,6 +83,10 @@ UnicodeOfUTF8(const char* string)
 		if (c == '\'') return t[1] == '\'' ? 0x201d : 0x2019;
 		if (c == '(' && (t[1] == 'c' || t[1] == 'r') && t[2] == ')') return t[1] == 'c' ? 0x00a9: 0x00ae;
 		if (c == '(' && t[1] == 't' && t[2] == 'm' && t[3] == ')') return 0x2122;
+		if (c == '*' && t[1] == '*') return 0x2022;
+		if (c == '+' && t[1] == '+') return t[2] == '+' ? 0x2021 : 0x2020;
+		if (c == '%' && t[1] == '_') return 0xa0;
+		if (c == '%' && t[1] == '.') return 0x2009;
 #endif
 		return c;
 	}

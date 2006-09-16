@@ -41,6 +41,9 @@ Ligatures and nice punctuation:
   ff
   ffi
   ffl
+  (c)
+  (r)
+  (tm)
   `   (single opening quote)
   ``  (double opening quote)
   '   (single closing quote)
@@ -48,6 +51,11 @@ Ligatures and nice punctuation:
   --  (en dash)
   --- (em dash)
   ... (ellipsis)
+  **  (bullet)
+  ++  (dagger)
+  +++ (double dagger)
+  %_  (non-breaking space)
+  %.  (thin space)
   |   (zero-width non-joiner: ignored, but inhibits ligatures)
   ||  (to get a | character)
 
