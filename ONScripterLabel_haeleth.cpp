@@ -41,7 +41,6 @@ int ONScripterLabel::haeleth_text_extentCommand()
 		f.font_size_x = script_h.readInt();
 		f.font_size_y = script_h.readInt();
 		f.pitch_x = script_h.readInt();
-		f.ttf_font = NULL;
 	}
     script_h.setInt(&script_h.pushed_variable, f.StringAdvance(localbuf));
 	return RET_CONTINUE;

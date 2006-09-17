@@ -18,7 +18,7 @@ endif
 
 ifdef NARCI
 CFLAGS := $(CFLAGS) -D 'EMBOLDEN=(ch < 0xe128 || ch > 0xf000) && (dst->rows < 20)' \
-                    -DLIGATE_ALL -DKERNING -DFIX_SKIP_WRAPPING
+                    -DLIGATE_ALL -DKERNING
 FONT_SOURCE = narcissu_font.sfd
 .PHONY: final
 final: $(TARGET)

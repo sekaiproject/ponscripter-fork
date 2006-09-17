@@ -167,7 +167,6 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
             f_info.font_size_y = anim->font_size_y;
             if ( anim->font_pitch >= 0 )
                 f_info.pitch_x = anim->font_pitch;
-            f_info.ttf_font = NULL;
             if (anim->is_single_line) {
             	f_info.area_x = f_info.StringAdvance(anim->file_name);
             	f_info.area_y = f_info.line_space();

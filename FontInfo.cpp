@@ -24,7 +24,6 @@
 #include "FontInfo.h"
 #include "utf8_util.h"
 #include <stdio.h>
-#include "SDL_ttf.h"
 
 #ifdef USE_INTERNAL_FONT
 #include "resources.h"
@@ -33,22 +32,39 @@
 char* font_file = NULL;
 int screen_ratio1 = 1, screen_ratio2 = 1;
 
-static struct FontContainer{
-	FontContainer *next;
-	int size;
-	TTF_Font *font;
+struct FontsStruct {
+	TTF_Font* font;
+} Fonts;
 
-	FontContainer(){
-		size = 0;
-		next = NULL;
-		font = NULL;
-	};
-} root_font_container;
+bool openFonts()
+{
+	Fonts.font = NULL;
+	if ( font_file ) {
+		FILE *fp = fopen( font_file, "r" );
+		if ( fp == NULL ) return false;
+		fclose( fp );
+		Fonts.font = TTF_OpenFont( font_file );
+	}
+#ifdef USE_INTERNAL_FONT
+	else {
+		SDL_RWops* rwfont = SDL_RWFromConstMem( internal_font_buffer, internal_font_size );
+		Fonts.font = TTF_OpenFontRW( rwfont, 0 );
+	}
+#endif
+	if (Fonts.font) {
+		TTF_SetSize(Fonts.font, 16);
+		return true;
+	}
+	return false;
+}
+
+TTF_Font* FontInfo::font()
+{
+	return Fonts.font;
+}
 
 FontInfo::FontInfo()
 {
-	ttf_font = NULL;
-
 	reset();
 }
 
@@ -69,84 +85,39 @@ void FontInfo::reset()
 	is_newline_accepted = false;
 }
 
-void *FontInfo::openFont()
-{
-	int font_size = font_size_x < font_size_y ? font_size_x : font_size_y;
-
-	FontContainer *fc = &root_font_container;
-	while( fc->next ){
-		if ( fc->next->size == font_size ) break;
-		fc = fc->next;
-	}
-	if ( !fc->next ){
-		fc->next = new FontContainer();
-		fc->next->size = font_size;
-		if ( font_file ) {
-			FILE *fp = fopen( font_file, "r" );
-			if ( fp == NULL ) return NULL;
-			fclose( fp );
-			fc->next->font = TTF_OpenFont( font_file, font_size * screen_ratio1 / screen_ratio2 );
-		}
-		else {
-#ifdef USE_INTERNAL_FONT
-			SDL_RWops* rwfont = SDL_RWFromConstMem( internal_font_buffer, internal_font_size );
-			fc->next->font = TTF_OpenFontRW( rwfont, 0, font_size * screen_ratio1 / screen_ratio2 );
-#else
-			return NULL;
-#endif
-		}
-	}
-
-	if (fc->next->font) {
-		line_space_ = TTF_FontLineSkip(fc->next->font);
-		TTF_GlyphMetrics(fc->next->font, 'M', NULL, NULL, NULL, NULL, &em_width_);
-	}
-
-	ttf_font = (void*)fc->next->font;
-	
-	return fc->next->font;
-}
-
 int FontInfo::em_width()
 {
-	bool was_open = ttf_font;
-	if (!ttf_font) openFont();
-	int rv = em_width_;
-	if (!was_open) ttf_font = NULL;
+	doSize();
+	int rv;
+	TTF_GlyphMetrics(font(), 'M', NULL, NULL, NULL, NULL, &rv);
 	return rv;
 }
 int FontInfo::line_space()
 {
-	bool was_open = ttf_font;
-	if (!ttf_font) openFont();
-	int rv = line_space_;
-	if (!was_open) ttf_font = NULL;
-	return rv;
+	doSize();
+	return font()->lineskip();
 }
 
 int FontInfo::GlyphAdvance(unsigned short unicode, unsigned short next)
 {
+	doSize();
 	int rv;
-	bool was_open = ttf_font;
-	if (!ttf_font) openFont();
-	TTF_GlyphMetrics((TTF_Font*) ttf_font, unicode, NULL, NULL, NULL, NULL, &rv);
+	TTF_GlyphMetrics(font(), unicode, NULL, NULL, NULL, NULL, &rv);
 #ifdef KERNING
 	if (next) {
-		FT_Face& face = TTF_GetFace((TTF_Font*) ttf_font);
+		FT_Face& face = font()->face;
 		FT_Vector kern;
 		FT_Error err = FT_Get_Kerning(face, FT_Get_Char_Index(face, unicode), FT_Get_Char_Index(face, next), FT_KERNING_DEFAULT, &kern);
 		if (!err) rv += kern.x >> 6;
 	}
 #endif
-	if (!was_open) ttf_font = NULL;
 	return rv + pitch_x;
 }
 
 int FontInfo::StringAdvance(const char* string) 
 {
+	doSize();
 	int rv = 0;
-	bool was_open = ttf_font;
-	if (!ttf_font) openFont();
 	unsigned short unicode, next;
 	unicode = UnicodeOfUTF8(string);
 	while (*string) {
@@ -155,7 +126,6 @@ int FontInfo::StringAdvance(const char* string)
 		rv += GlyphAdvance(unicode, next);
 		unicode = next;
 	}
-	if (!was_open) ttf_font = NULL;
 	return rv;
 }
 
@@ -173,12 +143,14 @@ void FontInfo::clear()
 
 void FontInfo::newLine(const float proportion)
 {
+	doSize();
 	pos_x = indent;
 	pos_y += (int)((float)(line_space() + pitch_y) * proportion);
 }
 
 void FontInfo::setLineArea(int num)
 {
+	doSize();
 	area_x = num;
 	area_y = line_space();
 }
@@ -210,6 +182,7 @@ SDL_Rect FontInfo::getFullArea(int ratio1, int ratio2)
 
 SDL_Rect FontInfo::calcUpdatedArea(int start_xy[2], int ratio1, int ratio2)
 {
+	doSize();
 	SDL_Rect rect;
 	
 	if (start_xy[1] == pos_y){ 

@@ -532,7 +532,6 @@ int ONScripterLabel::sevolCommand()
 
 void ONScripterLabel::setwindowCore()
 {
-    sentence_font.ttf_font  = NULL;
     sentence_font.top_x = script_h.readInt();
     sentence_font.top_y = script_h.readInt();
     sentence_font.area_x = script_h.readInt();
@@ -2548,8 +2547,6 @@ int ONScripterLabel::cselbtnCommand()
     root_button_link.insert( button );
     button->no          = button_no;
     button->sprite_no   = csel_no;
-
-    sentence_font.ttf_font = csel_info.ttf_font;
 
     return RET_CONTINUE;
 }

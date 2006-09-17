@@ -376,6 +376,8 @@ ONScripterLabel::ONScripterLabel()
 	fullscreen_mode = false;
 	window_mode = false;
 	skip_to_wait = 0;
+	indent_chars = NULL;
+	break_chars = NULL;
 
 	for (int i=0 ; i<NUM_GLYPH_CACHE ; i++){
 		if (i != NUM_GLYPH_CACHE-1) glyph_cache[i].next = &glyph_cache[i+1];
@@ -603,8 +605,8 @@ int ONScripterLabel::init()
 	defineresetCommand();
 	readToken();
 
-	if ( sentence_font.openFont() == NULL ){
-		fprintf( stderr, "can't open font file: %s\n", font_file );
+	if ( !openFonts() ){
+		fprintf(stderr, "can't open fonts\n");
 		return -1;
 	}
 
@@ -721,6 +723,7 @@ void ONScripterLabel::resetSub()
 	sentence_font_info.reset();
 
 	if (indent_chars) { delete[] indent_chars; indent_chars = NULL; }
+	if (break_chars) { delete[] break_chars; break_chars = NULL; }
 
 	dirty_rect.fill( screen_width, screen_height );
 }

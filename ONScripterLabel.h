@@ -28,7 +28,7 @@
 #include "DirtyRect.h"
 #include <SDL.h>
 #include <SDL_image.h>
-#include "SDL_ttf.h"
+#include "ttf.h"
 #include <SDL_mixer.h>
 
 #if defined(MP3_MAD)
@@ -547,13 +547,14 @@ private:
         GlyphCache *next;
         Uint16 text;
         TTF_Font *font;
+        int size;
         SDL_Surface *surface;
     } *root_glyph_cache, glyph_cache[NUM_GLYPH_CACHE];
 
     int  refreshMode();
     void setwindowCore();
 
-    SDL_Surface *renderGlyph(TTF_Font *font, Uint16 text);
+    SDL_Surface *renderGlyph(TTF_Font *font, Uint16 text, int size);
     void drawGlyph( SDL_Surface *dst_surface, FontInfo *info, SDL_Color &color, unsigned short unicode, int xy[2], bool shadow_flag, AnimationInfo *cache_info, SDL_Rect *clip, SDL_Rect &dst_rect );
     void drawChar( const char* text, FontInfo *info, bool flush_flag, bool lookback_flag, SDL_Surface *surface, AnimationInfo *cache_info, SDL_Rect *clip=NULL );
     void drawString( const char *str, uchar3 color, FontInfo *info, bool flush_flag, SDL_Surface *surface, SDL_Rect *rect = NULL, AnimationInfo *cache_info=NULL );

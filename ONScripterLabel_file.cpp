@@ -300,8 +300,6 @@ int ONScripterLabel::loadSaveFile( int no )
         setupAnimationInfo( &sentence_font_info );
     }
 
-    sentence_font.ttf_font = NULL;
-
     clickstr_state = readInt();
     new_line_skip_flag = (readInt()==1)?true:false;
     if ( file_version >= 103 ){

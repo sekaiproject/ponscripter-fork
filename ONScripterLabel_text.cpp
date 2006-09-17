@@ -24,13 +24,14 @@
 #include "ONScripterLabel.h"
 #include "utf8_util.h"
 
-SDL_Surface *ONScripterLabel::renderGlyph(TTF_Font *font, Uint16 text)
+SDL_Surface *ONScripterLabel::renderGlyph(TTF_Font *font, Uint16 text, int size)
 {
 	GlyphCache *gc = root_glyph_cache;
 	GlyphCache *pre_gc = gc;
 	while(1){
 		if (gc->text == text &&
-			gc->font == font){
+			gc->font == font &&
+			gc->size == size){
 			if (gc != pre_gc){
 				pre_gc->next = gc->next;
 				gc->next = root_glyph_cache;
@@ -49,8 +50,10 @@ SDL_Surface *ONScripterLabel::renderGlyph(TTF_Font *font, Uint16 text)
 
 	gc->text = text;
 	gc->font = font;
+	gc->size = size;
 	if (gc->surface) SDL_FreeSurface(gc->surface);
 
+	TTF_SetSize(font, size);
 	static SDL_Color fcol={0xff, 0xff, 0xff}, bcol={0, 0, 0};
 	gc->surface = TTF_RenderGlyph_Shaded( font, text, fcol, bcol );
 
@@ -59,22 +62,19 @@ SDL_Surface *ONScripterLabel::renderGlyph(TTF_Font *font, Uint16 text)
 
 void ONScripterLabel::drawGlyph( SDL_Surface *dst_surface, FontInfo *info, SDL_Color &color, unsigned short unicode, int xy[2], bool shadow_flag, AnimationInfo *cache_info, SDL_Rect *clip, SDL_Rect &dst_rect )
 {
-	int minx, maxx, miny, maxy, advanced;
-#if 0
-	if (TTF_GetFontStyle( (TTF_Font*)info->ttf_font ) !=
-		(info->is_bold?TTF_STYLE_BOLD:TTF_STYLE_NORMAL) )
-		TTF_SetFontStyle( (TTF_Font*)info->ttf_font, (info->is_bold?TTF_STYLE_BOLD:TTF_STYLE_NORMAL));
-#endif
-	TTF_GlyphMetrics( (TTF_Font*)info->ttf_font, unicode,
-					  &minx, &maxx, &miny, &maxy, &advanced );
-	//printf("min %d %d %d %d %d %d\n", minx, maxx, miny, maxy, advanced,TTF_FontAscent((TTF_Font*)info->ttf_font)  );
+	int minx, maxx, miny, maxy, advance;
 
-	SDL_Surface *tmp_surface = renderGlyph( (TTF_Font*)info->ttf_font, unicode );
+	int sz = info->doSize();
+
+	TTF_GlyphMetrics( info->font(), unicode,
+					  &minx, &maxx, &miny, &maxy, &advance );
+
+	SDL_Surface *tmp_surface = renderGlyph( info->font(), unicode, sz );
 
 	bool rotate_flag = false;
 
 	dst_rect.x = xy[0] + minx;
-	dst_rect.y = xy[1] + TTF_FontAscent((TTF_Font*)info->ttf_font) - maxy;
+	dst_rect.y = xy[1] + info->font()->ascent() - maxy;
 	if ( rotate_flag ) dst_rect.x += miny - minx;
 
 	if ( shadow_flag ){
@@ -102,13 +102,7 @@ void ONScripterLabel::drawGlyph( SDL_Surface *dst_surface, FontInfo *info, SDL_C
 
 void ONScripterLabel::drawChar( const char* text, FontInfo *info, bool flush_flag, bool lookback_flag, SDL_Surface *surface, AnimationInfo *cache_info, SDL_Rect *clip )
 {
-	if ( info->ttf_font == NULL ){
-		if ( info->openFont() == NULL ){
-			fprintf( stderr, "can't open font file: %s\n", font_file );
-			quit();
-			exit(-1);
-		}
-	}
+	// info->doSize() called in GlyphAdvance
 
 	int bytes = CharacterBytes(text);
 	unsigned short unicode = UnicodeOfUTF8(text);

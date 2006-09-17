@@ -524,7 +524,6 @@ int ScriptParser::midCommand()
 
 int ScriptParser::menusetwindowCommand()
 {
-    menu_font.ttf_font    = NULL;
     menu_font.font_size_x = script_h.readInt();
     menu_font.font_size_y = script_h.readInt();
     menu_font.pitch_x     = script_h.readInt();

@@ -62,7 +62,6 @@ int ONScripterLabel::loadSaveFile2( int file_version )
     readStr( &window_effect.anim.image_name ); // probably
 
     sentence_font.clear();
-    sentence_font.ttf_font  = NULL;
     sentence_font.top_x = readInt();
     sentence_font.top_y = readInt();
     sentence_font.area_x = readInt();

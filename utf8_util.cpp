@@ -47,7 +47,7 @@ CharacterBytes(const char* string)
 		if (c == '(' && t[1] == 't' && t[2] == 'm' && t[3] == ')') return 4;
 		if (c == '*' && t[1] == '*') return 2;
 		if (c == '+' && t[1] == '+') return t[2] == '+' ? 3 : 2;
-		if (c == '%' && (t[1] == '_' || t[1] == '.')) return 2;
+		if (c == '%' && (t[1] == '_' || t[1] == '.' || t[1] == '-')) return 2;
 #endif
 		return 1;
 	}
@@ -87,6 +87,7 @@ UnicodeOfUTF8(const char* string)
 		if (c == '+' && t[1] == '+') return t[2] == '+' ? 0x2021 : 0x2020;
 		if (c == '%' && t[1] == '_') return 0xa0;
 		if (c == '%' && t[1] == '.') return 0x2009;
+		if (c == '%' && t[1] == '-') return 0x2011;
 #endif
 		return c;
 	}
@@ -175,15 +176,17 @@ get_encoded_char(const int encoding, const unsigned short original)
 		return original + offset[encoding ^ Altern] + 0x20;
 	}	
 	unsigned short compact_enc;
-	if (original <= 0xff)
+	if (original <= 0xff) {
 		compact_enc = original;
-	else {
-		compact_enc = 0;
-		for (int idx = 0; extra_chars[idx]; ++idx) if (extra_chars[idx] == original) {
-			compact_enc = 0x101 + idx;
-			break;
-		}
+		goto found;
 	}
+	compact_enc = 0;
+	for (int idx = 0; extra_chars[idx]; ++idx) if (extra_chars[idx] == original) {
+		compact_enc = 0x101 + idx;
+		goto found;
+	}
+	if (original == 0x2010 || original == 0x2011) compact_enc = '-';
+found:
 	return compact_enc 
 	     ? compact_enc + offset[encoding & ~Altern] 
 	     : original;
