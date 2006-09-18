@@ -2,13 +2,9 @@ Specific changes:
 * Use ;gameid and ;usefont directives at the start of a file (after modeline,
   in that order).  Note that ;gameid is mandatory, as it is used to determine
   whether a game has been checked for PONScripter compatibility or not.
-* All(?) horizontal text positioning commands now operate in pixels, 
-  not zenkaku characters as before.  Vertical positioning still operates
-  in lines.  This means that for example all instances of [locate] will be
-  broken.
-* Window sizing is changed invisibly: the window size is set in pixels to what
-  it would have been in characters.  (This is subject to change; it makes
-  porting easier but maintaining ports harder.)
+* All text and window sizing and positioning commands now operate in pixels, 
+  not zenkaku characters as before.  This breaks every single instance of
+  locate, setwindow, etc.
 * New commands (see ONScripterLabel_haeleth.cpp).
 * New sprite tag :S, equivalent to :s but causes the x position to locate the
   centre of the string rather than the left edge.
@@ -26,9 +22,6 @@ Style tags:
   
   ~f~   Serif (default)
   ~s~   Sans serif
-
-  ~o~   Old-style figures (default)
-  ~l~   Lining figures
   
   The "default" tags always restore those settings, while the non-default tags
   are toggles.  Hence ^foo ~i~bar~r~^ and ^foo ~i~bar~i~^ are equivalent.
@@ -62,6 +55,12 @@ Ligatures and nice punctuation:
 
 
 Significant changes:
+
+2006-09-18
+
+  Convert multi-style support to a sane multi-font system.  ^^;
+  
+  Remove font embedding and replace with a sane fonts-in-archive system.  ^^;;
 
 2006-09-14
 

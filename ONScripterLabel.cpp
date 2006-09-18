@@ -605,11 +605,6 @@ int ONScripterLabel::init()
 	defineresetCommand();
 	readToken();
 
-	if ( !openFonts() ){
-		fprintf(stderr, "can't open fonts\n");
-		return -1;
-	}
-
 	loadEnvData();
 
 	return 0;
@@ -1099,7 +1094,7 @@ int ONScripterLabel::parseLine( )
 SDL_Surface *ONScripterLabel::loadImage( char *file_name )
 {
 	if ( !file_name ) return NULL;
-	unsigned long length = script_h.cBR->getFileLength( file_name );
+	unsigned long length = ScriptHandler::cBR->getFileLength( file_name );
 	if ( length == 0 ){
 		if (strcmp(file_name, DEFAULT_LOOKBACK_NAME0) != 0 && strcmp(file_name, DEFAULT_LOOKBACK_NAME1) != 0 &&
 			strcmp(file_name, DEFAULT_LOOKBACK_NAME2) != 0 && strcmp(file_name, DEFAULT_LOOKBACK_NAME3) != 0 &&
@@ -1112,7 +1107,7 @@ SDL_Surface *ONScripterLabel::loadImage( char *file_name )
 	//printf(" ... loading %s length %ld\n", file_name, length );
 	unsigned char *buffer = new unsigned char[length];
 	int location;
-	script_h.cBR->getFile( file_name, buffer, &location );
+	ScriptHandler::cBR->getFile( file_name, buffer, &location );
 	SDL_Surface *tmp = IMG_Load_RW(SDL_RWFromMem( buffer, length ), 1);
 
 	char *ext = strrchr(file_name, '.');

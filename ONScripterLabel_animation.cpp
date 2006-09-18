@@ -129,10 +129,11 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
         FontInfo f_info = sentence_font;
         if (info) f_info = *info;
 
+		f_info.style = FontInfo::default_encoding;
+
 		// handle private-use encodings
 		{
 			std::string dest;
-			int encoding = 0;
 			const char* buf = anim->file_name;
 			char ch = *buf;
 			if (ch == '^') {
@@ -142,7 +143,7 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
 			while (ch) {
 				if (ch == '~' && (ch = *++buf) != '~') {
 					while (ch != '~') {
-						SetEncoding(encoding, ch);
+						dest.push_back(TranslateTag(ch));
 						ch = *++buf;
 					}
 					ch = *++buf;
@@ -151,7 +152,7 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
 				const unsigned short uc = UnicodeOfUTF8(buf);
 				buf += CharacterBytes(buf);
 				char b2[5];
-				UTF8OfUnicode(get_encoded_char(encoding, uc), b2);
+				UTF8OfUnicode(uc, b2);
 				dest.append(b2);
 				ch = *buf;
 			}

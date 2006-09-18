@@ -129,11 +129,11 @@ int ONScripterLabel::playSound(const char *filename, int format, bool loop_flag,
 {
     if ( !audio_open_flag ) return SOUND_NONE;
 
-    long length = script_h.cBR->getFileLength( filename );
+    long length = ScriptHandler::cBR->getFileLength( filename );
     if (length == 0) return SOUND_NONE;
 
     unsigned char *buffer = new unsigned char[length];
-    script_h.cBR->getFile( filename, buffer );
+    ScriptHandler::cBR->getFile( filename, buffer );
 
     if (format & (SOUND_OGG | SOUND_OGG_STREAMING)){
         int ret = playOGG(format, buffer, length, loop_flag, channel);
@@ -357,9 +357,9 @@ int ONScripterLabel::playMPEG( const char *filename, bool click_flag )
 {
     int ret = 0;
 #ifndef MP3_MAD
-    unsigned long length = script_h.cBR->getFileLength( filename );
+    unsigned long length = ScriptHandler::cBR->getFileLength( filename );
     unsigned char *mpeg_buffer = new unsigned char[length];
-    script_h.cBR->getFile( filename, mpeg_buffer );
+    ScriptHandler::cBR->getFile( filename, mpeg_buffer );
     SMPEG *mpeg_sample = SMPEG_new_rwops( SDL_RWFromMem( mpeg_buffer, length ), NULL, 0 );
 
     if ( !SMPEG_error( mpeg_sample ) ){

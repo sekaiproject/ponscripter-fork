@@ -23,44 +23,61 @@
 
 #include "FontInfo.h"
 #include "utf8_util.h"
+#include "BaseReader.h"
+#include "ScriptHandler.h"
 #include <stdio.h>
-
-#ifdef USE_INTERNAL_FONT
-#include "resources.h"
-#endif
 
 char* font_file = NULL;
 int screen_ratio1 = 1, screen_ratio2 = 1;
 
-struct FontsStruct {
-	TTF_Font* font;
+int FontInfo::default_encoding = 0;
+
+class FontsStruct {
+	static const int count = 8;
+	unsigned char* data[count];
+	TTF_Font* font_[count];
+public:
+	TTF_Font* font(int style);
+
+	FontsStruct() { for (int i = 0; i < count; ++i) { font_[i] = NULL; data[i] = NULL; } }
+	~FontsStruct();
 } Fonts;
 
-bool openFonts()
+FontsStruct::~FontsStruct()
 {
-	Fonts.font = NULL;
-	if ( font_file ) {
-		FILE *fp = fopen( font_file, "r" );
-		if ( fp == NULL ) return false;
-		fclose( fp );
-		Fonts.font = TTF_OpenFont( font_file );
+	for (int i = 0; i < count; ++i) {
+		if (data[i]) delete[] data[i];
 	}
-#ifdef USE_INTERNAL_FONT
-	else {
-		SDL_RWops* rwfont = SDL_RWFromConstMem( internal_font_buffer, internal_font_size );
-		Fonts.font = TTF_OpenFontRW( rwfont, 0 );
+}
+
+TTF_Font* FontsStruct::font(int style)
+{
+	if (font_[style]) return font_[style];
+	char fn[32];
+	size_t len;
+	sprintf(fn, "face%d.ttf", style);
+	FILE* fp = fopen(fn, "rb");
+	if (fp) {
+		fclose(fp);
+		font_[style] = TTF_OpenFont(fn);
 	}
-#endif
-	if (Fonts.font) {
-		TTF_SetSize(Fonts.font, 16);
-		return true;
+	else if ((len = ScriptHandler::cBR->getFileLength(fn))) {
+		data[style] = new unsigned char[len];
+		ScriptHandler::cBR->getFile(fn, data[style]);
+		SDL_RWops* rwfont = SDL_RWFromMem(data[style], len);
+		font_[style] = TTF_OpenFontRW(rwfont, 0);
 	}
-	return false;
+	if (font_[style]) {
+		TTF_SetSize(font_[style], 16);
+		return font_[style];
+	}
+	fprintf(stderr, "Error: failed to open font %s\n", fn);
+	exit(1);
 }
 
 TTF_Font* FontInfo::font()
 {
-	return Fonts.font;
+	return Fonts.font(style);
 }
 
 FontInfo::FontInfo()
@@ -85,6 +102,13 @@ void FontInfo::reset()
 	is_newline_accepted = false;
 }
 
+void FontInfo::clear()
+{
+	SetXY(0, 0);
+	indent = 0;
+	style = default_encoding;
+}
+
 int FontInfo::em_width()
 {
 	doSize();
@@ -100,6 +124,7 @@ int FontInfo::line_space()
 
 int FontInfo::GlyphAdvance(unsigned short unicode, unsigned short next)
 {
+	if (unicode >= 0x10 && unicode < 0x20) return 0;
 	doSize();
 	int rv;
 	TTF_GlyphMetrics(font(), unicode, NULL, NULL, NULL, NULL, &rv);
@@ -133,12 +158,6 @@ void FontInfo::SetXY( int x, int y )
 {
 	if ( x != -1 ) pos_x = x;
 	if ( y != -1 ) pos_y = y;
-}
-
-void FontInfo::clear()
-{
-	SetXY(0, 0);
-	indent = 0;
 }
 
 void FontInfo::newLine(const float proportion)

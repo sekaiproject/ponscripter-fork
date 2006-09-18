@@ -328,8 +328,8 @@ void ScriptParser::reset()
 
 int ScriptParser::open()
 {
-    script_h.cBR = new DirectReader( archive_path, key_table );
-    script_h.cBR->open();
+    ScriptHandler::cBR = new DirectReader( archive_path, key_table );
+    ScriptHandler::cBR->open();
     
     if ( script_h.readScript( archive_path ) ) return -1;
 

@@ -22,12 +22,15 @@
  */
 
 #include "ScriptHandler.h"
+#include "FontInfo.h"
 #include "utf8_util.h"
 
 #define TMP_SCRIPT_BUF_LEN 4096
 #define STRING_BUFFER_LENGTH 2048
 
 #define SKIP_SPACE(p) while ( *(p) == ' ' || *(p) == '\t' ) (p)++
+
+BaseReader* ScriptHandler::cBR = NULL;
 
 ScriptHandler::ScriptHandler()
 {
@@ -119,7 +122,7 @@ void ScriptHandler::reset()
 		clickstr_list = NULL;
 	}
 
-	default_encoding = 0;
+	FontInfo::default_encoding = 0;
 }
 
 FILE *ScriptHandler::fopen( const char *path, const char *mode, const bool save )
@@ -224,7 +227,6 @@ const char *ScriptHandler::readToken()
 	}
 	else if (ch == '^'){
 		ch = *++buf;
-		int encoding = default_encoding;
 		while (ch != '^' && ch != 0x0a && ch !='\0') {
 			if ((ch == '\\' || ch == '@') && (buf[1] == 0x0a || buf[1] == 0)) {
 				addStringBuffer(*buf++);
@@ -233,7 +235,7 @@ const char *ScriptHandler::readToken()
 			}
 			if (ch == '~' && (ch = *++buf) != '~') {
 				while (ch != '~') {
-					SetEncoding(encoding, ch);
+					addStringBuffer(TranslateTag(ch));
 					ch = *++buf;
 				}
 				ch = *++buf;
@@ -241,7 +243,7 @@ const char *ScriptHandler::readToken()
 			}
 			const unsigned short uc = UnicodeOfUTF8(buf);
 			buf += CharacterBytes(buf);
-			string_counter += UTF8OfUnicode(get_encoded_char(encoding, uc), string_buffer + string_counter);
+			string_counter += UTF8OfUnicode(uc, string_buffer + string_counter);
 			ch = *buf;
 		}
 		if (ch == '^') ++buf;
@@ -1167,12 +1169,11 @@ void ScriptHandler::parseStr( char **buf )
 		int c=0;
 		str_string_buffer[c++] = *(*buf)++;
 
-		int encoding = default_encoding;
 		char ch = **buf;
 		while (ch != '^' && ch != 0x0a && ch !='\0'){
 			if (ch == '~' && (ch = *++(*buf)) != '~') {
 				while (ch != '~') {
-					SetEncoding(encoding, ch);
+					str_string_buffer[c++] = TranslateTag(ch);
 					ch = *++(*buf);
 				}
 				ch = *++(*buf);
@@ -1180,7 +1181,7 @@ void ScriptHandler::parseStr( char **buf )
 			}
 			const unsigned short uc = UnicodeOfUTF8(*buf);
 			*buf += CharacterBytes(*buf);
-			c += UTF8OfUnicode(get_encoded_char(encoding, uc), str_string_buffer + c);
+			c += UTF8OfUnicode(uc, str_string_buffer + c);
 			ch = **buf;
 		}
 

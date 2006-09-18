@@ -19,7 +19,13 @@ endif
 ifdef NARCI
 CFLAGS := $(CFLAGS) -D 'EMBOLDEN=(ch < 0xe128 || ch > 0xf000) && (dst->rows < 20)' \
                     -DLIGATE_ALL -DKERNING
-FONT_SOURCE = narcissu_font.sfd
+
+.PHONY: fonts
+fonts: $(foreach n,0 1 2 3 4 5 6 7, narci_fonts/face$(n).ttf)
+
+%.ttf: %.sfd
+	fontforge -c 'Open("$<");Generate("$@","",0x89c)'
+
 .PHONY: final
 final: $(TARGET)
 	-strip $(TARGET)

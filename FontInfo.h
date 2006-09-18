@@ -30,8 +30,6 @@
 extern char* font_file;
 extern int screen_ratio1, screen_ratio2;
 
-bool openFonts();
-
 typedef unsigned char uchar3[3];
 
 class FontInfo{
@@ -39,6 +37,8 @@ class FontInfo{
 	int indent;
 	int pos_x, pos_y; // Current position
 public:
+	static int default_encoding;
+
 	TTF_Font* font();
 	uchar3 color;
 	uchar3 on_color, off_color, nofile_color;
@@ -52,6 +52,8 @@ public:
 	bool is_transparent;
 	bool is_newline_accepted;
 	uchar3  window_color;
+
+	int style;
 
 	int em_width();
 	int line_space();

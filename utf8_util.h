@@ -24,9 +24,10 @@ PreviousCharacter(const char* string);
 unsigned long int
 UTF8Length(const char* string);
 
-unsigned short
-get_encoded_char(const int encoding, const unsigned short original);
+void
+SetEncoding(int& encoding, const char flag);
 
-void SetEncoding(int& encoding, const char flag);
+char
+TranslateTag(const char flag);
 
 #endif

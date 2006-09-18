@@ -178,7 +178,7 @@ int ScriptParser::soundpressplginCommand()
     while( *buf != '|' ) buf++;
     buf++;
 
-    script_h.cBR->registerCompressionType( buf, BaseReader::NBZ_COMPRESSION );
+    ScriptHandler::cBR->registerCompressionType( buf, BaseReader::NBZ_COMPRESSION );
 
     return RET_CONTINUE;
 }
@@ -379,9 +379,9 @@ int ScriptParser::nsaCommand()
         archive_type = NsaReader::ARCHIVE_TYPE_NS3;
     }
     
-    delete script_h.cBR;
-    script_h.cBR = new NsaReader( archive_path, key_table );
-    if ( script_h.cBR->open( nsa_path, archive_type ) ){
+    delete ScriptHandler::cBR;
+    ScriptHandler::cBR = new NsaReader( archive_path, key_table );
+    if ( ScriptHandler::cBR->open( nsa_path, archive_type ) ){
         fprintf( stderr, " *** failed to open Nsa archive, ignored.  ***\n");
     }
 
@@ -1179,15 +1179,15 @@ int ScriptParser::arcCommand()
     while ( buf2[i] != '|' && buf2[i] != '\0' ) i++;
     buf2[i] = '\0';
 
-    if ( strcmp( script_h.cBR->getArchiveName(), "direct" ) == 0 ){
-        delete script_h.cBR;
-        script_h.cBR = new SarReader( archive_path, key_table );
-        if ( script_h.cBR->open( buf2 ) ){
+    if ( strcmp( ScriptHandler::cBR->getArchiveName(), "direct" ) == 0 ){
+        delete ScriptHandler::cBR;
+        ScriptHandler::cBR = new SarReader( archive_path, key_table );
+        if ( ScriptHandler::cBR->open( buf2 ) ){
             fprintf( stderr, " *** failed to open archive %s, ignored.  ***\n", buf2 );
         }
     }
-    else if ( strcmp( script_h.cBR->getArchiveName(), "sar" ) == 0 ){
-        if ( script_h.cBR->open( buf2 ) ){
+    else if ( strcmp( ScriptHandler::cBR->getArchiveName(), "sar" ) == 0 ){
+        if ( ScriptHandler::cBR->open( buf2 ) ){
             fprintf( stderr, " *** failed to open archive %s, ignored.  ***\n", buf2 );
         }
     }

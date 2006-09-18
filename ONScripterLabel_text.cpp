@@ -102,6 +102,16 @@ void ONScripterLabel::drawGlyph( SDL_Surface *dst_surface, FontInfo *info, SDL_C
 
 void ONScripterLabel::drawChar( const char* text, FontInfo *info, bool flush_flag, bool lookback_flag, SDL_Surface *surface, AnimationInfo *cache_info, SDL_Rect *clip )
 {
+	switch (*text) {
+	case 0x10: info->style  =  Default; return;
+	case 0x11: info->style &= ~Italic;  return;
+	case 0x12: info->style ^=  Italic;  return;
+	case 0x13: info->style &= ~Bold;    return;
+	case 0x14: info->style ^=  Bold;    return;
+	case 0x15: info->style &= ~Sans;    return;
+	case 0x16: info->style ^=  Sans;    return;
+	}		
+
 	// info->doSize() called in GlyphAdvance
 
 	int bytes = CharacterBytes(text);

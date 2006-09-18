@@ -2111,7 +2111,7 @@ int ONScripterLabel::fileexistCommand()
     script_h.pushVariable();
     const char *buf = script_h.readStr();
 
-    script_h.setInt( &script_h.pushed_variable, (script_h.cBR->getFileLength(buf)>0)?1:0 );
+    script_h.setInt( &script_h.pushed_variable, (ScriptHandler::cBR->getFileLength(buf)>0)?1:0 );
 
     return RET_CONTINUE;
 }

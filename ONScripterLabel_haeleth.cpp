@@ -90,7 +90,8 @@ int ONScripterLabel::haeleth_font_styleCommand()
 {
 	const char *buf = script_h.readStr();
 	if (*buf == '^') ++buf;
-	script_h.default_encoding = 0;
-	while (*buf && *buf != '^' && *buf != '"') SetEncoding(script_h.default_encoding, *buf++);
+	FontInfo::default_encoding = 0;
+	while (*buf && *buf != '^' && *buf != '"') SetEncoding(FontInfo::default_encoding, *buf++);
+	sentence_font.style = FontInfo::default_encoding;
 	return RET_CONTINUE;
 }

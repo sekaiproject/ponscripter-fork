@@ -146,6 +146,7 @@ UTF8OfUnicode(const unsigned short ch, char* out)
 	}
 }
 
+#if 0
 static const unsigned short extra_chars[] = {
 	0x2019, 0x2018, 0x2044, 0x0192, 0x201c, 0x2039, 0x203a, 0xfb01, 0xfb02, 
 	0x2013, 0x2020, 0x2021, 0x2022, 0x201a, 0x201e, 0x201d, 0x2026, 0x2030, 
@@ -172,8 +173,9 @@ get_encoded_char(const int encoding, const unsigned short original)
 	if (encoding == 0) return original;
 
 	if (encoding & Altern && original >= '0' && original <= '9') {
-		if (encoding ^ Altern == Default) return original + 0xe000 - '0';
-		return original + offset[encoding ^ Altern] + 0x20;
+//		if (encoding ^ Altern == Default) 
+			return original + 0xe000 - '0';
+//		return original + offset[encoding ^ Altern] + 0x20;
 	}	
 	unsigned short compact_enc;
 	if (original <= 0xff) {
@@ -191,8 +193,10 @@ found:
 	     ? compact_enc + offset[encoding & ~Altern] 
 	     : original;
 }
+#endif
 
-void SetEncoding(int& encoding, const char flag)
+void
+SetEncoding(int& encoding, const char flag)
 {
 	switch (flag) {
 	case 'd': encoding  =  Default; return;
@@ -202,12 +206,34 @@ void SetEncoding(int& encoding, const char flag)
 	case 'b': encoding ^=  Bold;    return;
 	case 'f': encoding &= ~Sans;    return;
 	case 's': encoding ^=  Sans;    return;
-	case 'o': encoding &= ~Altern;  return;
-	case 'l': encoding ^=  Altern;  return;
+//	case 'o': encoding &= ~Altern;  return;
+//	case 'l': encoding ^=  Altern;  return;
 	case 0:
 		fprintf(stderr, "Error: non-matching ~tags~\n");
 		exit(1);
 	default:
 		fprintf(stderr, "Warning: unknown tag ~%c~\n", flag);
+	}
+}
+
+char
+TranslateTag(const char flag)
+{
+	switch (flag) {
+	case 'd': return 0x10;//encoding  =  Default; return;
+	case 'r': return 0x11;//encoding &= ~Italic;  return;
+	case 'i': return 0x12;//encoding ^=  Italic;  return;
+	case 't': return 0x13;//encoding &= ~Bold;    return;
+	case 'b': return 0x14;//encoding ^=  Bold;    return;
+	case 'f': return 0x15;//encoding &= ~Sans;    return;
+	case 's': return 0x16;//encoding ^=  Sans;    return;
+//	case 'o': return 0x17;//encoding &= ~Altern;  return;
+//	case 'l': return 0x18;//encoding ^=  Altern;  return;
+	case 0:
+		fprintf(stderr, "Error: non-matching ~tags~\n");
+		exit(1);
+	default:
+		fprintf(stderr, "Warning: unknown tag ~%c~\n", flag);
+		return 0xf000;
 	}
 }

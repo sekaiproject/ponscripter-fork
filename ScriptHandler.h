@@ -111,8 +111,6 @@ public:
     int  parseInt( char **buf );
     void skipToken();
 
-	int default_encoding;
-
     // function for string access
     inline char *getStringBuffer(){ return string_buffer; };
     char *saveStringBuffer();
@@ -237,7 +235,7 @@ public:
     char *save_path;
     char *script_defined_font;
 
-    BaseReader *cBR;
+    static BaseReader *cBR;
     
 private:
     enum { OP_INVALID = 0, // 000

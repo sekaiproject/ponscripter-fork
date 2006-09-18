@@ -8,12 +8,6 @@ all: $(TARGET)
 
 include config.ponscripter
 
-ifdef FONT_SOURCE
-  FONTFORGE=fontforge
-  HAVE_FONTFORGE := $(shell $(FONTFORGE) -version >/dev/null 2>&1 && echo yes)
-  CFLAGS += $(if $(HAVE_FONTFORGE),-DUSE_INTERNAL_FONT)
-endif
-
 GUI_OBJS = ONScripterLabel$(OBJSUFFIX) ONScripterLabel_command$(OBJSUFFIX) ONScripterLabel_text$(OBJSUFFIX) \
 	ONScripterLabel_effect$(OBJSUFFIX) ONScripterLabel_event$(OBJSUFFIX) ONScripterLabel_rmenu$(OBJSUFFIX) \
 	ONScripterLabel_animation$(OBJSUFFIX) ONScripterLabel_sound$(OBJSUFFIX) ONScripterLabel_file$(OBJSUFFIX) \
@@ -33,7 +27,7 @@ clean:
 	-$(RM) *$(OBJSUFFIX)
 
 distclean: clean
-	-$(RM) $(TARGET) internal.ttf resources.cpp embed$(EXESUFFIX) 
+	-$(RM) $(TARGET) resources.cpp embed$(EXESUFFIX) 
 
 .cpp$(OBJSUFFIX):
 	$(CC) $(CFLAGS) $<
@@ -66,20 +60,11 @@ AVIWrapper$(OBJSUFFIX): AVIWrapper.h
 utf8_util$(OBJSUFFIX): utf8_util.h
 ttf$(OBJSUFFIX): ttf.h
 
-ifdef HAVE_FONTFORGE
-internal.ttf: $(FONT_SOURCE)
-	$(FONTFORGE) -c 'Open("$<");Generate("$@","",0x89c)'
-endif
-
 ICON_SOURCE ?= internal.icon
 
-resources.cpp: embed$(EXESUFFIX) $(if $(HAVE_FONTFORGE),internal.ttf) $(ICON_SOURCE)
+resources.cpp: embed$(EXESUFFIX) $(ICON_SOURCE)
 	-$(RM) $@
 	echo '#include "resources.h"' > $@
-	echo >> $@
-	echo '#ifdef USE_INTERNAL_FONT' >> $@
-	./embed internal_font $(if $(HAVE_FONTFORGE),internal.ttf) >> $@
-	echo '#endif' >> $@
 	echo >> $@
 	./embed internal_icon $(ICON_SOURCE) >> $@
 
