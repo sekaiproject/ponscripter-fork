@@ -17,7 +17,7 @@ NARCI = true
 endif
 
 ifdef NARCI
-CFLAGS := $(CFLAGS) -D 'EMBOLDEN=(ch < 0xe128 || ch > 0xf000) && (dst->rows < 20)' \
+CFLAGS := $(CFLAGS) -D 'EMBOLDEN=font->embolden && font->currsize < 20' \
                     -DLIGATE_ALL -DKERNING
 
 .PHONY: fonts

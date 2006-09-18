@@ -129,8 +129,6 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
         FontInfo f_info = sentence_font;
         if (info) f_info = *info;
 
-		f_info.style = FontInfo::default_encoding;
-
 		// handle private-use encodings
 		{
 			std::string dest;
@@ -163,7 +161,8 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
             f_info.top_x = anim->pos.x * screen_ratio2 / screen_ratio1;
             f_info.top_y = anim->pos.y * screen_ratio2 / screen_ratio1;
             f_info.clear();
-            
+            f_info.style = Default;
+           
             f_info.font_size_x = anim->font_size_x;
             f_info.font_size_y = anim->font_size_y;
             if ( anim->font_pitch >= 0 )
@@ -196,6 +195,7 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
         f_info.top_x = f_info.top_y = 0;
         for ( int i=0 ; i<anim->num_of_cells ; i++ ){
             f_info.clear();
+            f_info.style = Default;
             drawString( anim->file_name, anim->color_list[i], &f_info, false, NULL, NULL, anim );
             f_info.top_x += anim->pos.w * screen_ratio2 / screen_ratio1;
         }
@@ -212,7 +212,6 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
         if ( surface ) SDL_FreeSurface(surface);
         if ( surface_m ) SDL_FreeSurface(surface_m);
     }
-
 }
 
 void ONScripterLabel::parseTaggedString( AnimationInfo *anim )

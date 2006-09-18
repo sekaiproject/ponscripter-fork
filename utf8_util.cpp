@@ -146,55 +146,6 @@ UTF8OfUnicode(const unsigned short ch, char* out)
 	}
 }
 
-#if 0
-static const unsigned short extra_chars[] = {
-	0x2019, 0x2018, 0x2044, 0x0192, 0x201c, 0x2039, 0x203a, 0xfb01, 0xfb02, 
-	0x2013, 0x2020, 0x2021, 0x2022, 0x201a, 0x201e, 0x201d, 0x2026, 0x2030, 
-	0x02c6, 0x02dc, 0x02d8, 0x02d9, 0x02da, 0x02dd, 0x02db, 0x02c7, 0x2014, 
-	0x0141, 0x0152, 0x0131, 0x0142, 0x0153, 0x0160, 0x0178, 0x017d, 0x0161, 
-	0x017e, 0x2122, 0x2212, 0x20ac, 0xfb00, 0xfb03, 0xfb04, 0
-};
-
-static const unsigned short offset[] = {
-	0x0000, // Roman
-	0xe000, // Italic
-	0xe128, // Bold
-	0xe250, // Bold Italic
-	0xe378, // Sans
-	0xe4a0, // Sans Italic
-	0xe5c8, // Sans Bold
-	0xe6f0  // Sans Bold Italic
-};
-
-// Used to support proprietary encoding of italic, etc. in private use area.
-unsigned short
-get_encoded_char(const int encoding, const unsigned short original)
-{
-	if (encoding == 0) return original;
-
-	if (encoding & Altern && original >= '0' && original <= '9') {
-//		if (encoding ^ Altern == Default) 
-			return original + 0xe000 - '0';
-//		return original + offset[encoding ^ Altern] + 0x20;
-	}	
-	unsigned short compact_enc;
-	if (original <= 0xff) {
-		compact_enc = original;
-		goto found;
-	}
-	compact_enc = 0;
-	for (int idx = 0; extra_chars[idx]; ++idx) if (extra_chars[idx] == original) {
-		compact_enc = 0x101 + idx;
-		goto found;
-	}
-	if (original == 0x2010 || original == 0x2011) compact_enc = '-';
-found:
-	return compact_enc 
-	     ? compact_enc + offset[encoding & ~Altern] 
-	     : original;
-}
-#endif
-
 void
 SetEncoding(int& encoding, const char flag)
 {
@@ -220,15 +171,15 @@ char
 TranslateTag(const char flag)
 {
 	switch (flag) {
-	case 'd': return 0x10;//encoding  =  Default; return;
-	case 'r': return 0x11;//encoding &= ~Italic;  return;
-	case 'i': return 0x12;//encoding ^=  Italic;  return;
-	case 't': return 0x13;//encoding &= ~Bold;    return;
-	case 'b': return 0x14;//encoding ^=  Bold;    return;
-	case 'f': return 0x15;//encoding &= ~Sans;    return;
-	case 's': return 0x16;//encoding ^=  Sans;    return;
-//	case 'o': return 0x17;//encoding &= ~Altern;  return;
-//	case 'l': return 0x18;//encoding ^=  Altern;  return;
+	case 'd': return 0x10;
+	case 'r': return 0x11;
+	case 'i': return 0x12;
+	case 't': return 0x13;
+	case 'b': return 0x14;
+	case 'f': return 0x15;
+	case 's': return 0x16;
+//	case 'o': return 0x17;
+//	case 'l': return 0x18;
 	case 0:
 		fprintf(stderr, "Error: non-matching ~tags~\n");
 		exit(1);

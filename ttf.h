@@ -71,6 +71,8 @@ struct TTF_Font {
 	FT_Open_Args args;
 	
 	int currsize;
+	bool embolden;
+	
 	FT_Face& get_face() { return face; }
 	int ascent() { return FT_CEIL(FT_MulFix(face->ascender, face->size->metrics.y_scale)); }
 	int descent() { return FT_CEIL(FT_MulFix(face->descender, face->size->metrics.y_scale)); }

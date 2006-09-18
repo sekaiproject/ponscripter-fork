@@ -233,7 +233,6 @@ public:
     
     char *game_identifier;
     char *save_path;
-    char *script_defined_font;
 
     static BaseReader *cBR;
     

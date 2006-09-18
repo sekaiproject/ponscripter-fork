@@ -1,12 +1,13 @@
-MAJOR
+AESTHETIC
 
-* Styles not yet applied in backlog.
-* NS Swiss is suddenly hideous for some reason?
+* "Product" menu is only blue if you haven't used the "return to title" option from the right-click menu (i.e. reset?)
+* "... ..." needs kerning
 
 FEATURES
 
+* Variable text size should now be doable.
+
 * SHY (U+00AD) support would be nice too... ;)
 * OSFs in other styles (bold/bold-italic).  Proportional figures in sans styles?
-* Variable text size?
 
 * Subpixel rendering when running windowed on an LCD?  (Okay, now I'm getting silly...)

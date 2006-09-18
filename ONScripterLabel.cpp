@@ -38,7 +38,6 @@ extern "C" void waveCallback( int channel );
 
 #define DEFAULT_AUDIOBUF  4096
 
-#define FONT_FILE "default.ttf"
 #define REGISTRY_FILE "registry.txt"
 #define DLL_FILE "dll.txt"
 #define DEFAULT_ENV_FONT "‚l‚r ƒSƒVƒbƒN"
@@ -538,28 +537,6 @@ int ONScripterLabel::init()
 
 
 	// ----------------------------------------
-	// Initialize font
-	if ( script_h.script_defined_font ){
-		if (strcmp(script_h.script_defined_font, "internal") == 0) {
-			font_file = NULL;
-		}
-		else {
-			font_file = new char[ strlen(archive_path) + strlen(script_h.script_defined_font) + 1 ];
-			sprintf( font_file, "%s%s", archive_path, script_h.script_defined_font );
-		}
-		delete[] script_h.script_defined_font;
-		script_h.script_defined_font = NULL;
-	}
-	else if ( default_font ){
-		font_file = new char[ strlen(default_font) + 1 ];
-		sprintf( font_file, "%s", default_font );
-	}
-	else{
-		font_file = new char[ strlen(archive_path) + strlen(FONT_FILE) + 1 ];
-		sprintf( font_file, "%s%s", archive_path, FONT_FILE );
-	}
-
-	// ----------------------------------------
 	// Sound related variables
 	this->cdaudio_flag = cdaudio_flag;
 	cdrom_info = NULL;
@@ -725,6 +702,7 @@ void ONScripterLabel::resetSub()
 
 void ONScripterLabel::resetSentenceFont()
 {
+	FontInfo::default_encoding = Default;
 	sentence_font.reset();
 	sentence_font.font_size_x = DEFAULT_FONT_SIZE;
 	sentence_font.font_size_y = DEFAULT_FONT_SIZE;

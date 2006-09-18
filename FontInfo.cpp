@@ -27,7 +27,6 @@
 #include "ScriptHandler.h"
 #include <stdio.h>
 
-char* font_file = NULL;
 int screen_ratio1 = 1, screen_ratio2 = 1;
 
 int FontInfo::default_encoding = 0;
@@ -68,7 +67,10 @@ TTF_Font* FontsStruct::font(int style)
 		font_[style] = TTF_OpenFontRW(rwfont, 0);
 	}
 	if (font_[style]) {
-		TTF_SetSize(font_[style], 16);
+		// Hardwire emboldening for now
+		font_[style]->embolden = style <= 1;
+		
+		TTF_SetSize(font_[style], 26);
 		return font_[style];
 	}
 	fprintf(stderr, "Error: failed to open font %s\n", fn);

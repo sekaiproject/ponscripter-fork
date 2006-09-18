@@ -35,7 +35,7 @@
 #include <string.h>
 
 #ifndef EMBOLDEN
-#define EMBOLDEN font->style & TTF_STYLE_BOLD
+#define EMBOLDEN false
 #endif
 
 #ifdef HAVE_ALLOCA_H
@@ -275,7 +275,7 @@ static FT_Error Load_Glyph( TTF_Font* font, Uint16 ch, c_glyph* cached, int want
 	if ( ! cached->index ) {
 		cached->index = FT_Get_Char_Index( face, ch );
 	}
-	error = FT_Load_Glyph( face, cached->index, FT_LOAD_DEFAULT );
+	error = FT_Load_Glyph( face, cached->index, /*FT_LOAD_NO_HINTING*/ FT_LOAD_DEFAULT | FT_LOAD_TARGET_LIGHT );
 	if( error ) {
 		return error;
 	}
@@ -303,7 +303,7 @@ static FT_Error Load_Glyph( TTF_Font* font, Uint16 ch, c_glyph* cached, int want
 		FT_Bitmap* dst;
 
 		/* Render the glyph */
-		error = FT_Render_Glyph( glyph, FT_RENDER_MODE_NORMAL );
+		error = FT_Render_Glyph( glyph, FT_RENDER_MODE_LIGHT );
 		if( error ) {
 			return error;
 		}
@@ -332,17 +332,14 @@ static FT_Error Load_Glyph( TTF_Font* font, Uint16 ch, c_glyph* cached, int want
 		if (EMBOLDEN) {
 			int row;
 			int col;
-			int offset;
 			Uint8* pixmap;
 
 			/* The pixmap is a little hard, we have to add and clamp */
 			for( row = dst->rows - 1; row >= 0; --row ) {
 				pixmap = (Uint8*) dst->buffer + row * dst->pitch;
-				for( offset=1; offset <= font->face->size->metrics.y_ppem / 10; ++offset ) { //...what?
-					for( col = dst->width - 1; col > 0; --col ) {
-						const double px = (sqrt(pixmap[col]) * 16.0 + (double) pixmap[col]) / 2;
-						pixmap[col] = (Uint8) px;
-					}
+				for( col = dst->width - 1; col > 0; --col ) {
+					const double px = (sqrt(pixmap[col]) * 16.0 + (double) pixmap[col]) / 2;
+					pixmap[col] = (Uint8) px;
 				}
 			}
 		}

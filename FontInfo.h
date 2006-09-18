@@ -27,7 +27,6 @@
 #include <SDL.h>
 #include "ttf.h"
 
-extern char* font_file;
 extern int screen_ratio1, screen_ratio2;
 
 typedef unsigned char uchar3[3];

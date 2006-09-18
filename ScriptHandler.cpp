@@ -53,7 +53,6 @@ ScriptHandler::ScriptHandler()
 	
 	save_path = NULL;
 	game_identifier = NULL;
-	script_defined_font = NULL;
 }
 
 ScriptHandler::~ScriptHandler()
@@ -69,7 +68,6 @@ ScriptHandler::~ScriptHandler()
 	delete[] variable_data;
 	
 	if (game_identifier) delete[] game_identifier;
-	if (script_defined_font) delete[] script_defined_font;
 }
 
 void ScriptHandler::reset()
@@ -934,18 +932,6 @@ int ScriptHandler::readScript( char *path )
 			strncpy( game_identifier, buf, i - 1 );
 			game_identifier[i - 1] = 0;
 			buf += i;
-		}
-	}
-	// font check
-	if ( *buf++ == ';' ){
-		while (*buf == ' ' || *buf == '\t') ++buf;
-		if ( !strncmp( buf, "usefont ", 8 ) ){
-			buf += 8;
-			int i = 0;
-			while ( buf[i++] >= ' ' );
-			script_defined_font = new char[i];
-			strncpy( script_defined_font, buf, i - 1 );
-			script_defined_font[i - 1] = 0;
 		}
 	}
 
