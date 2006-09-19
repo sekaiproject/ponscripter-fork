@@ -76,7 +76,7 @@ public:
 	
 	void SetXY( int x=-1, int y=-1 );
 	void clear();
-	void newLine(const float proportion = 1.0);
+	void newLine();
 	void setLineArea(int num);
 
 	int GlyphAdvance(unsigned short unicode, unsigned short next);

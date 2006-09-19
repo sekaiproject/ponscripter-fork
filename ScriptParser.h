@@ -314,11 +314,10 @@ protected:
     struct TextBuffer{
         struct TextBuffer *next, *previous;
         std::string contents;
-
         int addBuffer( char ch ){
-            contents.push_back(ch);
+            contents += ch;
 	        return 0;
-        };
+        }
         void clear() { contents.clear(); }
         bool empty() { return contents.empty(); }
     } *text_buffer, *start_text_buffer, *current_text_buffer; // ring buffer

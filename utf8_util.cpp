@@ -26,7 +26,7 @@ CharacterBytes(const char* string)
 	const unsigned char* t = (const unsigned char*) string;
 	const unsigned char c = t[0];
 	if (c < 0x80) {
-		if (c >= 0x17 && c <= 0x1c) return 2; // size codes
+		if (c >= 0x17 && c <= 0x1f) return 3; // size codes
 #ifdef LIGATURES
 		if (c == '|') return t[1] == '|' ? 2 : 1 + CharacterBytes(string + 1);
 #endif
@@ -151,6 +151,7 @@ void
 SetEncoding(int& encoding, const char flag)
 {
 	switch (flag) {
+	case ' ': return;
 	case 'd': encoding  =  Default; return;
 	case 'r': encoding &= ~Italic;  return;
 	case 'i': encoding ^=  Italic;  return;
@@ -158,7 +159,7 @@ SetEncoding(int& encoding, const char flag)
 	case 'b': encoding ^=  Bold;    return;
 	case 'f': encoding &= ~Sans;    return;
 	case 's': encoding ^=  Sans;    return;
-	case '+': case '-':	case '*': case '/':
+	case '+': case '-':	case '*': case '/': case 'x': case 'y':
 		fprintf(stderr, "Warning: tag ~%c~ cannot be used in this context\n", flag);		
 		return;
 	case 0:
@@ -178,21 +179,21 @@ set_out(char* out, char val)
 }
 
 inline int
-set_int(char* out, char val, const char* src, int& in_len)
+set_int(char* out, char val, const char* src, int& in_len, int mulby = 1, int offset = 0)
 {
 	*out++ = val;
 	++src;
-	unsigned int i = 0;
+	int i = 0;
 	while (*src >= '0' && *src <= '9') {
 		++in_len;
 		i = i * 10 + *src++ - '0';
 	}
-	if (i == 0) 
-		*out = -1;
-	else
-		*out = (char) i;
-	*++out = 0;
-	return 2;
+	i = i * mulby + offset;
+	const char c1 = i & 0x7f, c2 = (i >> 7) & 0x7f;
+	*out++ = c1 ? c1 : -1;
+	*out++ = c2 ? c2 : -1;
+	*out = 0;
+	return 3;
 }
 
 int
@@ -200,6 +201,7 @@ TranslateTag(const char* flag, char* out, int& in_len)
 {
 	in_len = 1;
 	switch (*flag) {
+	case ' ': return 0;
 	case 'd': return set_out(out, 0x10);
 	case 'r': return set_out(out, 0x11);
 	case 'i': return set_out(out, 0x12);
@@ -208,11 +210,19 @@ TranslateTag(const char* flag, char* out, int& in_len)
 	case 'f': return set_out(out, 0x15);
 	case 's': return set_out(out, 0x16);
 	case '=': return set_int(out, 0x17, flag, in_len);
-	case '+': return set_int(out, 0x18, flag, in_len);
-	case '-': return set_int(out, 0x19, flag, in_len);
-	case '*': return set_int(out, 0x1a, flag, in_len);
-	case '/': return set_int(out, 0x1b, flag, in_len);
-	case '%': return set_int(out, 0x1c, flag, in_len);
+	case '+': return set_int(out, 0x18, flag, in_len, -1, 8192);
+	case '-': return set_int(out, 0x18, flag, in_len, 1, 8192);
+	case '%': return set_int(out, 0x19, flag, in_len);
+	case 'x': if (flag[1] == '+' || flag[1] == '-')	{
+	          	++in_len;
+	          	return set_int(out, 0x1a, flag + 1, in_len, flag[1] == '-' ? -1 : 1, 8192);
+	          }
+	          else return set_int(out, 0x1b, flag, in_len);
+	case 'y': if (flag[1] == '+' || flag[1] == '-')	{
+	          	++in_len;
+	          	return set_int(out, 0x1c, flag + 1, in_len, flag[1] == '-' ? -1 : 1, 8192);
+	          }
+	          else return set_int(out, 0x1d, flag, in_len);
 	case 0:
 		fprintf(stderr, "Error: non-matching ~tags~\n");
 		exit(1);

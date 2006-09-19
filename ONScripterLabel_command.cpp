@@ -1453,8 +1453,6 @@ int ONScripterLabel::locateCommand()
     int x = script_h.readInt();
     int y = script_h.readInt();
     sentence_font.SetXY( x, y );
-
-	fprintf(stderr, " warning: [locate] may not behave as expected!\n");
     return RET_CONTINUE;
 }
 
@@ -2879,16 +2877,26 @@ int ONScripterLabel::btnCommand()
 
 int ONScripterLabel::brCommand()
 {
-	float delta;
-	if (script_h.isName("br2")) delta = float(script_h.readInt()) / 100.0;
-	else delta = 0.5;
+	int delta;
+	if (script_h.isName("br2")) delta = script_h.readInt();
+	else delta = 50;
 	
     int ret = enterTextDisplayMode();
     if ( ret != RET_NOMATCH ) return ret;
 
-    sentence_font.newLine(delta);
-    current_text_buffer->addBuffer( 0x0a );
+    int cs = sentence_font.mod_size(), ns = sentence_font.base_size() * delta / 100;
+    sentence_font.set_mod_size(ns);
+    sentence_font.newLine();
+    sentence_font.set_mod_size(cs);
 
+	current_text_buffer->addBuffer( 0x17 );
+	current_text_buffer->addBuffer( ns & 0x7f );
+	current_text_buffer->addBuffer( (ns >> 7) & 0x7f );
+	current_text_buffer->addBuffer( 0x0a );
+	current_text_buffer->addBuffer( 0x17 );
+	current_text_buffer->addBuffer( cs & 0x7f );
+	current_text_buffer->addBuffer( (cs >> 7) & 0x7f );
+   
     return RET_CONTINUE;
 }
 

@@ -26,17 +26,21 @@ Style tags (enclose in ~tildes~):
   The "default" tags always restore those settings, while the non-default tags
   are toggles.  Hence ^foo ~i~bar~r~^ and ^foo ~i~bar~i~^ are equivalent.
 
-Font size tags (as style tags, but followed by integers)
+Size and position tags (as style tags, but followed by integers)
   
   =n  Set font size to n pixels (0 to restore the current base font size)
   %n  Set font size to n% of the current base font size
-  +n, -n, *n, /n  modify the current font size in the obvious way.
+  +n  Increase font size by n pixels (operates on current size, not base size)
+  -n  Decrease font size by n pixels (operates on current size, not base size)
+
+  xn  Set x position to n.  Use x+n and x-n for relative offsets.
+  yn  Set y position to n.  Use y+n and y-n for relative offsets.
 
   n in each case is a positive decimal integer constant (variables cannot be 
   used).  For example, given a window with a 20-pixel font, the following codes 
   all set the font size to 30 pixels:
   
-    ~=30~  ~%150~  ~+10~  ~*3/2~  ~*2-10~  etc.
+    ~=30~  ~%150~  ~+10~  ~+5+5~
   
   The base font size should be restored with either ~=0~ or ~%100~, as these 
   will always restore it correctly even if the window definition is later 

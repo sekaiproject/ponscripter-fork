@@ -144,6 +144,14 @@ int FontInfo::GlyphAdvance(unsigned short unicode, unsigned short next)
 	return rv + pitch_x;
 }
 
+int get_int(const char* text)
+{
+	int c1 = text[1], c2 = text[2];
+	if (c1 == -1) c1 = 0;
+	if (c2 == -1) c2 = 0;
+	return c1 | (c2 << 7);
+}
+
 bool FontInfo::processCode(const char* text)
 {
 	if (*text >= 0x10 && *text < 0x20) {
@@ -155,12 +163,13 @@ bool FontInfo::processCode(const char* text)
 		case 0x14: style ^=  Bold;    return true;
 		case 0x15: style &= ~Sans;    return true;
 		case 0x16: style ^=  Sans;    return true;
-		case 0x17: font_size_mod = text[1] < 0 ? 0 : text[1]; return true;
-		case 0x18: if (!font_size_mod) font_size_mod = font_size; font_size_mod += text[1]; return true;
-		case 0x19: if (!font_size_mod) font_size_mod = font_size; font_size_mod -= text[1]; return true;
-		case 0x1a: if (!font_size_mod) font_size_mod = font_size; font_size_mod *= text[1]; return true;
-		case 0x1b: if (!font_size_mod) font_size_mod = font_size; font_size_mod /= text[1]; return true;
-		case 0x1c: font_size_mod = font_size * text[1] / 100; return true;
+		case 0x17: font_size_mod = get_int(text); return true;
+		case 0x18: font_size_mod = size() + get_int(text) - 8192; return true;
+		case 0x19: font_size_mod = font_size * get_int(text) / 100; return true;
+		case 0x1a: pos_x += get_int(text) - 8192; return true;
+		case 0x1b: pos_x  = get_int(text); return true;
+		case 0x1c: pos_y += get_int(text) - 8192; return true;
+		case 0x1d: pos_y  = get_int(text); return true;
 		}
 	}
 	return false;
@@ -171,7 +180,7 @@ int FontInfo::StringAdvance(const char* string)
 	doSize();
 	int rv = 0;
 	unsigned short unicode, next;
-	int orig_mod = font_size_mod, orig_style = style;
+	int orig_mod = font_size_mod, orig_style = style, orig_x = pos_x, orig_y = pos_y;
 	unicode = UnicodeOfUTF8(string);
 	while (*string) {
 		int cb = CharacterBytes(string);
@@ -182,6 +191,8 @@ int FontInfo::StringAdvance(const char* string)
 	}
 	font_size_mod = orig_mod;
 	style = orig_style;
+	pos_x = orig_x;
+	pos_y = orig_y;
 	return rv;
 }
 
@@ -191,11 +202,11 @@ void FontInfo::SetXY( int x, int y )
 	if ( y != -1 ) pos_y = y;
 }
 
-void FontInfo::newLine(const float proportion)
+void FontInfo::newLine()
 {
 	doSize();
 	pos_x = indent;
-	pos_y += (int)((float)(line_space() + pitch_y) * proportion);
+	pos_y += line_space() + pitch_y;
 }
 
 void FontInfo::setLineArea(int num)
