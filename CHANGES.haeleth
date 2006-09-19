@@ -10,21 +10,37 @@ Specific changes:
   centre of the string rather than the left edge.
 * UTF-8 text (not that there's a useful other sort) is now marked with ^, not `.
 
-Style tags:
+Style tags (enclose in ~tildes~):
 
-  ~d~   Restore all defaults
+  d   Restore all defaults
   
-  ~r~   Roman (default)
-  ~i~   Italic
+  r   Roman (default)
+  i   Italic
   
-  ~t~   Text (default)
-  ~b~   Bold
+  t   Text (default)
+  b   Bold
   
-  ~f~   Serif (default)
-  ~s~   Sans serif
-  
+  f   Serif (default)
+  s   Sans serif
+
   The "default" tags always restore those settings, while the non-default tags
   are toggles.  Hence ^foo ~i~bar~r~^ and ^foo ~i~bar~i~^ are equivalent.
+
+Font size tags (as style tags, but followed by integers)
+  
+  =n  Set font size to n pixels (0 to restore the current base font size)
+  %n  Set font size to n% of the current base font size
+  +n, -n, *n, /n  modify the current font size in the obvious way.
+
+  n in each case is a positive decimal integer constant (variables cannot be 
+  used).  For example, given a window with a 20-pixel font, the following codes 
+  all set the font size to 30 pixels:
+  
+    ~=30~  ~%150~  ~+10~  ~*3/2~  ~*2-10~  etc.
+  
+  The base font size should be restored with either ~=0~ or ~%100~, as these 
+  will always restore it correctly even if the window definition is later 
+  modified.
 
 
 Ligatures and nice punctuation:

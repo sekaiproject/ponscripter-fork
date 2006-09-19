@@ -166,8 +166,8 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
             f_info.clear();
             f_info.style = Default;
            
-            f_info.font_size = anim->font_size_y;
-            f_info.font_size_mod = 0;
+            f_info.set_size(anim->font_size_y);
+            f_info.set_mod_size(0);
             if ( anim->font_pitch >= 0 )
                 f_info.pitch_x = anim->font_pitch;
             if (anim->is_single_line) {
@@ -266,8 +266,8 @@ void ONScripterLabel::parseTaggedString( AnimationInfo *anim )
                 script_h.popCurrent();
             }
             else{
-                anim->font_size_x = sentence_font.font_size;
-                anim->font_size_y = sentence_font.font_size;
+                anim->font_size_x = sentence_font.size();
+                anim->font_size_y = sentence_font.size();
                 anim->font_pitch = sentence_font.pitch_x;
             }
             while(buffer[0] != '#' && buffer[0] != '\0') buffer++;

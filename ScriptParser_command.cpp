@@ -524,8 +524,9 @@ int ScriptParser::midCommand()
 
 int ScriptParser::menusetwindowCommand()
 {
-    menu_font.font_size_x = script_h.readInt();
-    menu_font.font_size_y = script_h.readInt();
+    int s1 = script_h.readInt(), s2 = script_h.readInt();
+    menu_font.set_size(s1 > s2 ? s1 : s2);
+    menu_font.set_mod_size(0);
     menu_font.pitch_x     = script_h.readInt();
     menu_font.pitch_y     = script_h.readInt();
     menu_font.is_bold     = script_h.readInt()?true:false;

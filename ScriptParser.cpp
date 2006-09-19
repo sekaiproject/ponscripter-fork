@@ -289,8 +289,8 @@ void ScriptParser::reset()
 
     /* ---------------------------------------- */
     /* Menu related variables */
-    menu_font.font_size_x = DEFAULT_FONT_SIZE;
-    menu_font.font_size_y = DEFAULT_FONT_SIZE;
+    menu_font.set_size(DEFAULT_FONT_SIZE);
+    menu_font.set_mod_size(0);
     menu_font.top_x = 0;
     menu_font.top_y = 16;
     menu_font.area_x = 32 * DEFAULT_FONT_SIZE;

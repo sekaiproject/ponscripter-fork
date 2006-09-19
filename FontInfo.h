@@ -35,13 +35,13 @@ class FontInfo{
 	int em_width_, line_space_; // Width and height of a character
 	int indent;
 	int pos_x, pos_y; // Current position
+	int font_size, font_size_mod;
 public:
 	static int default_encoding;
 
 	TTF_Font* font();
 	uchar3 color;
 	uchar3 on_color, off_color, nofile_color;
-	int font_size, font_size_mod;
 	int top_x, top_y; // Top left origin
 	int area_x, area_y; // Size of the text windows
 	int pitch_x, pitch_y; // additional spacing
@@ -51,6 +51,12 @@ public:
 	bool is_transparent;
 	bool is_newline_accepted;
 	uchar3  window_color;
+
+	int size() { return font_size_mod ? font_size_mod : font_size; }
+	int base_size() { return font_size; }
+	int mod_size() { return font_size_mod; }
+	void set_size(int val) { font_size = val; }
+	void set_mod_size(int val) { font_size_mod = val; }
 
 	int style;
 
@@ -62,7 +68,6 @@ public:
 
 	FontInfo();
 	void reset();
-	void *openFont();
 
 	int GetXOffset() const { return pos_x; }
 	int GetYOffset() const { return pos_y; }	
@@ -79,6 +84,7 @@ public:
 
 	bool isNoRoomFor(int margin=0);
 	bool isLineEmpty();
+	bool processCode(const char* text);
 	void advanceBy(int offset);
 
 	SDL_Rect getFullArea(int ratio1, int ratio2);
@@ -87,9 +93,9 @@ public:
 	void addShadeArea(SDL_Rect &rect, int shade_distance[2] );
 
 	int doSize() { 
-		const int size = font_size + font_size_mod;
-		TTF_SetSize(font(), size);
-		return size;
+		const int sz = size();
+		TTF_SetSize(font(), sz);
+		return sz;
 	}
 };
 

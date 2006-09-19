@@ -1,3 +1,9 @@
+MAJOR
+
+* Rendering is wrong when coming out of backlog mode...?
+  (To reproduce, enter backlog mode on "...actual words.)" in "Concept", then exit backlog and click to proceed.)
+  
+
 AESTHETIC
 
 * "Product" menu is only blue if you haven't used the "return to title" option from the right-click menu (i.e. reset?)
@@ -5,9 +11,7 @@ AESTHETIC
 
 FEATURES
 
-* Variable text size should now be doable.
-
-* SHY (U+00AD) support would be nice too... ;)
+* SHY (U+00AD) support would be nice... ;)
 * OSFs in other styles (bold/bold-italic).  Proportional figures in sans styles?
 
 * Subpixel rendering when running windowed on an LCD?  (Okay, now I'm getting silly...)

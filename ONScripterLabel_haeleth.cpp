@@ -24,7 +24,7 @@
 #include "ONScripterLabel.h"
 #include "utf8_util.h"
 
-/* h_textextent <ivar>,<string>
+/* h_textextent <ivar>,<string>,[size_x],[size_y],[pitch_x]
  *
  * Sets <ivar> to the width, in pixels, of <string> as rendered in the current sentence font.
  */
@@ -38,8 +38,9 @@ int ONScripterLabel::haeleth_text_extentCommand()
 	strcpy(localbuf, buf);
 	FontInfo f = sentence_font;
 	if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
-		f.font_size_x = script_h.readInt();
-		f.font_size_y = script_h.readInt();
+		int s1 = script_h.readInt(), s2 = script_h.readInt();
+		f.set_size(s1 > s2 ? s1 : s2);
+		f.set_mod_size(0);
 		f.pitch_x = script_h.readInt();
 	}
     script_h.setInt(&script_h.pushed_variable, f.StringAdvance(localbuf));

@@ -66,8 +66,8 @@ int ONScripterLabel::loadSaveFile2( int file_version )
     sentence_font.top_y = readInt();
     sentence_font.area_x = readInt();
     sentence_font.area_y = readInt();
-    sentence_font.font_size = readInt();
-    sentence_font.font_size_mod = readInt();
+    sentence_font.set_size(readInt());
+    sentence_font.set_mod_size(readInt());
     sentence_font.pitch_x = readInt();
     sentence_font.pitch_y = readInt();
     for ( i=0 ; i<3 ; i++ )
@@ -388,8 +388,8 @@ void ONScripterLabel::saveSaveFile2( bool output_flag )
     writeInt( sentence_font.top_y, output_flag );
     writeInt( sentence_font.area_x, output_flag );
     writeInt( sentence_font.area_y, output_flag );
-    writeInt( sentence_font.font_size, output_flag );
-    writeInt( sentence_font.font_size_mod, output_flag );
+    writeInt( sentence_font.base_size(), output_flag );
+    writeInt( sentence_font.mod_size(), output_flag );
     writeInt( sentence_font.pitch_x, output_flag );
     writeInt( sentence_font.pitch_y, output_flag );
     for ( i=0 ; i<3 ; i++ )

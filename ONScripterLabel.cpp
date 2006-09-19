@@ -223,6 +223,7 @@ static struct FuncLUT{
 	{"btndown",  &ONScripterLabel::btndownCommand},
 	{"btndef",  &ONScripterLabel::btndefCommand},
 	{"btn",     &ONScripterLabel::btnCommand},
+	{"br2",     &ONScripterLabel::brCommand},
 	{"br",      &ONScripterLabel::brCommand},
 	{"blt",      &ONScripterLabel::bltCommand},
 	{"bgmvol", &ONScripterLabel::mp3volCommand},
@@ -704,8 +705,6 @@ void ONScripterLabel::resetSentenceFont()
 {
 	FontInfo::default_encoding = Default;
 	sentence_font.reset();
-	sentence_font.font_size   = DEFAULT_FONT_SIZE;
-	sentence_font.font_size_mod = 0;
 	sentence_font.top_x       = 21;
 	sentence_font.top_y       = 16;
 	sentence_font.area_x      = screen_width - 21;

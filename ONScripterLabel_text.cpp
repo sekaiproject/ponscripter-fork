@@ -102,62 +102,51 @@ void ONScripterLabel::drawGlyph( SDL_Surface *dst_surface, FontInfo *info, SDL_C
 
 void ONScripterLabel::drawChar( const char* text, FontInfo *info, bool flush_flag, bool lookback_flag, SDL_Surface *surface, AnimationInfo *cache_info, SDL_Rect *clip )
 {
-	// Handle styling
-	if (*text >= 0x10 && *text < 0x20) {
-		if ( lookback_flag ) current_text_buffer->addBuffer(*text);
-		switch (*text) {
-		case 0x10: info->style  =  Default; return;
-		case 0x11: info->style &= ~Italic;  return;
-		case 0x12: info->style ^=  Italic;  return;
-		case 0x13: info->style &= ~Bold;    return;
-		case 0x14: info->style ^=  Bold;    return;
-		case 0x15: info->style &= ~Sans;    return;
-		case 0x16: info->style ^=  Sans;    return;
-		case 0x17: oops
-		}
-	}
-	
-	// info->doSize() called in GlyphAdvance
-
 	int bytes = CharacterBytes(text);
-	unsigned short unicode = UnicodeOfUTF8(text);
-	int advance = info->GlyphAdvance(unicode, UnicodeOfUTF8(text + bytes));
 
-	if ( info->isNoRoomFor(advance) ){
-		info->newLine();
-		if ( lookback_flag ){
-			current_text_buffer->addBuffer( 0x0a );
+	if (!info->processCode(text)) {
+	
+		// info->doSize() called in GlyphAdvance
+	
+		unsigned short unicode = UnicodeOfUTF8(text);
+		int advance = info->GlyphAdvance(unicode, UnicodeOfUTF8(text + bytes));
+	
+		if ( info->isNoRoomFor(advance) ){
+			info->newLine();
+			if ( lookback_flag ){
+				current_text_buffer->addBuffer( 0x0a );
+			}
 		}
+	
+		int xy[2];
+		xy[0] = info->GetX() * screen_ratio1 / screen_ratio2;
+		xy[1] = info->GetY() * screen_ratio1 / screen_ratio2;
+	
+		SDL_Color color;
+		SDL_Rect dst_rect;
+		if ( info->is_shadow ){
+			color.r = color.g = color.b = 0;
+			drawGlyph(surface, info, color, unicode, xy, true, cache_info, clip, dst_rect);
+		}
+		color.r = info->color[0];
+		color.g = info->color[1];
+		color.b = info->color[2];
+		drawGlyph( surface, info, color, unicode, xy, false, cache_info, clip, dst_rect );
+	
+		if ( surface == accumulation_surface &&
+			 !flush_flag &&
+			 (!clip || AnimationInfo::doClipping( &dst_rect, clip ) == 0) ){
+			dirty_rect.add( dst_rect );
+		}
+		else if ( flush_flag ){
+			info->addShadeArea(dst_rect, shade_distance);
+			flushDirect( dst_rect, REFRESH_NONE_MODE );
+		}
+	
+		/* ---------------------------------------- */
+		/* Update text buffer */
+		info->advanceBy(advance);
 	}
-
-	int xy[2];
-	xy[0] = info->GetX() * screen_ratio1 / screen_ratio2;
-	xy[1] = info->GetY() * screen_ratio1 / screen_ratio2;
-
-	SDL_Color color;
-	SDL_Rect dst_rect;
-	if ( info->is_shadow ){
-		color.r = color.g = color.b = 0;
-		drawGlyph(surface, info, color, unicode, xy, true, cache_info, clip, dst_rect);
-	}
-	color.r = info->color[0];
-	color.g = info->color[1];
-	color.b = info->color[2];
-	drawGlyph( surface, info, color, unicode, xy, false, cache_info, clip, dst_rect );
-
-	if ( surface == accumulation_surface &&
-		 !flush_flag &&
-		 (!clip || AnimationInfo::doClipping( &dst_rect, clip ) == 0) ){
-		dirty_rect.add( dst_rect );
-	}
-	else if ( flush_flag ){
-		info->addShadeArea(dst_rect, shade_distance);
-		flushDirect( dst_rect, REFRESH_NONE_MODE );
-	}
-
-	/* ---------------------------------------- */
-	/* Update text buffer */
-	info->advanceBy(advance);
 	if ( lookback_flag ){
 		while ( bytes-- ) 
 			current_text_buffer->addBuffer( *text++ );

@@ -90,7 +90,9 @@ FontInfo::FontInfo()
 void FontInfo::reset()
 {
 	clear();
-
+	
+	font_size = 26;
+	
 	color[0]        = color[1]        = color[2]        = 0xff;
 	on_color[0]     = on_color[1]     = on_color[2]     = 0xff;
 	off_color[0]    = off_color[1]    = off_color[2]    = 0xaa;
@@ -109,6 +111,7 @@ void FontInfo::clear()
 	SetXY(0, 0);
 	indent = 0;
 	style = default_encoding;
+	font_size_mod = 0;
 }
 
 int FontInfo::em_width()
@@ -141,18 +144,44 @@ int FontInfo::GlyphAdvance(unsigned short unicode, unsigned short next)
 	return rv + pitch_x;
 }
 
+bool FontInfo::processCode(const char* text)
+{
+	if (*text >= 0x10 && *text < 0x20) {
+		switch (*text) {
+		case 0x10: style  =  Default; return true;
+		case 0x11: style &= ~Italic;  return true;
+		case 0x12: style ^=  Italic;  return true;
+		case 0x13: style &= ~Bold;    return true;
+		case 0x14: style ^=  Bold;    return true;
+		case 0x15: style &= ~Sans;    return true;
+		case 0x16: style ^=  Sans;    return true;
+		case 0x17: font_size_mod = text[1] < 0 ? 0 : text[1]; return true;
+		case 0x18: if (!font_size_mod) font_size_mod = font_size; font_size_mod += text[1]; return true;
+		case 0x19: if (!font_size_mod) font_size_mod = font_size; font_size_mod -= text[1]; return true;
+		case 0x1a: if (!font_size_mod) font_size_mod = font_size; font_size_mod *= text[1]; return true;
+		case 0x1b: if (!font_size_mod) font_size_mod = font_size; font_size_mod /= text[1]; return true;
+		case 0x1c: font_size_mod = font_size * text[1] / 100; return true;
+		}
+	}
+	return false;
+}
+
 int FontInfo::StringAdvance(const char* string) 
 {
 	doSize();
 	int rv = 0;
 	unsigned short unicode, next;
+	int orig_mod = font_size_mod, orig_style = style;
 	unicode = UnicodeOfUTF8(string);
 	while (*string) {
-		string += CharacterBytes(string);
-		next = UnicodeOfUTF8(string);
-		rv += GlyphAdvance(unicode, next);
+		int cb = CharacterBytes(string);
+		next = UnicodeOfUTF8(string + cb);
+		if (!processCode(string)) rv += GlyphAdvance(unicode, next);
 		unicode = next;
+		string += cb;
 	}
+	font_size_mod = orig_mod;
+	style = orig_style;
 	return rv;
 }
 

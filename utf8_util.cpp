@@ -26,6 +26,7 @@ CharacterBytes(const char* string)
 	const unsigned char* t = (const unsigned char*) string;
 	const unsigned char c = t[0];
 	if (c < 0x80) {
+		if (c >= 0x17 && c <= 0x1c) return 2; // size codes
 #ifdef LIGATURES
 		if (c == '|') return t[1] == '|' ? 2 : 1 + CharacterBytes(string + 1);
 #endif
@@ -157,8 +158,9 @@ SetEncoding(int& encoding, const char flag)
 	case 'b': encoding ^=  Bold;    return;
 	case 'f': encoding &= ~Sans;    return;
 	case 's': encoding ^=  Sans;    return;
-//	case 'o': encoding &= ~Altern;  return;
-//	case 'l': encoding ^=  Altern;  return;
+	case '+': case '-':	case '*': case '/':
+		fprintf(stderr, "Warning: tag ~%c~ cannot be used in this context\n", flag);		
+		return;
 	case 0:
 		fprintf(stderr, "Error: non-matching ~tags~\n");
 		exit(1);
@@ -175,6 +177,24 @@ set_out(char* out, char val)
 	return 1;
 }
 
+inline int
+set_int(char* out, char val, const char* src, int& in_len)
+{
+	*out++ = val;
+	++src;
+	unsigned int i = 0;
+	while (*src >= '0' && *src <= '9') {
+		++in_len;
+		i = i * 10 + *src++ - '0';
+	}
+	if (i == 0) 
+		*out = -1;
+	else
+		*out = (char) i;
+	*++out = 0;
+	return 2;
+}
+
 int
 TranslateTag(const char* flag, char* out, int& in_len)
 {
@@ -187,25 +207,17 @@ TranslateTag(const char* flag, char* out, int& in_len)
 	case 'b': return set_out(out, 0x14);
 	case 'f': return set_out(out, 0x15);
 	case 's': return set_out(out, 0x16);
-	case '+': {
-			++flag;
-			*out++ = 0x17;
-			int sz = 0;
-			while (*flag >= '0' && *flag <= '9') {
-				++in_len;
-				sz = sz * 10 + *flag++ - '0';
-			}
-			if (sz <= 0) sz = 1;
-			if (sz > 255) sz = 255;
-			*(unsigned char*) out++ = (unsigned char) sz;
-			*out = 0;
-			return 2;
-		}
+	case '=': return set_int(out, 0x17, flag, in_len);
+	case '+': return set_int(out, 0x18, flag, in_len);
+	case '-': return set_int(out, 0x19, flag, in_len);
+	case '*': return set_int(out, 0x1a, flag, in_len);
+	case '/': return set_int(out, 0x1b, flag, in_len);
+	case '%': return set_int(out, 0x1c, flag, in_len);
 	case 0:
 		fprintf(stderr, "Error: non-matching ~tags~\n");
 		exit(1);
 	default:
-		fprintf(stderr, "Warning: unknown tag ~%c~\n", flag);
+		fprintf(stderr, "Warning: unknown tag ~%c~\n", *flag);
 		*out = 0;
 		return 0;
 	}

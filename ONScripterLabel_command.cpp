@@ -284,8 +284,8 @@ int ONScripterLabel::strspCommand()
     fi.area_x = script_h.readInt();
     fi.area_y = script_h.readInt();
     int s1 = script_h.readInt(), s2 = script_h.readInt();
-    fi.font_size = s1 > s2 ? s1 : s2;
-    fi.font_size_mod = 0;
+    fi.set_size(s1 > s2 ? s1 : s2);
+    fi.set_mod_size(0);
     fi.pitch_x = script_h.readInt();
     fi.pitch_y = script_h.readInt();
     fi.is_bold = script_h.readInt()?true:false;
@@ -538,8 +538,8 @@ void ONScripterLabel::setwindowCore()
     sentence_font.area_x = script_h.readInt();
     sentence_font.area_y = script_h.readInt();
     int s1 = script_h.readInt(), s2 = script_h.readInt();
-    sentence_font.font_size = s1 > s2 ? s1 : s2;
-    sentence_font.font_size_mod = 0;
+    sentence_font.set_size(s1 > s2 ? s1 : s2);
+    sentence_font.set_mod_size(0);
     sentence_font.pitch_x = script_h.readInt();
     sentence_font.pitch_y = script_h.readInt();
     sentence_font.wait_time = script_h.readInt();
@@ -1411,8 +1411,8 @@ int ONScripterLabel::logspCommand()
         script_h.readInt(); // dummy read for y pitch
     }
     else{
-        si.font_size_x = sentence_font.font_size;
-        si.font_size_y = sentence_font.font_size;
+        si.font_size_x = sentence_font.size();
+        si.font_size_y = sentence_font.size();
         si.font_pitch = sentence_font.pitch_x;
     }
 
@@ -2879,10 +2879,14 @@ int ONScripterLabel::btnCommand()
 
 int ONScripterLabel::brCommand()
 {
+	float delta;
+	if (script_h.isName("br2")) delta = float(script_h.readInt()) / 100.0;
+	else delta = 0.5;
+	
     int ret = enterTextDisplayMode();
     if ( ret != RET_NOMATCH ) return ret;
 
-    sentence_font.newLine(0.5);
+    sentence_font.newLine(delta);
     current_text_buffer->addBuffer( 0x0a );
 
     return RET_CONTINUE;
