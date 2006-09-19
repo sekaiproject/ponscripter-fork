@@ -242,12 +242,12 @@ int ONScripterLabel::loadSaveFile( int no )
     /* Load sentence font */
     j = readInt();
     //sentence_font.is_valid = (j==1)?true:false;
-    sentence_font.font_size_x = readInt();
+    sentence_font.font_size = readInt();
     if ( file_version >= 100 ){
-        sentence_font.font_size_y = readInt();
+        sentence_font.font_size_mod = readInt();
     }
     else{
-        sentence_font.font_size_y = sentence_font.font_size_x;
+        sentence_font.font_size_mod = 0;
     }
     sentence_font.top_x = readInt();
     sentence_font.top_y = readInt();

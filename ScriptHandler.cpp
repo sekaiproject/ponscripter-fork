@@ -233,8 +233,10 @@ const char *ScriptHandler::readToken()
 			}
 			if (ch == '~' && (ch = *++buf) != '~') {
 				while (ch != '~') {
-					addStringBuffer(TranslateTag(ch));
-					ch = *++buf;
+					int l;
+					string_counter += TranslateTag(buf, string_buffer + string_counter, l);
+					buf += l;
+					ch = *buf;
 				}
 				ch = *++buf;
 				continue;
@@ -1159,8 +1161,10 @@ void ScriptHandler::parseStr( char **buf )
 		while (ch != '^' && ch != 0x0a && ch !='\0'){
 			if (ch == '~' && (ch = *++(*buf)) != '~') {
 				while (ch != '~') {
-					str_string_buffer[c++] = TranslateTag(ch);
-					ch = *++(*buf);
+					int l;
+					c += TranslateTag(*buf, str_string_buffer + c, l);
+					*buf += l;
+					ch = **buf;
 				}
 				ch = *++(*buf);
 				continue;

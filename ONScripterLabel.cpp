@@ -704,8 +704,8 @@ void ONScripterLabel::resetSentenceFont()
 {
 	FontInfo::default_encoding = Default;
 	sentence_font.reset();
-	sentence_font.font_size_x = DEFAULT_FONT_SIZE;
-	sentence_font.font_size_y = DEFAULT_FONT_SIZE;
+	sentence_font.font_size   = DEFAULT_FONT_SIZE;
+	sentence_font.font_size_mod = 0;
 	sentence_font.top_x       = 21;
 	sentence_font.top_y       = 16;
 	sentence_font.area_x      = screen_width - 21;

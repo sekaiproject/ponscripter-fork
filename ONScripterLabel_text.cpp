@@ -113,6 +113,7 @@ void ONScripterLabel::drawChar( const char* text, FontInfo *info, bool flush_fla
 		case 0x14: info->style ^=  Bold;    return;
 		case 0x15: info->style &= ~Sans;    return;
 		case 0x16: info->style ^=  Sans;    return;
+		case 0x17: oops
 		}
 	}
 	

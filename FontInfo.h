@@ -41,7 +41,7 @@ public:
 	TTF_Font* font();
 	uchar3 color;
 	uchar3 on_color, off_color, nofile_color;
-	int font_size_x, font_size_y;
+	int font_size, font_size_mod;
 	int top_x, top_y; // Top left origin
 	int area_x, area_y; // Size of the text windows
 	int pitch_x, pitch_y; // additional spacing
@@ -87,7 +87,7 @@ public:
 	void addShadeArea(SDL_Rect &rect, int shade_distance[2] );
 
 	int doSize() { 
-		const int size = font_size_x > font_size_y ? font_size_x : font_size_y;
+		const int size = font_size + font_size_mod;
 		TTF_SetSize(font(), size);
 		return size;
 	}

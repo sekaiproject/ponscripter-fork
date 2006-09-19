@@ -27,7 +27,7 @@ UTF8Length(const char* string);
 void
 SetEncoding(int& encoding, const char flag);
 
-char
-TranslateTag(const char flag);
+int
+TranslateTag(const char* flag, char* out, int& in_len);
 
 #endif

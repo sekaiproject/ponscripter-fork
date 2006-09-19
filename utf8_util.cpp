@@ -167,24 +167,46 @@ SetEncoding(int& encoding, const char flag)
 	}
 }
 
-char
-TranslateTag(const char flag)
+inline int
+set_out(char* out, char val)
 {
-	switch (flag) {
-	case 'd': return 0x10;
-	case 'r': return 0x11;
-	case 'i': return 0x12;
-	case 't': return 0x13;
-	case 'b': return 0x14;
-	case 'f': return 0x15;
-	case 's': return 0x16;
-//	case 'o': return 0x17;
-//	case 'l': return 0x18;
+	*out++ = val;
+	*out = 0;
+	return 1;
+}
+
+int
+TranslateTag(const char* flag, char* out, int& in_len)
+{
+	in_len = 1;
+	switch (*flag) {
+	case 'd': return set_out(out, 0x10);
+	case 'r': return set_out(out, 0x11);
+	case 'i': return set_out(out, 0x12);
+	case 't': return set_out(out, 0x13);
+	case 'b': return set_out(out, 0x14);
+	case 'f': return set_out(out, 0x15);
+	case 's': return set_out(out, 0x16);
+	case '+': {
+			++flag;
+			*out++ = 0x17;
+			int sz = 0;
+			while (*flag >= '0' && *flag <= '9') {
+				++in_len;
+				sz = sz * 10 + *flag++ - '0';
+			}
+			if (sz <= 0) sz = 1;
+			if (sz > 255) sz = 255;
+			*(unsigned char*) out++ = (unsigned char) sz;
+			*out = 0;
+			return 2;
+		}
 	case 0:
 		fprintf(stderr, "Error: non-matching ~tags~\n");
 		exit(1);
 	default:
 		fprintf(stderr, "Warning: unknown tag ~%c~\n", flag);
-		return 0xf000;
+		*out = 0;
+		return 0;
 	}
 }
