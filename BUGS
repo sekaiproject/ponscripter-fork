@@ -9,3 +9,12 @@ FEATURES
 * OSFs in other styles (bold/bold-italic).  Proportional figures in sans styles?
 
 * Subpixel rendering when running windowed on an LCD?  (Okay, now I'm getting silly...)
+
+
+NOTES
+
+text_info appears to be the "surface" used to store the text layer. While in text mode, glyphs are
+also rendered directly to the screen, but they are stored on text_info for later use.  Adjusting
+this so that glyphs were only ever rendered to text_info -- and that constantly overlayed on the
+screen -- would make it easier to arrange for things like high-resolution glyph positioning (render
+to high-res text layer, downsample).

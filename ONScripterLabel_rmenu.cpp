@@ -539,8 +539,8 @@ void ONScripterLabel::executeSystemYesNo()
 
         flush( refreshMode() );
 
-        int offset1 = strlen(name)/5;
-        int offset2 = strlen(name)/2 - offset1;
+        //int offset1 = strlen(name)/5;
+        //int offset2 = strlen(name)/2 - offset1;
         strcpy( name, MESSAGE_YES );
         //menu_font.setXY(offset1-2, 2);
 fprintf(stderr, "Expect imminent problems, 'cos you just ran into a bunch of stuff I commented out on the assumption I'll never need it.\n");

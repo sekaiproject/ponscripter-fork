@@ -102,7 +102,7 @@ public:
     void blendOnSurface2( SDL_Surface *dst_surface, int dst_x, int dst_y,
                           int alpha, int mat[2][2] );
     void blendBySurface( SDL_Surface *surface, int dst_x, int dst_y, SDL_Color &color,
-                         SDL_Rect *clip, bool rotate_flag );
+                         SDL_Rect *clip );
     
     static SDL_Surface *allocSurface( int w, int h );
     void allocImage( int w, int h );

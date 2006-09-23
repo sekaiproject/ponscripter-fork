@@ -26,8 +26,8 @@
 
 SDL_Surface *ONScripterLabel::renderGlyph(TTF_Font *font, Uint16 text, int size)
 {
-	GlyphCache *gc = root_glyph_cache;
-	GlyphCache *pre_gc = gc;
+	GlyphCache* gc = root_glyph_cache;
+	GlyphCache* pre_gc = gc;
 	while(1){
 		if (gc->text == text &&
 			gc->font == font &&
@@ -69,13 +69,12 @@ void ONScripterLabel::drawGlyph( SDL_Surface *dst_surface, FontInfo *info, SDL_C
 	TTF_GlyphMetrics( info->font(), unicode,
 					  &minx, &maxx, &miny, &maxy, &advance );
 
-	SDL_Surface *tmp_surface = renderGlyph( info->font(), unicode, sz );
+	SDL_Surface* tmp_surface = renderGlyph( info->font(), unicode, sz );
 
 	bool rotate_flag = false;
 
 	dst_rect.x = xy[0] + minx;
 	dst_rect.y = xy[1] + info->font()->ascent() - maxy;
-	if ( rotate_flag ) dst_rect.x += miny - minx;
 
 	if ( shadow_flag ){
 		dst_rect.x += shade_distance[0];
@@ -83,20 +82,20 @@ void ONScripterLabel::drawGlyph( SDL_Surface *dst_surface, FontInfo *info, SDL_C
 	}
 
 	if ( tmp_surface ){
-		if (rotate_flag){
-			dst_rect.w = tmp_surface->h;
-			dst_rect.h = tmp_surface->w;
-		}
-		else{
-			dst_rect.w = tmp_surface->w;
-			dst_rect.h = tmp_surface->h;
-		}
+		dst_rect.w = tmp_surface->w;
+		dst_rect.h = tmp_surface->h;
 
-		if (cache_info)
-			cache_info->blendBySurface( tmp_surface, dst_rect.x, dst_rect.y, color, clip, rotate_flag );
-
-		if (dst_surface)
-			alphaBlend32( dst_surface, dst_rect, tmp_surface, color, clip, rotate_flag );
+		// When rendering text, cache_info == text_info.
+		if (cache_info == &text_info) {
+			cache_info->blendBySurface( tmp_surface, dst_rect.x, dst_rect.y, color, clip );
+			cache_info->blendOnSurface( dst_surface, 0, 0, dst_rect );
+		}
+		else {
+			if (cache_info)
+				cache_info->blendBySurface( tmp_surface, dst_rect.x, dst_rect.y, color, clip );
+			if (dst_surface)
+				alphaBlend32( dst_surface, dst_rect, tmp_surface, color, clip, rotate_flag );
+		}
 	}
 }
 

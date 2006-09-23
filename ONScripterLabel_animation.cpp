@@ -120,6 +120,46 @@ void ONScripterLabel::resetRemainingTime( int t )
     }
 }
 
+void downscale4x(SDL_Surface* src, SDL_Rect* srcpos, SDL_Surface* dst, SDL_Rect* dstpos)
+{
+	SDL_LockSurface(src);
+	SDL_LockSurface(dst);
+	
+	const int sp = src->pitch;
+	const int dp = dst->pitch;
+
+	SDL_Rect sr, dr;
+	if (srcpos) sr = *srcpos; else { sr.x = 0; sr.y = 0; sr.w = src->w; sr.h = src->h; }
+	if (dstpos) dr = *dstpos; else { dr.x = 0; dr.y = 0; } dr.w = sr.w / 4; dr.h = sr.h / 4;
+
+	Uint8* src_scan = (Uint8*) src->pixels + sr.y * sp + sr.x * 4;
+	Uint8* dst_scan = (Uint8*) dst->pixels + dr.y * dp + dr.x * 4;
+	
+	for (int rows = dr.h; rows --> 0; src_scan += sp * 4, dst_scan += dp) {
+		Uint32* src1 = (Uint32*) src_scan;
+		Uint32* src2 = (Uint32*) (src_scan + sp);
+		Uint32* src3 = (Uint32*) (src_scan + sp * 2);
+		Uint32* src4 = (Uint32*) (src_scan + sp * 3);
+		Uint32* dest = (Uint32*) dst_scan;
+		int cols = dr.w;
+		while (cols --> 0) {
+			Uint32 a, b, c, d;
+			Uint32 p;
+#			define AddPx(s) p = *s; a += p >> 24; b += (p >> 16) & 0xff; c += (p >> 8) & 0xff; d += p & 0xff
+			p = *src1++; a = p >> 24; b = (p >> 16) & 0xff; c = (p >> 8) & 0xff; d = p & 0xff;
+			               AddPx(src1++); AddPx(src1++); AddPx(src1++);
+			AddPx(src2++); AddPx(src2++); AddPx(src2++); AddPx(src2++);
+			AddPx(src3++); AddPx(src3++); AddPx(src3++); AddPx(src3++);
+			AddPx(src4++); AddPx(src4++); AddPx(src4++); AddPx(src4++);
+			a >>= 4; b >>= 4; c >>= 4; d >>= 4;
+			*dest++ = a << 24 | b << 16 | c << 8 | d;
+		}
+	}
+
+	SDL_UnlockSurface(src);
+	SDL_UnlockSurface(dst);
+}
+
 void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
 {
     anim->deleteSurface();
@@ -196,10 +236,24 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
         anim->fill( 0, 0, 0, 0 );
         
         f_info.top_x = f_info.top_y = 0;
+        //AnimationInfo tmp;
+        //memset(&tmp, 0, sizeof(AnimationInfo));
+		//tmp.pos = pos;
+        //tmp.num_of_cells = 1;
+        //tmp.allocImage(pos.w * 4, pos.h * 4); 
+        //f_info.set_size(f_info.size() * 4);
+        //f_info.area_x *= 4;
+        //f_info.area_y *= 4;
+        int x = 0;
         for ( int i=0 ; i<anim->num_of_cells ; i++ ){
             f_info.clear();
             f_info.style = Default;
+            //SDL_FillRect(tmp.image_surface, NULL, 0);
             drawString( anim->file_name, anim->color_list[i], &f_info, false, NULL, NULL, anim );
+            //drawString( anim->file_name, anim->color_list[i], &f_info, false, NULL, NULL, &tmp );
+            //SDL_Rect r = { x, 0, 0, 0 };
+            //downscale4x(tmp.image_surface, NULL, anim->image_surface, &r);
+            //x += anim->pos.w * screen_ratio2 / screen_ratio1;
             f_info.top_x += anim->pos.w * screen_ratio2 / screen_ratio1;
         }
     }

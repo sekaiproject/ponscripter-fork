@@ -377,15 +377,11 @@ void AnimationInfo::blendOnSurface2( SDL_Surface *dst_surface, int dst_x, int ds
 // Alpha = 1 - (1-Da)(1-Sa)
 // Color = (DaSaSc + Da(1-Sa)Dc + Sa(1-Da)Sc)/A
 void AnimationInfo::blendBySurface( SDL_Surface *surface, int dst_x, int dst_y, SDL_Color &color,
-                                    SDL_Rect *clip, bool rotate_flag )
+                                    SDL_Rect *clip )
 {
     if (image_surface == NULL || surface == NULL) return;
     
     SDL_Rect dst_rect = {dst_x, dst_y, surface->w, surface->h};
-    if (rotate_flag){
-        dst_rect.w = surface->h;
-        dst_rect.h = surface->w;
-    }
     SDL_Rect src_rect = {0, 0, 0, 0};
     SDL_Rect clipped_rect;
 
@@ -424,10 +420,7 @@ void AnimationInfo::blendBySurface( SDL_Surface *surface, int dst_x, int dst_y, 
 #endif    
     ONSBuf *dst_buffer = (ONSBuf *)image_surface->pixels + total_width * dst_rect.y + image_surface->w*current_cell/num_of_cells + dst_rect.x;
     unsigned char *src_buffer = NULL;
-    if (rotate_flag)
-        src_buffer = (unsigned char*)surface->pixels + surface->pitch*(surface->h - src_rect.x - 1) + src_rect.y;
-    else
-        src_buffer = (unsigned char*)surface->pixels + surface->pitch*src_rect.y + src_rect.x;
+    src_buffer = (unsigned char*)surface->pixels + surface->pitch*src_rect.y + src_rect.x;
 #if defined(BPP16)
     unsigned char *alphap = alpha_buf + image_surface->w * dst_rect.y + image_surface->w*current_cell/num_of_cells + dst_rect.x;
 #endif
@@ -462,19 +455,13 @@ void AnimationInfo::blendBySurface( SDL_Surface *surface, int dst_x, int dst_y, 
                      src_color2 * mask2) / an) & 0x00ff00;
             *dst_buffer = mask_rb | mask | (an << 24);
 #endif            
-            if (rotate_flag)
-                src_buffer -= surface->pitch;
-            else
-                src_buffer++;
+            src_buffer++;
         }
         dst_buffer += total_width - dst_rect.w;
 #if defined(BPP16)
         alphap += image_surface->w - dst_rect.w;
 #endif        
-        if (rotate_flag)
-            src_buffer = (unsigned char*)surface->pixels + surface->pitch*(surface->h - src_rect.x - 1) + src_rect.y + i + 1;
-        else
-            src_buffer += surface->pitch  - dst_rect.w;
+        src_buffer += surface->pitch  - dst_rect.w;
     }
 
     SDL_UnlockSurface( image_surface );
