@@ -244,7 +244,7 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
         //f_info.set_size(f_info.size() * 4);
         //f_info.area_x *= 4;
         //f_info.area_y *= 4;
-        int x = 0;
+        //int x = 0;
         for ( int i=0 ; i<anim->num_of_cells ; i++ ){
             f_info.clear();
             f_info.style = Default;

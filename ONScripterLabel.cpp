@@ -277,10 +277,6 @@ void ONScripterLabel::initSDL()
 
 	/* ---------------------------------------- */
 	/* Initialize SDL */
-	if ( TTF_Init() < 0 ){
-		fprintf( stderr, "can't initialize SDL TTF\n");
-		exit(-1);
-	}
 
 	SDL_RWops* rwicon = SDL_RWFromConstMem( internal_icon_buffer, internal_icon_size );
 	SDL_WM_SetIcon(IMG_Load_RW(rwicon, 0), NULL);

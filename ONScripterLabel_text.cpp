@@ -24,7 +24,7 @@
 #include "ONScripterLabel.h"
 #include "utf8_util.h"
 
-SDL_Surface *ONScripterLabel::renderGlyph(TTF_Font *font, Uint16 text, int size)
+SDL_Surface *ONScripterLabel::renderGlyph(Font *font, Uint16 text, int size)
 {
 	GlyphCache* gc = root_glyph_cache;
 	GlyphCache* pre_gc = gc;
@@ -53,21 +53,20 @@ SDL_Surface *ONScripterLabel::renderGlyph(TTF_Font *font, Uint16 text, int size)
 	gc->size = size;
 	if (gc->surface) SDL_FreeSurface(gc->surface);
 
-	TTF_SetSize(font, size);
+	font->set_size(size);
 	static SDL_Color fcol={0xff, 0xff, 0xff}, bcol={0, 0, 0};
-	gc->surface = TTF_RenderGlyph_Shaded( font, text, fcol, bcol );
+	gc->surface = font->render_glyph(text, fcol, bcol);
 
 	return gc->surface;
 }
 
 void ONScripterLabel::drawGlyph( SDL_Surface *dst_surface, FontInfo *info, SDL_Color &color, unsigned short unicode, int xy[2], bool shadow_flag, AnimationInfo *cache_info, SDL_Rect *clip, SDL_Rect &dst_rect )
 {
-	int minx, maxx, miny, maxy, advance;
+	int minx, maxx, miny, maxy;
 
 	int sz = info->doSize();
 
-	TTF_GlyphMetrics( info->font(), unicode,
-					  &minx, &maxx, &miny, &maxy, &advance );
+	info->font()->get_metrics(unicode, &minx, &maxx, &miny, &maxy);
 
 	SDL_Surface* tmp_surface = renderGlyph( info->font(), unicode, sz );
 

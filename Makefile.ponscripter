@@ -13,10 +13,10 @@ GUI_OBJS = ONScripterLabel$(OBJSUFFIX) ONScripterLabel_command$(OBJSUFFIX) ONScr
 	ONScripterLabel_animation$(OBJSUFFIX) ONScripterLabel_sound$(OBJSUFFIX) ONScripterLabel_file$(OBJSUFFIX) \
 	ONScripterLabel_file2$(OBJSUFFIX) ONScripterLabel_image$(OBJSUFFIX) ONScripterLabel_haeleth$(OBJSUFFIX) \
 	AnimationInfo$(OBJSUFFIX) FontInfo$(OBJSUFFIX) DirtyRect$(OBJSUFFIX) resize_image$(OBJSUFFIX) \
-	resources$(OBJSUFFIX) utf8_util$(OBJSUFFIX)
+	resources$(OBJSUFFIX) utf8_util$(OBJSUFFIX) font$(OBJSUFFIX)
 DECODER_OBJS = DirectReader$(OBJSUFFIX) SarReader$(OBJSUFFIX) NsaReader$(OBJSUFFIX)
 ONSCRIPTER_OBJS = onscripter$(OBJSUFFIX) $(DECODER_OBJS) ScriptHandler$(OBJSUFFIX) ScriptParser$(OBJSUFFIX) ScriptParser_command$(OBJSUFFIX) \
-	$(GUI_OBJS) $(EXT_OBJS) ttf$(OBJSUFFIX)
+	$(GUI_OBJS) $(EXT_OBJS)
 PARSER_HEADER = BaseReader.h SarReader.h NsaReader.h DirectReader.h ScriptHandler.h ScriptParser.h AnimationInfo.h FontInfo.h DirtyRect.h
 ONSCRIPTER_HEADER = ONScripterLabel.h ttf.h $(PARSER_HEADER)
 

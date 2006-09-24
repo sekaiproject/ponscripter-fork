@@ -25,21 +25,20 @@
 #define __FONT_INFO_H__
 
 #include <SDL.h>
-#include "ttf.h"
+#include "font.h"
 
 extern int screen_ratio1, screen_ratio2;
 
 typedef unsigned char uchar3[3];
 
-class FontInfo{
-	int em_width_, line_space_; // Width and height of a character
+class FontInfo {
 	int indent;
 	int pos_x, pos_y; // Current position
 	int font_size, font_size_mod;
 public:
 	static int default_encoding;
 
-	TTF_Font* font();
+	Font* font();
 	uchar3 color;
 	uchar3 on_color, off_color, nofile_color;
 	int top_x, top_y; // Top left origin
@@ -60,7 +59,7 @@ public:
 
 	int style;
 
-	int em_width();
+	float em_width();
 	int line_space();
 
 	void SetIndent(const unsigned short indent_char) { indent = GlyphAdvance(indent_char, 0); }
@@ -92,11 +91,7 @@ public:
 	SDL_Rect calcUpdatedArea(int start_xy[2], int ratio1, int ratio2 );
 	void addShadeArea(SDL_Rect &rect, int shade_distance[2] );
 
-	int doSize() { 
-		const int sz = size();
-		TTF_SetSize(font(), sz);
-		return sz;
-	}
+	int doSize();
 };
 
 #endif // __FONT_INFO_H__

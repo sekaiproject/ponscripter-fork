@@ -31,25 +31,24 @@ int screen_ratio1 = 1, screen_ratio2 = 1;
 
 int FontInfo::default_encoding = 0;
 
-class FontsStruct {
+static class FontsStruct {
 	static const int count = 8;
-	unsigned char* data[count];
-	TTF_Font* font_[count];
+	Font* font_[count];
 public:
-	TTF_Font* font(int style);
+	Font* font(int style);
 
-	FontsStruct() { for (int i = 0; i < count; ++i) { font_[i] = NULL; data[i] = NULL; } }
+	FontsStruct() { for (int i = 0; i < count; ++i) { font_[i] = NULL; } }
 	~FontsStruct();
 } Fonts;
 
 FontsStruct::~FontsStruct()
 {
 	for (int i = 0; i < count; ++i) {
-		if (data[i]) delete[] data[i];
+		if (font_[i]) delete font_[i];
 	}
 }
 
-TTF_Font* FontsStruct::font(int style)
+Font* FontsStruct::font(int style)
 {
 	if (font_[style]) return font_[style];
 	char fn[32];
@@ -58,26 +57,25 @@ TTF_Font* FontsStruct::font(int style)
 	FILE* fp = fopen(fn, "rb");
 	if (fp) {
 		fclose(fp);
-		font_[style] = TTF_OpenFont(fn);
+		font_[style] = new Font(fn);
 	}
 	else if ((len = ScriptHandler::cBR->getFileLength(fn))) {
-		data[style] = new unsigned char[len];
-		ScriptHandler::cBR->getFile(fn, data[style]);
-		SDL_RWops* rwfont = SDL_RWFromMem(data[style], len);
-		font_[style] = TTF_OpenFontRW(rwfont, 0);
+		Uint8* data = new Uint8[len];
+		ScriptHandler::cBR->getFile(fn, data);
+		font_[style] = new Font(data, len);
 	}
 	if (font_[style]) {
-		// Hardwire emboldening for now
-		font_[style]->embolden = style <= 1;
+		//// Hardwire emboldening for now
+		//font_[style]->embolden = style <= 1;
 		
-		TTF_SetSize(font_[style], 26);
+		font_[style]->set_size(26);
 		return font_[style];
 	}
 	fprintf(stderr, "Error: failed to open font %s\n", fn);
 	exit(1);
 }
 
-TTF_Font* FontInfo::font()
+Font* FontInfo::font()
 {
 	return Fonts.font(style);
 }
@@ -114,13 +112,12 @@ void FontInfo::clear()
 	font_size_mod = 0;
 }
 
-int FontInfo::em_width()
+float FontInfo::em_width()
 {
 	doSize();
-	int rv;
-	TTF_GlyphMetrics(font(), 'M', NULL, NULL, NULL, NULL, &rv);
-	return rv;
+	return font()->advance('M');
 }
+
 int FontInfo::line_space()
 {
 	doSize();
@@ -131,17 +128,11 @@ int FontInfo::GlyphAdvance(unsigned short unicode, unsigned short next)
 {
 	if (unicode >= 0x10 && unicode < 0x20) return 0;
 	doSize();
-	int rv;
-	TTF_GlyphMetrics(font(), unicode, NULL, NULL, NULL, NULL, &rv);
+	float adv = font()->advance(unicode);
 #ifdef KERNING
-	if (next) {
-		FT_Face& face = font()->face;
-		FT_Vector kern;
-		FT_Error err = FT_Get_Kerning(face, FT_Get_Char_Index(face, unicode), FT_Get_Char_Index(face, next), FT_KERNING_DEFAULT, &kern);
-		if (!err) rv += kern.x >> 6;
-	}
+	if (next) adv += font()->kerning(unicode, next);
 #endif
-	return rv + pitch_x;
+	return int(adv) + pitch_x;
 }
 
 int get_int(const char* text)
@@ -285,3 +276,8 @@ void FontInfo::addShadeArea(SDL_Rect &rect, int shade_distance[2])
 	}
 }
 
+int FontInfo:: doSize() { 
+	const int sz = size();
+	font()->set_size(sz);
+	return sz;
+}
