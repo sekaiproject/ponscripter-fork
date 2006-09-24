@@ -374,14 +374,7 @@ ONScripterLabel::ONScripterLabel()
 	skip_to_wait = 0;
 	indent_chars = NULL;
 	break_chars = NULL;
-
-	for (int i=0 ; i<NUM_GLYPH_CACHE ; i++){
-		if (i != NUM_GLYPH_CACHE-1) glyph_cache[i].next = &glyph_cache[i+1];
-		glyph_cache[i].font = NULL;
-		glyph_cache[i].surface = NULL;
-	}
-	glyph_cache[NUM_GLYPH_CACHE-1].next = NULL;
-	root_glyph_cache = &glyph_cache[0];
+	glyph_surface = NULL;
 
 	// External Players
 	music_cmd = getenv("PLAYER_CMD");
@@ -390,6 +383,7 @@ ONScripterLabel::ONScripterLabel()
 
 ONScripterLabel::~ONScripterLabel()
 {
+	if (glyph_surface) SDL_FreeSurface(glyph_surface);
 	reset();
 }
 
@@ -990,7 +984,7 @@ int ONScripterLabel::parseLine( )
 	if (is_break_char(first_ch) && !new_line_skip_flag){
 		char *it = script_h.getStringBuffer() + string_buffer_offset 
 				 + CharacterBytes(script_h.getStringBuffer() + string_buffer_offset);
-		int len = sentence_font.GlyphAdvance(first_ch, UnicodeOfUTF8(it));
+		float len = sentence_font.GlyphAdvance(first_ch, UnicodeOfUTF8(it));
 		while (1) {
 			// For each character (not char!) before a break is found, get unicode.
 			unsigned short ch = UnicodeOfUTF8(it);
@@ -1041,7 +1035,7 @@ int ONScripterLabel::parseLine( )
 			//    I eat them every day.
 			//    -------------------------
 			// Currently we use four em widths, which is an arbtrary figure that may need tweaking.
-			const int minlen = sentence_font.em_width() * 4;
+			const float minlen = sentence_font.em_width() * 4;
 			if (len < minlen) len = minlen;
 		}
 		if (len > 0 && sentence_font.isNoRoomFor(len)) {
@@ -1231,7 +1225,7 @@ void ONScripterLabel::newPage( bool next_flag )
 
 struct ONScripterLabel::ButtonLink *ONScripterLabel::getSelectableSentence( char *buffer, FontInfo *info, bool flush_flag, bool nofile_flag )
 {
-	int current_x;
+	float current_x;
 	current_x = info->GetXOffset();
 
 	ButtonLink *button_link = new ButtonLink();
@@ -1253,7 +1247,7 @@ struct ONScripterLabel::ButtonLink *ONScripterLabel::getSelectableSentence( char
 		anim->color_list[1][i] = info->on_color[i];
 	}
 	setStr( &anim->file_name, buffer );
-	anim->pos.x = info->GetX() * screen_ratio1 / screen_ratio2;
+	anim->pos.x = Sint16(floor(info->GetX() * screen_ratio1 / screen_ratio2));
 	anim->pos.y = info->GetY() * screen_ratio1 / screen_ratio2;
 	anim->visible = true;
 

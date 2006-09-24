@@ -18,7 +18,7 @@ DECODER_OBJS = DirectReader$(OBJSUFFIX) SarReader$(OBJSUFFIX) NsaReader$(OBJSUFF
 ONSCRIPTER_OBJS = onscripter$(OBJSUFFIX) $(DECODER_OBJS) ScriptHandler$(OBJSUFFIX) ScriptParser$(OBJSUFFIX) ScriptParser_command$(OBJSUFFIX) \
 	$(GUI_OBJS) $(EXT_OBJS)
 PARSER_HEADER = BaseReader.h SarReader.h NsaReader.h DirectReader.h ScriptHandler.h ScriptParser.h AnimationInfo.h FontInfo.h DirtyRect.h
-ONSCRIPTER_HEADER = ONScripterLabel.h ttf.h $(PARSER_HEADER)
+ONSCRIPTER_HEADER = font.h ONScripterLabel.h $(PARSER_HEADER)
 
 ponscr$(EXESUFFIX): $(ONSCRIPTER_OBJS)
 	$(LD)$@ $(ONSCRIPTER_OBJS) $(LIBS)
@@ -53,7 +53,7 @@ ONScripterLabel_file2$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
 ONScripterLabel_image$(OBJSUFFIX): $(ONSCRIPTER_HEADER) resize_image.h
 AnimationInfo$(OBJSUFFIX): AnimationInfo.h
 resources$(OBJSUFFIX): resources.h
-FontInfo$(OBJSUFFIX): FontInfo.h utf8_util.h resources.h ttf.h
+FontInfo$(OBJSUFFIX): FontInfo.h utf8_util.h resources.h font.h
 DirtyRect$(OBJSUFFIX) : DirtyRect.h
 MadWrapper$(OBJSUFFIX): MadWrapper.h
 AVIWrapper$(OBJSUFFIX): AVIWrapper.h

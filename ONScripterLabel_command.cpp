@@ -707,9 +707,8 @@ int ONScripterLabel::selectCommand()
         }
         shortcut_mouse_line = -1;
 
-        int xy[2];
-        xy[0] = sentence_font.GetXOffset();
-        xy[1] = sentence_font.GetYOffset();
+        float old_x = sentence_font.GetXOffset();
+        int old_y =sentence_font.GetYOffset();
 
         if ( selectvoice_file_name[SELECTVOICE_OPEN] )
             playSound(selectvoice_file_name[SELECTVOICE_OPEN],
@@ -798,7 +797,7 @@ int ONScripterLabel::selectCommand()
         }
         skip_flag = false;
         automode_flag = false;
-        sentence_font.SetXY(xy[0], xy[1]);
+        sentence_font.SetXY(old_x, old_y);
 
         flush( refreshMode() );
 
@@ -1999,7 +1998,7 @@ int ONScripterLabel::getenterCommand()
 int ONScripterLabel::getcursorposCommand()
 {
     script_h.readInt();
-    script_h.setInt( &script_h.current_variable, sentence_font.GetX() );
+    script_h.setInt( &script_h.current_variable, int(floor(sentence_font.GetX())) );
 
     script_h.readInt();
     script_h.setInt( &script_h.current_variable, sentence_font.GetY() );
@@ -2541,7 +2540,7 @@ int ONScripterLabel::cselbtnCommand()
     if ( link == NULL || link->text == NULL || *link->text == '\0' )
         return RET_CONTINUE;
 
-    csel_info.setLineArea( csel_info.StringAdvance(link->text) );
+    csel_info.setLineArea( int(ceil(csel_info.StringAdvance(link->text))) );
     csel_info.clear();
     ButtonLink *button = getSelectableSentence( link->text, &csel_info );
     root_button_link.insert( button );

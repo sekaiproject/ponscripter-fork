@@ -32,8 +32,8 @@ extern int screen_ratio1, screen_ratio2;
 typedef unsigned char uchar3[3];
 
 class FontInfo {
-	int indent;
-	int pos_x, pos_y; // Current position
+	float indent;
+	float pos_x; int pos_y; // Current position
 	int font_size, font_size_mod;
 public:
 	static int default_encoding;
@@ -68,28 +68,28 @@ public:
 	FontInfo();
 	void reset();
 
-	int GetXOffset() const { return pos_x; }
+	float GetXOffset() const { return pos_x; }
 	int GetYOffset() const { return pos_y; }	
-	int GetX() const { return pos_x + top_x; }
+	float GetX() const { return pos_x + float(top_x); }
 	int GetY() const { return pos_y + top_y; };
 	
-	void SetXY( int x=-1, int y=-1 );
+	void SetXY( float x=-1, int y=-1 );
 	void clear();
 	void newLine();
 	void setLineArea(int num);
 
-	int GlyphAdvance(unsigned short unicode, unsigned short next);
-	int StringAdvance(const char* string);
+	float GlyphAdvance(unsigned short unicode, unsigned short next);
+	float StringAdvance(const char* string);
 
-	bool isNoRoomFor(int margin=0);
+	bool isNoRoomFor(float margin = 0.0);
 	bool isLineEmpty();
 	bool processCode(const char* text);
-	void advanceBy(int offset);
+	void advanceBy(float offset);
 
 	SDL_Rect getFullArea(int ratio1, int ratio2);
 
-	SDL_Rect calcUpdatedArea(int start_xy[2], int ratio1, int ratio2 );
-	void addShadeArea(SDL_Rect &rect, int shade_distance[2] );
+	SDL_Rect calcUpdatedArea(float start_x, int start_y, int ratio1, int ratio2);
+	void addShadeArea(SDL_Rect &rect, int shade_distance[2]);
 
 	int doSize();
 };

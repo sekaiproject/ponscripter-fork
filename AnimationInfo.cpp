@@ -232,7 +232,7 @@ int AnimationInfo::doClipping( SDL_Rect *dst, SDL_Rect *clip, SDL_Rect *clipped 
 void AnimationInfo::blendOnSurface( SDL_Surface *dst_surface, int dst_x, int dst_y,
                                     SDL_Rect &clip, int alpha )
 {
-    if ( image_surface == NULL ) return;
+    if (!image_surface || !dst_surface) return;
     
     SDL_Rect dst_rect = {dst_x, dst_y, pos.w, pos.h}, src_rect;
     if ( doClipping( &dst_rect, &clip, &src_rect ) ) return;

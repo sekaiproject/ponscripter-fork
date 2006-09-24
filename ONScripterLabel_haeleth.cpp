@@ -43,7 +43,7 @@ int ONScripterLabel::haeleth_text_extentCommand()
 		f.set_mod_size(0);
 		f.pitch_x = script_h.readInt();
 	}
-    script_h.setInt(&script_h.pushed_variable, f.StringAdvance(localbuf));
+    script_h.setInt(&script_h.pushed_variable, int(ceil(f.StringAdvance(localbuf))));
 	return RET_CONTINUE;
 }
 
@@ -57,7 +57,7 @@ int ONScripterLabel::haeleth_centre_lineCommand()
 {
 	const char *buf = script_h.readStr();
 	if (*buf == '^') ++buf;
-	sentence_font.SetXY(screen_width / 2 - sentence_font.StringAdvance(buf) / 2 - sentence_font.top_x, -1);
+	sentence_font.SetXY(float(screen_width) / 2.0 - sentence_font.StringAdvance(buf) / 2.0 - sentence_font.top_x, -1);
 	return RET_CONTINUE;
 }
 

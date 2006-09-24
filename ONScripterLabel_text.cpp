@@ -26,41 +26,19 @@
 
 SDL_Surface *ONScripterLabel::renderGlyph(Font *font, Uint16 text, int size)
 {
-	GlyphCache* gc = root_glyph_cache;
-	GlyphCache* pre_gc = gc;
-	while(1){
-		if (gc->text == text &&
-			gc->font == font &&
-			gc->size == size){
-			if (gc != pre_gc){
-				pre_gc->next = gc->next;
-				gc->next = root_glyph_cache;
-				root_glyph_cache = gc;
-			}
-			return gc->surface;
-		}
-		if (gc->next == NULL) break;
-		pre_gc = gc;
-		gc = gc->next;
+	if (glyph_surface) { 
+		SDL_FreeSurface(glyph_surface);
+		glyph_surface = NULL;
 	}
-
-	pre_gc->next = NULL;
-	gc->next = root_glyph_cache;
-	root_glyph_cache = gc;
-
-	gc->text = text;
-	gc->font = font;
-	gc->size = size;
-	if (gc->surface) SDL_FreeSurface(gc->surface);
 
 	font->set_size(size);
 	static SDL_Color fcol={0xff, 0xff, 0xff}, bcol={0, 0, 0};
-	gc->surface = font->render_glyph(text, fcol, bcol);
+	glyph_surface = font->render_glyph(text, fcol, bcol);
 
-	return gc->surface;
+	return glyph_surface;
 }
 
-void ONScripterLabel::drawGlyph( SDL_Surface *dst_surface, FontInfo *info, SDL_Color &color, unsigned short unicode, int xy[2], bool shadow_flag, AnimationInfo *cache_info, SDL_Rect *clip, SDL_Rect &dst_rect )
+void ONScripterLabel::drawGlyph( SDL_Surface *dst_surface, FontInfo *info, SDL_Color &color, unsigned short unicode, float x, int y, bool shadow_flag, AnimationInfo *cache_info, SDL_Rect *clip, SDL_Rect &dst_rect )
 {
 	int minx, maxx, miny, maxy;
 
@@ -72,8 +50,8 @@ void ONScripterLabel::drawGlyph( SDL_Surface *dst_surface, FontInfo *info, SDL_C
 
 	bool rotate_flag = false;
 
-	dst_rect.x = xy[0] + minx;
-	dst_rect.y = xy[1] + info->font()->ascent() - maxy;
+	dst_rect.x = int(floor(x + minx));
+	dst_rect.y = y + info->font()->ascent() - maxy;
 
 	if ( shadow_flag ){
 		dst_rect.x += shade_distance[0];
@@ -84,8 +62,8 @@ void ONScripterLabel::drawGlyph( SDL_Surface *dst_surface, FontInfo *info, SDL_C
 		dst_rect.w = tmp_surface->w;
 		dst_rect.h = tmp_surface->h;
 
-		// When rendering text, cache_info == text_info.
 		if (cache_info == &text_info) {
+			// When rendering text
 			cache_info->blendBySurface( tmp_surface, dst_rect.x, dst_rect.y, color, clip );
 			cache_info->blendOnSurface( dst_surface, 0, 0, dst_rect );
 		}
@@ -107,7 +85,7 @@ void ONScripterLabel::drawChar( const char* text, FontInfo *info, bool flush_fla
 		// info->doSize() called in GlyphAdvance
 	
 		unsigned short unicode = UnicodeOfUTF8(text);
-		int advance = info->GlyphAdvance(unicode, UnicodeOfUTF8(text + bytes));
+		float advance = info->GlyphAdvance(unicode, UnicodeOfUTF8(text + bytes));
 	
 		if ( info->isNoRoomFor(advance) ){
 			info->newLine();
@@ -116,20 +94,19 @@ void ONScripterLabel::drawChar( const char* text, FontInfo *info, bool flush_fla
 			}
 		}
 	
-		int xy[2];
-		xy[0] = info->GetX() * screen_ratio1 / screen_ratio2;
-		xy[1] = info->GetY() * screen_ratio1 / screen_ratio2;
+		float x = info->GetX() * screen_ratio1 / screen_ratio2;
+		int y = info->GetY() * screen_ratio1 / screen_ratio2;
 	
 		SDL_Color color;
 		SDL_Rect dst_rect;
 		if ( info->is_shadow ){
 			color.r = color.g = color.b = 0;
-			drawGlyph(surface, info, color, unicode, xy, true, cache_info, clip, dst_rect);
+			drawGlyph(surface, info, color, unicode, x, y, true, cache_info, clip, dst_rect);
 		}
 		color.r = info->color[0];
 		color.g = info->color[1];
 		color.b = info->color[2];
-		drawGlyph( surface, info, color, unicode, xy, false, cache_info, clip, dst_rect );
+		drawGlyph( surface, info, color, unicode, x, y, false, cache_info, clip, dst_rect );
 	
 		if ( surface == accumulation_surface &&
 			 !flush_flag &&
@@ -155,9 +132,8 @@ void ONScripterLabel::drawString( const char *str, uchar3 color, FontInfo *info,
 {
 	int i;
 
-	int start_xy[2];
-	start_xy[0] = info->GetXOffset();
-	start_xy[1] = info->GetYOffset();
+	float start_x = info->GetXOffset();
+	int start_y = info->GetYOffset();
 
 	/* ---------------------------------------- */
 	/* Draw selected characters */
@@ -187,7 +163,7 @@ void ONScripterLabel::drawString( const char *str, uchar3 color, FontInfo *info,
 
 	/* ---------------------------------------- */
 	/* Calculate the area of selection */
-	SDL_Rect clipped_rect = info->calcUpdatedArea(start_xy, screen_ratio1, screen_ratio2);
+	SDL_Rect clipped_rect = info->calcUpdatedArea(start_x, start_y, screen_ratio1, screen_ratio2);
 	info->addShadeArea(clipped_rect, shade_distance);
 
 	if ( flush_flag )

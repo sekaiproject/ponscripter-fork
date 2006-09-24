@@ -76,34 +76,39 @@ Ligatures and nice punctuation:
 
 Significant changes:
 
+2006-09-24
+
+  Replace SDL_ttf with a simpler, saner C++ interface (the implementation still
+  being largely drawn from SDL_ttf, of course).
+
+  Convert horizontal font positioning to use floating-point rather than integer 
+  offsets.  The immediate effect is to make spacing seem slightly uneven, but in 
+  the long run this will permit subpixel positioning.
+  
+  Remove glyph caching.  ONScripter uses _two_ glyph caches (!) -- one in 
+  SDL_ttf, which apparently only works on ASCII characters anyway, and one in 
+  ONScripterLabel. However, the speed of text rendering does not seem to be 
+  affected at all by removing caching, suggesting that it's a premature 
+  optimisation, and it needlessly complicates desirable future effects such
+  as subpixel positioning.
+
 2006-09-18
 
-  Convert multi-style support to a sane multi-font system.  ^^;
-  
-  Remove font embedding and replace with a sane fonts-in-archive system.  ^^;;
+  Implementation of current multi-font-style support.
 
 2006-09-14
 
-  Multi-style support using transformations of Unicode to alternative glyphs in 
-  the private-use area.  For Narcissu, created a fontset based on Bitstream 
-  Charter and URW Nimbus Sans, with added Euros, old-style figures, and 
-  additional ligatures.
+  Initial implementation of multi-font-style support (since replaced).
   
+  For Narcissu, created a fontset based on Bitstream Charter and URW Nimbus 
+  Sans, with added Euros, old-style figures, and additional ligatures.
+ 
   Automatic ligature support.
   
-  Adjusted font embedding to work from source code rather than a binary.  This 
-  means that the build process now depends on FontForge (if you wish to use an 
-  embedded font).  However, it also means the source distribution will be pure
-  source code (apart from icons etc), which is a bonus.
-  
-  Include SDL_ttf locally, since the official version is broken and doesn't
-  work with Freetype 2.  Alter artificial boldening to operate by adjusting
-  tone curve rather than by adding pixels.
-
 2006-09-08
 
-  Default font & icon embedded in interpreter.  (These are game-specific;
-  users are expected to use custom builds with these replaced.)
+  Default icon embedded in interpreter.  (This is game-specific; users are
+  expected to use custom builds with these replaced.)
 
 2006-09-06
 
@@ -117,7 +122,7 @@ Significant changes:
   has to be stored in a writable directory.
   
   OS X: make default archive path be the Resources folder of the application 
-  bundle, and default save path be a new subfolder of the user's Documents.  The 
-  name of the subfolder is derived from a new "game identifier" that should be 
-  specified at the top of 0.txt with a ";gameid Whatever" line immediately after 
-  the modeline (if present).
+  bundle, and default save path be a new subfolder of the user's 
+  Library/Preferences.  The name of the subfolder is derived from a new "game 
+  identifier" that should be specified at the top of 0.txt with a ";gameid 
+  Whatever" line immediately after the modeline (if present).

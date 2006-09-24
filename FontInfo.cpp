@@ -26,6 +26,7 @@
 #include "BaseReader.h"
 #include "ScriptHandler.h"
 #include <stdio.h>
+#include <math.h>
 
 int screen_ratio1 = 1, screen_ratio2 = 1;
 
@@ -124,7 +125,7 @@ int FontInfo::line_space()
 	return font()->lineskip();
 }
 
-int FontInfo::GlyphAdvance(unsigned short unicode, unsigned short next)
+float FontInfo::GlyphAdvance(unsigned short unicode, unsigned short next)
 {
 	if (unicode >= 0x10 && unicode < 0x20) return 0;
 	doSize();
@@ -132,7 +133,7 @@ int FontInfo::GlyphAdvance(unsigned short unicode, unsigned short next)
 #ifdef KERNING
 	if (next) adv += font()->kerning(unicode, next);
 #endif
-	return int(adv) + pitch_x;
+	return adv + float(pitch_x);
 }
 
 int get_int(const char* text)
@@ -166,12 +167,13 @@ bool FontInfo::processCode(const char* text)
 	return false;
 }
 
-int FontInfo::StringAdvance(const char* string) 
+float FontInfo::StringAdvance(const char* string) 
 {
 	doSize();
-	int rv = 0;
+	float rv = 0.0;
 	unsigned short unicode, next;
-	int orig_mod = font_size_mod, orig_style = style, orig_x = pos_x, orig_y = pos_y;
+	float orig_x = pos_x;
+	int orig_mod = font_size_mod, orig_style = style, orig_y = pos_y;
 	unicode = UnicodeOfUTF8(string);
 	while (*string) {
 		int cb = CharacterBytes(string);
@@ -187,7 +189,7 @@ int FontInfo::StringAdvance(const char* string)
 	return rv;
 }
 
-void FontInfo::SetXY( int x, int y )
+void FontInfo::SetXY( float x, int y )
 {
 	if ( x != -1 ) pos_x = x;
 	if ( y != -1 ) pos_y = y;
@@ -207,7 +209,7 @@ void FontInfo::setLineArea(int num)
 	area_y = line_space();
 }
 
-bool FontInfo::isNoRoomFor(int margin)
+bool FontInfo::isNoRoomFor(float margin)
 {
 	return pos_x + margin >= area_x;
 }
@@ -217,7 +219,7 @@ bool FontInfo::isLineEmpty()
 	return pos_x == indent;
 }
 
-void FontInfo::advanceBy(int offset)
+void FontInfo::advanceBy(float offset)
 {
 	pos_x += offset;
 }
@@ -232,23 +234,23 @@ SDL_Rect FontInfo::getFullArea(int ratio1, int ratio2)
 	return rect;
 }
 
-SDL_Rect FontInfo::calcUpdatedArea(int start_xy[2], int ratio1, int ratio2)
+SDL_Rect FontInfo::calcUpdatedArea(float start_x, int start_y, int ratio1, int ratio2)
 {
 	doSize();
 	SDL_Rect rect;
 	
-	if (start_xy[1] == pos_y){ 
+	if (start_y == pos_y){ 
 		// if single line, return minimum width
-		rect.x = top_x + start_xy[0];
-		rect.w = pos_x - start_xy[0];
+		rect.x = top_x + (long) floor(start_x);
+		rect.w = (long) ceil(pos_x - start_x);
 	}
 	else{
 		// multi-line: return full width
 		rect.x = top_x;
 		rect.w = area_x;
 	}
-	rect.y = top_y + start_xy[1];
-	rect.h = pos_y - start_xy[1] + line_space();
+	rect.y = top_y + start_y;
+	rect.h = pos_y - start_y + line_space();
 
 	rect.x = rect.x * ratio1 / ratio2;
 	rect.y = rect.y * ratio1 / ratio2;

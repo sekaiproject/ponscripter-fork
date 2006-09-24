@@ -55,7 +55,7 @@ int ONScripterLabel::proceedAnimation()
         if ( anim->visible && anim->is_animatable ){
             SDL_Rect dst_rect = anim->pos;
             if ( !anim->abs_flag ){
-                dst_rect.x += sentence_font.GetX() * screen_ratio1 / screen_ratio2;
+                dst_rect.x += int(floor(sentence_font.GetX() * screen_ratio1 / screen_ratio2));
                 dst_rect.y += sentence_font.GetY() * screen_ratio1 / screen_ratio2;
             }
 
@@ -211,7 +211,7 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
             if ( anim->font_pitch >= 0 )
                 f_info.pitch_x = anim->font_pitch;
             if (anim->is_single_line) {
-            	f_info.area_x = f_info.StringAdvance(anim->file_name);
+            	f_info.area_x = int(ceil(f_info.StringAdvance(anim->file_name)));
             	f_info.area_y = f_info.line_space();
             }
             if (anim->is_centered_text) {
@@ -236,24 +236,10 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
         anim->fill( 0, 0, 0, 0 );
         
         f_info.top_x = f_info.top_y = 0;
-        //AnimationInfo tmp;
-        //memset(&tmp, 0, sizeof(AnimationInfo));
-		//tmp.pos = pos;
-        //tmp.num_of_cells = 1;
-        //tmp.allocImage(pos.w * 4, pos.h * 4); 
-        //f_info.set_size(f_info.size() * 4);
-        //f_info.area_x *= 4;
-        //f_info.area_y *= 4;
-        //int x = 0;
         for ( int i=0 ; i<anim->num_of_cells ; i++ ){
             f_info.clear();
             f_info.style = Default;
-            //SDL_FillRect(tmp.image_surface, NULL, 0);
             drawString( anim->file_name, anim->color_list[i], &f_info, false, NULL, NULL, anim );
-            //drawString( anim->file_name, anim->color_list[i], &f_info, false, NULL, NULL, &tmp );
-            //SDL_Rect r = { x, 0, 0, 0 };
-            //downscale4x(tmp.image_surface, NULL, anim->image_surface, &r);
-            //x += anim->pos.w * screen_ratio2 / screen_ratio1;
             f_info.top_x += anim->pos.w * screen_ratio2 / screen_ratio1;
         }
     }
@@ -406,7 +392,7 @@ void ONScripterLabel::drawTaggedSurface( SDL_Surface *dst_surface, AnimationInfo
 {
     SDL_Rect poly_rect = anim->pos;
     if ( !anim->abs_flag ){
-        poly_rect.x += sentence_font.GetX() * screen_ratio1 / screen_ratio2;
+        poly_rect.x += int(floor(sentence_font.GetX() * screen_ratio1 / screen_ratio2));
         poly_rect.y += sentence_font.GetY() * screen_ratio1 / screen_ratio2;
     }
 
@@ -433,7 +419,7 @@ void ONScripterLabel::stopAnimation( int click )
     SDL_Rect dst_rect = cursor_info[ no ].pos;
 
     if ( !cursor_info[ no ].abs_flag ){
-        dst_rect.x += sentence_font.GetX() * screen_ratio1 / screen_ratio2;
+        dst_rect.x += int(floor(sentence_font.GetX() * screen_ratio1 / screen_ratio2));
         dst_rect.y += sentence_font.GetY() * screen_ratio1 / screen_ratio2;
     }
 
