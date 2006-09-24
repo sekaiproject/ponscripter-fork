@@ -24,7 +24,7 @@
 #include "ONScripterLabel.h"
 #include "utf8_util.h"
 
-SDL_Surface *ONScripterLabel::renderGlyph(Font *font, Uint16 text, int size)
+SDL_Surface *ONScripterLabel::renderGlyph(Font *font, Uint16 text, int size, float x_fractional_part)
 {
 	if (glyph_surface) { 
 		SDL_FreeSurface(glyph_surface);
@@ -33,7 +33,7 @@ SDL_Surface *ONScripterLabel::renderGlyph(Font *font, Uint16 text, int size)
 
 	font->set_size(size);
 	static SDL_Color fcol={0xff, 0xff, 0xff}, bcol={0, 0, 0};
-	glyph_surface = font->render_glyph(text, fcol, bcol);
+	glyph_surface = font->render_glyph(text, fcol, bcol, x_fractional_part);
 
 	return glyph_surface;
 }
@@ -46,7 +46,7 @@ void ONScripterLabel::drawGlyph( SDL_Surface *dst_surface, FontInfo *info, SDL_C
 
 	info->font()->get_metrics(unicode, &minx, &maxx, &miny, &maxy);
 
-	SDL_Surface* tmp_surface = renderGlyph( info->font(), unicode, sz );
+	SDL_Surface* tmp_surface = renderGlyph(info->font(), unicode, sz, info->GetXOffset() - floor(info->GetXOffset()));
 
 	bool rotate_flag = false;
 

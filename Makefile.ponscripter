@@ -42,7 +42,7 @@ onscripter$(OBJSUFFIX): $(ONSCRIPTER_HEADER) version.h
 ONScripterLabel$(OBJSUFFIX): $(ONSCRIPTER_HEADER) utf8_util.h
 ONScripterLabel_command$(OBJSUFFIX): $(ONSCRIPTER_HEADER) version.h utf8_util.h
 ONScripterLabel_haeleth$(OBJSUFFIX): $(ONSCRIPTER_HEADER) utf8_util.h
-ONScripterLabel_text$(OBJSUFFIX): $(ONSCRIPTER_HEADER) utf8_util.h
+ONScripterLabel_text$(OBJSUFFIX): $(ONSCRIPTER_HEADER) utf8_util.h font.h
 ONScripterLabel_effect$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
 ONScripterLabel_event$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
 ONScripterLabel_rmenu$(OBJSUFFIX): $(ONSCRIPTER_HEADER)

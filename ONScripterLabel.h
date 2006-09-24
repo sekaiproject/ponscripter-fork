@@ -547,7 +547,7 @@ private:
     int  refreshMode();
     void setwindowCore();
 
-    SDL_Surface *renderGlyph(Font *font, Uint16 text, int size);
+    SDL_Surface *renderGlyph(Font *font, Uint16 text, int size, float x_fractional_part);
     void drawGlyph( SDL_Surface *dst_surface, FontInfo *info, SDL_Color &color, unsigned short unicode, float x, int y, bool shadow_flag, AnimationInfo *cache_info, SDL_Rect *clip, SDL_Rect &dst_rect );
     void drawChar( const char* text, FontInfo *info, bool flush_flag, bool lookback_flag, SDL_Surface *surface, AnimationInfo *cache_info, SDL_Rect *clip=NULL );
     void drawString( const char *str, uchar3 color, FontInfo *info, bool flush_flag, SDL_Surface *surface, SDL_Rect *rect = NULL, AnimationInfo *cache_info=NULL );

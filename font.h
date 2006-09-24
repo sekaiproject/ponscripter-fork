@@ -37,7 +37,7 @@ public:
 	void get_metrics(Uint16 ch, int* minx, int* maxx, int* miny, int* maxy);
 	
 	void set_size(int val);
-	SDL_Surface* render_glyph(Uint16 ch, SDL_Color fg, SDL_Color bg);
+	SDL_Surface* render_glyph(Uint16 ch, SDL_Color fg, SDL_Color bg, float x_fractional_part);
 	
 	int ascent();
 	int lineskip();

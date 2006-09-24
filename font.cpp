@@ -25,11 +25,18 @@
 #include FT_OUTLINE_H
 #include FT_TRUETYPE_IDS_H
 #include <stdio.h>
+#include <math.h>
 #include "font.h"
 
-const FT_Int32 load_mode = FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP;
+#ifdef USE_HINTING
+const FT_Int32 load_mode = FT_LOAD_TARGET_LIGHT | FT_LOAD_NO_BITMAP;
 const FT_Render_Mode render_mode = FT_RENDER_MODE_LIGHT;
-const FT_Kerning_Mode kerning_mode = FT_KERNING_DEFAULT; // CHECK: should this be using FT_KERNING_UNFITTED?
+const FT_Kerning_Mode kerning_mode = FT_KERNING_DEFAULT;
+#else
+const FT_Int32 load_mode = FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP;
+const FT_Render_Mode render_mode = FT_RENDER_MODE_NORMAL;
+const FT_Kerning_Mode kerning_mode = FT_KERNING_UNFITTED;
+#endif
 
 #define FT_FLOOR(X)	(((X) & -64) / 64)
 #define FT_CEIL(X)	((((X) + 63) & -64) / 64)
@@ -140,8 +147,14 @@ void Font::set_size(int val)
 	}
 }
 
-SDL_Surface* Font::render_glyph(Uint16 ch, SDL_Color fg, SDL_Color bg)
+SDL_Surface* Font::render_glyph(Uint16 ch, SDL_Color fg, SDL_Color bg, float x_fractional_part)
 {
+    FT_Vector v;
+//	v.x = FT_Pos(x_fractional_part * 64.0);
+	v.x = (x_fractional_part >= 0.3 && x_fractional_part <= 0.6) ? 32 : (x_fractional_part < 0.3 ? 0 : 64);
+	v.y = 0;
+	FT_Set_Transform(priv->face, 0, &v);
+
 	FT_GlyphSlot glyph = priv->load_glyph(ch);
 	if (priv->err) return NULL;
 	
