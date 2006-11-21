@@ -40,18 +40,18 @@ SDL_Surface *ONScripterLabel::renderGlyph(Font *font, Uint16 text, int size, flo
 
 void ONScripterLabel::drawGlyph( SDL_Surface *dst_surface, FontInfo *info, SDL_Color &color, unsigned short unicode, float x, int y, bool shadow_flag, AnimationInfo *cache_info, SDL_Rect *clip, SDL_Rect &dst_rect )
 {
-	int minx, maxx, miny, maxy;
+	float minx, maxy;
 
 	int sz = info->doSize();
 
-	info->font()->get_metrics(unicode, &minx, &maxx, &miny, &maxy);
+	info->font()->get_metrics(unicode, &minx, NULL, NULL, &maxy);
 
-	SDL_Surface* tmp_surface = renderGlyph(info->font(), unicode, sz, info->GetXOffset() - floor(info->GetXOffset()));
+	SDL_Surface* tmp_surface = renderGlyph(info->font(), unicode, sz, x + minx - floor(x + minx));
 
 	bool rotate_flag = false;
 
 	dst_rect.x = int(floor(x + minx));
-	dst_rect.y = y + info->font()->ascent() - maxy;
+	dst_rect.y = y + info->font()->ascent() - int(floor(maxy));
 
 	if ( shadow_flag ){
 		dst_rect.x += shade_distance[0];

@@ -96,3 +96,41 @@ int ONScripterLabel::haeleth_font_styleCommand()
 	sentence_font.style = FontInfo::default_encoding;
 	return RET_CONTINUE;
 }
+
+/* h_mapfont <int>, <string>, [metrics file]
+ *
+ * Assigns a font file to be associated with the given style number.
+ */
+int ONScripterLabel::haeleth_map_fontCommand()
+{
+	int id = script_h.readInt();
+	MapFont(id, script_h.readStr());
+	if (script_h.getEndStatus() & ScriptHandler::END_COMMA) MapMetrics(id, script_h.readStr());
+	return RET_CONTINUE;
+}
+
+/* h_rendering <hinting>, <positioning>, [rendermode]
+ *
+ * Selects a rendering mode.
+ * Hinting is one of none, light, full.
+ * Positioning is integer or float.
+ * Rendermode is light or normal; if not specified, it will be light when hinting is light, otherwise normal.
+ */
+int ONScripterLabel::haeleth_hinting_modeCommand()
+{
+	if (script_h.compareString("light")) hinting = LightHinting;
+	else if (script_h.compareString("full")) hinting = FullHinting;
+	else if (script_h.compareString("none")) hinting = NoHinting;
+	script_h.readLabel();
+	if (script_h.compareString("integer")) subpixel = false;
+	else if (script_h.compareString("float")) subpixel = true;
+	script_h.readLabel();
+	if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
+		lightrender = script_h.compareString("light");
+		script_h.readLabel();
+	}
+	else {
+		lightrender = hinting == LightHinting;
+	}
+	return RET_CONTINUE;
+}

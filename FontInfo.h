@@ -31,6 +31,9 @@ extern int screen_ratio1, screen_ratio2;
 
 typedef unsigned char uchar3[3];
 
+extern void MapFont(int id, const char* filename);
+extern void MapMetrics(int id, const char* filename);
+
 class FontInfo {
 	float indent;
 	float pos_x; int pos_y; // Current position

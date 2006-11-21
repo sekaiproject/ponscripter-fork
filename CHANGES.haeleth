@@ -1,7 +1,8 @@
 Specific changes:
-* Use ;gameid and ;usefont directives at the start of a file (after modeline,
-  in that order).  Note that ;gameid is mandatory, as it is used to determine
-  whether a game has been checked for PONScripter compatibility or not.
+* Use ;gameid directive at the start of a file (after modeline,
+  in that order).  Note that both ;modeNNN and ;gameid are mandatory, as they are
+  used to determine whether a game has been checked for PONScripter compatibility 
+  or not.
 * All text and window sizing and positioning commands now operate in pixels, 
   not zenkaku characters as before.  This breaks every single instance of
   locate, setwindow, etc.
@@ -82,15 +83,13 @@ Significant changes:
   being largely drawn from SDL_ttf, of course).
 
   Convert horizontal font positioning to use floating-point rather than integer 
-  offsets.  The immediate effect is to make spacing seem slightly uneven, but in 
-  the long run this will permit subpixel positioning.
+  offsets.  Implement subpixel positioning.
   
-  Remove glyph caching.  ONScripter uses _two_ glyph caches (!) -- one in 
-  SDL_ttf, which apparently only works on ASCII characters anyway, and one in 
-  ONScripterLabel. However, the speed of text rendering does not seem to be 
-  affected at all by removing caching, suggesting that it's a premature 
-  optimisation, and it needlessly complicates desirable future effects such
-  as subpixel positioning.
+  In the process, glyph caching has been removed.  ONScripter uses _two_ glyph 
+  caches (!) -- one in SDL_ttf, which apparently only works on ASCII characters 
+  anyway, and one in ONScripterLabel. However, the speed of text rendering does 
+  not seem to be affected at all by removing caching, suggesting that it's a 
+  premature optimisation.  The code is simplified considerably by its removal.
 
 2006-09-18
 
@@ -125,4 +124,4 @@ Significant changes:
   bundle, and default save path be a new subfolder of the user's 
   Library/Preferences.  The name of the subfolder is derived from a new "game 
   identifier" that should be specified at the top of 0.txt with a ";gameid 
-  Whatever" line immediately after the modeline (if present).
+  Whatever" line immediately after the modeline.

@@ -20,6 +20,13 @@
 #define LIGATURES
 #endif
 
+static struct ligature {
+	char bytes;
+	char* in;
+	Uint16 out;
+	ligature* next;
+} *ligs[0x60];
+
 char
 CharacterBytes(const char* string)
 {
@@ -231,4 +238,10 @@ TranslateTag(const char* flag, char* out, int& in_len)
 		*out = 0;
 		return 0;
 	}
+}
+
+void
+DetectLigatures(Font& font)
+{
+	
 }

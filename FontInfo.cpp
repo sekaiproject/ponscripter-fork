@@ -26,6 +26,7 @@
 #include "BaseReader.h"
 #include "ScriptHandler.h"
 #include <stdio.h>
+#include <string>
 #include <math.h>
 
 int screen_ratio1 = 1, screen_ratio2 = 1;
@@ -33,12 +34,23 @@ int screen_ratio1 = 1, screen_ratio2 = 1;
 int FontInfo::default_encoding = 0;
 
 static class FontsStruct {
+	friend void MapFont(int, const char*);
+	friend void MapMetrics(int, const char*);
 	static const int count = 8;
+	std::string mapping[count];
+	std::string metrics[count];
 	Font* font_[count];
 public:
 	Font* font(int style);
 
-	FontsStruct() { for (int i = 0; i < count; ++i) { font_[i] = NULL; } }
+	FontsStruct() {
+		char fn[32];
+		for (int i = 0; i < count; ++i) {
+			font_[i] = NULL;
+			sprintf(fn, "face%d.ttf", i);
+			mapping[i] = fn;
+		}
+	}
 	~FontsStruct();
 } Fonts;
 
@@ -49,30 +61,46 @@ FontsStruct::~FontsStruct()
 	}
 }
 
+void MapFont(int id, const char* filename) {
+	Fonts.mapping[id] = filename;
+}
+
+void MapMetrics(int id, const char* filename) {
+	Fonts.metrics[id] = filename;
+}
+
 Font* FontsStruct::font(int style)
 {
 	if (font_[style]) return font_[style];
-	char fn[32];
 	size_t len;
-	sprintf(fn, "face%d.ttf", style);
-	FILE* fp = fopen(fn, "rb");
+	FILE* fp = fopen(mapping[style].c_str(), "rb");
 	if (fp) {
 		fclose(fp);
-		font_[style] = new Font(fn);
+		const char* metnam = NULL;
+		if (!metrics[style].empty()) {
+			fp = fopen(metrics[style].c_str(), "rb");
+			if (fp) {
+				metnam = metrics[style].c_str();
+				fclose(fp);
+			}
+		}
+		font_[style] = new Font(mapping[style].c_str(), metnam);
 	}
-	else if ((len = ScriptHandler::cBR->getFileLength(fn))) {
-		Uint8* data = new Uint8[len];
-		ScriptHandler::cBR->getFile(fn, data);
-		font_[style] = new Font(data, len);
+	else if ((len = ScriptHandler::cBR->getFileLength(mapping[style].c_str()))) {
+		Uint8 *data = new Uint8[len], *mdat = NULL;
+		ScriptHandler::cBR->getFile(mapping[style].c_str(), data);
+		size_t mlen = 0;
+		if (!metrics[style].empty() && (mlen = ScriptHandler::cBR->getFileLength(metrics[style].c_str()))) {
+			mdat = new Uint8[mlen];
+			ScriptHandler::cBR->getFile(metrics[style].c_str(), mdat);
+		}
+		font_[style] = new Font(data, len, mdat, mlen);
 	}
 	if (font_[style]) {
-		//// Hardwire emboldening for now
-		//font_[style]->embolden = style <= 1;
-		
 		font_[style]->set_size(26);
 		return font_[style];
 	}
-	fprintf(stderr, "Error: failed to open font %s\n", fn);
+	fprintf(stderr, "Error: failed to open font %s\n", mapping[style].c_str());
 	exit(1);
 }
 
@@ -278,7 +306,7 @@ void FontInfo::addShadeArea(SDL_Rect &rect, int shade_distance[2])
 	}
 }
 
-int FontInfo:: doSize() { 
+int FontInfo::doSize() { 
 	const int sz = size();
 	font()->set_size(sz);
 	return sz;

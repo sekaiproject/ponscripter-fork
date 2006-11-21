@@ -2,7 +2,9 @@
 #define __UTF8_UTIL__
 
 #include "stdio.h"
+#include "font.h"
 
+// Style bits
 const int Default = 0;
 const int Italic  = 1;
 const int Bold    = 2;
@@ -29,5 +31,8 @@ SetEncoding(int& encoding, const char flag);
 
 int
 TranslateTag(const char* flag, char* out, int& in_len);
+
+void
+DetectLigatures(Font& font);
 
 #endif

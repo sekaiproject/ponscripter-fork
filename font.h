@@ -25,16 +25,22 @@
 
 #include <SDL.h>
 
+enum HintingMode { NoHinting, LightHinting, FullHinting };
+
+extern HintingMode hinting;
+extern bool lightrender;
+extern bool subpixel;
+
 struct FontInternals;
 
 class Font {
 	FontInternals* priv;
 public:
-	Font(const char* filename);
-	Font(const Uint8* data, size_t len); // takes ownership of data
+	Font(const char* filename, const char* metrics = NULL);
+	Font(const Uint8* data, size_t len, const Uint8* mdat = NULL, size_t mlen = 0); // takes ownership of data and mdat
 	~Font();
 
-	void get_metrics(Uint16 ch, int* minx, int* maxx, int* miny, int* maxy);
+	void get_metrics(Uint16 ch, float* minx, float* maxx, float* miny, float* maxy);
 	
 	void set_size(int val);
 	SDL_Surface* render_glyph(Uint16 ch, SDL_Color fg, SDL_Color bg, float x_fractional_part);
@@ -44,6 +50,8 @@ public:
 	
 	float advance(Uint16 ch);
 	float kerning(Uint16 left, Uint16 right);
+	
+	bool has_char(Uint16 ch);
 };
 
 #endif

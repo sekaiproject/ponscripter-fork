@@ -148,6 +148,8 @@ static struct FuncLUT{
 	{"indent", &ONScripterLabel::indentCommand},
 	{"humanorder", &ONScripterLabel::humanorderCommand},
 	{"h_textextent", &ONScripterLabel::haeleth_text_extentCommand},
+	{"h_rendering", &ONScripterLabel::haeleth_hinting_modeCommand},
+	{"h_mapfont", &ONScripterLabel::haeleth_map_fontCommand},
 	{"h_indentstr", &ONScripterLabel::haeleth_char_setCommand},
 	{"h_fontstyle", &ONScripterLabel::haeleth_font_styleCommand},
 	{"h_centreline", &ONScripterLabel::haeleth_centre_lineCommand},

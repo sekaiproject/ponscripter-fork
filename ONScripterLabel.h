@@ -125,6 +125,8 @@ public:
 	int haeleth_centre_lineCommand();
 	int haeleth_char_setCommand();
 	int haeleth_font_styleCommand();
+	int haeleth_map_fontCommand();
+	int haeleth_hinting_modeCommand();
 	// regular NScripter stuff
     int wavestopCommand();
     int waveCommand();
