@@ -24,6 +24,7 @@
 #include "ScriptHandler.h"
 #include "FontInfo.h"
 #include "utf8_util.h"
+#include <ctype.h>
 
 #define TMP_SCRIPT_BUF_LEN 4096
 #define STRING_BUFFER_LENGTH 2048
@@ -1262,25 +1263,31 @@ int ScriptHandler::parseInt( char **buf )
 		int alias_buf_len = 0, alias_no = 0;
 		bool direct_num_flag = false;
 		bool num_alias_flag = false;
+		bool hex_num_flag = (*buf)[0] == '0' & (*buf)[1] == 'x';
+		if (hex_num_flag) *buf += 2;
 
 		char *buf_start = *buf;
 		while( 1 ){
 			ch = **buf;
 
-			if ( (ch >= 'a' && ch <= 'z') ||
-				 (ch >= 'A' && ch <= 'Z') ||
-				 ch == '_' ){
-				if (ch >= 'A' && ch <= 'Z') ch += 'a' - 'A';
-				if ( direct_num_flag ) break;
-				num_alias_flag = true;
-				alias_buf[ alias_buf_len++ ] = ch;
+			if ( hex_num_flag && isxdigit(ch) ){
+				alias_no *= 16;
+				if (isdigit(ch)) alias_no += ch - '0';
+				else if (isupper(ch)) alias_no += ch - 'A' + 10;
+				else alias_no += ch - 'a' + 10;				
 			}
-			else if ( ch >= '0' && ch <= '9' ){
+			else if ( isdigit(ch) ){
 				if ( !num_alias_flag ) direct_num_flag = true;
 				if ( direct_num_flag )
 					alias_no = alias_no * 10 + ch - '0';
 				else
 					alias_buf[ alias_buf_len++ ] = ch;
+			}
+			else if ( isalpha(ch) || ch == '_' ){
+				if (ch >= 'A' && ch <= 'Z') ch += 'a' - 'A';
+				if ( hex_num_flag || direct_num_flag ) break;
+				num_alias_flag = true;
+				alias_buf[ alias_buf_len++ ] = ch;
 			}
 			else break;
 			(*buf)++;

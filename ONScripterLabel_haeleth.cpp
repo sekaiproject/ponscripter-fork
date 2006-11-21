@@ -134,3 +134,51 @@ int ONScripterLabel::haeleth_hinting_modeCommand()
 	}
 	return RET_CONTINUE;
 }
+
+/* h_ligate default
+ * h_ligate none
+ * h_ligate <input>, <unicode>
+ * h_ligate <input>, remove
+ *
+ * Set default ligatures, no ligatures, or add/remove a ligature to/from the list.
+ * e.g. 'h_ligate "ffi", "U+FB03"' to map "ffi" onto an ffi ligature.
+ * Ligature definitions are LIFO, so e.g. you must define "ff" before "ffi", or the latter will never be seen.
+ */
+int ONScripterLabel::haeleth_ligature_controlCommand()
+{
+ 	if (script_h.compareString("none")) {
+ 		script_h.readLabel();
+ 		ClearLigatures();
+ 	}
+ 	else if (script_h.compareString("default")) {
+ 		script_h.readLabel();
+ 		DefaultLigatures(1|2|4);
+ 	}
+ 	else if (script_h.compareString("basic")) {
+ 		script_h.readLabel();
+ 		DefaultLigatures(1);
+ 	}
+ 	else if (script_h.compareString("punctuation")) {
+ 		script_h.readLabel();
+ 		DefaultLigatures(2);
+ 	}
+ 	else if (script_h.compareString("f_ligatures")) {
+ 		script_h.readLabel();
+ 		DefaultLigatures(4);
+ 	}
+ 	else {
+ 		script_h.readStr();
+ 		const char* in = script_h.saveStringBuffer();
+ 		if (script_h.compareString("remove")) {
+ 			script_h.readLabel();
+ 			DeleteLigature(in);
+ 		}
+ 		else {
+ 			AddLigature(in, script_h.readInt());
+ 		}
+ 	}
+
+//DumpLigatures();
+
+ 	return RET_CONTINUE;
+}

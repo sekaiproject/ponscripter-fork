@@ -127,6 +127,7 @@ public:
 	int haeleth_font_styleCommand();
 	int haeleth_map_fontCommand();
 	int haeleth_hinting_modeCommand();
+	int haeleth_ligature_controlCommand();
 	// regular NScripter stuff
     int wavestopCommand();
     int waveCommand();

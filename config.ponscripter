@@ -17,8 +17,7 @@ NARCI = true
 endif
 
 ifdef NARCI
-CFLAGS := $(CFLAGS) -D 'EMBOLDEN=font->embolden && font->currsize < 20' \
-                    -DLIGATE_ALL -DKERNING
+CFLAGS := $(CFLAGS) -D 'EMBOLDEN=font->embolden && font->currsize < 20' -DKERNING
 
 .PHONY: fonts
 fonts: $(foreach n,0 1 2 3 4 5 6 7, narci_fonts/face$(n).ttf)

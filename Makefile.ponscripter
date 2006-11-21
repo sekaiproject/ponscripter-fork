@@ -35,13 +35,13 @@ distclean: clean
 SarReader$(OBJSUFFIX):    BaseReader.h SarReader.h 
 NsaReader$(OBJSUFFIX):    BaseReader.h SarReader.h NsaReader.h 
 DirectReader$(OBJSUFFIX): BaseReader.h DirectReader.h
-ScriptHandler$(OBJSUFFIX): ScriptHandler.h font.h utf8_util.h
+ScriptHandler$(OBJSUFFIX): ScriptHandler.h utf8_util.h
 ScriptParser$(OBJSUFFIX): $(PARSER_HEADER)
 ScriptParser_command$(OBJSUFFIX): $(PARSER_HEADER)
 onscripter$(OBJSUFFIX): $(ONSCRIPTER_HEADER) version.h
-ONScripterLabel$(OBJSUFFIX): $(ONSCRIPTER_HEADER) font.h utf8_util.h
-ONScripterLabel_command$(OBJSUFFIX): $(ONSCRIPTER_HEADER) version.h font.h utf8_util.h
-ONScripterLabel_haeleth$(OBJSUFFIX): $(ONSCRIPTER_HEADER) font.h utf8_util.h
+ONScripterLabel$(OBJSUFFIX): $(ONSCRIPTER_HEADER) utf8_util.h
+ONScripterLabel_command$(OBJSUFFIX): $(ONSCRIPTER_HEADER) version.h utf8_util.h
+ONScripterLabel_haeleth$(OBJSUFFIX): $(ONSCRIPTER_HEADER) utf8_util.h
 ONScripterLabel_text$(OBJSUFFIX): $(ONSCRIPTER_HEADER) utf8_util.h font.h
 ONScripterLabel_effect$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
 ONScripterLabel_event$(OBJSUFFIX): $(ONSCRIPTER_HEADER)
@@ -57,7 +57,7 @@ FontInfo$(OBJSUFFIX): FontInfo.h utf8_util.h resources.h font.h
 DirtyRect$(OBJSUFFIX) : DirtyRect.h
 MadWrapper$(OBJSUFFIX): MadWrapper.h
 AVIWrapper$(OBJSUFFIX): AVIWrapper.h
-utf8_util$(OBJSUFFIX): font.h utf8_util.h
+utf8_util$(OBJSUFFIX): utf8_util.h
 ttf$(OBJSUFFIX): ttf.h
 
 ICON_SOURCE ?= internal.icon

@@ -26,6 +26,17 @@ Style tags (enclose in ~tildes~):
 
   The "default" tags always restore those settings, while the non-default tags
   are toggles.  Hence ^foo ~i~bar~r~^ and ^foo ~i~bar~i~^ are equivalent.
+  
+  Font selection works as follows:
+  
+  serif roman       -> 0
+  serif italic      -> 1
+  serif bold        -> 2
+  serif bold italic -> 3
+  sans roman        -> 4
+  sans italic       -> 5
+  sans bold         -> 6
+  sans bold italic  -> 7
 
 Size and position tags (as style tags, but followed by integers)
   
@@ -76,6 +87,12 @@ Ligatures and nice punctuation:
 
 
 Significant changes:
+
+2006-11-21
+
+  Implement ligature customisation.
+  
+  Integers can now be expressed in hexadecimal with an 0x prefix, as in C.
 
 2006-09-24
 
