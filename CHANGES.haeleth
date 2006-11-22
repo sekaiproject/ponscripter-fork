@@ -1,96 +1,8 @@
-Specific changes:
-* Use ;gameid directive at the start of a file (after modeline,
-  in that order).  Note that both ;modeNNN and ;gameid are mandatory, as they are
-  used to determine whether a game has been checked for PONScripter compatibility 
-  or not.
-* All text and window sizing and positioning commands now operate in pixels, 
-  not zenkaku characters as before.  This breaks every single instance of
-  locate, setwindow, etc.
-* New commands (see ONScripterLabel_haeleth.cpp).
-* New sprite tag :S, equivalent to :s but causes the x position to locate the
-  centre of the string rather than the left edge.
-* UTF-8 text (not that there's a useful other sort) is now marked with ^, not `.
+2006-11-22
 
-Style tags (enclose in ~tildes~):
-
-  d   Restore all defaults
-  
-  r   Roman (default)
-  i   Italic
-  
-  t   Book (default)
-  b   Bold
-  
-  f   Text (default)
-  s   Display
-
-  The "default" tags always restore those settings, while the non-default tags
-  are toggles.  Hence ^foo ~i~bar~r~^ and ^foo ~i~bar~i~^ are equivalent.
-  
-  The meanings of these tags are merely guidelines. Font styles are implemented
-  internally by mapping onto the eight font slots, with the mapping being as
-  follows:
-  
-  text roman          -> 0
-  text italic         -> 1
-  text bold           -> 2
-  text bold italic    -> 3
-  display roman       -> 4
-  display italic      -> 5
-  display bold        -> 6
-  display bold italic -> 7
-
-  You can select a font slot directly with the tags c0 - c7.
-  
-Size and position tags (as style tags, but followed by integers)
-  
-  =n  Set font size to n pixels (0 to restore the current base font size)
-  %n  Set font size to n% of the current base font size
-  +n  Increase font size by n pixels (operates on current size, not base size)
-  -n  Decrease font size by n pixels (operates on current size, not base size)
-
-  xn  Set x position to n.  Use x+n and x-n for relative offsets.
-  yn  Set y position to n.  Use y+n and y-n for relative offsets.
-
-  n in each case is a positive decimal integer constant (variables cannot be 
-  used).  For example, given a window with a 20-pixel font, the following codes 
-  all set the font size to 30 pixels:
-  
-    ~=30~  ~%150~  ~+10~  ~+5+5~
-  
-  The base font size should be restored with either ~=0~ or ~%100~, as these 
-  will always restore it correctly even if the window definition is later 
-  modified.
-
-
-Ligatures and nice punctuation:
-
-  fi
-  fl
-  ff
-  ffi
-  ffl
-  (c)
-  (r)
-  (tm)
-  `   (single opening quote)
-  ``  (double opening quote)
-  '   (single closing quote)
-  ''  (double closing quote)
-  --  (en dash)
-  --- (em dash)
-  ... (ellipsis)
-  **  (bullet)
-  ++  (dagger)
-  +++ (double dagger)
-  %_  (nbsp)
-  %-  (nbhy)
-  %.  (thin space)
-  |   (zero-width non-joiner: ignored, but inhibits ligatures)
-  ||  (to get a | character)
-
-
-Significant changes:
+  Implement default data/save separation for Windows and Linux too. This should 
+  enhance Vista compatibility considerably, and make it possible to package 
+  Linux versions in a way that respects the FHS.
 
 2006-11-21
 
@@ -104,7 +16,7 @@ Significant changes:
   being largely drawn from SDL_ttf, of course).
 
   Convert horizontal font positioning to use floating-point rather than integer 
-  offsets.  Implement subpixel positioning.
+  offsets.  Begin attempts to subpixel positioning (still buggy).
   
   In the process, glyph caching has been removed.  ONScripter uses _two_ glyph 
   caches (!) -- one in SDL_ttf, which apparently only works on ASCII characters 
@@ -114,15 +26,10 @@ Significant changes:
 
 2006-09-18
 
-  Implementation of current multi-font-style support.
+  Multi-font-style support.
 
 2006-09-14
 
-  Initial implementation of multi-font-style support (since replaced).
-  
-  For Narcissu, created a fontset based on Bitstream Charter and URW Nimbus 
-  Sans, with added Euros, old-style figures, and additional ligatures.
- 
   Automatic ligature support.
   
 2006-09-08

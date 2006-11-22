@@ -7,8 +7,11 @@ WIN32 = true
 
 INCS = `sdl-config --cflags` `smpeg-config --cflags` `freetype-config --cflags`
 
+SDLLIBS = `sdl-config --static-libs`
+
 LIBS = -static -Wl,--start-group \
-       `sdl-config --static-libs` `smpeg-config --libs` `freetype-config --libs` \
+       $(filter-out -lSDLmain,$(SDLLIBS)) \
+       `smpeg-config --libs` `freetype-config --libs` \
        -lSDL_image -ljpeg -lpng -lz             \
        -lSDL_mixer -logg -lvorbis -lvorbisfile  \
        -lbz2 -Wl,--end-group
@@ -31,10 +34,13 @@ RM = rm -f
 
 TARGET = ponscr$(EXESUFFIX)
 
-EXT_OBJS = win32rc.o
+EXT_OBJS = SDL_win32_main.o win32rc.o
 
 include Makefile.ponscripter
 
 RCFILE ?= ponscr.rc
 win32rc.o: $(RCFILE)
 	windres $< -o $@
+
+SDL_win32_main.o: SDL_win32_main.c
+	$(CC) $(INCS) $(DEFS) -c $< -o $@

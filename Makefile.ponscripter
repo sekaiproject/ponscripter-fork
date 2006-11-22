@@ -8,12 +8,16 @@ all: $(TARGET)
 
 include config.ponscripter
 
+ifndef NO_RESOURCES
+CFLAGS := $(CFLAGS) -DEMBED_ICON
+endif
+
 GUI_OBJS = ONScripterLabel$(OBJSUFFIX) ONScripterLabel_command$(OBJSUFFIX) ONScripterLabel_text$(OBJSUFFIX) \
 	ONScripterLabel_effect$(OBJSUFFIX) ONScripterLabel_event$(OBJSUFFIX) ONScripterLabel_rmenu$(OBJSUFFIX) \
 	ONScripterLabel_animation$(OBJSUFFIX) ONScripterLabel_sound$(OBJSUFFIX) ONScripterLabel_file$(OBJSUFFIX) \
 	ONScripterLabel_file2$(OBJSUFFIX) ONScripterLabel_image$(OBJSUFFIX) ONScripterLabel_haeleth$(OBJSUFFIX) \
 	AnimationInfo$(OBJSUFFIX) FontInfo$(OBJSUFFIX) DirtyRect$(OBJSUFFIX) resize_image$(OBJSUFFIX) \
-	resources$(OBJSUFFIX) utf8_util$(OBJSUFFIX) font$(OBJSUFFIX)
+	utf8_util$(OBJSUFFIX) font$(OBJSUFFIX) $(if $(NO_RESOURCES), ,resources$(OBJSUFFIX))
 DECODER_OBJS = DirectReader$(OBJSUFFIX) SarReader$(OBJSUFFIX) NsaReader$(OBJSUFFIX)
 ONSCRIPTER_OBJS = onscripter$(OBJSUFFIX) $(DECODER_OBJS) ScriptHandler$(OBJSUFFIX) ScriptParser$(OBJSUFFIX) ScriptParser_command$(OBJSUFFIX) \
 	$(GUI_OBJS) $(EXT_OBJS)

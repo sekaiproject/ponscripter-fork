@@ -11,7 +11,9 @@ LIBS := $(shell /usr/local/bin/sdl-config --static-libs) $(shell /usr/local/bin/
         /usr/local/lib/libogg.a /usr/local/lib/libvorbis.a /usr/local/lib/libvorbisfile.a -lpng \
         -framework QuickTime -framework CoreFoundation
 
-DEFS = -DMACOSX -DUTF8_FILESYSTEM -DUSE_OGG_VORBIS -DHAELETH 
+NO_RESOURCES = true
+
+DEFS = -DMACOSX -DUTF8_FILESYSTEM -DUSE_OGG_VORBIS -DHAELETH
 
 EXESUFFIX =
 OBJSUFFIX = .o

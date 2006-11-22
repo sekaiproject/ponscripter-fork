@@ -33,6 +33,14 @@ namespace Carbon {
 }
 #include <sys/stat.h>
 #endif
+#ifdef WIN32
+#include <windows.h>
+typedef HRESULT (WINAPI *GETFOLDERPATH)(HWND, int, HANDLE, DWORD, LPTSTR);
+#endif
+#ifdef LINUX
+#include <unistd.h>
+#include <pwd.h>
+#endif
 
 extern "C" void waveCallback( int channel );
 
@@ -281,8 +289,10 @@ void ONScripterLabel::initSDL()
 	/* ---------------------------------------- */
 	/* Initialize SDL */
 
-	SDL_RWops* rwicon = SDL_RWFromConstMem( internal_icon_buffer, internal_icon_size );
+#ifdef EMBED_ICON
+	SDL_RWops* rwicon = SDL_RWFromConstMem(internal_icon_buffer, internal_icon_size);
 	SDL_WM_SetIcon(IMG_Load_RW(rwicon, 0), NULL);
+#endif
 
 #if defined(BPP16)
 	screen_bpp = 16;
@@ -465,10 +475,9 @@ void ONScripterLabel::setKeyEXE(const char *filename)
 
 int ONScripterLabel::init()
 {
-	if (archive_path == NULL){
-#ifndef MACOSX
-		archive_path = "";
-#else
+	if (archive_path == NULL) {
+#ifdef MACOSX
+		// On OS X, store archives etc in the application bundle by default.
 		using namespace Carbon;
 		ProcessSerialNumber psn;
 		GetCurrentProcess(&psn);
@@ -478,6 +487,10 @@ int ONScripterLabel::init()
 		FSRefMakePath(&bundle, (UInt8*) bpath, 32768);
 		archive_path = new char[strlen(bpath) + 32];
 		sprintf(archive_path, "%s/Contents/Resources/", bpath);
+#else
+		// On Linux, the path is unpredictable and should be set by using "-r PATH" in a launcher script.
+		// On other platforms they're stored in the same place as the executable.
+		archive_path = "";
 #endif
 	}
 
@@ -489,18 +502,50 @@ int ONScripterLabel::init()
 	if ( open() ) return -1;
 
 	if ( script_h.save_path == NULL ){
-#ifndef MACOSX
-		script_h.save_path = archive_path;
-#else
+		const char *gameid = script_h.game_identifier ? script_h.game_identifier : "PONScripter";
+#ifdef WIN32
+		// On Windows, store in [Profiles]/All Users/Application Data.
+		// TODO: optionally permit saves to be per-user rather than shared?
+		HMODULE shdll = LoadLibrary("shfolder");
+		if (shdll) {
+			GETFOLDERPATH gfp = GETFOLDERPATH(GetProcAddress(shdll, "SHGetFolderPathA"));
+			if (gfp) {
+				char hpath[MAX_PATH];
+				HRESULT res = gfp(0, 0x0023, 0, 0, hpath);
+				if (res != S_FALSE && res != E_FAIL && res != E_INVALIDARG) {
+					script_h.save_path = new char[strlen(hpath) + strlen(gameid) + 3];
+					sprintf(script_h.save_path, "%s/%s/", hpath, gameid);
+					CreateDirectory(script_h.save_path, 0);
+				}
+			}
+			FreeLibrary(shdll);
+		}
+		if (script_h.save_path == NULL) {
+			// Error; assume ancient Windows. In this case it's safe to use the archive path!
+			script_h.save_path = archive_path;
+		}
+#elif defined MACOSX
+		// On OS X, place in subfolder of ~/Library/Preferences.
 		using namespace Carbon;
 		FSRef home;
 		FSFindFolder(kUserDomain, kPreferencesFolderType, kDontCreateFolder, &home);
 		char hpath[32768];
 		FSRefMakePath(&home, (UInt8*) hpath, 32768);
-		const char *gameid = script_h.game_identifier ? script_h.game_identifier : "PONScripter";
 		script_h.save_path = new char[strlen(hpath) + strlen(gameid) + 8];
 		sprintf(script_h.save_path, "%s/%s Data/", hpath, gameid);
 		mkdir(script_h.save_path, 0755);
+#elif defined LINUX
+		// On Linux (and similar *nixen), place in ~/.gameid
+		passwd* pwd = getpwuid(getuid());
+		if (pwd) {
+			script_h.save_path = new char[strlen(pwd->pw_dir) + strlen(gameid) + 4];
+			sprintf(script_h.save_path, "%s/.%s/", pwd->pw_dir, gameid);
+			mkdir(script_h.save_path, 0755);
+		}
+		else script_h.save_path = archive_path;
+#else
+		// Fall back on default ONScripter behaviour if we don't have any better ideas.
+		script_h.save_path = archive_path;
 #endif
 	}
 	if ( script_h.game_identifier ) {

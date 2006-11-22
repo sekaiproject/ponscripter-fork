@@ -14,8 +14,8 @@ ligature*
 GetLigatureRef(const char* string)
 {
 	ligature* lig;
-	if (lig = ligs[*(unsigned char*)string]) {
-		do { if (strncmp(string, lig->in, lig->bytes) == 0) return lig; } while (lig = lig->next);
+	if ((lig = ligs[*(unsigned char*)string])) {
+		do { if (strncmp(string, lig->in, lig->bytes) == 0) return lig; } while ((lig = lig->next));
 	}
 	return 0;
 }
@@ -31,7 +31,7 @@ AddLigature(const char* in, unsigned short out)
 				lig->out = out;
 				return;
 			}
-		} while (lig = lig->next);
+		} while ((lig = lig->next));
 	}	
 	ligature* nl = new ligature;
 	nl->bytes = strlen(in);

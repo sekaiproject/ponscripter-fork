@@ -321,7 +321,9 @@ int ONScripterLabel::playMIDI(bool loop_flag)
     sprintf(midi_filename, "%s%s", archive_path, TMP_MIDI_FILE);
     if ((midi_info = Mix_LoadMUS(midi_filename)) == NULL) return -1;
 
+#ifndef MACOSX
     int midi_looping = loop_flag ? -1 : 0;
+#endif
 
 #if defined(EXTERNAL_MIDI_PROGRAM)
     FILE *com_file;
