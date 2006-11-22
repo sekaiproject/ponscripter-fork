@@ -578,6 +578,17 @@ int ONScripterLabel::init()
 
 	loadEnvData();
 
+	// Initialize character sets
+	DefaultLigatures(1);
+	const int ic = 9;
+	unsigned short defindent[ic] = { 0x0028, 0x2014, 0x2018, 0x201c, 0x300c, 0x300e, 0xff08, 0xff5e, 0xff62 };
+	indent_chars = new unsigned short[ic];
+	for (i = 0; i < ic; ++i) indent_chars[i] = defindent[i];
+	const int bc = 4;
+	unsigned short defbreak[bc] = { 0x0020, 0x002d, 0x2013, 0x2014 };
+	break_chars = new unsigned short[bc];
+	for (i = 0; i < bc; ++i) break_chars[i] = defbreak[i];
+	
 	return 0;
 }
 

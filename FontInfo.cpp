@@ -190,6 +190,7 @@ bool FontInfo::processCode(const char* text)
 		case 0x1b: pos_x  = get_int(text); return true;
 		case 0x1c: pos_y += get_int(text) - 8192; return true;
 		case 0x1d: pos_y  = get_int(text); return true;
+		case 0x1e: style  = get_int(text); return true;
 		}
 	}
 	return false;

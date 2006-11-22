@@ -82,13 +82,6 @@ DeleteLigature(const char* in)
 void
 DefaultLigatures(int which)
 {
-	if (which & 4) {
-		AddLigature("ff", 0xfb00); // must come first, or it'll override ffi/ffl (LIFO)
-		AddLigature("fi", 0xfb01);
-		AddLigature("fl", 0xfb02);
-		AddLigature("ffi", 0xfb03);
-		AddLigature("ffl", 0xfb04);
-	}
 	if (which & 1) {
 		AddLigature("`",   0x2018);
 		AddLigature("``",  0x201c);
@@ -108,6 +101,13 @@ DefaultLigatures(int which)
 		AddLigature("%_",  0x00a0);
 		AddLigature("%.",  0x2009);
 		AddLigature("%-",  0x2011);
+	}
+	if (which & 4) {
+		AddLigature("ff", 0xfb00);
+		AddLigature("fi", 0xfb01);
+		AddLigature("fl", 0xfb02);
+		AddLigature("ffi", 0xfb03);
+		AddLigature("ffl", 0xfb04);
 	}
 }
 
@@ -225,6 +225,7 @@ SetEncoding(int& encoding, const char flag)
 	case '+': case '-':	case '*': case '/': case 'x': case 'y':
 		fprintf(stderr, "Warning: tag ~%c~ cannot be used in this context\n", flag);		
 		return;
+	case 'c':
 	case 0:
 		fprintf(stderr, "Error: non-matching ~tags~\n");
 		exit(1);
@@ -286,6 +287,7 @@ TranslateTag(const char* flag, char* out, int& in_len)
 	          	return set_int(out, 0x1c, flag + 1, in_len, flag[1] == '-' ? -1 : 1, 8192);
 	          }
 	          else return set_int(out, 0x1d, flag, in_len);
+	case 'c': return set_int(out, 0x1e, flag, in_len);
 	case 0:
 		fprintf(stderr, "Error: non-matching ~tags~\n");
 		exit(1);

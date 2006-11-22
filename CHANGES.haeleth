@@ -18,26 +18,30 @@ Style tags (enclose in ~tildes~):
   r   Roman (default)
   i   Italic
   
-  t   Text (default)
+  t   Book (default)
   b   Bold
   
-  f   Serif (default)
-  s   Sans serif
+  f   Text (default)
+  s   Display
 
   The "default" tags always restore those settings, while the non-default tags
   are toggles.  Hence ^foo ~i~bar~r~^ and ^foo ~i~bar~i~^ are equivalent.
   
-  Font selection works as follows:
+  The meanings of these tags are merely guidelines. Font styles are implemented
+  internally by mapping onto the eight font slots, with the mapping being as
+  follows:
   
-  serif roman       -> 0
-  serif italic      -> 1
-  serif bold        -> 2
-  serif bold italic -> 3
-  sans roman        -> 4
-  sans italic       -> 5
-  sans bold         -> 6
-  sans bold italic  -> 7
+  text roman          -> 0
+  text italic         -> 1
+  text bold           -> 2
+  text bold italic    -> 3
+  display roman       -> 4
+  display italic      -> 5
+  display bold        -> 6
+  display bold italic -> 7
 
+  You can select a font slot directly with the tags c0 - c7.
+  
 Size and position tags (as style tags, but followed by integers)
   
   =n  Set font size to n pixels (0 to restore the current base font size)
