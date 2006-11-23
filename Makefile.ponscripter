@@ -1,7 +1,7 @@
 # -*- Makefile -*-
 #
 # Makefile.ponscripter - General makefile rules for PONScripter
-#
+# Do not build from this file directly. Include it in a platform-specific makefile instead.
 
 .PHONY: all
 all: $(TARGET)
@@ -28,8 +28,8 @@ ponscr$(EXESUFFIX): $(ONSCRIPTER_OBJS)
 	$(LD)$@ $(ONSCRIPTER_OBJS) $(LIBS)
 
 clean:
-	-$(RM) *$(OBJSUFFIX)
-
+	-$(RM) *$(OBJSUFFIX) $(CLEANUP)
+	
 distclean: clean
 	-$(RM) $(TARGET) resources.cpp embed$(EXESUFFIX) 
 

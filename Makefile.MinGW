@@ -7,10 +7,8 @@ WIN32 = true
 
 INCS = `sdl-config --cflags` `smpeg-config --cflags` `freetype-config --cflags`
 
-SDLLIBS = `sdl-config --static-libs`
-
 LIBS = -static -Wl,--start-group \
-       $(filter-out -lSDLmain,$(SDLLIBS)) \
+       $(filter-out -lSDLmain,$(shell sdl-config --static-libs)) \
        `smpeg-config --libs` `freetype-config --libs` \
        -lSDL_image -ljpeg -lpng -lz             \
        -lSDL_mixer -logg -lvorbis -lvorbisfile  \

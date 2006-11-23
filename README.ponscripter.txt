@@ -378,6 +378,30 @@ reverse" and the Narcissu 2 demo, as follows:
 
 
 /-------------------------------------------------------------------------------
+|  Enhanced Windows support (incl. Vista)
+
+As described in "Directives", on modern Windows systems saved games and 
+configuration settings are stored in the All Users profile, which retains the
+shared nature of these that NScripter users expect while avoiding problems with
+limited user accounts being unable to write to Program Files.
+
+Additionally, diagnostic output (the "stdout.txt" and "stderr.txt" files) is 
+placed in All Users\Application Data\Ponscripter.  (This folder is always 
+created at launch, but is removed automatically if a game is run without 
+emitting any diagnostic output.)
+
+The result of this is that games can be run on Vista without requiring privilege 
+escalation and without writing to users' virtual stores.  Since saved games are 
+placed in a single shared location, it is also possible to reliably perform a 
+clean uninstallation of a Ponscripter game, removing saved games. (Naturally 
+this behaviour should be optional!)
+
+On ancient versions of Windows that do not support the required APIs (basically 
+just Windows 95 without IE 5), this behaviour all degrades gracefully to the 
+standard ONScripter behaviour.
+
+
+/-------------------------------------------------------------------------------
 |  Features removed
 
   Ruby, tategaki

@@ -4,8 +4,20 @@
 #
 
 INCS := $(shell sdl-config --cflags) $(shell smpeg-config --cflags) $(shell freetype-config --cflags)
+
+ifdef STATIC
+D=-Wl,-Bdynamic 
+S=-Wl,-Bstatic
+LIBS := -Wl,-O2 $(S) -lSDL_image -lpng -ltiff -ljpeg \
+        -lSDL_mixer $(shell pkg-config vorbisfile --libs) \
+        $(shell sdl-config --static-libs) \
+        $(shell smpeg-config --libs) \
+        $(shell freetype-config --libs) -lbz2 $(D) -ldl -L.
+LIBS := $(patsubst -lpthread,$(D) -lpthread $(S),$(LIBS))
+else
 LIBS := $(shell sdl-config --libs) $(shell smpeg-config --libs) $(shell freetype-config --libs) \
-        -lSDL_mixer -lSDL_image -lbz2 -lz -ljpeg -lm -lvorbis -lvorbisfile -logg
+        -lSDL_mixer -lSDL_image -lbz2
+endif
 
 DEFS = -DLINUX -DUSE_OGG_VORBIS -DHAELETH
 
@@ -19,8 +31,8 @@ OBJSUFFIX = .o
 CC = g++ 
 LD = g++ -o 
 
-CFLAGS = -g -ggdb -Wall -Werror -Wpointer-arith -pipe -c $(INCS) $(DEFS)
-#CFLAGS = -O3 -Wall -fomit-frame-pointer -pipe -c $(INCS) $(DEFS)
+#CFLAGS = -g -ggdb -Wall -Werror -Wpointer-arith -pipe -c $(INCS) $(DEFS)
+CFLAGS = -O3 -Wall -Werror -fomit-frame-pointer -pipe -c $(INCS) $(DEFS)
 
 # for GCC on PowerPC specfied
 #CC = powerpc-unknown-linux-gnu-g++
@@ -37,5 +49,12 @@ CFLAGS = -g -ggdb -Wall -Werror -Wpointer-arith -pipe -c $(INCS) $(DEFS)
 RM = rm -f
 
 TARGET = ponscr$(EXESUFFIX)
+
+ifdef STATIC
+$(TARGET): libstdc++.a
+libstdc++.a:
+	ln -s `g++ -print-file-name=libstdc++.a`
+CLEANUP = libstdc++.a
+endif
 
 include Makefile.ponscripter
