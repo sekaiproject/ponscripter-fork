@@ -30,7 +30,6 @@ void optionHelp()
     printf( "Usage: ponscripter [option ...]\n" );
     printf( "      --cdaudio\t\tuse CD audio if available\n");
     printf( "      --cdnumber no\tchoose the CD-ROM drive number\n");
-    printf( "  -f, --font file\tset a font file (TrueType)\n");
     printf( "      --registry file\tset a registry file\n");
     printf( "      --dll file\tset a dll file\n");
 #ifndef MACOSX
@@ -93,11 +92,6 @@ int main( int argc, char **argv )
                 argc--;
                 argv++;
                 ons.setCDNumber(atoi(argv[0]));
-            }
-            else if ( !strcmp( argv[0]+1, "f" ) || !strcmp( argv[0]+1, "-font" ) ){
-                argc--;
-                argv++;
-                ons.setFontFile(argv[0]);
             }
             else if ( !strcmp( argv[0]+1, "-registry" ) ){
                 argc--;

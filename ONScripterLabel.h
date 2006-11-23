@@ -93,7 +93,6 @@ public:
     // start-up options
     void enableCDAudio();
     void setCDNumber(int cdrom_drive_number);
-    void setFontFile(const char *filename);
     void setRegistryFile(const char *filename);
     void setDLLFile(const char *filename);
     void setSavePath(const char *path);
@@ -346,7 +345,6 @@ private:
     // ----------------------------------------
     // start-up options
     bool cdaudio_flag;
-    char *default_font;
     char *registry_file;
     char *dll_file;
     char *getret_str;

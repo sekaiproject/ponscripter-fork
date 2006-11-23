@@ -15,8 +15,14 @@ LIBS := -Wl,-O2 $(S) -lSDL_image -lpng -ltiff -ljpeg \
         $(shell freetype-config --libs) -lbz2 $(D) -ldl -L.
 LIBS := $(patsubst -lpthread,$(D) -lpthread $(S),$(LIBS))
 else
+ifdef REALLY_STATIC
+LIBS := -static -lSDL_mixer -lvorbisfile -lvorbis -logg \
+        $(shell sdl-config --libs) $(shell smpeg-config --libs) \
+        -lSDL_image -ltiff -lpng -ljpeg -lbz2 $(shell freetype-config --libs) -ldl
+else
 LIBS := $(shell sdl-config --libs) $(shell smpeg-config --libs) $(shell freetype-config --libs) \
         -lSDL_mixer -lSDL_image -lbz2
+endif
 endif
 
 DEFS = -DLINUX -DUSE_OGG_VORBIS -DHAELETH
