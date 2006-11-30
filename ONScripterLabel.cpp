@@ -291,9 +291,21 @@ void ONScripterLabel::initSDL()
 	/* ---------------------------------------- */
 	/* Initialize SDL */
 
-#ifdef EMBED_ICON
-	SDL_RWops* rwicon = SDL_RWFromConstMem(internal_icon_buffer, internal_icon_size);
-	SDL_WM_SetIcon(IMG_Load_RW(rwicon, 0), NULL);
+// Don't set an icon on OS X - the applicaton bundle's icon is used anyway, and is usually higher resolution.
+#ifndef MACOSX
+	// Apparently the window icon must be set before the display is initialised.
+	// An ONScripter-style PNG in the current folder takes precedence.
+	SDL_Surface *icon = IMG_Load("icon.png");
+	// If that doesn't exist, try using an internal resource.
+	if (!icon) {
+		const InternalResource* internal_icon = getResource("icon.png");
+		if (internal_icon) {
+			SDL_RWops* rwicon = SDL_RWFromConstMem(internal_icon->buffer, internal_icon->size);
+			icon = IMG_Load_RW(rwicon, 0);
+		}
+	}
+	// If an icon was found, use it.
+	if (icon) SDL_WM_SetIcon(icon, NULL);
 #endif
 
 #if defined(BPP16)

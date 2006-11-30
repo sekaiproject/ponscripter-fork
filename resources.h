@@ -1,11 +1,14 @@
-// Resources for PONScripter, including a default internal font (based on Nimbus Sans L).
+// A system for storing files within the executable rather than the data directory.
 
 #ifndef RESOURCES_H
 #define RESOURCES_H
 
-#ifdef EMBED_ICON
-extern const unsigned char internal_icon_buffer[];
-extern const long int internal_icon_size;
-#endif
+struct InternalResource {
+	const char* filename;
+	const unsigned char* buffer;
+	long int size;
+};
+
+extern const InternalResource* getResource(const char* filename);
 
 #endif

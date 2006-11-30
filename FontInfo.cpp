@@ -25,6 +25,7 @@
 #include "utf8_util.h"
 #include "BaseReader.h"
 #include "ScriptHandler.h"
+#include "resources.h"
 #include <stdio.h>
 #include <string>
 #include <math.h>
@@ -95,6 +96,12 @@ Font* FontsStruct::font(int style)
 			ScriptHandler::cBR->getFile(metrics[style].c_str(), mdat);
 		}
 		font_[style] = new Font(data, len, mdat, mlen);
+	}
+	else {
+		const InternalResource *fres, *mres = NULL;
+		fres = getResource(mapping[style].c_str());
+		if (!metrics[style].empty()) mres = getResource(metrics[style].c_str());
+		if (fres) font_[style] = new Font(fres, mres);
 	}
 	if (font_[style]) {
 		font_[style]->set_size(26);

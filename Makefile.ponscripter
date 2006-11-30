@@ -8,10 +8,6 @@ all: $(TARGET)
 
 include config.ponscripter
 
-ifndef NO_RESOURCES
-CFLAGS := $(CFLAGS) -DEMBED_ICON
-endif
-
 GUI_OBJS = ONScripterLabel$(OBJSUFFIX) ONScripterLabel_command$(OBJSUFFIX) ONScripterLabel_text$(OBJSUFFIX) \
 	ONScripterLabel_effect$(OBJSUFFIX) ONScripterLabel_event$(OBJSUFFIX) ONScripterLabel_rmenu$(OBJSUFFIX) \
 	ONScripterLabel_animation$(OBJSUFFIX) ONScripterLabel_sound$(OBJSUFFIX) ONScripterLabel_file$(OBJSUFFIX) \
@@ -28,10 +24,10 @@ ponscr$(EXESUFFIX): $(ONSCRIPTER_OBJS)
 	$(LD)$@ $(ONSCRIPTER_OBJS) $(LIBS)
 
 clean:
-	-$(RM) *$(OBJSUFFIX) $(CLEANUP)
+	-$(RM) *$(OBJSUFFIX) $(CLEANUP) resources.cpp
 	
 distclean: clean
-	-$(RM) $(TARGET) resources.cpp embed$(EXESUFFIX) 
+	-$(RM) $(TARGET) embed$(EXESUFFIX) 
 
 .cpp$(OBJSUFFIX):
 	$(CC) $(CFLAGS) $<
@@ -64,13 +60,13 @@ AVIWrapper$(OBJSUFFIX): AVIWrapper.h
 utf8_util$(OBJSUFFIX): utf8_util.h
 ttf$(OBJSUFFIX): ttf.h
 
-ICON_SOURCE ?= default.png
+ifndef NO_DEFAULT_ICON
+RESOURCES ?= default.png =icon.png
+endif
 
-resources.cpp: embed$(EXESUFFIX) $(ICON_SOURCE)
+resources.cpp: embed$(EXESUFFIX) $(filter-out =%,$(RESOURCES))
 	-$(RM) $@
-	echo '#include "resources.h"' > $@
-	echo >> $@
-	./embed internal_icon $(ICON_SOURCE) >> $@
+	./embed $(patsubst =%,%,$(RESOURCES)) > $@
 
-embed$(EXESUFFIX): embed.c
+embed$(EXESUFFIX): embed.cpp
 	$(CC) $< -o $@

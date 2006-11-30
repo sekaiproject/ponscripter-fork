@@ -71,13 +71,16 @@ struct FontInternals {
 	FT_Error err;
 
 	int currsize;
+	bool del_data;
 
-	FontInternals(const Uint8* data, size_t len, const Uint8* mdat, size_t mlen); // takes ownership of data and mdat
+	FontInternals(const Uint8* data, size_t len, const Uint8* mdat, size_t mlen, bool own);
 	
 	~FontInternals() {
 		FT_Done_Face(face);
-		delete[] (const Uint8*) args.memory_base;
-		if (met.memory_base) delete[] (const Uint8*) met.memory_base;
+		if (del_data) {
+			delete[] (const Uint8*) args.memory_base;
+			if (met.memory_base) delete[] (const Uint8*) met.memory_base;
+		}
 	}
 	
 	FT_GlyphSlot load_glyph(Uint16 unicode) {
@@ -86,8 +89,8 @@ struct FontInternals {
 	}
 };
 
-FontInternals::FontInternals(const Uint8* data, size_t len, const Uint8* mdat, size_t mlen)
-: currsize(0)
+FontInternals::FontInternals(const Uint8* data, size_t len, const Uint8* mdat, size_t mlen, bool own)
+: currsize(0), del_data(own)
 {
 	args.flags = FT_OPEN_MEMORY;
 	args.memory_base = (const FT_Byte*) data;
@@ -126,12 +129,20 @@ Font::Font(const char* filename, const char* metrics)
 		mdat = NULL;
 		mlen = 0;
 	}
-	priv = new FontInternals(data, len, mdat, mlen);
+	priv = new FontInternals(data, len, mdat, mlen, true);
 }
 
 Font::Font(const Uint8* data, size_t len, const Uint8* mdat, size_t mlen)
 {
-	priv = new FontInternals(data, len, mdat, mlen);
+	priv = new FontInternals(data, len, mdat, mlen, true);
+}
+
+Font::Font(const InternalResource* font, const InternalResource* metrics)
+{
+	if (metrics)
+		priv = new FontInternals(font->buffer, font->size, metrics->buffer, metrics->size, false);
+	else
+		priv = new FontInternals(font->buffer, font->size, NULL, 0, false);
 }
 
 Font::~Font()

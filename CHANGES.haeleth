@@ -1,3 +1,12 @@
+2006-11-30
+
+  Increase flexibility of file embedding.  Font files can now be embedded in the
+  executable: embedded fonts will be used only if the file is not found in the
+  data directory or in the game archive.  Icon embedding is now optional; the
+  embedded icon, if present, will be used only if "icon.png" is not found in
+  the working directory.  The new system could easily be expanded to allow other
+  files to be embedded, including game data.
+  
 2006-11-22
 
   Implement default data/save separation for Windows and Linux too. This should 

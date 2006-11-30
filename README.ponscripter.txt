@@ -57,10 +57,11 @@ enforced, though the style tag system was devised with this convention in mind.
 Unlike ONScripter, there are no requirements as to the nature of the fonts used. 
 They need not be TrueType, Japanese, monospaced, or called "default.ttf".
 
-By default, each style N is associated with a file "fontN.ttf", which may either 
-be in the game folder (a la ONScripter's "default.ttf") or in the game's main 
-archive. To use fonts with different names, in different places, or to use non-
-TrueType fonts, the mappings must be set manually with this command.
+By default, each style N is associated with a file "faceN.ttf", which may either 
+be in the game folder (a la ONScripter's "default.ttf"), in the game's main 
+archive, or embedded in the game EXE itself. To use fonts with different names, 
+or to use non-TrueType fonts, the mappings must be set manually with this 
+command; user-defined fonts are sought in the same places as the default names.
 
 As you might expect, <int> is the font slot to be mapped, and <string> is the
 filename (relative to the game's data path) of the font to use.  The font formats

@@ -24,6 +24,7 @@
 #define FONT_H
 
 #include <SDL.h>
+#include "resources.h"
 
 enum HintingMode { NoHinting, LightHinting, FullHinting };
 
@@ -38,6 +39,7 @@ class Font {
 public:
 	Font(const char* filename, const char* metrics = NULL);
 	Font(const Uint8* data, size_t len, const Uint8* mdat = NULL, size_t mlen = 0); // takes ownership of data and mdat
+	Font(const InternalResource* font, const InternalResource* metrics); // doesn't take ownership
 	~Font();
 
 	void get_metrics(Uint16 ch, float* minx, float* maxx, float* miny, float* maxy);
