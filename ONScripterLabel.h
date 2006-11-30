@@ -1,6 +1,6 @@
 /* -*- C++ -*-
  *
- *  ONScripterLabel.h - Execution block parser of PONScripter
+ *  ONScripterLabel.h - Execution block parser of Ponscripter
  *
  *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this is a fork).
  *
@@ -61,9 +61,9 @@
 #define MIX_LOOPBGM_CHANNEL1 (ONS_MIX_CHANNELS+3)
 
 #ifndef DEFAULT_WM_TITLE
-#define DEFAULT_WM_TITLE "PONScripter"
+#define DEFAULT_WM_TITLE "Ponscripter"
 #endif
-#define DEFAULT_WM_ICON  "PONScripter"
+#define DEFAULT_WM_ICON  "Ponscripter"
 
 #define NUM_GLYPH_CACHE 30
 

@@ -1,6 +1,6 @@
 /* -*- C++ -*-
  * 
- *  ONScripterLabel_image.cpp - Image processing in PONScripter
+ *  ONScripterLabel_image.cpp - Image processing in Ponscripter
  *
  *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this is a fork).
  *

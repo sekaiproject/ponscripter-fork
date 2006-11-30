@@ -1,6 +1,6 @@
 /* -*- C++ -*-
  *
- *  ScriptParser_command.cpp - Define command executer of PONScripter
+ *  ScriptParser_command.cpp - Define command executer of Ponscripter
  *
  *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this is a fork).
  *

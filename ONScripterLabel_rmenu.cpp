@@ -1,6 +1,6 @@
 /* -*- C++ -*-
  *
- *  ONScripterLabel_rmenu.cpp - Right click menu handler of PONScripter
+ *  ONScripterLabel_rmenu.cpp - Right click menu handler of Ponscripter
  *
  *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this is a fork).
  *

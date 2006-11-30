@@ -1,6 +1,6 @@
 /* -*- C++ -*-
  *
- *  ONScripterLabel.cpp - Execution block parser of PONScripter
+ *  ONScripterLabel.cpp - Execution block parser of Ponscripter
  *
  *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this is a fork).
  *
@@ -510,7 +510,7 @@ int ONScripterLabel::init()
 	if ( open() ) return -1;
 
 	if ( script_h.save_path == NULL ){
-		const char *gameid = script_h.game_identifier ? script_h.game_identifier : "PONScripter";
+		const char *gameid = script_h.game_identifier ? script_h.game_identifier : "Ponscripter";
 #ifdef WIN32
 		// On Windows, store in [Profiles]/All Users/Application Data.
 		// TODO: optionally permit saves to be per-user rather than shared?
@@ -561,7 +561,7 @@ int ONScripterLabel::init()
 		script_h.game_identifier = NULL; 
 	}
 	else {
-		fprintf(stderr, "This game is not intended to be played with PONScripter.\n"
+		fprintf(stderr, "This game is not intended to be played with Ponscripter.\n"
 						"Please play it with NScripter instead, or with a properly compatible clone\n"
 						"such as ONScripter.\n");
 		exit(-1);

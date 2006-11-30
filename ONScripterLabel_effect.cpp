@@ -1,6 +1,6 @@
 /* -*- C++ -*-
  *
- *  ONScripterLabel_effect.cpp - Effect executer of PONScripter
+ *  ONScripterLabel_effect.cpp - Effect executer of Ponscripter
  *
  *  Copyright (c) 2001-2005 Ogapee (original ONScripter, of which this is a fork).
  *

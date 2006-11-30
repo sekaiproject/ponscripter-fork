@@ -1,6 +1,6 @@
 /* -*- C++ -*-
  * 
- *  FontInfo.h - Font information storage class of PONScripter
+ *  FontInfo.h - Font information storage class of Ponscripter
  *
  *  Copyright (c) 2001-2005 Ogapee (original ONScripter, of which this is a fork).
  *

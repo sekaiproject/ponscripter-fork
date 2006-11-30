@@ -1,6 +1,6 @@
 /* -*- C++ -*-
  * 
- *  AnimationInfo.cpp - General image storage class of PONScripter
+ *  AnimationInfo.cpp - General image storage class of Ponscripter
  *
  *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this is a fork).
  *

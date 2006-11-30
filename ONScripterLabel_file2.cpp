@@ -1,6 +1,6 @@
 /* -*- C++ -*-
  *
- *  ONScripterLabel_file2.cpp - FILE I/O of PONScripter
+ *  ONScripterLabel_file2.cpp - FILE I/O of Ponscripter
  *
  *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this is a fork).
  *

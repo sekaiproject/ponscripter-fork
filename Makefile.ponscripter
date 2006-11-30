@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# Makefile.ponscripter - General makefile rules for PONScripter
+# Makefile.ponscripter - General makefile rules for Ponscripter
 # Do not build from this file directly. Include it in a platform-specific makefile instead.
 
 .PHONY: all

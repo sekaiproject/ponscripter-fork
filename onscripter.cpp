@@ -1,6 +1,6 @@
 /* -*- C++ -*-
  * 
- *  onscripter.cpp -- main function of PONScripter
+ *  onscripter.cpp -- main function of Ponscripter
  *
  *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this is a fork).
  *
@@ -26,7 +26,7 @@
 
 static void optionHelp()
 {
-    printf( "PONScripter version %s (NScr %d.%02d)\n", ONS_VERSION, NSC_VERSION/100, NSC_VERSION%100 );
+    printf( "Ponscripter version %s (NScr %d.%02d)\n", ONS_VERSION, NSC_VERSION/100, NSC_VERSION%100 );
     printf( "Usage: ponscripter [option ...]\n" );
     printf( "      --cdaudio\t\tuse CD audio if available\n");
     printf( "      --cdnumber no\tchoose the CD-ROM drive number\n");
@@ -36,7 +36,7 @@ static void optionHelp()
     printf( "  -r, --root path\tset the root path to the archives\n");
     printf( "  -s, --save path\tset the path to use for saved games (default: same as root path)\n");
 #else
-    printf( "  -r, --root path\tset the root path to the archives (default: Resources in PONScripter bundle)\n");
+    printf( "  -r, --root path\tset the root path to the archives (default: Resources in Ponscripter bundle)\n");
     printf( "  -s, --save path\tset the path to use for saved games (default: folder in ~/Library/Preferences)\n");
 #endif
     printf( "      --fullscreen\tstart in fullscreen mode\n");
@@ -53,7 +53,7 @@ static void optionHelp()
 
 static void optionVersion()
 {
-    printf("PONScripter version %s (NScr %d.%02d)\n", ONS_VERSION, NSC_VERSION/100, NSC_VERSION%100 );
+    printf("Ponscripter version %s (NScr %d.%02d)\n", ONS_VERSION, NSC_VERSION/100, NSC_VERSION%100 );
     printf("Based on ONScripter by Ogapee <ogapee@aqua.dti2.ne.jp>\n\n");
     printf("Copyright (c) 2001-2006 Ogapee, 2006 Haeleth.\n");
     printf("This is free software; see the source for copying conditions.\n");
@@ -148,7 +148,7 @@ int main( int argc, char **argv )
     }
     
     // ----------------------------------------
-    // Run PONScripter
+    // Run Ponscripter
 
     if (ons.init()) exit(-1);
     ons.eventLoop();

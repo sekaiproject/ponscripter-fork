@@ -1,6 +1,6 @@
 /* -*- C++ -*-
  * 
- *  ScriptParser.h - Define block parser of PONScripter
+ *  ScriptParser.h - Define block parser of Ponscripter
  *
  *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this is a fork).
  *

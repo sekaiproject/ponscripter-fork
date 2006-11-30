@@ -1,6 +1,6 @@
 /* -*- C++ -*-
  *
- *  ONScripterLabel_event.cpp - Event handler of PONScripter
+ *  ONScripterLabel_event.cpp - Event handler of Ponscripter
  *
  *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this is a fork).
  *
@@ -315,7 +315,7 @@ void midiCallback( int sig )
 	}
 }
 
-// Pushes the midi loop event onto the stack.  Part of a workaround for PONScripter
+// Pushes the midi loop event onto the stack.  Part of a workaround for Ponscripter
 // crashing in Mac OS X after a midi is looped for the first time.  Recommend for
 // integration.  This is the work of Ben Carter.  [Seung Park, 20060621]
 #ifdef MACOSX
