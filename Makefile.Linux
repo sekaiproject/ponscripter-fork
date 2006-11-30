@@ -1,31 +1,42 @@
 # -*- Makefile -*-
 #
 # Makefile.Linux - Makefile rules for linux
-#
 
 INCS := $(shell sdl-config --cflags) $(shell smpeg-config --cflags) $(shell freetype-config --cflags)
 
-ifdef STATIC
+# PORTABLE and STATIC depend heavily on details of how SDL etc were configured.
+# These are the configurations used to build the generic binaries for release.
+# If you're building your own because the static binaries didn't work on your system,
+# ignore these and just stick with the regular dynamically linked build. You'll save
+# a lot of hassle, I assure you. ^^
+ifdef PORTABLE
 D=-Wl,-Bdynamic 
 S=-Wl,-Bstatic
-LIBS := -Wl,-O2 $(S) -lSDL_image -lpng -ltiff -ljpeg \
+LIBS := -Wl,-O2 $(S) -lSDL_image -lpng -ljpeg \
         -lSDL_mixer $(shell pkg-config vorbisfile --libs) \
-        $(shell sdl-config --static-libs) \
-        $(shell smpeg-config --libs) \
-        $(shell freetype-config --libs) -lbz2 $(D) -ldl -L.
+        $(shell sdl-config --static-libs) $(shell smpeg-config --libs) \
+        $(shell freetype-config --libs) -lbz2 \
+        -lasound -lesd \
+        $(D) -L. -lX11 -lXext -lXrandr 
 LIBS := $(patsubst -lpthread,$(D) -lpthread $(S),$(LIBS))
 else
-ifdef REALLY_STATIC
-LIBS := -static -lSDL_mixer -lvorbisfile -lvorbis -logg \
-        $(shell sdl-config --libs) $(shell smpeg-config --libs) \
-        -lSDL_image -ltiff -lpng -ljpeg -lbz2 $(shell freetype-config --libs) -ldl
+ifdef STATIC
+LIBS := -Wl,-O2 -static -lSDL_image -lpng -ljpeg \
+        -lSDL_mixer $(shell pkg-config vorbisfile --libs) \
+        $(shell sdl-config --static-libs) $(shell smpeg-config --libs) \
+        $(shell freetype-config --libs) -lbz2 \
+        -lasound -lesd \
+        -Wl,-start-group -lX11 -lXext -lXrandr -lXau -lXdmcp -lXrender -Wl,-end-group -ldl
 else
-LIBS := $(shell sdl-config --libs) $(shell smpeg-config --libs) $(shell freetype-config --libs) \
-        -lSDL_mixer -lSDL_image -lbz2
+
+# This is the default setup that you probably want to stick with if you can.
+LIBS := -lSDL_mixer -lSDL_image $(shell sdl-config --libs) $(shell smpeg-config --libs) \
+        $(shell freetype-config --libs) -lbz2
+
 endif
 endif
 
-DEFS = -DLINUX -DUSE_OGG_VORBIS -DHAELETH
+DEFS = -DLINUX -DUSE_OGG_VORBIS
 
 EXESUFFIX =
 OBJSUFFIX = .o
@@ -34,32 +45,25 @@ OBJSUFFIX = .o
 .SUFFIXES: $(OBJSUFFIX) .cpp .h
 
 # for GNU g++
+ifdef CXX
+CC = $(CXX)
+else
 CC = g++ 
-LD = g++ -o 
-
+endif
+LD = $(CC) -o 
 #CFLAGS = -g -ggdb -Wall -Werror -Wpointer-arith -pipe -c $(INCS) $(DEFS)
 CFLAGS = -O3 -Wall -Werror -fomit-frame-pointer -pipe -c $(INCS) $(DEFS)
 
-# for GCC on PowerPC specfied
-#CC = powerpc-unknown-linux-gnu-g++
-#LD = powerpc-unknown-linux-gnu-g++ -o
-
 #CFLAGS = -O3 -mtune=G4 -maltivec -mabi=altivec -mpowerpc-gfxopt -mmultiple -mstring -Wall -fomit-frame-pointer -pipe -c $(INCS) $(DEFS)
-
-# for Intel compiler
-#CC = icc
-#LD = icc -o
-
-#CFLAGS = -O3 -tpp6 -xK -c $(INCS) $(DEFS)
 
 RM = rm -f
 
 TARGET = ponscr$(EXESUFFIX)
 
-ifdef STATIC
+ifdef PORTABLE
 $(TARGET): libstdc++.a
 libstdc++.a:
-	ln -s `g++ -print-file-name=libstdc++.a`
+	ln -s `$(CC) -print-file-name=libstdc++.a`
 CLEANUP = libstdc++.a
 endif
 

@@ -13,7 +13,7 @@ LIBS := $(shell /usr/local/bin/sdl-config --static-libs) $(shell /usr/local/bin/
 
 NO_RESOURCES = true
 
-DEFS = -DMACOSX -DUTF8_FILESYSTEM -DUSE_OGG_VORBIS -DHAELETH
+DEFS = -DMACOSX -DUTF8_FILESYSTEM -DUSE_OGG_VORBIS
 
 EXESUFFIX =
 OBJSUFFIX = .o

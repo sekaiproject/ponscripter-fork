@@ -188,12 +188,12 @@ unsigned char DirectReader::readChar( FILE *fp )
 
 unsigned short DirectReader::readShort( FILE *fp )
 {
-    unsigned short ret;
+    int ret;
     unsigned char buf[2];
     
     fread( &buf, 1, 2, fp );
     ret = key_table[buf[0]] << 8 | key_table[buf[1]];
-    return ret;
+    return (unsigned short) ret;
 }
 
 unsigned long DirectReader::readLong( FILE *fp )
@@ -218,8 +218,8 @@ void DirectReader::writeShort( FILE *fp, unsigned short ch )
 {
     unsigned char buf[2];
 
-    buf[0] = (ch>>8) & 0xff;
-    buf[1] = ch & 0xff;
+    buf[0] = (unsigned char)((ch>>8) & 0xff);
+    buf[1] = (unsigned char)(ch & 0xff);
     fwrite( &buf, 1, 2, fp );
 }
 
@@ -284,7 +284,7 @@ int DirectReader::getRegisteredCompressionType( const char *file_name )
 struct DirectReader::FileInfo DirectReader::getFileByIndex( unsigned int index )
 {
     DirectReader::FileInfo fi;
-    
+    memset(&fi, 0, sizeof fi);
     return fi;
 }
 

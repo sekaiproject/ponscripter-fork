@@ -14,7 +14,7 @@ LIBS = -static -Wl,--start-group \
        -lSDL_mixer -logg -lvorbis -lvorbisfile  \
        -lbz2 -Wl,--end-group
 
-DEFS = -DWIN32 -DUSE_OGG_VORBIS -DHAELETH
+DEFS = -DWIN32 -DUSE_OGG_VORBIS
 
 EXESUFFIX = .exe
 OBJSUFFIX = .o

@@ -24,7 +24,7 @@
 #include "ONScripterLabel.h"
 #include "version.h"
 
-void optionHelp()
+static void optionHelp()
 {
     printf( "PONScripter version %s (NScr %d.%02d)\n", ONS_VERSION, NSC_VERSION/100, NSC_VERSION%100 );
     printf( "Usage: ponscripter [option ...]\n" );
@@ -51,7 +51,7 @@ void optionHelp()
     exit(0);
 }
 
-void optionVersion()
+static void optionVersion()
 {
     printf("PONScripter version %s (NScr %d.%02d)\n", ONS_VERSION, NSC_VERSION/100, NSC_VERSION%100 );
     printf("Based on ONScripter by Ogapee <ogapee@aqua.dti2.ne.jp>\n\n");

@@ -58,7 +58,7 @@ class ScriptParser
 {
 public:
     ScriptParser();
-    ~ScriptParser();
+    virtual ~ScriptParser();
 
     void reset();
     int open();

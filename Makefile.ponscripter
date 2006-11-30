@@ -64,7 +64,7 @@ AVIWrapper$(OBJSUFFIX): AVIWrapper.h
 utf8_util$(OBJSUFFIX): utf8_util.h
 ttf$(OBJSUFFIX): ttf.h
 
-ICON_SOURCE ?= internal.icon
+ICON_SOURCE ?= default.png
 
 resources.cpp: embed$(EXESUFFIX) $(ICON_SOURCE)
 	-$(RM) $@

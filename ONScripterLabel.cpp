@@ -279,7 +279,7 @@ void ONScripterLabel::initSDL()
 		exit(-1);
 	}
 
-#ifndef HAELETH
+#ifdef ENABLE_JOYSTICK
 	if(SDL_InitSubSystem( SDL_INIT_JOYSTICK ) == 0 && SDL_JoystickOpen(0) != NULL)
 		printf( "Initialize JOYSTICK\n");
 #endif

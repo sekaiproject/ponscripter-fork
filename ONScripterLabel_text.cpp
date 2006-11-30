@@ -363,7 +363,20 @@ int ONScripterLabel::processText()
 {
 	if ( event_mode & (WAIT_INPUT_MODE | WAIT_SLEEP_MODE) ){
 		draw_cursor_flag = false;
-		if ( script_h.getStringBuffer()[ string_buffer_offset ] == '!' ){
+		if ( clickstr_state == CLICK_WAIT ){
+            if (script_h.checkClickstr(script_h.getStringBuffer() + string_buffer_offset) != 1) string_buffer_offset++;
+            string_buffer_offset++;
+            clickstr_state = CLICK_NONE;
+        }
+        else if ( clickstr_state == CLICK_NEWPAGE ){
+            event_mode = IDLE_EVENT_MODE;
+            if (script_h.checkClickstr(script_h.getStringBuffer() + string_buffer_offset) != 1) string_buffer_offset++;
+            string_buffer_offset++;
+            newPage( true );
+            clickstr_state = CLICK_NONE;
+            return RET_CONTINUE | RET_NOREAD;
+        }
+        else if ( script_h.getStringBuffer()[ string_buffer_offset ] == '!' ){
 			string_buffer_offset++;
 			if ( script_h.getStringBuffer()[ string_buffer_offset ] == 'w' || script_h.getStringBuffer()[ string_buffer_offset ] == 'd' ){
 				string_buffer_offset++;
