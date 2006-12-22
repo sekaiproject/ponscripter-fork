@@ -133,7 +133,8 @@ CharacterBytes(const char* string)
 	const unsigned char* t = (const unsigned char*) string;
 	const unsigned char c = t[0];
 	if (c < 0x80) {
-		if (c >= 0x17 && c <= 0x1f) return 3; // size codes
+		if (c >= 0x17 && c <= 0x1e) return 3; // size codes
+		if (c == 0x1f) return 2; // extended codes
 		if (c == '|') return t[1] == '|' ? 2 : 1 + CharacterBytes(string + 1);
 		ligature* lig = GetLigatureRef(string);
 		return lig ? lig->bytes : 1;
@@ -222,7 +223,7 @@ SetEncoding(int& encoding, const char flag)
 	case 'b': encoding ^=  Bold;    return;
 	case 'f': encoding &= ~Sans;    return;
 	case 's': encoding ^=  Sans;    return;
-	case '+': case '-':	case '*': case '/': case 'x': case 'y':
+	case '+': case '-':	case '*': case '/': case 'x': case 'y': case 'n': case 'u':
 		fprintf(stderr, "Warning: tag ~%c~ cannot be used in this context\n", flag);		
 		return;
 	case 'c':
@@ -235,11 +236,12 @@ SetEncoding(int& encoding, const char flag)
 }
 
 inline int
-set_out(char* out, char val)
+set_out(char* out, char val, char ext = 0)
 {
 	*out++ = val;
+	if (ext) *out++ = ext;
 	*out = 0;
-	return 1;
+	return ext ? 2 : 1;
 }
 
 inline int
@@ -288,6 +290,8 @@ TranslateTag(const char* flag, char* out, int& in_len)
 	          }
 	          else return set_int(out, 0x1d, flag, in_len);
 	case 'c': return set_int(out, 0x1e, flag, in_len);
+	case 'n': return set_out(out, 0x1f, 0x10);
+	case 'u': return set_out(out, 0x1f, 0x11);
 	case 0:
 		fprintf(stderr, "Error: non-matching ~tags~\n");
 		exit(1);

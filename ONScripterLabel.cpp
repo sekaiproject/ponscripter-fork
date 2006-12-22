@@ -1290,7 +1290,7 @@ void ONScripterLabel::newPage( bool next_flag )
 	flush( refreshMode(), &sentence_font_info.pos );
 }
 
-struct ONScripterLabel::ButtonLink *ONScripterLabel::getSelectableSentence( char *buffer, FontInfo *info, bool flush_flag, bool nofile_flag )
+ONScripterLabel::ButtonLink* ONScripterLabel::getSelectableSentence( char *buffer, FontInfo *info, bool flush_flag, bool nofile_flag )
 {
 	float current_x;
 	current_x = info->GetXOffset();

@@ -198,6 +198,11 @@ bool FontInfo::processCode(const char* text)
 		case 0x1c: pos_y += get_int(text) - 8192; return true;
 		case 0x1d: pos_y  = get_int(text); return true;
 		case 0x1e: style  = get_int(text); return true;
+		case 0x1f: 
+			switch (text[1]) {
+			case 0x10: indent = pos_x; return true;
+			case 0x11: indent = 0; return true;
+			}
 		}
 	}
 	return false;

@@ -187,12 +187,13 @@ The user is responsible for ensuring that appropriate characters will exist.
 
 Text appearance is controlled with inline tag blocks.  A tag block is delimited
 by ~tildes~, and contains any number of tags, which may optionally be separated
-with spaces.
+with spaces.  Use ~~ to insert a literal tilde.
 
 Where a tag block appears in display text, its effects last until the end of the
 current screen; to apply a style to multiple screens, use h_fontstyle (see below).
 Tag blocks can also be embedded to style text buttons, menu items, etc., in which
-case they last to the end of the string in which they appear.
+case they last to the end of the string in which they appear.  (Only font style
+tags are valid in such cases.)
 
 The following tags are recognised (N represents an arbitrary decimal integer):
 
@@ -258,6 +259,26 @@ position up and to the left.  The second tag block cancels the italic effect and
 resets the font size to normal.
 
 
+INDENTATION TAGS
+
+  n  Set indent at current x position. Subsequent newlines on the same screen
+     will line up with this.
+  
+  u  Cancel any indent setting.
+
+In addition to these tags, screens that begin with certain characters (including
+opening quotes and em dashes) have indents set automatically.  These characters
+can be overridden with the "h_indentstr" command, though there will usually be
+no need to do this.
+
+Indentation example:
+
+^**%.Item 1 goes here; if this text wraps, it will go back to the left margin.
+^**%.~n~Item 2 goes here; if this text wraps it will line up with the bullet.~u~
+^If there wasn't a ~~u~~ at the end of the last line, this would also line up
+^with the bullet.\
+
+
 /-------------------------------------------------------------------------------
 |  h_fontstyle <string>
 
@@ -320,6 +341,20 @@ Sample usage:
 
   h_centreline ^...that dazzling sun... that summer's day...^
   ^...that dazzling sun... that summer's day...\
+
+
+/-------------------------------------------------------------------------------
+|  br
+|  br2 <amount>
+
+In NScripter, the "br" command inserts a blank line of the same height as a 
+regular line of text.  In Ponscripter, it inserts precisely half that amount of 
+space, so paragraphs will be spaced somewhat tighter by default.
+
+Additionally, a new command "br2" is introduced.  The given <amount> is the 
+height of the blank space as a percentage of the height of a regular line of 
+text. In other words, "br2 50" is equivalent to "br", while "br2 100" is 
+equivalent to the "br" command in standard NScripter.
 
 
 /-------------------------------------------------------------------------------

@@ -26,9 +26,9 @@ fonts: $(foreach n,0 1 2 3 4 5 6 7, narci_fonts/face$(n).ttf)
 	fontforge -c 'Open("$<");Generate("$@","",0x89c)'
 
 .PHONY: final
-final: $(TARGET)
-	-strip $(TARGET)
-	-upx --best $(TARGET)
+final: ponscr$(EXESUFFIX)
+	-strip $<
+	-upx --best $<
 	$(RM) $(FINAL_TARGET)
-	mv $(TARGET) $(FINAL_TARGET)
+	mv $< $(FINAL_TARGET)
 endif
