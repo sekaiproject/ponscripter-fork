@@ -326,13 +326,13 @@ void ONScripterLabel::createSaveLoadMenu( bool is_save )
         if ( save_file_info.valid ){
         	snprintf( buffer, buffer_size, "^%2d:", save_file_info.hour );
         	float hw = menu_font.StringAdvance( buffer );
-            snprintf( buffer, buffer_size, "^%s %-2d~x%d~%s %-2d~x%d~%2d:%02d", save_item_name, i,
+            snprintf( buffer, buffer_size, "^%s %2d~x%d~%s %-2d~x%d~%2d:%02d", save_item_name, i,
                       int(entry_date_x), short_month[save_file_info.month - 1], save_file_info.day,
                       int(entry_time_x - hw), save_file_info.hour, save_file_info.minute );
             disable = false;
         }
         else{
-            snprintf( buffer, buffer_size, "^%s %-2d~x%d~%s", save_item_name, i, int(entry_date_x), no_save_line );
+            snprintf( buffer, buffer_size, "^%s %2d~x%d~%s", save_item_name, i, int(entry_date_x), no_save_line );
             disable = !is_save;
         }
         ButtonLink *button = getSelectableSentence( buffer, &menu_font, false, disable );
