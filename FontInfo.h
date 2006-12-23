@@ -64,6 +64,7 @@ public:
 
 	float em_width();
 	int line_space();
+	int line_top(int line_number) { return (line_space() + pitch_y) * line_number; }
 
 	void SetIndent(const unsigned short indent_char) { indent = GlyphAdvance(indent_char, 0); }
 	void ClearIndent() { indent = 0; }
@@ -81,7 +82,7 @@ public:
 	void newLine();
 	void setLineArea(int num);
 
-	float GlyphAdvance(unsigned short unicode, unsigned short next);
+	float GlyphAdvance(unsigned short unicode, unsigned short next = 0);
 	float StringAdvance(const char* string);
 
 	bool isNoRoomFor(float margin = 0.0);

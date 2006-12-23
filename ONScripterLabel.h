@@ -740,6 +740,7 @@ private:
     void executeSystemReset();
     void executeSystemEnd();
     void executeWindowErase();
+    void createSaveLoadMenu( bool is_save );
     void executeSystemLoad();
     void executeSystemSave();
     void executeSystemYesNo();

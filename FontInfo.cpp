@@ -211,7 +211,6 @@ bool FontInfo::processCode(const char* text)
 float FontInfo::StringAdvance(const char* string) 
 {
 	doSize();
-	float rv = 0.0;
 	unsigned short unicode, next;
 	float orig_x = pos_x;
 	int orig_mod = font_size_mod, orig_style = style, orig_y = pos_y;
@@ -219,10 +218,11 @@ float FontInfo::StringAdvance(const char* string)
 	while (*string) {
 		int cb = CharacterBytes(string);
 		next = UnicodeOfUTF8(string + cb);
-		if (!processCode(string)) rv += GlyphAdvance(unicode, next);
+		if (!processCode(string)) pos_x += GlyphAdvance(unicode, next);
 		unicode = next;
 		string += cb;
 	}
+	float rv = pos_x - orig_x;
 	font_size_mod = orig_mod;
 	style = orig_style;
 	pos_x = orig_x;
