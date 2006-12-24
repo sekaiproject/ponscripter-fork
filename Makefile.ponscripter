@@ -20,17 +20,17 @@ ONSCRIPTER_OBJS = onscripter$(OBJSUFFIX) $(DECODER_OBJS) ScriptHandler$(OBJSUFFI
 PARSER_HEADER = BaseReader.h SarReader.h NsaReader.h DirectReader.h ScriptHandler.h ScriptParser.h AnimationInfo.h FontInfo.h DirtyRect.h
 ONSCRIPTER_HEADER = font.h ONScripterLabel.h $(PARSER_HEADER)
 
-ponscr$(EXESUFFIX): $(ONSCRIPTER_OBJS)
+ponscr$(EXESUFFIX): $(EXTRADEPS) $(ONSCRIPTER_OBJS)
 	$(LD)$@ $(ONSCRIPTER_OBJS) $(LIBS)
 
-clean:
+clean: $(CLEAN_TARGETS)
 	-$(RM) *$(OBJSUFFIX) $(CLEANUP) resources.cpp
 	
-distclean: clean
-	-$(RM) $(TARGET) embed$(EXESUFFIX) 
+distclean: clean $(DISTCLEAN_TARGETS)
+	-$(RM) $(TARGET) embed$(EXESUFFIX) $(DISTCLEANUP)
 
 .cpp$(OBJSUFFIX):
-	$(CC) $(CFLAGS) $<
+	$(CXX) $(CFLAGS) $<
 
 SarReader$(OBJSUFFIX):    BaseReader.h SarReader.h 
 NsaReader$(OBJSUFFIX):    BaseReader.h SarReader.h NsaReader.h 
@@ -69,4 +69,4 @@ resources.cpp: embed$(EXESUFFIX) $(filter-out =%,$(RESOURCES))
 	./embed $(patsubst =%,%,$(RESOURCES)) > $@
 
 embed$(EXESUFFIX): embed.cpp
-	$(CC) $< -o $@
+	$(CXX) $< -o $@

@@ -88,19 +88,7 @@ extern long decodeOggVorbis(OVInfo *ovi, unsigned char *buf_dst, long len, bool 
 #if defined(INTEGER_OGG_VORBIS)
         long src_len = ov_read( &ovi->ovf, buf, len, &current_section);
 #else
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN
         long src_len = ov_read( &ovi->ovf, buf, len, 0, 2, 1, &current_section);
-#else
-        /*
-		 * In practice, on Mac OS X PPC, flipping the endian flag here to 1
-		 * actually causes the endianness to be *wrong* -- causing static
-		 * as output whenever ogg vorbis is used.  Apparently you're doing
-		 * this endian flipping already somewhere else; therefore, the one here
-		 * is not only unnecessary, it causes absolutely undesired behavior.
-		 * Recommend for integration. [Seung Park, 20060707]
-		 */
-        long src_len = ov_read( &ovi->ovf, buf, len, 0, 2, 1, &current_section);
-#endif
 #endif
         if (src_len <= 0) break;
 
