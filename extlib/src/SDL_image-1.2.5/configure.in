@@ -1,0 +1,279 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(README)
+
+dnl Set various version strings - taken gratefully from the GTk sources
+
+# Making releases:
+#   MICRO_VERSION += 1;
+#   INTERFACE_AGE += 1;
+#   BINARY_AGE += 1;
+# if any functions have been added, set INTERFACE_AGE to 0.
+# if backwards compatibility has been broken,
+# set BINARY_AGE and INTERFACE_AGE to 0.
+
+MAJOR_VERSION=1
+MINOR_VERSION=2
+MICRO_VERSION=5
+INTERFACE_AGE=4
+BINARY_AGE=5
+VERSION=$MAJOR_VERSION.$MINOR_VERSION.$MICRO_VERSION
+
+AC_SUBST(MAJOR_VERSION)
+AC_SUBST(MINOR_VERSION)
+AC_SUBST(MICRO_VERSION)
+AC_SUBST(INTERFACE_AGE)
+AC_SUBST(BINARY_AGE)
+AC_SUBST(VERSION)
+
+# libtool versioning
+LT_RELEASE=$MAJOR_VERSION.$MINOR_VERSION
+LT_CURRENT=`expr $MICRO_VERSION - $INTERFACE_AGE`
+LT_REVISION=$INTERFACE_AGE
+LT_AGE=`expr $BINARY_AGE - $INTERFACE_AGE`
+
+AC_SUBST(LT_RELEASE)
+AC_SUBST(LT_CURRENT)
+AC_SUBST(LT_REVISION)
+AC_SUBST(LT_AGE)
+
+dnl Detect the canonical build and host environments
+AC_CANONICAL_HOST
+
+dnl Setup for automake
+AM_INIT_AUTOMAKE(SDL_image, $VERSION)
+
+dnl Check for tools
+
+AC_LIBTOOL_WIN32_DLL
+AM_PROG_LIBTOOL
+AC_PROG_MAKE_SET
+AC_PROG_CC
+AC_C_INLINE
+AC_PROG_INSTALL
+
+dnl The alpha architecture needs special flags for binary portability
+case "$host" in
+    alpha*-*-linux*)
+        CFLAGS="$CFLAGS -mcpu=ev4 -Wa,-mall"
+        ;;
+    *-*-beos*)
+        ac_default_prefix=/boot/develop/tools/gnupro
+        ;;
+    *-*-cygwin* | *-*-mingw32*)
+        if test "$build" != "$host"; then # cross-compiling
+            # Default cross-compile location
+            ac_default_prefix=/usr/local/cross-tools/i386-mingw32msvc
+        else
+            # Look for the location of the tools and install there
+            if test "$BUILD_PREFIX" != ""; then
+                ac_default_prefix=$BUILD_PREFIX
+            fi
+        fi
+        ;;
+esac
+
+dnl Check for SDL
+SDL_VERSION=1.2.10
+AM_PATH_SDL($SDL_VERSION,
+            :,
+           AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!])
+)
+CFLAGS="$CFLAGS $SDL_CFLAGS"
+LIBS="$LIBS $SDL_LIBS"
+saved_LIBS="$LIBS"
+
+dnl Check command-line options
+AC_ARG_ENABLE([bmp], [AC_HELP_STRING([--enable-bmp], [support loading BMP images [default=yes]])],
+ [], [enable_bmp=yes])
+AC_ARG_ENABLE([gif], [AC_HELP_STRING([--enable-gif], [support loading GIF images [default=yes]])],
+ [], [enable_gif=yes])
+AC_ARG_ENABLE([jpg], [AC_HELP_STRING([--enable-jpg], [support loading JPG images [default=yes]])],
+ [], [enable_jpg=yes])
+AC_ARG_ENABLE([jpg-shared], AC_HELP_STRING([--enable-jpg-shared], [dynamically load JPG support [[default=yes]]]),
+ [], [enable_jpg_shared=yes])
+AC_ARG_ENABLE([lbm], [AC_HELP_STRING([--enable-lbm], [support loading LBM images [default=yes]])],
+ [], [enable_lbm=yes])
+AC_ARG_ENABLE([pcx], [AC_HELP_STRING([--enable-pcx], [support loading PCX images [default=yes]])],
+ [], [enable_pcx=yes])
+AC_ARG_ENABLE([png], [AC_HELP_STRING([--enable-png], [support loading PNG images [default=yes]])],
+ [], [enable_png=yes])
+AC_ARG_ENABLE([png-shared], AC_HELP_STRING([--enable-png-shared], [dynamically load PNG support [[default=yes]]]),
+ [], [enable_png_shared=yes])
+AC_ARG_ENABLE([pnm], [AC_HELP_STRING([--enable-pnm], [support loading PNM images [default=yes]])],
+ [], [enable_pnm=yes])
+AC_ARG_ENABLE([tga], [AC_HELP_STRING([--enable-tga], [support loading TGA images [default=yes]])],
+ [], [enable_tga=yes])
+AC_ARG_ENABLE([tif], [AC_HELP_STRING([--enable-tif], [support loading TIFF images [default=yes]])],
+ [], [enable_tif=yes])
+AC_ARG_ENABLE([tif-shared], AC_HELP_STRING([--enable-tif-shared], [dynamically load TIFF support [[default=yes]]]),
+ [], [enable_tif_shared=yes])
+AC_ARG_ENABLE([xcf], [AC_HELP_STRING([--enable-xcf], [support loading XCF images [default=yes]])],
+ [], [enable_xcf=yes])
+AC_ARG_ENABLE([xpm], [AC_HELP_STRING([--enable-xpm], [support loading XPM images [default=yes]])],
+ [], [enable_xpm=yes])
+AC_ARG_ENABLE([xv], [AC_HELP_STRING([--enable-xv], [support loading XV images [default=yes]])],
+ [], [enable_xv=yes])
+
+if test x$enable_png = xyes || test x$enable_tif = xyes; then
+    AC_CHECK_LIB([z], [uncompress], [
+        LIBS="-lz $LIBS"
+    ])
+fi
+
+if test x$enable_jpg = xyes || test x$enable_tif = xyes; then
+    AC_CHECK_LIB([jpeg], [jpeg_CreateDecompress], [have_libjpeg=yes])
+    if test x$have_libjpeg = xyes; then
+        if test x$enable_jpg = xyes; then
+            AC_DEFINE(LOAD_JPG)
+        fi
+        LIBS="-ljpeg $LIBS"
+
+        case "$host" in
+            *-*-darwin*) # FIXME when Mac OS X ships with libjpeg
+                jpg_lib=''
+                ;;
+            *-*-cygwin* | *-*-mingw32*)
+                jpg_lib='jpeg.dll'
+                ;;
+            *)
+                for path in /usr/lib /usr/local/lib; do
+                    if test x$jpg_lib = x; then
+                        jpg_lib=[`ls -- $path/libjpeg.so.[0-9][0-9] 2>/dev/null | sort -r | sed 's/.*\/\(.*\)/\1/; q'`]
+                    fi
+                done
+                ;;
+        esac
+    elif test x$enable_jpg = xyes; then
+        AC_MSG_WARN([*** Unable to find JPEG library (http://www.ijg.org/)])
+        AC_MSG_WARN([JPG image loading disabled])
+    fi
+fi
+
+if test x$enable_png = xyes; then
+    AC_CHECK_LIB([png], [png_create_read_struct], [have_libpng=yes])
+    if test x$have_libpng = xyes; then
+        AC_DEFINE([LOAD_PNG])
+
+        case "$host" in
+            *-*-darwin*) # FIXME when Mac OS X ships with libpng
+                png_lib=''
+                ;;
+            *-*-cygwin* | *-*-mingw32*)
+                png_lib='libpng13.dll'
+                ;;
+            *)
+                for path in /usr/lib /usr/local/lib; do
+                    if test x$png_lib = x; then
+                        png_lib=[`ls -- $path/libpng.so.[0-9] 2>/dev/null | sort -r | sed 's/.*\/\(.*\)/\1/; q'`]
+                    fi
+                done
+                ;;
+        esac
+    else
+        AC_MSG_WARN([*** Unable to find PNG library (http://www.libpng.org/pub/png/libpng.html)])
+        AC_MSG_WARN([PNG image loading disabled])
+    fi
+fi
+
+if test x$enable_tif = xyes; then
+    AC_CHECK_LIB([tiff], [TIFFClientOpen], [have_libtiff=yes])
+    if test x$have_libtiff = xyes; then
+        AC_DEFINE([LOAD_TIF])
+
+        case "$host" in
+            *-*-darwin*) # FIXME when Mac OS X ships with libtiff
+                tif_lib=''
+                ;;
+            *-*-cygwin* | *-*-mingw32*)
+                tif_lib='libtiff.dll'
+                ;;
+            *)
+                for path in /usr/lib /usr/local/lib; do
+                    if test x$tif_lib = x; then
+                        tif_lib=[`ls -- $path/libtiff.so.[0-9] 2>/dev/null | sort -r | sed 's/.*\/\(.*\)/\1/; q'`]
+                    fi
+                done
+                ;;
+        esac
+    else
+        AC_MSG_WARN([*** Unable to find Tiff library (http://www.remotesensing.org/libtiff/)])
+        AC_MSG_WARN([TIF image loading disabled])
+    fi
+fi
+
+if test x$enable_bmp = xyes; then
+    AC_DEFINE([LOAD_BMP])
+fi
+
+if test x$enable_gif = xyes; then
+    AC_DEFINE([LOAD_GIF])
+fi
+
+if test x$enable_lbm = xyes; then
+    AC_DEFINE([LOAD_LBM])
+fi
+
+if test x$enable_pcx = xyes; then
+    AC_DEFINE([LOAD_PCX])
+fi
+
+if test x$enable_pnm = xyes; then
+    AC_DEFINE([LOAD_PNM])
+fi
+
+if test x$enable_tga = xyes; then
+    AC_DEFINE([LOAD_TGA])
+fi
+
+if test x$enable_xcf = xyes; then
+    AC_DEFINE([LOAD_XCF])
+fi
+
+if test x$enable_xpm = xyes; then
+    AC_DEFINE([LOAD_XPM])
+fi
+
+if test x$enable_xv = xyes; then
+    AC_DEFINE([LOAD_XV])
+fi
+
+if test x$enable_tif = xyes; then
+    if test x$enable_tif_shared = xyes && test x$tif_lib != x; then
+        echo "-- dynamic libtiff -> $tif_lib"
+        AC_DEFINE_UNQUOTED(LOAD_TIF_DYNAMIC, "$tif_lib")
+    else
+        if test x$have_libjpeg = xyes; then
+            # Disable dynamic jpeg since we're linking it explicitly
+            jpg_lib=''
+            IMG_LIBS="-ljpeg $IMG_LIBS"
+        fi
+        IMG_LIBS="-ltiff -lz"
+    fi
+fi
+if test x$enable_jpg = xyes; then
+    if test x$enable_jpg_shared = xyes && test x$jpg_lib != x; then
+        echo "-- dynamic libjpeg -> $jpg_lib"
+        AC_DEFINE_UNQUOTED(LOAD_JPG_DYNAMIC, "$jpg_lib")
+    else
+        IMG_LIBS="-ljpeg $IMG_LIBS"
+    fi
+fi
+if test x$enable_png = xyes; then
+    if test x$enable_png_shared = xyes && test x$png_lib != x; then
+        echo "-- dynamic libpng -> $png_lib"
+        AC_DEFINE_UNQUOTED(LOAD_PNG_DYNAMIC, "$png_lib")
+    else
+        IMG_LIBS="-lpng -lz $IMG_LIBS"
+    fi
+fi
+
+LIBS="$saved_LIBS"
+
+AC_SUBST([IMG_LIBS])
+
+# Finally create all the generated files
+AC_OUTPUT([
+Makefile
+SDL_image.spec
+SDL_image.qpg
+])

@@ -152,19 +152,22 @@ if test -n "$prev"; then
   exit 2
 fi
 
+internalise_SDL() {
+	INTERNAL_SDL=true	
+	INTERNAL_SDL_IMAGE=true
+    INTERNAL_SDL_MIXER=true
+    INTERNAL_SMPEG=true
+}
+
 if $INTERNAL_LIBS
 then
-	INTERNAL_SDL=true
-	INTERNAL_SDL_IMAGE=true
-	INTERNAL_SDL_MIXER=true
+	internalise_SDL
 	INTERNAL_BZIP2=true
-	INTERNAL_SMPEG=true
 	INTERNAL_FREETYPE=true
 elif $INTERNAL_SDL
 then
 	# If any of SDL is internal, all of it must be.
-	INTERNAL_SDL_IMAGE=true
-    INTERNAL_SDL_MIXER=true
+	internalise_SDL
 fi
 
 # Platform
@@ -223,7 +226,7 @@ then
 fi
 
 # Make (must be GNU)
-$echo_n "Checking for GNU make... ${nobr}"
+$echo_n "Checking for system GNU make... ${nobr}"
 case "$($MAKE -v 2>/dev/null | head -1)" in
 GNU?Make*)
 	echo "$MAKE" ;;
@@ -247,25 +250,23 @@ SDL_CONFIG=sdl-config
 SMPEG_CONFIG=smpeg-config
 FREETYPE_CONFIG=freetype-config
 
-if ! $INTERNAL_SDL
+if $INTERNAL_SDL
 then
-	$echo_n "Checking for SDL... ${nobr}"
+	SDL_CONFIG=./extlib/bin/sdl-config
+else
+	$echo_n "Checking for system SDL... ${nobr}"
 	VER=$($SDL_CONFIG --version 2>/dev/null)
 	if [ -n "$VER" ]
 	then
 	    eval $(echo $VER | awk -F. '{ print "MAJ=" $1 "; MIN=" $2 "; REL=" $3; }')
 	    if [ $MAJ -gt 1 -o $MAJ -eq 1 -a $MIN -gt 2 -o $MAJ -eq 1 -a $MIN -eq 2 -a $REL -ge 8 ]
-	    then echo "ok"
+	    then echo "yes"
 	    else echo "too old"
-	         INTERNAL_SDL=true
-	         INTERNAL_SDL_IMAGE=true
-	         INTERNAL_SDL_MIXER=true
+	         internalise_SDL
 	    fi
 	else
 	    echo "not found"
-	    INTERNAL_SDL=true
-        INTERNAL_SDL_IMAGE=true
-        INTERNAL_SDL_MIXER=true
+	    internalise_SDL
 	fi
 fi
 
@@ -275,7 +276,7 @@ cd .configtest
 
 if ! $INTERNAL_SDL_IMAGE
 then
-    $echo_n "Checking for SDL_image... ${nobr}"
+    $echo_n "Checking for system SDL_image... ${nobr}"
     cat > test.cc <<-_EOF
 		#include "SDL.h"
 		#include "SDL_image.h"
@@ -287,7 +288,7 @@ then
     $CXX $($SDL_CONFIG --cflags) $($SDL_CONFIG --libs) -lSDL_image test.cc -o itest >/dev/null 2>&1
     ./itest 2>/dev/null
     case $? in
-	0) echo "ok"; INTERNAL_SDL_IMAGE=false ;;
+	0) echo "yes"; INTERNAL_SDL_IMAGE=false ;;
 	1) echo "no PNG" ;; 2) echo "no JPEG" ;; 3) echo "no PNG or JPEG" ;;
 	*) echo "not found" ;;
 	esac
@@ -295,7 +296,7 @@ fi
 
 if ! $INTERNAL_SDL_MIXER
 then
-    $echo_n "Checking for SDL_mixer... ${nobr}"
+    $echo_n "Checking for system SDL_mixer... ${nobr}"
     cat > test.cc <<-_EOF
 		#include <cstdio>
 		#include "SDL.h"
@@ -335,7 +336,7 @@ then
     $CXX $($SDL_CONFIG --cflags) $($SDL_CONFIG --libs) -lSDL_mixer test.cc -o mtest >/dev/null 2>&1
     ./mtest 2>/dev/null
     case $? in
-	0) echo "ok"; INTERNAL_SDL_MIXER=false ;;
+	0) echo "yes"; INTERNAL_SDL_MIXER=false ;;
 	1) echo "no MP3" ;; 2) echo "no Ogg" ;; 3) echo "no Ogg or MP3" ;;
 	*) echo "not found" ;;
 	esac
@@ -343,7 +344,7 @@ fi
 
 if ! $INTERNAL_BZIP2
 then
-	$echo_n "Checking for libbzip2... ${nobr}"
+	$echo_n "Checking for system libbzip2... ${nobr}"
 	cat > test.cc <<-_EOF
 		#include <bzlib.h>
 		unsigned char bz[]={66,90,104,57,49,65,89,38,83,89,41,212,246,171,0,0,0,16,0,64,0,32,0,33,24,70,130,238,72,167,10,18,5,58,158,213,96};
@@ -351,7 +352,7 @@ then
 	_EOF
 	$CXX -lbz2 test.cc -o btest >/dev/null 2>&1
 	if ./btest 2>/dev/null
-	then echo "ok"
+	then echo "yes"
 	else echo "not found"
      	 INTERNAL_BZIP2=true
 	fi
@@ -360,20 +361,24 @@ fi
 cd ..
 rm -rf .configtest
 
-if ! $INTERNAL_SMPEG
+if $INTERNAL_SMPEG
 then
-	$echo_n "Checking for libsmpeg... ${nobr}"
+	SMPEG_CONFIG=./extlib/bin/smpeg-config
+else
+	$echo_n "Checking for system libsmpeg... ${nobr}"
 	VER=$($SMPEG_CONFIG --version 2>/dev/null)
 	if [ -n "$VER" ]
-	then echo "ok"
+	then echo "yes"
 	else echo "not found"
 	     INTERNAL_SMPEG=true
 	fi
 fi
 
-if ! $INTERNAL_FREETYPE
+if $INTERNAL_FREETYPE
 then
-	$echo_n "Checking for Freetype... ${nobr}"
+	FREETYPE_CONFIG=./extlib/bin/freetype-config
+else
+	$echo_n "Checking for system Freetype... ${nobr}"
 	VER=$($FREETYPE_CONFIG --ftversion 2>/dev/null)
 	if [ -z "$VER" ]; then
 	    FREETYPE_CONFIG=freetype2-config
@@ -387,7 +392,7 @@ then
 	if [ -n "$VER" ]
 	then
 	    if [ $(echo $VER | awk -F. '{ print $1; }') -ge 2 ]
-	    then echo "ok"
+	    then echo "yes"
 	    else echo "too old"
 	         INTERNAL_FREETYPE=true
 	    fi
@@ -409,12 +414,12 @@ esac
 
 DEPS=
 CLEAN=
-$INTERNAL_SDL       && DEPS="extlib/bin/sdl-config $DEPS"       && CLEAN="clean_sdl $CLEAN"
-$INTERNAL_SDL_IMAGE && DEPS="extlib/lib/libSDL_image$LIB $DEPS" && CLEAN="clean_sdl_image $CLEAN"
-$INTERNAL_SDL_MIXER && DEPS="extlib/lib/libSDL_mixer$LIB $DEPS" && CLEAN="clean_sdl_mixer $CLEAN"
-$INTERNAL_BZIP2     && DEPS="extlib/lib/libbz2$LIB $DEPS"       && CLEAN="clean_bzip2 $CLEAN"
-$INTERNAL_SMPEG     && DEPS="extlib/bin/smpeg-config $DEPS"     && CLEAN="clean_smpeg $CLEAN"
-$INTERNAL_FREETYPE  && DEPS="extlib/bin/freetype-config $DEPS"  && CLEAN="clean_freetype $CLEAN"
+$INTERNAL_SDL       && DEPS="internal_sdl $DEPS"       && CLEAN="clean_sdl $CLEAN"
+$INTERNAL_SDL_IMAGE && DEPS="internal_sdl_image $DEPS" && CLEAN="clean_sdl_image $CLEAN"
+$INTERNAL_SDL_MIXER && DEPS="internal_sdl_mixer $DEPS" && CLEAN="clean_sdl_mixer $CLEAN"
+$INTERNAL_BZIP2     && DEPS="internal_bzip2 $DEPS"     && CLEAN="clean_bzip2 $CLEAN"
+$INTERNAL_SMPEG     && DEPS="internal_smpeg $DEPS"     && CLEAN="clean_smpeg $CLEAN"
+$INTERNAL_FREETYPE  && DEPS="internal_freetype $DEPS"  && CLEAN="clean_freetype $CLEAN"
 
 cat > Makefile <<-_EOF
 	# -*- Makefile -*-
@@ -429,28 +434,29 @@ cat > Makefile <<-_EOF
 	LIBSUFFIX=$LIB
 	EXESUFFIX=$EXE
 
-	# Configuration scripts for internal libraries override any system-wide scripts.
-	PATH:=extlib/bin:\$(PATH)
-
 	# Extra handling for internal libraries.
 	EXTRADEPS=$DEPS
-	CLEAN_TARGETS=$CLEAN
-	DISTCLEAN_TARGETS=clean_sdl clean_sdl_image clean_sdl_mixer clean_bzip2 clean_smpeg clean_freetype
+	INTERNAL_SMPEG=$INTERNAL_SMPEG
 	DISTCLEANUP = Makefile
+	
+	export PATH     := \$(shell pwd)/extlib/bin:\$(PATH)
+	export CFLAGS   := -I\$(shell pwd)/extlib/include \$(CFLAGS)
+	export CPPFLAGS := -I\$(shell pwd)/extlib/include \$(CPPFLAGS)
+	export LDFLAGS  := -L\$(shell pwd)/extlib/lib \$(LDFLAGS)
 
 	# Ponscripter variables
-	INCS = \$(shell sdl-config --cflags) \$(shell smpeg-config --cflags) \$(shell freetype-config --cflags)
+	INCS = -Iextlib/include \$(shell $SDL_CONFIG --cflags) \$(shell $SMPEG_CONFIG --cflags) \$(shell $FREETYPE_CONFIG --cflags)
 _EOF
 case "$SYS" in 
 MinGW)
 cat >> Makefile <<-_EOF
 
-	LIBS = -L extlib/lib \\
-	       -static -Wl,--start-group \
-	       \$(filter-out -lSDLmain,\$(shell sdl-config --static-libs)) \
-	       \$(shell smpeg-config --libs) \$(shell freetype-config --libs) \
-	       -lSDL_image -ljpeg -lpng -lz             \
-	       -lSDL_mixer -logg -lvorbis -lvorbisfile  \
+	LIBS = -Lextlib/lib \\
+	       -static -Wl,--start-group \\
+	       \$(filter-out -lSDLmain,\$(shell $SDL_CONFIG --static-libs)) \\
+	       \$(shell $SMPEG_CONFIG --libs) \$(shell $FREETYPE_CONFIG --libs) \\
+	       -lSDL_image -ljpeg -lpng -lz             \\
+	       -lSDL_mixer -logg -lvorbis -lvorbisfile  \\
 	       -lbz2 -Wl,--end-group
 
 	DEFS = -DWIN32 -DUSE_OGG_VORBIS
@@ -460,8 +466,8 @@ _EOF
 MacOSX)
 cat >> Makefile <<-_EOF
 
-	LIBS = -L extlib/lib \\
-	       \$(shell sdl-config --static-libs) \$(shell smpeg-config --libs) \$(shell freetype-config --libs) \\
+	LIBS = -Lextlib/lib \\
+	       \$(shell $SDL_CONFIG --static-libs) \$(shell $SMPEG_CONFIG --libs) \$(shell $FREETYPE_CONFIG --libs) \\
 	       -lSDL_image -ljpeg -lpng \\
 	       -lSDL_mixer -logg -lvorbis -lvorbisfile \\
 	       -lbz2 -lm -framework QuickTime -framework CoreFoundation
@@ -473,27 +479,33 @@ _EOF
 Linux)
 cat >> Makefile <<-_EOF
 
-	LIBS = -L extlib/lib \\
-	       -lSDL_mixer -lSDL_image \$(shell sdl-config --libs) \$(shell smpeg-config --libs) \\
-	       \$(shell freetype-config --libs) -lbz2
+	LIBS = -Lextlib/lib \\
+	       -lSDL_image \$(if \$(findstring true,$INTERNAL_SDL_IMAGE),-ljpeg -lpng -lz) \\
+	       -lSDL_mixer \$(if \$(findstring true,$INTERNAL_SDL_MIXER),-logg -lvorbis -lvorbisfile) \\
+	       \$(shell $SDL_CONFIG --libs) \$(shell $SMPEG_CONFIG --libs) \$(shell $FREETYPE_CONFIG --libs) \\
+	       -lbz2 \$(if \$(findstring true,$INTERNAL_SDL),-ldl -lasound)
 
 	DEFS = -DLINUX -DUSE_OGG_VORBIS
 _EOF
 ;; esac
-cat >> Makefile <<_EOF
+cat >> Makefile <<-_EOF
 
-TARGET = ponscr$EXE
+	.SUFFIXES:
+	.SUFFIXES: $OBJ .cpp .h .c
 
-.SUFFIXES:
-.SUFFIXES: $OBJ .cpp .h .c
+	CC  = $CC
+	CXX = $CXX
+	LD  = \$(CXX) -o 
+	PSCFLAGS = -O3 -Wall -Wpointer-arith -Werror -fomit-frame-pointer -pipe 
 
-CC  = $CC
-CXX = $CXX
-LD  = \$(CXX) -o 
-CFLAGS = -O3 -Wall -Wpointer-arith -Werror -fomit-frame-pointer -pipe -c \$(INCS) \$(DEFS)
+	TARGET = ponscr$EXE
 
-include Makefile.ponscripter
-include extlib/Makefile
+	.PHONY: all
+	all: \$(TARGET)
+
+	include extlib/Makefile
+	include Makefile.ponscripter
+
 _EOF
 
 if [ "$SYS" = "MinGW" ]
@@ -508,5 +520,5 @@ SDL_win32_main.o: SDL_win32_main.c
 _EOF
 fi
 
-echo "ok"
+echo "done"
 echo "Now run \"$MAKE\" to build Ponscripter."

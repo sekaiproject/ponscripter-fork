@@ -3,9 +3,6 @@
 # Makefile.ponscripter - General makefile rules for Ponscripter
 # Do not build from this file directly. Include it in a platform-specific makefile instead.
 
-.PHONY: all
-all: $(TARGET)
-
 include config.ponscripter
 
 GUI_OBJS = ONScripterLabel$(OBJSUFFIX) ONScripterLabel_command$(OBJSUFFIX) ONScripterLabel_text$(OBJSUFFIX) \
@@ -17,10 +14,10 @@ GUI_OBJS = ONScripterLabel$(OBJSUFFIX) ONScripterLabel_command$(OBJSUFFIX) ONScr
 DECODER_OBJS = DirectReader$(OBJSUFFIX) SarReader$(OBJSUFFIX) NsaReader$(OBJSUFFIX)
 ONSCRIPTER_OBJS = onscripter$(OBJSUFFIX) $(DECODER_OBJS) ScriptHandler$(OBJSUFFIX) ScriptParser$(OBJSUFFIX) ScriptParser_command$(OBJSUFFIX) \
 	$(GUI_OBJS) $(EXT_OBJS)
-PARSER_HEADER = BaseReader.h SarReader.h NsaReader.h DirectReader.h ScriptHandler.h ScriptParser.h AnimationInfo.h FontInfo.h DirtyRect.h
+PARSER_HEADER = $(EXTRADEPS) BaseReader.h SarReader.h NsaReader.h DirectReader.h ScriptHandler.h ScriptParser.h AnimationInfo.h FontInfo.h DirtyRect.h
 ONSCRIPTER_HEADER = font.h ONScripterLabel.h $(PARSER_HEADER)
 
-ponscr$(EXESUFFIX): $(EXTRADEPS) $(ONSCRIPTER_OBJS)
+ponscr$(EXESUFFIX): $(ONSCRIPTER_OBJS)
 	$(LD)$@ $(ONSCRIPTER_OBJS) $(LIBS)
 
 clean: $(CLEAN_TARGETS)
@@ -30,7 +27,7 @@ distclean: clean $(DISTCLEAN_TARGETS)
 	-$(RM) $(TARGET) embed$(EXESUFFIX) $(DISTCLEANUP)
 
 .cpp$(OBJSUFFIX):
-	$(CXX) $(CFLAGS) $<
+	$(CXX) -c $(PSCFLAGS) $(INCS) $(DEFS) $<
 
 SarReader$(OBJSUFFIX):    BaseReader.h SarReader.h 
 NsaReader$(OBJSUFFIX):    BaseReader.h SarReader.h NsaReader.h 
