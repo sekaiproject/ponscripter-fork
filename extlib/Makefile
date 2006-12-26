@@ -10,6 +10,9 @@ ES = extlib/src
 
 SDLSRC  = $(ES)/SDL-1.2.11
 SDLISRC = $(ES)/SDL_image-1.2.5
+ZSRC    = $(ES)/zlib-1.2.3
+PNGSRC  = $(ES)/libpng-1.2.14
+JPEGSRC = $(ES)/jpeg-6b
 SDLMSRC = $(ES)/SDL_mixer-1.2.7
 SMPGSRC = $(ES)/smpeg
 BZSRC   = $(ES)/bzip2-1.0.3
@@ -45,13 +48,22 @@ $(EB)/sdl-config: $(SDLSRC)/Makefile
 .PHONY: internal_sdl_image clean_sdl_image dclean_sdl_image
 internal_sdl_image: $(EL)/libSDL_image$(LIBSUFFIX)
 clean_sdl_image:
-	@if [ -f $(SDLISRC)/Makefile ]; then $(MAKE) -C $(SDLISRC) uninstall; fi
-	@if [ -f $(SDLISRC)/Makefile ]; then $(MAKE) -C $(SDLISRC) clean; fi
+	@-if [ -f $(SDLISRC)/Makefile ]; then $(MAKE) -C $(SDLISRC) uninstall; fi
+	@-if [ -f $(SDLISRC)/Makefile ]; then $(MAKE) -C $(SDLISRC) clean; fi
+	@-if [ -f $(EL)/libz$(LIBSUFFIX) ]; then $(MAKE) -C $(ZSRC) uninstall prefix="$(LPREFIX)"; fi
+	@-if [ -f $(ZSRC)/libz$(LIBSUFFIX) ]; then $(MAKE) -C $(ZSRC) clean; fi
+	@-if [ -f $(PNGSRC)/Makefile ]; then $(MAKE) -C $(PNGSRC) uninstall; fi
+	@-if [ -f $(PNGSRC)/Makefile ]; then $(MAKE) -C $(PNGSRC) clean; fi
+	@-if [ -f $(JPEGSRC)/Makefile ]; then \
+	    rm -f $(EL)/libjpeg$(LIBSUFFIX) $(addprefix $(EI)/,jconfig.h jpeglib.h jmorecfg.h jerror.h); \
+	    $(MAKE) -C $(JPEGSRC) clean; \
+	fi
 dclean_sdl_image:
-	@if [ -f $(SDLISRC)/Makefile ]; then $(MAKE) -C $(SDLISRC) distclean; fi
-	@rm -f extlib/configured_image_libs
+	@-if [ -f $(SDLISRC)/Makefile ]; then $(MAKE) -C $(SDLISRC) distclean; fi
+	@-if [ -f $(PNGSRC)/Makefile ]; then $(MAKE) -C $(PNGSRC) distclean; fi
+	@-if [ -f $(JPEGSRC)/Makefile ]; then $(MAKE) -C $(JPEGSRC) distclean; fi
 
-$(SDLISRC)/Makefile: $(EB)/sdl-config extlib/configured_image_libs
+$(SDLISRC)/Makefile: $(EB)/sdl-config $(if $(INTERNAL_LIBPNG),internal_png) $(if $(INTERNAL_LIBJPEG),internal_jpeg)
 	@echo Configuring internal SDL_image...
 	@cd $(SDLISRC) && \
 	./configure --prefix="$(LPREFIX)" \
@@ -64,8 +76,29 @@ $(EL)/libSDL_image$(LIBSUFFIX): $(SDLISRC)/Makefile
 
 # First build libz, libpng, and libjpeg, if required.
 
-extlib/configured_image_libs:
-	$(SHELL) extlib/configure_image_libs $@
+.PHONY: internal_png internal_jpeg
+internal_png: $(EL)/libpng$(LIBSUFFIX)
+internal_jpeg: $(EL)/libjpeg$(LIBSUFFIX)
+
+$(PNGSRC)/Makefile:
+	@echo Configuring internal libpng...
+	@cd $(PNGSRC) && \
+	./configure --prefix="$(LPREFIX)" --disable-shared --disable-dependency-tracking $(REDIR)
+
+$(EL)/libpng$(LIBSUFFIX): $(PNGSRC)/Makefile $(EL)/libz$(LIBSUFFIX)
+	@$(MAKE) -C $(PNGSRC)
+	@$(MAKE) -C $(PNGSRC) install
+
+$(EL)/libz$(LIBSUFFIX):
+	@$(MAKE) -C $(ZSRC) install prefix="$(LPREFIX)"
+
+$(JPEGSRC)/Makefile:
+	@echo Configuring internal libjpeg...
+	cd $(JPEGSRC) && \
+	./configure --prefix="$(LPREFIX)" --disable-shared --enable-static $(REDIR)
+
+$(EL)/libjpeg$(LIBSUFFIX): $(JPEGSRC)/Makefile 
+	@$(MAKE) -C $(JPEGSRC) install-lib
 
 #-- SDL_mixer -----------------------------------------------------------------
 
@@ -78,7 +111,7 @@ dclean_sdl_mixer:
 	@if [ -f $(SDLMSRC)/Makefile ]; then $(MAKE) -C $(SDLMSRC) distclean; fi
 	@rm -f extlib/configured_mixer_libs
 
-$(SDLMSRC)/Makefile: $(EB)/sdl-config $(if $(findstring true,$(INTERNAL_SMPEG)),$(EB)/smpeg-config) extlib/configured_mixer_libs
+$(SDLMSRC)/Makefile: $(EB)/sdl-config $(if $(INTERNAL_SMPEG),$(EB)/smpeg-config) extlib/configured_mixer_libs
 	@echo Configuring internal SDL_mixer...
 	@cd $(SDLMSRC) && \
 	./configure --prefix="$(LPREFIX)" --enable-music-native-midi-gpl \
@@ -99,10 +132,10 @@ extlib/configured_mixer_libs:
 .PHONY: internal_smpeg clean_smpeg dclean_smpeg
 internal_smpeg: $(EB)/smpeg-config
 clean_smpeg:
-	@if [ -f $(SMPGSRC)/Makefile ]; then $(MAKE) -C $(SMPGSRC) uninstall; fi
-	@if [ -f $(SMPGSRC)/Makefile ]; then $(MAKE) -C $(SMPGSRC) clean; fi
+	@-if [ -f $(SMPGSRC)/Makefile ]; then $(MAKE) -C $(SMPGSRC) uninstall; fi
+	@-if [ -f $(SMPGSRC)/Makefile ]; then $(MAKE) -C $(SMPGSRC) clean; fi
 dclean_smpeg: clean_smpeg
-	@if [ -f $(SMPGSRC)/Makefile ]; then $(MAKE) -C $(SMPGSRC) distclean; fi
+	@-if [ -f $(SMPGSRC)/Makefile ]; then $(MAKE) -C $(SMPGSRC) distclean; fi
 
 $(SMPGSRC)/Makefile: $(EB)/sdl-config
 	@echo Configuring internal smpeg...

@@ -20,11 +20,11 @@ ONSCRIPTER_HEADER = font.h ONScripterLabel.h $(PARSER_HEADER)
 ponscr$(EXESUFFIX): $(ONSCRIPTER_OBJS)
 	$(LD)$@ $(ONSCRIPTER_OBJS) $(LIBS)
 
-clean: $(CLEAN_TARGETS)
+pclean: $(CLEAN_TARGETS)
 	-$(RM) *$(OBJSUFFIX) $(CLEANUP) resources.cpp
 	
-distclean: clean $(DISTCLEAN_TARGETS)
-	-$(RM) $(TARGET) embed$(EXESUFFIX) $(DISTCLEANUP)
+pdistclean: clean $(DISTCLEAN_TARGETS)
+	-$(RM) $(TARGET) embed$(EXESUFFIX)
 
 .cpp$(OBJSUFFIX):
 	$(CXX) -c $(PSCFLAGS) $(INCS) $(DEFS) $<

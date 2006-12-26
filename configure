@@ -25,6 +25,10 @@ INTERNAL_BZIP2=false
 INTERNAL_SMPEG=false
 INTERNAL_FREETYPE=false
 
+INTERNAL_LIBPNG=false
+INTERNAL_LIBJPEG=false
+INTERNAL_OGGLIBS=false
+
 # Parse options
 prev=
 for opt
@@ -83,6 +87,11 @@ do
 	--internal-sdl?image | -internal-sdl?image | --internal-sdlimage | -internal-sdlimage)
 	  prev=INTERNAL_SDL_IMAGE
 	  ;;
+	--internal-all-images)
+	  INTERNAL_SDL_IMAGE=true
+	  INTERNAL_LIBPNG=true
+	  INTERNAL_LIBJPEG=true
+	  ;;
 	--enable-internal-sdl?mixer | -enable-internal-sdl?mixer | --with-internal-sdl?mixer | -with-internal-sdl?mixer | --enable-internal-sdlmixer  | -enable-internal-sdlmixer  | --with-internal-sdlmixer  | -with-internal-sdlmixer)
 	  INTERNAL_SDL_MIXER=true ;;
 	--disable-internal-sdl?mixer | -disable-internal-sdl?mixer | --without-internal-sdl?mixer | -without-internal-sdl?mixer | --no-internal-sdl?mixer | -no-internal-sdl?mixer | --disable-internal-sdlmixer  | -disable-internal-sdlmixer  | --without-internal-sdlmixer  | -without-internal-sdlmixer  | --no-internal-sdlmixer  | -no-internal-sdlmixer)
@@ -91,6 +100,10 @@ do
 	  INTERNAL_SDL_MIXER=$arg ;;
 	--internal-sdl?mixer | -internal-sdl?mixer | --internal-sdlmixer | -internal-sdlmixer)
 	  prev=INTERNAL_SDL_MIXER
+	  ;;
+	--internal-all-mixers)
+	  INTERNAL_SDL_MIXER=true
+	  INTERNAL_OGGLIBS=true
 	  ;;
 	--enable-internal-bz* | -enable-internal-bz* | --with-internal-bz* | -with-internal-bz*)
 	  INTERNAL_BZIP2=true ;;
@@ -164,6 +177,9 @@ then
 	internalise_SDL
 	INTERNAL_BZIP2=true
 	INTERNAL_FREETYPE=true
+	INTERNAL_LIBPNG=true
+	INTERNAL_LIBJPEG=true
+	INTERNAL_OGGLIBS=true
 elif $INTERNAL_SDL
 then
 	# If any of SDL is internal, all of it must be.
@@ -235,7 +251,7 @@ GNU?Make*)
 	GNU?Make*)
 		MAKE=gmake
 		echo "gmake" ;;
-	*)	echo "not found"
+	*)	echo "no"
 		cat <<-_ERR
 
 			Unable to locate GNU make.
@@ -265,7 +281,7 @@ else
 	         internalise_SDL
 	    fi
 	else
-	    echo "not found"
+	    echo "no"
 	    internalise_SDL
 	fi
 fi
@@ -290,17 +306,47 @@ then
     case $? in
 	0) echo "yes"; INTERNAL_SDL_IMAGE=false ;;
 	1) echo "no PNG" ;; 2) echo "no JPEG" ;; 3) echo "no PNG or JPEG" ;;
-	*) echo "not found" ;;
+	*) echo "no" ;;
 	esac
 fi
 
-if ! $INTERNAL_SDL_MIXER
+if $INTERNAL_SDL_IMAGE && ! $INTERNAL_LIBPNG
 then
-    $echo_n "Checking for system SDL_mixer... ${nobr}"
-    cat > test.cc <<-_EOF
-		#include <cstdio>
-		#include "SDL.h"
-		#include "SDL_mixer.h"
+	$echo_n "Checking for system libpng... ${nobr}"
+	cat > test.cc <<-_EOF
+		#include <png.h>
+		unsigned char png[]={137,80,78,71,13,10,26,10};int main(){return png_sig_cmp(png,0,8);}
+	_EOF
+	INTERNAL_LIBPNG=true
+	$CXX -lpng -lz test.cc -o ptest >/dev/null 2>&1
+	./ptest 2>/dev/null
+	case $? in
+	0) echo "yes"; INTERNAL_LIBPNG=false ;;
+	1) echo "broken" ;;
+	*) echo "no" ;;
+	esac
+fi
+
+if $INTERNAL_SDL_IMAGE && ! $INTERNAL_LIBJPEG
+then
+	$echo_n "Checking for system libjpeg... ${nobr}"
+	cat > test.cc <<-_EOF
+		#include <stdio.h>
+		#include <jpeglib.h>
+		int main(){struct jpeg_decompress_struct cinfo;struct jpeg_error_mgr jerr;cinfo.err=jpeg_std_error(&jerr);jpeg_create_decompress(&cinfo);return 0;}
+	_EOF
+	INTERNAL_LIBJPEG=true
+	$CXX -ljpeg test.cc -o jtest >/dev/null 2>&1
+	./jtest 2>/dev/null
+	case $? in
+	0) echo "yes"; INTERNAL_LIBJPEG=false ;;
+	1) echo "broken" ;;
+	*) echo "no" ;;
+	esac
+fi
+
+write_ogg() {
+	cat > test.cc <<-_EOF
 		unsigned char o[]={79,103,103,83,0,2,0,0,0,0,0,0,0,0,137,109,229,31,0,0,0,0,255,229,22,156,1,30,1,118,111,114,98,105,115,0,0,0,0,2,68,172,0,0,0,0,0,0,128,181,1,0,0,0,0,0,184,1,79,103,103,83,0,0,0,0,0,0,0,0,0,0,137,109,229,31,1,0,0,0,232,117,220,177,17,45,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,7,3,118,111,114,98,105,115,29,0,0,0,88,105,112,104,46,79,114,103,32,108,105,98,86,111,114,98,105,115,32,73,32,50,48,48,53,48,51,48,52,0,0,0,0,1,5,118,111,114,98,105,
 		115,37,66,67,86,1,0,64,0,0,36,115,24,42,70,165,115,22,132,16,26,66,80,25,227,28,66,206,107,236,25,66,76,17,130,28,50,76,91,203,37,115,144,33,164,160,66,136,91,40,129,208,144,85,0,0,64,0,0,135,65,120,20,132,138,65,8,33,132,37,61,88,146,131,39,61,8,33,132,136,57,120,20,132,105,65,8,33,132,16,66,8,33,132,16,66,8,33,132,69,57,104,146,131,39,65,8,29,132,227,48,56,12,131,229,56,248,28,132,69,57,88,16,131,39,65,232,32,132,15,66,184,154,131,172,57,8,33,132,36,53,72,80,131,6,57,232,
 		28,132,194,44,40,138,130,196,48,184,22,132,4,53,40,140,130,228,48,200,212,131,11,66,136,154,131,73,53,248,26,132,103,65,120,22,132,105,65,8,33,132,36,65,72,144,131,6,65,200,24,132,70,65,88,146,131,6,57,184,20,132,203,65,168,26,132,42,57,8,31,132,32,52,100,21,0,144,0,0,160,162,40,138,162,40,10,16,26,178,10,0,200,0,0,16,64,81,20,199,113,28,201,145,28,201,177,28,11,8,13,89,5,0,0,1,0,8,0,0,160,72,138,164,72,142,228,72,146,36,89,146,37,89,146,37,89,146,230,137,170,44,203,178,44,
@@ -326,10 +372,22 @@ then
 		8,9,0,32,16,82,138,49,198,24,115,206,57,231,164,82,140,57,230,156,115,14,66,8,161,84,138,49,198,156,115,14,66,8,33,148,140,49,230,156,115,16,66,8,33,132,82,74,198,156,115,16,66,8,33,132,144,82,234,156,115,16,66,8,33,132,16,74,41,157,115,14,66,8,33,132,16,66,41,165,131,16,66,8,33,132,16,74,40,165,164,20,66,8,33,132,16,66,8,169,164,148,66,8,33,132,82,66,40,33,149,148,82,8,33,132,16,66,41,37,164,148,82,10,33,132,82,66,8,161,132,148,82,74,41,133,16,66,8,165,148,146,82,74,41,165,
 		18,74,9,37,132,18,82,41,41,165,20,74,8,33,148,82,74,74,41,165,84,74,9,161,132,18,74,41,37,165,148,82,74,33,132,16,74,41,5,0,0,28,56,0,0,4,24,65,39,25,85,22,97,163,9,23,30,128,66,67,86,2,0,100,0,0,144,162,148,82,41,45,69,130,34,165,24,164,24,75,70,21,115,80,90,138,168,114,12,82,205,169,82,206,32,230,36,150,136,49,132,148,147,84,50,230,20,66,12,66,234,28,117,76,41,6,45,149,24,66,198,24,164,216,114,75,161,115,14,0,0,0,65,0,128,128,144,0,0,3,4,5,51,0,192,224,0,225,115,16,116,2,
 		4,71,27,0,128,32,68,102,136,68,195,66,112,120,80,9,16,17,83,1,64,98,130,66,46,0,84,88,92,164,93,92,64,151,1,46,232,226,174,3,33,4,33,8,65,44,14,160,128,4,28,156,112,195,19,111,120,194,13,78,208,41,42,117,32,0,0,0,0,0,13,0,240,0,0,144,92,0,17,17,209,204,97,100,104,108,112,116,120,124,128,132,136,140,144,8,0,0,0,0,0,25,0,124,0,0,36,37,64,68,68,52,115,24,25,26,27,28,29,30,31,32,33,34,35,36,1,0,128,0,2,0,0,0,0,32,128,0,4,4,4,0,0,0,0,0,2,0,0,0,4,4,79,103,103,83,0,4,0,0,0,0,0,0,0,0,
-		137,109,229,31,2,0,0,0,123,25,191,226,1,1,0},m[]={255,251,80,196,0,3,192,0,1,164,0,0,0,32,0,0,52,128,0,0,4,76,65,77,69,51,46,57,54,46,49,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,
+		137,109,229,31,2,0,0,0,123,25,191,226,1,1,0};
+	_EOF
+}
+
+if ! $INTERNAL_SDL_MIXER
+then
+    $echo_n "Checking for system SDL_mixer... ${nobr}"
+	write_ogg
+    cat >> test.cc <<-_EOF
+		#include <cstdio>
+		#include "SDL.h"
+		#include "SDL_mixer.h"
+		unsigned char m[]={255,251,80,196,0,3,192,0,1,164,0,0,0,32,0,0,52,128,0,0,4,76,65,77,69,51,46,57,54,46,49,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,
 		85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,255,251,82,196,93,131,192,0,1,164,0,0,0,32,0,0,52,128,0,0,4,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,
 		85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85};const int ol=4008,ml=417;
-		int main(){using namespace std;FILE*f=fopen("o.ogg","wb");if(!f||fwrite(o,1,ol,f)!=ol)exit(127);fclose(f);f=fopen("o.mp3","wb");if(!f||fwrite(m,1,ml,f)!=ml)exit(127);fclose(f);
+		int main(){using namespace std;FILE*f=fopen("o.ogg","wb");if(!f||fwrite(o,1,ol,f)!=ol)return 127;fclose(f);f=fopen("o.mp3","wb");if(!f||fwrite(m,1,ml,f)!=ml)return 127;fclose(f);
 		Mix_Music*m;bool ogg=m=Mix_LoadMUS("o.ogg");if(m)Mix_FreeMusic(m);bool mp3=m=Mix_LoadMUS("o.mp3");if(m)Mix_FreeMusic(m);return ogg&&mp3?0:(ogg?1:(mp3?2:3));}
 	_EOF
     INTERNAL_SDL_MIXER=true
@@ -338,7 +396,29 @@ then
     case $? in
 	0) echo "yes"; INTERNAL_SDL_MIXER=false ;;
 	1) echo "no MP3" ;; 2) echo "no Ogg" ;; 3) echo "no Ogg or MP3" ;;
-	*) echo "not found" ;;
+	*) echo "no" ;;
+	esac
+fi
+
+if $INTERNAL_SDL_MIXER && ! $INTERNAL_OGGLIBS
+then
+	$echo_n "Checking for system Ogg Vorbis libs... ${nobr}"
+	write_ogg
+	cat >> test.cc <<-_EOF
+		#include <cstdio>
+		#include <vorbis/codec.h>
+		#include <vorbis/vorbisfile.h>
+		const int ol=4008;
+		int main(){using namespace std;FILE*f=fopen("o.ogg","wb");if(!f||fwrite(o,1,ol,f)!=ol)return 127;fclose(f);
+		OggVorbis_File vf;f=fopen("o.ogg","rb");int n=ov_open(f,&vf,0,0)<0;fclose(f);return n;}
+	_EOF
+	INTERNAL_OGGLIBS=true
+	$CXX -logg -lvorbis -lvorbisfile test.cc -o otest #>/dev/null 2>&1
+	./otest 2>/dev/null
+	case $? in
+	0) echo "yes"; INTERNAL_OGGLIBS=false ;;
+	1) echo "broken" ;;
+	*) echo "no" ;;
 	esac
 fi
 
@@ -353,7 +433,7 @@ then
 	$CXX -lbz2 test.cc -o btest >/dev/null 2>&1
 	if ./btest 2>/dev/null
 	then echo "yes"
-	else echo "not found"
+	else echo "no"
      	 INTERNAL_BZIP2=true
 	fi
 fi
@@ -369,7 +449,7 @@ else
 	VER=$($SMPEG_CONFIG --version 2>/dev/null)
 	if [ -n "$VER" ]
 	then echo "yes"
-	else echo "not found"
+	else echo "no"
 	     INTERNAL_SMPEG=true
 	fi
 fi
@@ -397,12 +477,12 @@ else
 	         INTERNAL_FREETYPE=true
 	    fi
 	else
-	    echo "not found"
+	    echo "no"
 	    INTERNAL_FREETYPE=true
 	fi
 fi
 
-$echo_n "Writing makefile... ${nobr}"
+$echo_n "Writing Makefile... ${nobr}"
 
 case "$SYS" in
 MinGW)  EXE=.exe ; OBJ=.o ; LIB=.a ; W32=true ;;
@@ -413,13 +493,15 @@ Linux)  EXE=     ; OBJ=.o ; LIB=.a ; W32=     ;;
 esac
 
 DEPS=
-CLEAN=
-$INTERNAL_SDL       && DEPS="internal_sdl $DEPS"       && CLEAN="clean_sdl $CLEAN"
-$INTERNAL_SDL_IMAGE && DEPS="internal_sdl_image $DEPS" && CLEAN="clean_sdl_image $CLEAN"
-$INTERNAL_SDL_MIXER && DEPS="internal_sdl_mixer $DEPS" && CLEAN="clean_sdl_mixer $CLEAN"
-$INTERNAL_BZIP2     && DEPS="internal_bzip2 $DEPS"     && CLEAN="clean_bzip2 $CLEAN"
-$INTERNAL_SMPEG     && DEPS="internal_smpeg $DEPS"     && CLEAN="clean_smpeg $CLEAN"
-$INTERNAL_FREETYPE  && DEPS="internal_freetype $DEPS"  && CLEAN="clean_freetype $CLEAN"
+$INTERNAL_SDL       && DEPS="$DEPS internal_sdl"
+$INTERNAL_LIBPNG    && DEPS="$DEPS internal_png"
+$INTERNAL_LIBJPEG   && DEPS="$DEPS internal_jpeg"
+$INTERNAL_SDL_IMAGE && DEPS="$DEPS internal_sdl_image"
+$INTERNAL_OGGLIBS   && DEPS="$DEPS internal_ogglibs"
+$INTERNAL_SDL_MIXER && DEPS="$DEPS internal_sdl_mixer"
+$INTERNAL_BZIP2     && DEPS="$DEPS internal_bzip2"
+$INTERNAL_SMPEG     && DEPS="$DEPS internal_smpeg"
+$INTERNAL_FREETYPE  && DEPS="$DEPS internal_freetype"
 
 cat > Makefile <<-_EOF
 	# -*- Makefile -*-
@@ -436,10 +518,12 @@ cat > Makefile <<-_EOF
 
 	# Extra handling for internal libraries.
 	EXTRADEPS=$DEPS
-	INTERNAL_SMPEG=$INTERNAL_SMPEG
-	DISTCLEANUP = Makefile
-	
-	export PATH     := \$(shell pwd)/extlib/bin:\$(PATH)
+	INTERNAL_SMPEG=\$(findstring true,$INTERNAL_SMPEG)
+	INTERNAL_LIBPNG=\$(findstring true,$INTERNAL_LIBPNG)
+	INTERNAL_LIBJPEG=\$(findstring true,$INTERNAL_LIBJPEG)
+	INTERNAL_OGGLIBS=\$(findstring true,$INTERNAL_OGGLIBS)
+
+	export PATH     :=   \$(shell pwd)/extlib/bin:\$(PATH)
 	export CFLAGS   := -I\$(shell pwd)/extlib/include \$(CFLAGS)
 	export CPPFLAGS := -I\$(shell pwd)/extlib/include \$(CPPFLAGS)
 	export LDFLAGS  := -L\$(shell pwd)/extlib/lib \$(LDFLAGS)
@@ -488,23 +572,28 @@ cat >> Makefile <<-_EOF
 	DEFS = -DLINUX -DUSE_OGG_VORBIS
 _EOF
 ;; esac
-cat >> Makefile <<-_EOF
+cat >> Makefile <<_EOF
 
-	.SUFFIXES:
-	.SUFFIXES: $OBJ .cpp .h .c
+.SUFFIXES:
+.SUFFIXES: $OBJ .cpp .h .c
 
-	CC  = $CC
-	CXX = $CXX
-	LD  = \$(CXX) -o 
-	PSCFLAGS = -O3 -Wall -Wpointer-arith -Werror -fomit-frame-pointer -pipe 
+CC  = $CC
+CXX = $CXX
+LD  = \$(CXX) -o 
+PSCFLAGS = -O3 -Wall -Wpointer-arith -Werror -fomit-frame-pointer -pipe 
 
-	TARGET = ponscr$EXE
+TARGET = ponscr$EXE
 
-	.PHONY: all
-	all: \$(TARGET)
+.PHONY: all clean distclean
+all: \$(TARGET)
 
-	include extlib/Makefile
-	include Makefile.ponscripter
+include extlib/Makefile
+include Makefile.ponscripter
+
+clean: pclean \$(CLEAN_TARGETS)
+distclean: clean pdistclean \$(DISTCLEAN_TARGETS)
+	rm -r -f extlib/bin/* extlib/lib/* extlib/include/* extlib/share extlib/man
+	rm -f Makefile
 
 _EOF
 
