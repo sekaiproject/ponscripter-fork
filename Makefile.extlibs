@@ -30,8 +30,8 @@ DISTCLEAN_TARGETS=dclean_sdl dclean_sdl_image dclean_sdl_mixer dclean_smpeg dcle
 
 #-- SDL -----------------------------------------------------------------------
 
-.PHONY: internal_sdl clean_sdl dclean_sdl
-internal_sdl: $(EB)/sdl-config
+.PHONY: clean_sdl dclean_sdl
+internal_sdl = $(EB)/sdl-config
 clean_sdl:
 	@if [ -f $(SDLSRC)/Makefile ]; then $(MAKE) -C $(SDLSRC) uninstall; fi
 	@if [ -f $(SDLSRC)/Makefile ]; then $(MAKE) -C $(SDLSRC) clean; fi
@@ -52,8 +52,8 @@ $(EB)/sdl-config: $(SDLSRC)/Makefile
 
 #-- SDL_image -----------------------------------------------------------------
 
-.PHONY: internal_sdl_image clean_sdl_image dclean_sdl_image
-internal_sdl_image: $(EL)/libSDL_image$(LIBSUFFIX)
+.PHONY: clean_sdl_image dclean_sdl_image
+internal_sdl_image = $(EL)/libSDL_image$(LIBSUFFIX)
 clean_sdl_image:
 	@-if [ -f $(SDLISRC)/Makefile ]; then $(MAKE) -C $(SDLISRC) uninstall; fi
 	@-if [ -f $(SDLISRC)/Makefile ]; then $(MAKE) -C $(SDLISRC) clean; fi
@@ -91,9 +91,8 @@ $(EL)/libSDL_image$(LIBSUFFIX): $(SDLISRC)/Makefile
 
 # First build libz, libpng, and libjpeg, if required.
 
-.PHONY: internal_png internal_jpeg
-internal_png: $(EL)/libpng$(LIBSUFFIX)
-internal_jpeg: $(EL)/libjpeg$(LIBSUFFIX)
+internal_png = $(EL)/libpng$(LIBSUFFIX)
+internal_jpeg = $(EL)/libjpeg$(LIBSUFFIX)
 
 $(PNGSRC)/Makefile:
 	@echo Configuring internal libpng...
@@ -121,8 +120,8 @@ $(EL)/libjpeg$(LIBSUFFIX): $(JPEGSRC)/Makefile
 
 OGGLIBS = $(EL)/libogg$(LIBSUFFIX) $(EL)/libvorbis$(LIBSUFFIX) $(EL)/libvorbisfile$(LIBSUFFIX)
 
-.PHONY: internal_sdl_mixer clean_sdl_mixer dclean_sdl_mixer
-internal_sdl_mixer: $(EL)/libSDL_mixer$(LIBSUFFIX)
+.PHONY: clean_sdl_mixer dclean_sdl_mixer
+internal_sdl_mixer = $(EL)/libSDL_mixer$(LIBSUFFIX)
 clean_sdl_mixer:
 	@if [ -f $(SDLMSRC)/Makefile ]; then $(MAKE) -C $(SDLMSRC) uninstall; fi
 	@if [ -f $(VORBSRC)/Makefile ]; then $(MAKE) -C $(VORBSRC) uninstall; fi
@@ -151,8 +150,7 @@ $(EL)/libSDL_mixer$(LIBSUFFIX): $(SDLMSRC)/Makefile
 
 # First build Ogg libs, if required.
 
-.PHONY: internal_ogglibs
-internal_ogglibs: $(OGGLIBS)
+internal_ogglibs = $(OGGLIBS)
 
 $(OGGSRC)/Makefile:
 	@echo Configuring internal libogg...
@@ -177,8 +175,8 @@ $(EL)/libvorbis$(LIBSUFFIX): $(EL)/libogg$(LIBSUFFIX) $(VORBSRC)/Makefile
 
 #-- SMPEG ---------------------------------------------------------------------
 
-.PHONY: internal_smpeg clean_smpeg dclean_smpeg
-internal_smpeg: $(EB)/smpeg-config
+.PHONY: clean_smpeg dclean_smpeg
+internal_smpeg = $(EB)/smpeg-config
 clean_smpeg:
 	@-if [ -f $(SMPGSRC)/Makefile ]; then $(MAKE) -C $(SMPGSRC) uninstall; fi
 	@-if [ -f $(SMPGSRC)/Makefile ]; then $(MAKE) -C $(SMPGSRC) clean; fi
@@ -201,8 +199,8 @@ $(EB)/smpeg-config: $(SMPGSRC)/Makefile
 
 FTCONFIGURE = $(FTSRC)/builds/unix/config.status
 
-.PHONY: internal_freetype clean_freetype dclean_freetype
-internal_freetype: $(EB)/freetype-config
+.PHONY: clean_freetype dclean_freetype
+internal_freetype = $(EB)/freetype-config
 clean_freetype:
 	@-if [ -f $(FTCONFIGURE) ]; then $(MAKE) -C $(FTSRC) uninstall; fi
 	@-if [ -f $(FTCONFIGURE) ]; then $(MAKE) -C $(FTSRC) clean; fi
@@ -223,8 +221,8 @@ $(EB)/freetype-config: $(FTCONFIGURE)
 
 BZOBJS = blocksort huffman crctable randtable compress decompress bzlib
 
-.PHONY: internal_bzip2 clean_bzip2
-internal_bzip2: $(EL)/libbz2$(LIBSUFFIX) $(EI)/bzlib.h
+.PHONY: clean_bzip2
+internal_bzip2 = $(EL)/libbz2$(LIBSUFFIX) $(EI)/bzlib.h
 clean_bzip2:
 	rm -f $(EL)/libbz2$(LIBSUFFIX) $(EI)/bzlib.h $(BZSRC)/*$(OBJSUFFIX)
 

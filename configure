@@ -493,15 +493,15 @@ Linux)  EXE=     ; OBJ=.o ; LIB=.a ; W32=     ;;
 esac
 
 DEPS=
-$INTERNAL_SDL       && DEPS="$DEPS internal_sdl"
-$INTERNAL_LIBPNG    && DEPS="$DEPS internal_png"
-$INTERNAL_LIBJPEG   && DEPS="$DEPS internal_jpeg"
-$INTERNAL_SDL_IMAGE && DEPS="$DEPS internal_sdl_image"
-$INTERNAL_OGGLIBS   && DEPS="$DEPS internal_ogglibs"
-$INTERNAL_SDL_MIXER && DEPS="$DEPS internal_sdl_mixer"
-$INTERNAL_BZIP2     && DEPS="$DEPS internal_bzip2"
-$INTERNAL_SMPEG     && DEPS="$DEPS internal_smpeg"
-$INTERNAL_FREETYPE  && DEPS="$DEPS internal_freetype"
+$INTERNAL_SDL       && DEPS="$DEPS \$(internal_sdl)"
+$INTERNAL_LIBPNG    && DEPS="$DEPS \$(internal_png)"
+$INTERNAL_LIBJPEG   && DEPS="$DEPS \$(internal_jpeg)"
+$INTERNAL_SDL_IMAGE && DEPS="$DEPS \$(internal_sdl_image)"
+$INTERNAL_OGGLIBS   && DEPS="$DEPS \$(internal_ogglibs)"
+$INTERNAL_SDL_MIXER && DEPS="$DEPS \$(internal_sdl_mixer)"
+$INTERNAL_BZIP2     && DEPS="$DEPS \$(internal_bzip2)"
+$INTERNAL_SMPEG     && DEPS="$DEPS \$(internal_smpeg)"
+$INTERNAL_FREETYPE  && DEPS="$DEPS \$(internal_freetype)"
 
 cat > Makefile <<-_EOF
 	# -*- Makefile -*-
@@ -588,7 +588,7 @@ TARGET = ponscr$EXE
 .PHONY: all clean distclean
 all: \$(TARGET)
 
-include extlib/Makefile
+include Makefile.extlibs
 include Makefile.ponscripter
 
 clean: pclean \$(CLEAN_TARGETS)
