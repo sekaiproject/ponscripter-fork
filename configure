@@ -182,7 +182,7 @@ then
 	INTERNAL_OGGLIBS=true
 elif $INTERNAL_SDL
 then
-	# If any of SDL is internal, all of it must be.
+	# If the main SDL is internal, the subsidiary libraries must be too.
 	internalise_SDL
 fi
 

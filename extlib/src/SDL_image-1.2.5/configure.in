@@ -263,7 +263,7 @@ if test x$enable_png = xyes; then
         echo "-- dynamic libpng -> $png_lib"
         AC_DEFINE_UNQUOTED(LOAD_PNG_DYNAMIC, "$png_lib")
     else
-        IMG_LIBS="-lpng -lz $IMG_LIBS"
+        IMG_LIBS="-lpng -m -lz $IMG_LIBS"
     fi
 fi
 

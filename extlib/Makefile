@@ -1,8 +1,10 @@
 # Build rules for internal libraries.
 # Do not invoke this directly; these rules are used automatically when relevant.
 
-REDIR = >/dev/null 2>&1 # comment out to show configure outputs
-REDSO = >/dev/null      # comment out to show build status
+ifndef VERBOSE # use "make VERBOSE=true" to show outputs
+REDIR = >/dev/null 2>&1
+REDSO = >/dev/null
+endif
 
 EL = extlib/lib
 EI = extlib/include
@@ -36,7 +38,7 @@ clean_sdl:
 dclean_sdl: clean_sdl
 	@if [ -f $(SDLSRC)/Makefile ]; then $(MAKE) -C $(SDLSRC) distclean; fi
 
-$(SDLSRC)/Makefile:
+$(SDLSRC)/Makefile: $(if $(INTERNAL_LIBPNG),$(EL)/libpng$(LIBSUFFIX))
 	@echo Configuring internal SDL...
 	@cd $(SDLSRC) && \
 	./configure --prefix="$(LPREFIX)" \
@@ -74,8 +76,13 @@ $(SDLISRC)/Makefile: $(if $(INTERNAL_SDL),$(EB)/sdl-config) \
 	@echo Configuring internal SDL_image...
 	@cd $(SDLISRC) && \
 	./configure --prefix="$(LPREFIX)" \
-	    $(addprefix --disable-,shared lbm pcx pnm tga xcf xv) \
-	    $(REDIR)
+	    $(addprefix --disable-,shared lbm pcx pnm tga xcf xv \
+	    	                   $(if $(INTERNAL_LIBPNG),png-shared) $(if $(INTERNAL_LIBJPEG),jpg-shared)) \
+	    $(if $(REDIR),>/dev/null 2>temp.output)
+	@if [ -f temp.output ]; then \
+	    if grep -q 'PNG image loading disabled' temp.output; then exit 1; fi; \
+	    rm -f temp.output; \
+	fi
 
 $(EL)/libSDL_image$(LIBSUFFIX): $(SDLISRC)/Makefile
 	@echo Building internal SDL_image...
