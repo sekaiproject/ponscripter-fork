@@ -518,6 +518,7 @@ cat > Makefile <<-_EOF
 
 	# Extra handling for internal libraries.
 	EXTRADEPS=$DEPS
+	INTERNAL_SDL=\$(findstring true,$INTERNAL_SDL)
 	INTERNAL_SMPEG=\$(findstring true,$INTERNAL_SMPEG)
 	INTERNAL_LIBPNG=\$(findstring true,$INTERNAL_LIBPNG)
 	INTERNAL_LIBJPEG=\$(findstring true,$INTERNAL_LIBJPEG)
@@ -565,7 +566,7 @@ cat >> Makefile <<-_EOF
 
 	LIBS = -Lextlib/lib \\
 	       -lSDL_image \$(if \$(findstring true,$INTERNAL_SDL_IMAGE),-ljpeg -lpng -lz) \\
-	       -lSDL_mixer \$(if \$(findstring true,$INTERNAL_SDL_MIXER),-logg -lvorbis -lvorbisfile) \\
+	       -lSDL_mixer \$(if \$(findstring true,$INTERNAL_SDL_MIXER),-lvorbisfile -lvorbis -logg) \\
 	       \$(shell $SDL_CONFIG --libs) \$(shell $SMPEG_CONFIG --libs) \$(shell $FREETYPE_CONFIG --libs) \\
 	       -lbz2 \$(if \$(findstring true,$INTERNAL_SDL),-ldl -lasound)
 

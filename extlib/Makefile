@@ -1,7 +1,8 @@
 # Build rules for internal libraries.
 # Do not invoke this directly; these rules are used automatically when relevant.
 
-REDIR=>/dev/null 2>&1 # comment out to show configure outputs
+REDIR = >/dev/null 2>&1 # comment out to show configure outputs
+REDSO = >/dev/null      # comment out to show build status
 
 EL = extlib/lib
 EI = extlib/include
@@ -14,13 +15,16 @@ ZSRC    = $(ES)/zlib-1.2.3
 PNGSRC  = $(ES)/libpng-1.2.14
 JPEGSRC = $(ES)/jpeg-6b
 SDLMSRC = $(ES)/SDL_mixer-1.2.7
+OGGSRC  = $(ES)/libogg-1.1.3
+VORBSRC = $(ES)/libvorbis-1.1.2
 SMPGSRC = $(ES)/smpeg
 BZSRC   = $(ES)/bzip2-1.0.3
+FTSRC   = $(ES)/freetype-2.2.1
 
 LPREFIX = $(shell pwd)/extlib
 
 CLEAN_TARGETS=clean_sdl clean_sdl_image clean_sdl_mixer clean_bzip2 clean_smpeg clean_freetype
-DISTCLEAN_TARGETS=dclean_sdl dclean_sdl_image dclean_sdl_mixer
+DISTCLEAN_TARGETS=dclean_sdl dclean_sdl_image dclean_sdl_mixer dclean_smpeg dclean_freetype
 
 #-- SDL -----------------------------------------------------------------------
 
@@ -40,8 +44,9 @@ $(SDLSRC)/Makefile:
 	    $(REDIR)
 
 $(EB)/sdl-config: $(SDLSRC)/Makefile
-	@$(MAKE) -C $(SDLSRC)
-	@$(MAKE) -C $(SDLSRC) install
+	@echo Building internal SDL...
+	@$(MAKE) -C $(SDLSRC) $(REDSO)
+	@$(MAKE) -C $(SDLSRC) install $(REDSO)
 
 #-- SDL_image -----------------------------------------------------------------
 
@@ -63,7 +68,9 @@ dclean_sdl_image:
 	@-if [ -f $(PNGSRC)/Makefile ]; then $(MAKE) -C $(PNGSRC) distclean; fi
 	@-if [ -f $(JPEGSRC)/Makefile ]; then $(MAKE) -C $(JPEGSRC) distclean; fi
 
-$(SDLISRC)/Makefile: $(EB)/sdl-config $(if $(INTERNAL_LIBPNG),internal_png) $(if $(INTERNAL_LIBJPEG),internal_jpeg)
+$(SDLISRC)/Makefile: $(if $(INTERNAL_SDL),$(EB)/sdl-config) \
+                     $(if $(INTERNAL_LIBPNG),$(EL)/libpng$(LIBSUFFIX)) \
+                     $(if $(INTERNAL_LIBJPEG),$(EL)/libjpeg$(LIBSUFFIX))
 	@echo Configuring internal SDL_image...
 	@cd $(SDLISRC) && \
 	./configure --prefix="$(LPREFIX)" \
@@ -71,8 +78,9 @@ $(SDLISRC)/Makefile: $(EB)/sdl-config $(if $(INTERNAL_LIBPNG),internal_png) $(if
 	    $(REDIR)
 
 $(EL)/libSDL_image$(LIBSUFFIX): $(SDLISRC)/Makefile
-	@$(MAKE) -C $(SDLISRC)
-	@$(MAKE) -C $(SDLISRC) install
+	@echo Building internal SDL_image...
+	@$(MAKE) -C $(SDLISRC) $(REDSO)
+	@$(MAKE) -C $(SDLISRC) install $(REDSO)
 
 # First build libz, libpng, and libjpeg, if required.
 
@@ -86,32 +94,43 @@ $(PNGSRC)/Makefile:
 	./configure --prefix="$(LPREFIX)" --disable-shared --disable-dependency-tracking $(REDIR)
 
 $(EL)/libpng$(LIBSUFFIX): $(PNGSRC)/Makefile $(EL)/libz$(LIBSUFFIX)
-	@$(MAKE) -C $(PNGSRC)
-	@$(MAKE) -C $(PNGSRC) install
+	@echo Building internal libpng...
+	@$(MAKE) -C $(PNGSRC) $(REDSO)
+	@$(MAKE) -C $(PNGSRC) install $(REDSO)
 
 $(EL)/libz$(LIBSUFFIX):
-	@$(MAKE) -C $(ZSRC) install prefix="$(LPREFIX)"
+	@$(MAKE) -C $(ZSRC) install prefix="$(LPREFIX)" $(REDSO)
 
 $(JPEGSRC)/Makefile:
 	@echo Configuring internal libjpeg...
-	cd $(JPEGSRC) && \
+	@cd $(JPEGSRC) && \
 	./configure --prefix="$(LPREFIX)" --disable-shared --enable-static $(REDIR)
 
 $(EL)/libjpeg$(LIBSUFFIX): $(JPEGSRC)/Makefile 
-	@$(MAKE) -C $(JPEGSRC) install-lib
+	@echo Building internal libjpeg...
+	@$(MAKE) -C $(JPEGSRC) install-lib $(REDSO)
 
 #-- SDL_mixer -----------------------------------------------------------------
+
+OGGLIBS = $(EL)/libogg$(LIBSUFFIX) $(EL)/libvorbis$(LIBSUFFIX) $(EL)/libvorbisfile$(LIBSUFFIX)
 
 .PHONY: internal_sdl_mixer clean_sdl_mixer dclean_sdl_mixer
 internal_sdl_mixer: $(EL)/libSDL_mixer$(LIBSUFFIX)
 clean_sdl_mixer:
 	@if [ -f $(SDLMSRC)/Makefile ]; then $(MAKE) -C $(SDLMSRC) uninstall; fi
+	@if [ -f $(VORBSRC)/Makefile ]; then $(MAKE) -C $(VORBSRC) uninstall; fi
+	@if [ -f $(OGGSRC)/Makefile  ]; then $(MAKE) -C $(OGGSRC)  uninstall; fi
 	@if [ -f $(SDLMSRC)/Makefile ]; then $(MAKE) -C $(SDLMSRC) clean; fi
+	@if [ -f $(VORBSRC)/Makefile ]; then $(MAKE) -C $(VORBSRC) clean; fi
+	@if [ -f $(OGGSRC)/Makefile  ]; then $(MAKE) -C $(OGGSRC)  clean; fi
 dclean_sdl_mixer:
 	@if [ -f $(SDLMSRC)/Makefile ]; then $(MAKE) -C $(SDLMSRC) distclean; fi
-	@rm -f extlib/configured_mixer_libs
+	@if [ -f $(VORBSRC)/Makefile ]; then $(MAKE) -C $(VORBSRC) distclean; fi
+	@if [ -f $(OGGSRC)/Makefile  ]; then $(MAKE) -C $(OGGSRC)  distclean; fi
 
-$(SDLMSRC)/Makefile: $(EB)/sdl-config $(if $(INTERNAL_SMPEG),$(EB)/smpeg-config) extlib/configured_mixer_libs
+$(SDLMSRC)/Makefile: $(if $(INTERNAL_SDL),$(EB)/sdl-config) \
+                     $(if $(INTERNAL_SMPEG),$(EB)/smpeg-config) \
+                     $(if $(INTERNAL_OGGLIBS),$(OGGLIBS))
 	@echo Configuring internal SDL_mixer...
 	@cd $(SDLMSRC) && \
 	./configure --prefix="$(LPREFIX)" --enable-music-native-midi-gpl \
@@ -119,13 +138,35 @@ $(SDLMSRC)/Makefile: $(EB)/sdl-config $(if $(INTERNAL_SMPEG),$(EB)/smpeg-config)
 	    $(REDIR)
 
 $(EL)/libSDL_mixer$(LIBSUFFIX): $(SDLMSRC)/Makefile
-	@$(MAKE) -C $(SDLMSRC)
-	@$(MAKE) -C $(SDLMSRC) install
+	@echo Building internal SDL_mixer...
+	@$(MAKE) -C $(SDLMSRC) $(REDSO)
+	@$(MAKE) -C $(SDLMSRC) install $(REDSO)
 
 # First build Ogg libs, if required.
 
-extlib/configured_mixer_libs:
-	$(SHELL) extlib/configure_mixer_libs $@
+.PHONY: internal_ogglibs
+internal_ogglibs: $(OGGLIBS)
+
+$(OGGSRC)/Makefile:
+	@echo Configuring internal libogg...
+	@cd $(OGGSRC) && \
+	./configure --prefix="$(LPREFIX)" --disable-shared --disable-dependency-tracking $(REDIR)
+
+$(EL)/libogg$(LIBSUFFIX): $(OGGSRC)/Makefile
+	@echo Building internal libogg...
+	@$(MAKE) -C $(OGGSRC) $(REDSO)
+	@$(MAKE) -C $(OGGSRC) install $(REDSO)
+	
+$(VORBSRC)/Makefile:
+	@echo Configuring internal libvorbis...
+	@cd $(VORBSRC) && \
+	./configure --prefix="$(LPREFIX)" $(addprefix --disable-,shared dependency-tracking docs) $(REDIR)
+
+$(EL)/libvorbisfile$(LIBSUFFIX): $(EL)/libvorbis$(LIBSUFFIX)
+$(EL)/libvorbis$(LIBSUFFIX): $(EL)/libogg$(LIBSUFFIX) $(VORBSRC)/Makefile
+	@echo Building internal libvorbis...
+	@$(MAKE) -C $(VORBSRC) $(REDSO)
+	@$(MAKE) -C $(VORBSRC) install $(REDSO)
 
 #-- SMPEG ---------------------------------------------------------------------
 
@@ -137,7 +178,7 @@ clean_smpeg:
 dclean_smpeg: clean_smpeg
 	@-if [ -f $(SMPGSRC)/Makefile ]; then $(MAKE) -C $(SMPGSRC) distclean; fi
 
-$(SMPGSRC)/Makefile: $(EB)/sdl-config
+$(SMPGSRC)/Makefile: $(if $(INTERNAL_SDL),$(EB)/sdl-config)
 	@echo Configuring internal smpeg...
 	@cd $(SMPGSRC) && \
 	./configure --prefix="$(LPREFIX)" \
@@ -145,14 +186,31 @@ $(SMPGSRC)/Makefile: $(EB)/sdl-config
 	    $(REDIR)
 
 $(EB)/smpeg-config: $(SMPGSRC)/Makefile
-	@$(MAKE) -C $(SMPGSRC)
-	@$(MAKE) -C $(SMPGSRC) install
+	@echo Building internal smpeg...
+	@$(MAKE) -C $(SMPGSRC) $(REDSO)
+	@$(MAKE) -C $(SMPGSRC) install $(REDSO)
 
 #-- Freetype ------------------------------------------------------------------
 
-.PHONY: internal_freetype clean_freetype
-internal_freetype:
+FTCONFIGURE = $(FTSRC)/builds/unix/config.status
+
+.PHONY: internal_freetype clean_freetype dclean_freetype
+internal_freetype: $(EB)/freetype-config
 clean_freetype:
+	@-if [ -f $(FTCONFIGURE) ]; then $(MAKE) -C $(FTSRC) uninstall; fi
+	@-if [ -f $(FTCONFIGURE) ]; then $(MAKE) -C $(FTSRC) clean; fi
+dclean_freetype:
+	@-if [ -f $(FTCONFIGURE) ]; then $(MAKE) -C $(FTSRC) distclean; fi
+
+$(FTCONFIGURE): $(if $(INTERNAL_LIBPNG),$(EL)/libz$(LIBSUFFIX))
+	@echo Configuring internal Freetype...
+	@cd $(FTSRC) && \
+	./configure --prefix="$(LPREFIX)" --disable-shared $(REDIR)
+
+$(EB)/freetype-config: $(FTCONFIGURE)
+	@echo Building internal Freetype...
+	@$(MAKE) -C $(FTSRC) $(REDSO)
+	@$(MAKE) -C $(FTSRC) install $(REDSO)
 
 #-- libbzip2 ------------------------------------------------------------------
 
