@@ -29208,16 +29208,6 @@ CheckMacGL()
         cat >>confdefs.h <<\_ACEOF
 #define SDL_VIDEO_OPENGL 1
 _ACEOF
-
-        case "$host" in
-            *-*-darwin*)
-                if test x$enable_video_cocoa = xyes; then
-                    EXTRA_LDFLAGS="$EXTRA_LDFLAGS -Wl,-framework,OpenGL"
-                fi
-                if test x$enable_video_carbon = xyes; then
-                    EXTRA_LDFLAGS="$EXTRA_LDFLAGS -Wl,-framework,AGL"
-                fi
-        esac
     fi
 }
 
@@ -32988,7 +32978,9 @@ _ACEOF
         EXTRA_CFLAGS="$EXTRA_CFLAGS -fpascal-strings"
         SDL_LIBS="-lSDLmain $SDL_LIBS"
         if test x$enable_video_cocoa = xyes; then
-            EXTRA_LDFLAGS="$EXTRA_LDFLAGS -Wl,-framework,Cocoa"
+            EXTRA_LDFLAGS="$EXTRA_LDFLAGS -Wl,-framework,Cocoa -Wl,-framework,OpenGL"
+        else
+            EXTRA_LDFLAGS="$EXTRA_LDFLAGS -Wl,-framework,AGL"
         fi
         if test x$enable_video_carbon = xyes -o x$enable_video_cocoa = xyes; then
             # The Cocoa backend still needs Carbon, and the YUV code QuickTime
@@ -32999,6 +32991,7 @@ _ACEOF
         if test x$enable_audio = xyes -o x$enable_cdrom = xyes; then
             EXTRA_LDFLAGS="$EXTRA_LDFLAGS -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit"
         fi
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -Wl,-framework,IOKit"
         ;;
     *-*-mint*)
         ARCH=mint
