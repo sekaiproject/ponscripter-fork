@@ -40,7 +40,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-noinst_PROGRAMS = showimage$(EXEEXT)
+noinst_PROGRAMS =
 DIST_COMMON = README $(am__configure_deps) \
 	$(libSDL_imageinclude_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/SDL_image.qpg.in \
@@ -73,10 +73,7 @@ am_libSDL_image_la_OBJECTS = IMG.lo IMG_bmp.lo IMG_gif.lo IMG_jpg.lo \
 	IMG_lbm.lo IMG_pcx.lo IMG_png.lo IMG_pnm.lo IMG_tga.lo \
 	IMG_tif.lo IMG_xcf.lo IMG_xpm.lo IMG_xv.lo
 libSDL_image_la_OBJECTS = $(am_libSDL_image_la_OBJECTS)
-PROGRAMS = $(noinst_PROGRAMS)
-showimage_SOURCES = showimage.c
-showimage_OBJECTS = showimage.$(OBJEXT)
-showimage_DEPENDENCIES = libSDL_image.la
+PROGRAMS =
 DEFAULT_INCLUDES = -I. -I$(srcdir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -88,8 +85,8 @@ LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(libSDL_image_la_SOURCES) showimage.c
-DIST_SOURCES = $(libSDL_image_la_SOURCES) showimage.c
+SOURCES = $(libSDL_image_la_SOURCES)
+DIST_SOURCES = $(libSDL_image_la_SOURCES)
 libSDL_imageincludeHEADERS_INSTALL = $(INSTALL_HEADER)
 HEADERS = $(libSDL_imageinclude_HEADERS)
 ETAGS = etags
@@ -260,7 +257,6 @@ libSDL_image_la_LDFLAGS = \
 	-version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
 
 libSDL_image_la_LIBADD = $(IMG_LIBS)
-showimage_LDADD = libSDL_image.la
 all: all-am
 
 .SUFFIXES:
@@ -338,9 +334,6 @@ clean-noinstPROGRAMS:
 	  echo " rm -f $$p $$f"; \
 	  rm -f $$p $$f ; \
 	done
-showimage$(EXEEXT): $(showimage_OBJECTS) $(showimage_DEPENDENCIES) 
-	@rm -f showimage$(EXEEXT)
-	$(LINK) $(showimage_LDFLAGS) $(showimage_OBJECTS) $(showimage_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -361,7 +354,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/IMG_xcf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/IMG_xpm.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/IMG_xv.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/showimage.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \

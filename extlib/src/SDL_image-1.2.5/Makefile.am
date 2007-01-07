@@ -39,10 +39,6 @@ libSDL_image_la_LDFLAGS = 	\
 	-version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
 libSDL_image_la_LIBADD = $(IMG_LIBS)
 
-noinst_PROGRAMS = showimage
-
-showimage_LDADD = libSDL_image.la
-
 # Rule to build tar-gzipped distribution package
 $(PACKAGE)-$(VERSION).tar.gz: distcheck
 
