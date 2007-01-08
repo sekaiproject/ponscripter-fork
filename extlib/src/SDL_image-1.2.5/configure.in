@@ -40,7 +40,7 @@ dnl Detect the canonical build and host environments
 AC_CANONICAL_HOST
 
 dnl Setup for automake
-AM_INIT_AUTOMAKE(SDL_image, $VERSION)
+AM_INIT_AUTOMAKE()
 
 dnl Check for tools
 

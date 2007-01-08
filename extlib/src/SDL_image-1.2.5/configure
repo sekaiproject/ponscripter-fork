@@ -2372,8 +2372,8 @@ fi
 
 
 # Define the identity of the package.
- PACKAGE=SDL_image
- VERSION=$VERSION
+ PACKAGE='AC_PACKAGE_TARNAME'
+ VERSION='AC_PACKAGE_VERSION'
 
 
 cat >>confdefs.h <<_ACEOF
