@@ -313,3 +313,4 @@ AC_OUTPUT([
     : >build-deps
     if test x"$MAKE" = x; then MAKE=make; fi; $MAKE depend
 ])
+AM_MAINTAINER_MODE

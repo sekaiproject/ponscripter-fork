@@ -314,3 +314,4 @@ Makefile
 smpeg-config
 smpeg.spec
 ])
+AM_MAINTAINER_MODE

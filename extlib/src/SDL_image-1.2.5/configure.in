@@ -277,3 +277,4 @@ Makefile
 SDL_image.spec
 SDL_image.qpg
 ])
+AM_MAINTAINER_MODE
