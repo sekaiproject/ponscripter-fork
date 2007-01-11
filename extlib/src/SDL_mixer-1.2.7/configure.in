@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(README)
+AC_INIT(SDL_mixer, 1.2.7)
 
 dnl Set various version strings - taken gratefully from the GTk sources
 
@@ -313,4 +313,3 @@ AC_OUTPUT([
     : >build-deps
     if test x"$MAKE" = x; then MAKE=make; fi; $MAKE depend
 ])
-AM_MAINTAINER_MODE

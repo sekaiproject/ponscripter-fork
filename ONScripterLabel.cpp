@@ -529,7 +529,7 @@ int ONScripterLabel::init()
 			FreeLibrary(shdll);
 		}
 		if (script_h.save_path == NULL) {
-			// Error; assume ancient Windows. In this case it's safe to use the archive path!
+			// Error; assume ancient Windows. In this case it's safe to use the archive path.
 			script_h.save_path = archive_path;
 		}
 #elif defined MACOSX

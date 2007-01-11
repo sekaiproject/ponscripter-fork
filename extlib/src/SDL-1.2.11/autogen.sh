@@ -13,7 +13,7 @@ if test x$found = xfalse; then
     echo "Couldn't find autoconf, aborting"
     exit 1
 fi
-(cd test; sh autogen.sh)
+#(cd test; sh autogen.sh)
 
 # Run configure for this platform
 echo "Now you are ready to run ./configure"
