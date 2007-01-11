@@ -38,6 +38,7 @@ namespace Carbon {
 typedef HRESULT (WINAPI *GETFOLDERPATH)(HWND, int, HANDLE, DWORD, LPTSTR);
 #endif
 #ifdef LINUX
+#include <errno.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -50,7 +51,7 @@ extern "C" void waveCallback( int channel );
 
 #define REGISTRY_FILE "registry.txt"
 #define DLL_FILE "dll.txt"
-#define DEFAULT_ENV_FONT "‚l‚r ƒSƒVƒbƒN"
+#define DEFAULT_ENV_FONT "Sans"
 #define DEFAULT_VOLUME 100
 
 typedef int (ONScripterLabel::*FuncList)();
@@ -548,9 +549,17 @@ int ONScripterLabel::init()
 		if (pwd) {
 			script_h.save_path = new char[strlen(pwd->pw_dir) + strlen(gameid) + 4];
 			sprintf(script_h.save_path, "%s/.%s/", pwd->pw_dir, gameid);
-			mkdir(script_h.save_path, 0755);
+			if (mkdir(script_h.save_path, 0755) != 0 && errno != EEXIST) {
+				delete[] script_h.save_path;
+				script_h.save_path = NULL;
+			}
 		}
-		else script_h.save_path = archive_path;
+		if (script_h.save_path == NULL) {
+			// Error; either getpwuid failed, or we couldn't create a save directory.
+			// Either way, issue a warning and then fall back on default ONScripter behaviour.
+			fprintf(stderr, "Warning: could not create save directory ~/.%s.\n", gameid);
+			script_h.save_path = archive_path;
+		}
 #else
 		// Fall back on default ONScripter behaviour if we don't have any better ideas.
 		script_h.save_path = archive_path;
