@@ -368,11 +368,14 @@ void SMPEG_actualSpec( SMPEG *mpeg, SDL_AudioSpec *spec )
 */
 char *SMPEG_error( SMPEG* mpeg )
 {
-    char *error;
+    char *error = NULL;
 
-    error = NULL;
-    if ( mpeg->obj->WasError() ) {
-        error = mpeg->obj->TheError();
+    if (mpeg == NULL) {
+        error = "NULL mpeg (unknown error)";
+    } else {
+        if ( mpeg->obj->WasError() ) {
+            error = mpeg->obj->TheError();
+        }
     }
     return(error);
 }

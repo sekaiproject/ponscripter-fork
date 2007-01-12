@@ -1,4 +1,6 @@
 current:
+Ryan C. Gordon - Sun Oct 29 02:16:02 EST 2006
+ * Patch from Chris Nelson to deal with SMPEG_error(NULL).
 Ryan C. Gordon - Sat Mar 18 14:57:28 EST 2006
  * Patch from Mike Frysinger to fix more asm stuff.
 Sam Lantinga - Sun Mar  5 21:08:09 PST 2006

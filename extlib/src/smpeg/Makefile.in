@@ -17,7 +17,6 @@
 
 
 
-
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 VPATH = @srcdir@
@@ -41,6 +40,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 DIST_COMMON = README $(am__configure_deps) $(libsmpeginclude_HEADERS) \
+	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/smpeg-config.in $(srcdir)/smpeg.spec.in \
 	$(top_srcdir)/configure COPYING TODO config.guess config.sub \
 	depcomp install-sh ltmain.sh missing mkinstalldirs
@@ -61,7 +61,6 @@ am__vpath_adj = case $$p in \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
-	"$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)" \
 	"$(DESTDIR)$(m4datadir)" "$(DESTDIR)$(libsmpegincludedir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
@@ -74,10 +73,6 @@ am_libsmpeg_la_OBJECTS = MPEG.lo MPEGring.lo MPEGlist.lo MPEGstream.lo \
 	parseblock.lo readfile.lo util.lo video.lo vhar128.lo \
 	mmxflags_asm.lo mmxidct_asm.lo
 libsmpeg_la_OBJECTS = $(am_libsmpeg_la_OBJECTS)
-@HAVE_GTK_TRUE@am__EXEEXT_1 = gtv$(EXEEXT)
-@HAVE_OPENGL_TRUE@am__EXEEXT_2 = glmovie$(EXEEXT)
-binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
-PROGRAMS = 
 binSCRIPT_INSTALL = $(INSTALL_SCRIPT)
 SCRIPTS = $(bin_SCRIPTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
@@ -101,11 +96,8 @@ LTCXXCOMPILE = $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) \
 CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(libsmpeg_la_SOURCES) 
-DIST_SOURCES = $(libsmpeg_la_SOURCES) 
-man1dir = $(mandir)/man1
-NROFF = nroff
-MANS = $(man_MANS)
+SOURCES = $(libsmpeg_la_SOURCES)
+DIST_SOURCES = $(libsmpeg_la_SOURCES)
 m4dataDATA_INSTALL = $(INSTALL_DATA)
 DATA = $(m4data_DATA)
 libsmpegincludeHEADERS_INSTALL = $(INSTALL_HEADER)
@@ -158,15 +150,7 @@ EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 F77 = @F77@
 FFLAGS = @FFLAGS@
-GL_LIBS = @GL_LIBS@
 GREP = @GREP@
-GTK_CFLAGS = @GTK_CFLAGS@
-GTK_CONFIG = @GTK_CONFIG@
-GTK_LIBS = @GTK_LIBS@
-HAVE_GTK_FALSE = @HAVE_GTK_FALSE@
-HAVE_GTK_TRUE = @HAVE_GTK_TRUE@
-HAVE_OPENGL_FALSE = @HAVE_OPENGL_FALSE@
-HAVE_OPENGL_TRUE = @HAVE_OPENGL_TRUE@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
@@ -182,6 +166,9 @@ LT_AGE = @LT_AGE@
 LT_CURRENT = @LT_CURRENT@
 LT_RELEASE = @LT_RELEASE@
 LT_REVISION = @LT_REVISION@
+MAINT = @MAINT@
+MAINTAINER_MODE_FALSE = @MAINTAINER_MODE_FALSE@
+MAINTAINER_MODE_TRUE = @MAINTAINER_MODE_TRUE@
 MAJOR_VERSION = @MAJOR_VERSION@
 MAKEINFO = @MAKEINFO@
 MICRO_VERSION = @MICRO_VERSION@
@@ -204,11 +191,6 @@ SHELL = @SHELL@
 SMPEG_RLD_FLAGS = @SMPEG_RLD_FLAGS@
 STRIP = @STRIP@
 VERSION = @VERSION@
-XMKMF = @XMKMF@
-X_CFLAGS = @X_CFLAGS@
-X_EXTRA_LIBS = @X_EXTRA_LIBS@
-X_LIBS = @X_LIBS@
-X_PRE_LIBS = @X_PRE_LIBS@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 ac_ct_F77 = @ac_ct_F77@
@@ -317,14 +299,21 @@ libsmpeg_la_LDFLAGS = \
         -release $(LT_RELEASE)	\
 	-version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
 
-EXTRA_DIST = 
+EXTRA_DIST = \
+	CHANGES			\
+	COPYING			\
+	TODO			\
+	README			\
+	smpeg.m4		\
+	gcc-fat.sh		\
+	autogen.sh		\
+	audio/AUTHORS		\
+	audio/COPYING.LIB	\
+	audio/README		\
+	audio/README.LIB	\
+	video/README		\
+	video/COPYRIGHT
 
-@HAVE_GTK_FALSE@GTK_PLAYER = 
-
-# Sample MPEG players
-@HAVE_GTK_TRUE@GTK_PLAYER = gtv
-@HAVE_OPENGL_FALSE@OPENGL_PLAYER = 
-@HAVE_OPENGL_TRUE@OPENGL_PLAYER = glmovie
 
 # M4 macro file for inclusion with autoconf
 m4datadir = $(datadir)/aclocal
@@ -333,6 +322,21 @@ all: all-am
 
 .SUFFIXES:
 .SUFFIXES: .S .c .cpp .lo .o .obj
+am--refresh:
+	@:
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__configure_deps)
+	@for dep in $?; do \
+	  case '$(am__configure_deps)' in \
+	    *$$dep*) \
+	      echo ' cd $(srcdir) && $(AUTOMAKE) --foreign '; \
+	      cd $(srcdir) && $(AUTOMAKE) --foreign  \
+		&& exit 0; \
+	      exit 1;; \
+	  esac; \
+	done; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  Makefile'; \
+	cd $(top_srcdir) && \
+	  $(AUTOMAKE) --foreign  Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -347,9 +351,9 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 	$(SHELL) ./config.status --recheck
 
-$(top_srcdir)/configure:  $(am__configure_deps)
+$(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	cd $(srcdir) && $(AUTOCONF)
-$(ACLOCAL_M4):  $(am__aclocal_m4_deps)
+$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 smpeg-config: $(top_builddir)/config.status $(srcdir)/smpeg-config.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
@@ -384,34 +388,6 @@ clean-libLTLIBRARIES:
 	done
 libsmpeg.la: $(libsmpeg_la_OBJECTS) $(libsmpeg_la_DEPENDENCIES) 
 	$(CXXLINK) -rpath $(libdir) $(libsmpeg_la_LDFLAGS) $(libsmpeg_la_OBJECTS) $(libsmpeg_la_LIBADD) $(LIBS)
-install-binPROGRAMS: $(bin_PROGRAMS)
-	@$(NORMAL_INSTALL)
-	test -z "$(bindir)" || $(mkdir_p) "$(DESTDIR)$(bindir)"
-	@list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  p1=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
-	  if test -f $$p \
-	     || test -f $$p1 \
-	  ; then \
-	    f=`echo "$$p1" | sed 's,^.*/,,;$(transform);s/$$/$(EXEEXT)/'`; \
-	   echo " $(INSTALL_PROGRAM_ENV) $(LIBTOOL) --mode=install $(binPROGRAMS_INSTALL) '$$p' '$(DESTDIR)$(bindir)/$$f'"; \
-	   $(INSTALL_PROGRAM_ENV) $(LIBTOOL) --mode=install $(binPROGRAMS_INSTALL) "$$p" "$(DESTDIR)$(bindir)/$$f" || exit 1; \
-	  else :; fi; \
-	done
-
-uninstall-binPROGRAMS:
-	@$(NORMAL_UNINSTALL)
-	@list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  f=`echo "$$p" | sed 's,^.*/,,;s/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/'`; \
-	  echo " rm -f '$(DESTDIR)$(bindir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(bindir)/$$f"; \
-	done
-
-clean-binPROGRAMS:
-	@list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  f=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
-	  echo " rm -f $$p $$f"; \
-	  rm -f $$p $$f ; \
-	done
 install-binSCRIPTS: $(bin_SCRIPTS)
 	@$(NORMAL_INSTALL)
 	test -z "$(bindir)" || $(mkdir_p) "$(DESTDIR)$(bindir)"
@@ -680,51 +656,6 @@ clean-libtool:
 distclean-libtool:
 	-rm -f libtool
 uninstall-info-am:
-install-man1: $(man1_MANS) $(man_MANS)
-	@$(NORMAL_INSTALL)
-	test -z "$(man1dir)" || $(mkdir_p) "$(DESTDIR)$(man1dir)"
-	@list='$(man1_MANS) $(dist_man1_MANS) $(nodist_man1_MANS)'; \
-	l2='$(man_MANS) $(dist_man_MANS) $(nodist_man_MANS)'; \
-	for i in $$l2; do \
-	  case "$$i" in \
-	    *.1*) list="$$list $$i" ;; \
-	  esac; \
-	done; \
-	for i in $$list; do \
-	  if test -f $(srcdir)/$$i; then file=$(srcdir)/$$i; \
-	  else file=$$i; fi; \
-	  ext=`echo $$i | sed -e 's/^.*\\.//'`; \
-	  case "$$ext" in \
-	    1*) ;; \
-	    *) ext='1' ;; \
-	  esac; \
-	  inst=`echo $$i | sed -e 's/\\.[0-9a-z]*$$//'`; \
-	  inst=`echo $$inst | sed -e 's/^.*\///'`; \
-	  inst=`echo $$inst | sed '$(transform)'`.$$ext; \
-	  echo " $(INSTALL_DATA) '$$file' '$(DESTDIR)$(man1dir)/$$inst'"; \
-	  $(INSTALL_DATA) "$$file" "$(DESTDIR)$(man1dir)/$$inst"; \
-	done
-uninstall-man1:
-	@$(NORMAL_UNINSTALL)
-	@list='$(man1_MANS) $(dist_man1_MANS) $(nodist_man1_MANS)'; \
-	l2='$(man_MANS) $(dist_man_MANS) $(nodist_man_MANS)'; \
-	for i in $$l2; do \
-	  case "$$i" in \
-	    *.1*) list="$$list $$i" ;; \
-	  esac; \
-	done; \
-	for i in $$list; do \
-	  ext=`echo $$i | sed -e 's/^.*\\.//'`; \
-	  case "$$ext" in \
-	    1*) ;; \
-	    *) ext='1' ;; \
-	  esac; \
-	  inst=`echo $$i | sed -e 's/\\.[0-9a-z]*$$//'`; \
-	  inst=`echo $$inst | sed -e 's/^.*\///'`; \
-	  inst=`echo $$inst | sed '$(transform)'`.$$ext; \
-	  echo " rm -f '$(DESTDIR)$(man1dir)/$$inst'"; \
-	  rm -f "$(DESTDIR)$(man1dir)/$$inst"; \
-	done
 install-m4dataDATA: $(m4data_DATA)
 	@$(NORMAL_INSTALL)
 	test -z "$(m4datadir)" || $(mkdir_p) "$(DESTDIR)$(m4datadir)"
@@ -937,12 +868,9 @@ distcleancheck: distclean
 	       exit 1; } >&2
 check-am: all-am
 check: check-am
-all-am: Makefile $(LTLIBRARIES) $(SCRIPTS) $(MANS) $(DATA) \
-		$(HEADERS)
-install-binPROGRAMS: install-libLTLIBRARIES
-
+all-am: Makefile $(LTLIBRARIES) $(SCRIPTS) $(DATA) $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(m4datadir)" "$(DESTDIR)$(libsmpegincludedir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(m4datadir)" "$(DESTDIR)$(libsmpegincludedir)"; do \
 	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
 	done
 install: install-am
@@ -971,8 +899,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-binPROGRAMS clean-generic clean-libLTLIBRARIES \
-	clean-libtool mostlyclean-am
+clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
+	mostlyclean-am
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
@@ -991,14 +919,13 @@ info: info-am
 
 info-am:
 
-install-data-am: install-libsmpegincludeHEADERS install-m4dataDATA 
+install-data-am: install-libsmpegincludeHEADERS install-m4dataDATA
 
-install-exec-am: install-binSCRIPTS \
-	install-libLTLIBRARIES
+install-exec-am: install-binSCRIPTS install-libLTLIBRARIES
 
 install-info: install-info-am
 
-install-man: install-man1
+install-man:
 
 installcheck-am:
 
@@ -1022,46 +949,33 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS uninstall-binSCRIPTS \
-	uninstall-info-am uninstall-libLTLIBRARIES \
-	uninstall-libsmpegincludeHEADERS uninstall-m4dataDATA \
-	uninstall-man
-
-uninstall-man: uninstall-man1
+uninstall-am: uninstall-binSCRIPTS uninstall-info-am \
+	uninstall-libLTLIBRARIES uninstall-libsmpegincludeHEADERS \
+	uninstall-m4dataDATA
 
 .PHONY: CTAGS GTAGS all all-am am--refresh check check-am clean \
-	clean-binPROGRAMS clean-generic clean-libLTLIBRARIES \
-	clean-libtool ctags dist dist-all dist-bzip2 dist-gzip \
-	dist-shar dist-tarZ dist-zip distcheck distclean \
-	distclean-compile distclean-generic distclean-libtool \
-	distclean-tags distcleancheck distdir distuninstallcheck dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-binPROGRAMS install-binSCRIPTS install-data \
+	clean-generic clean-libLTLIBRARIES clean-libtool ctags dist \
+	dist-all dist-bzip2 dist-gzip dist-shar dist-tarZ dist-zip \
+	distcheck distclean distclean-compile distclean-generic \
+	distclean-libtool distclean-tags distcleancheck distdir \
+	distuninstallcheck dvi dvi-am html html-am info info-am \
+	install install-am install-binSCRIPTS install-data \
 	install-data-am install-exec install-exec-am install-info \
 	install-info-am install-libLTLIBRARIES \
 	install-libsmpegincludeHEADERS install-m4dataDATA install-man \
-	install-man1 install-strip installcheck installcheck-am \
-	installdirs maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-compile mostlyclean-generic \
-	mostlyclean-libtool pdf pdf-am ps ps-am tags uninstall \
-	uninstall-am uninstall-binPROGRAMS uninstall-binSCRIPTS \
-	uninstall-info-am uninstall-libLTLIBRARIES \
-	uninstall-libsmpegincludeHEADERS uninstall-m4dataDATA \
-	uninstall-man uninstall-man1
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
+	pdf pdf-am ps ps-am tags uninstall uninstall-am \
+	uninstall-binSCRIPTS uninstall-info-am \
+	uninstall-libLTLIBRARIES uninstall-libsmpegincludeHEADERS \
+	uninstall-m4dataDATA
 
 
 video/16bit_mmx.lo: video/16bit_mmx.cpp
 	$(CXX) -c -o $@ $^ $(CXXFLAGS)
 video/32bit_mmx.lo: video/32bit_mmx.cpp
 	$(CXX) -c -o $@ $^ $(CXXFLAGS)
-
-# Rule to build tar-gzipped distribution package
-$(PACKAGE)-$(VERSION).tar.gz: dist
-
-# Rule to build RPM distribution package
-rpm: $(PACKAGE)-$(VERSION).tar.gz
-	cp $(PACKAGE)-$(VERSION).tar.gz /usr/src/redhat/SOURCES
-	rpm -ba smpeg.spec
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
