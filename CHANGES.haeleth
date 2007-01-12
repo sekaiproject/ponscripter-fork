@@ -1,3 +1,15 @@
+2007-01
+
+  Redesign build system to support automatic platform/dependency detection and 
+  to allow bundling of dependencies.  This makes it plausible to distribute 
+  the Linux version as source code, since a straight configure-make cycle 
+  should finally "just work".  (TODO: backport to ONScripter!)
+
+  Reimplement menu handling initially stripped out during proportionalisation. 
+  Right-click menus now function as in ONScripter.  Built-in save/load menus
+  take advantage of proportional text to display in automatically-formatted
+  columns.
+
 2006-11-30
 
   Increase flexibility of file embedding.  Font files can now be embedded in the
@@ -25,7 +37,7 @@
   being largely drawn from SDL_ttf, of course).
 
   Convert horizontal font positioning to use floating-point rather than integer 
-  offsets.  Begin attempts to subpixel positioning (still buggy).
+  offsets.  Begin attempts at subpixel positioning (still buggy).
   
   In the process, glyph caching has been removed.  ONScripter uses _two_ glyph 
   caches (!) -- one in SDL_ttf, which apparently only works on ASCII characters 
@@ -48,11 +60,13 @@
 
 2006-09-06
 
+  Fork.
+
   UTF-8 and proportional text support.
   
   Ruby, clickstr, and tategaki support removed.
 
-2006-09-05
+2006-09-05 (as ONScripter)
 
   Make archive path and save path separately configurable.  Game data no longer 
   has to be stored in a writable directory.
