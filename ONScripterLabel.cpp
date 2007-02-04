@@ -292,7 +292,7 @@ void ONScripterLabel::initSDL()
 	/* ---------------------------------------- */
 	/* Initialize SDL */
 
-// Don't set an icon on OS X - the applicaton bundle's icon is used anyway, and is usually higher resolution.
+	// Don't set an icon on OS X - the applicaton bundle's icon is used anyway, and is usually higher resolution.
 #ifndef MACOSX
 	// Apparently the window icon must be set before the display is initialised.
 	// An ONScripter-style PNG in the current folder takes precedence.
@@ -497,8 +497,8 @@ int ONScripterLabel::init()
 		archive_path = new char[strlen(bpath) + 32];
 		sprintf(archive_path, "%s/Contents/Resources/", bpath);
 #else
-		// On Linux, the path is unpredictable and should be set by using "-r PATH" in a launcher script.
-		// On other platforms they're stored in the same place as the executable.
+		// Otherwise, data is either stored with the executable, or in some unpredictable
+		// location that must be defined by using "-r PATH" in a launcher script.
 		archive_path = "";
 #endif
 	}
@@ -511,6 +511,7 @@ int ONScripterLabel::init()
 	if ( open() ) return -1;
 
 	if ( script_h.save_path == NULL ){
+		// Per-platform configuration for saved games.
 		const char *gameid = script_h.game_identifier ? script_h.game_identifier : "Ponscripter";
 #ifdef WIN32
 		// On Windows, store in [Profiles]/All Users/Application Data.
@@ -544,7 +545,7 @@ int ONScripterLabel::init()
 		sprintf(script_h.save_path, "%s/%s Data/", hpath, gameid);
 		mkdir(script_h.save_path, 0755);
 #elif defined LINUX
-		// On Linux (and similar *nixen), place in ~/.gameid
+		// On Linux (and other POSIX-a-likes), place in ~/.gameid
 		passwd* pwd = getpwuid(getuid());
 		if (pwd) {
 			script_h.save_path = new char[strlen(pwd->pw_dir) + strlen(gameid) + 4];
