@@ -32,11 +32,11 @@
 #define SEEK_END 2
 #endif
 
-#if defined(LINUX) || defined(MACOSX)
+#if defined (LINUX) || defined (MACOSX)
 #define DELIMITER '/'
-#elif defined(WIN32)
+#elif defined (WIN32)
 #define DELIMITER '\\'
-#elif defined(MACOS9)
+#elif defined (MACOS9)
 #define DELIMITER ':'
 #define RELATIVEPATH ":"
 #define RELATIVEPATHLENGTH 1
@@ -48,15 +48,14 @@
 #define RELATIVEPATHLENGTH 0
 #endif
 
-struct BaseReader
-{
+struct BaseReader {
     enum {
         NO_COMPRESSION   = 0,
         SPB_COMPRESSION  = 1,
         LZSS_COMPRESSION = 2,
         NBZ_COMPRESSION  = 4
     };
-    
+
     enum {
         ARCHIVE_TYPE_NONE = 0,
         ARCHIVE_TYPE_SAR  = 1,
@@ -65,23 +64,23 @@ struct BaseReader
         ARCHIVE_TYPE_NS3  = 4
     };
 
-    struct FileInfo{
+    struct FileInfo {
         char name[256];
-        int  compression_type;
+        int compression_type;
         size_t offset;
         size_t length;
         size_t original_length;
     };
 
-    struct ArchiveInfo{
-        struct ArchiveInfo *next;
-        FILE *file_handle;
-        char *file_name;
-        struct FileInfo *fi_list;
+    struct ArchiveInfo {
+        struct ArchiveInfo* next;
+        FILE* file_handle;
+        char* file_name;
+        struct FileInfo* fi_list;
         unsigned int num_of_files;
         unsigned long base_offset;
 
-        ArchiveInfo(){
+        ArchiveInfo() {
             next = NULL;
             file_handle = NULL;
             file_name = NULL;
@@ -90,18 +89,23 @@ struct BaseReader
         }
     };
 
-    virtual ~BaseReader(){};
-    
-    virtual int open( char *name=NULL, int archive_type = ARCHIVE_TYPE_NONE ) = 0;
-    virtual int close() = 0;
-    
-    virtual char *getArchiveName() const = 0;
-    virtual int  getNumFiles() = 0;
-    virtual void registerCompressionType( const char *ext, int type ) = 0;
+    virtual ~BaseReader() { };
 
-    virtual struct FileInfo getFileByIndex( unsigned int index ) = 0;
-    virtual size_t getFileLength( const char *file_name ) = 0;
-    virtual size_t getFile( const char *file_name, unsigned char *buffer, int *location=NULL ) = 0;
+    virtual int open(char* name = NULL, int archive_type = ARCHIVE_TYPE_NONE) = 0;
+
+    virtual int close() = 0;
+
+    virtual char* getArchiveName() const = 0;
+
+    virtual int getNumFiles() = 0;
+
+    virtual void registerCompressionType(const char* ext, int type) = 0;
+
+    virtual struct FileInfo getFileByIndex(unsigned int index) = 0;
+
+    virtual size_t getFileLength(const char* file_name) = 0;
+
+    virtual size_t getFile(const char* file_name, unsigned char* buffer, int* location = NULL) = 0;
 };
 
 #endif // __BASE_READER_H__

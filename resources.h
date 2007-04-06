@@ -5,9 +5,9 @@
 #define RESOURCES_H
 
 struct InternalResource {
-	const char* filename;
-	const unsigned char* buffer;
-	long int size;
+    const char* filename;
+    const unsigned char* buffer;
+    long int size;
 };
 
 extern const InternalResource* getResource(const char* filename);

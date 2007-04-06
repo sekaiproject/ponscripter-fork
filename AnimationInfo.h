@@ -1,5 +1,5 @@
 /* -*- C++ -*-
- * 
+ *
  *  AnimationInfo.h - General image storage class of Ponscripter
  *
  *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this
@@ -31,51 +31,50 @@
 
 typedef unsigned char uchar3[3];
 
-class AnimationInfo{
+class AnimationInfo {
 public:
-#if defined(BPP16)
+#if defined (BPP16)
     typedef Uint16 ONSBuf;
 #else
     typedef Uint32 ONSBuf;
-#endif    
-    enum { TRANS_ALPHA          = 1,
-           TRANS_TOPLEFT        = 2,
-           TRANS_COPY           = 3,
-           TRANS_STRING         = 4,
-           TRANS_DIRECT         = 5,
-           TRANS_PALLET         = 6,
-           TRANS_TOPRIGHT       = 7,
-           TRANS_MASK           = 8
-    };
+#endif
+    enum { TRANS_ALPHA   = 1,
+           TRANS_TOPLEFT = 2,
+           TRANS_COPY     = 3,
+           TRANS_STRING   = 4,
+           TRANS_DIRECT   = 5,
+           TRANS_PALLET   = 6,
+           TRANS_TOPRIGHT = 7,
+           TRANS_MASK = 8 };
 
     /* Variables from TaggedInfo */
     int trans_mode;
     uchar3 direct_color;
     int pallet_number;
-    uchar3 color;
+    uchar3   color;
     SDL_Rect pos; // pose and size of the current cell
 
-    int num_of_cells;
-    int current_cell;
-    int direction;
-    int *duration_list;
-    uchar3 *color_list;
-    int loop_mode;
+    int  num_of_cells;
+    int  current_cell;
+    int  direction;
+    int* duration_list;
+    uchar3* color_list;
+    int  loop_mode;
     bool is_animatable;
     bool is_single_line;
     bool is_tight_region; // valid under TRANS_STRING
     bool is_centered_text;
-        
-    char *file_name;
-    char *mask_file_name;
+
+    char* file_name;
+    char* mask_file_name;
 
     /* Variables from AnimationInfo */
-    bool visible;
-    bool abs_flag;
-    int trans;
-    char *image_name;
-    SDL_Surface *image_surface;
-    unsigned char *alpha_buf;
+    bool  visible;
+    bool  abs_flag;
+    int   trans;
+    char* image_name;
+    SDL_Surface*   image_surface;
+    unsigned char* alpha_buf;
 
     int font_size_x, font_size_y; // used by prnum and lsp string
     int font_pitch; // used by lsp string
@@ -84,13 +83,13 @@ public:
     int param; // used by prnum and bar
     int max_param; // used by bar
     int max_width; // used by bar
-    
+
     AnimationInfo();
     ~AnimationInfo();
     void reset();
-    
+
     void deleteImageName();
-    void setImageName( const char *name );
+    void setImageName(const char* name);
     void deleteSurface();
     void remove();
     void removeTag();
@@ -98,19 +97,16 @@ public:
     bool proceedAnimation();
 
     void setCell(int cell);
-    static int doClipping( SDL_Rect *dst, SDL_Rect *clip, SDL_Rect *clipped=NULL );
-    void blendOnSurface( SDL_Surface *dst_surface, int dst_x, int dst_y,
-                         SDL_Rect &clip, int alpha=256 );
-    void blendOnSurface2( SDL_Surface *dst_surface, int dst_x, int dst_y,
-                          int alpha, int mat[2][2] );
-    void blendBySurface( SDL_Surface *surface, int dst_x, int dst_y, SDL_Color &color,
-                         SDL_Rect *clip );
-    
-    static SDL_Surface *allocSurface( int w, int h );
-    void allocImage( int w, int h );
-    void copySurface( SDL_Surface *surface, SDL_Rect *rect );
-    void fill( Uint8 r, Uint8 g, Uint8 b, Uint8 a );
-    void setupImage( SDL_Surface *surface, SDL_Surface *surface_m );
+    static int doClipping(SDL_Rect* dst, SDL_Rect* clip, SDL_Rect* clipped = NULL);
+    void blendOnSurface(SDL_Surface* dst_surface, int dst_x, int dst_y, SDL_Rect &clip, int alpha = 256);
+    void blendOnSurface2(SDL_Surface* dst_surface, int dst_x, int dst_y, int alpha, int mat[2][2]);
+    void blendBySurface(SDL_Surface* surface, int dst_x, int dst_y, SDL_Color &color, SDL_Rect* clip);
+
+    static SDL_Surface* allocSurface(int w, int h);
+    void allocImage(int w, int h);
+    void copySurface(SDL_Surface* surface, SDL_Rect* rect);
+    void fill(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
+    void setupImage(SDL_Surface* surface, SDL_Surface* surface_m);
 };
 
 #endif // __ANIMATION_INFO_H__

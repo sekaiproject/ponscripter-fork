@@ -1,5 +1,5 @@
 /* -*- C++ -*-
- * 
+ *
  *  MadWrapper.h - SMPEG compatible wrapper functions for MAD: Mpeg
  *  Audio Decoder
  *
@@ -34,14 +34,14 @@
 
 typedef struct _MAD_WRAPPER MAD_WRAPPER;
 
-MAD_WRAPPER* MAD_WRAPPER_new( const char *file, void* info, int sdl_audio );
-MAD_WRAPPER* MAD_WRAPPER_new_rwops( SDL_RWops *src, void* info, int sdl_audio );
-int MAD_WRAPPER_playAudio( void *userdata, Uint8 *stream, int len );
-void MAD_WRAPPER_stop( MAD_WRAPPER *mad );
-void MAD_WRAPPER_play( MAD_WRAPPER *mad );
-void MAD_WRAPPER_delete( MAD_WRAPPER *mad );
-void MAD_WRAPPER_setvolume( MAD_WRAPPER *mad, int volume );
-const char* MAD_WRAPPER_error( MAD_WRAPPER *mad );
+MAD_WRAPPER* MAD_WRAPPER_new(const char* file, void* info, int sdl_audio);
+MAD_WRAPPER* MAD_WRAPPER_new_rwops(SDL_RWops* src, void* info, int sdl_audio);
+int MAD_WRAPPER_playAudio(void* userdata, Uint8* stream, int len);
+void MAD_WRAPPER_stop(MAD_WRAPPER* mad);
+void MAD_WRAPPER_play(MAD_WRAPPER* mad);
+void MAD_WRAPPER_delete(MAD_WRAPPER* mad);
+void MAD_WRAPPER_setvolume(MAD_WRAPPER* mad, int volume);
+const char* MAD_WRAPPER_error(MAD_WRAPPER* mad);
 
 #define SMPEG_new MAD_WRAPPER_new
 #define SMPEG_new_rwops MAD_WRAPPER_new_rwops
@@ -54,4 +54,3 @@ const char* MAD_WRAPPER_error( MAD_WRAPPER *mad );
 #define SMPEG_error MAD_WRAPPER_error
 
 #endif // __MAD_WRAPPER_H__
-

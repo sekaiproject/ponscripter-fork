@@ -1,5 +1,5 @@
 /* -*- C++ -*-
- * 
+ *
  *  DirtyRect.h - Invalid region on text_surface which should be updated
  *
  *  Copyright (c) 2001-2004 Ogapee (original ONScripter, of which this
@@ -28,24 +28,26 @@
 
 #include <SDL.h>
 
-struct DirtyRect
-{
+struct DirtyRect {
     DirtyRect();
-    DirtyRect( const DirtyRect &d );
-    DirtyRect& operator =( const DirtyRect &d );
-    ~DirtyRect();
-    
-    void add( SDL_Rect src );
-    void clear();
-    void fill( int w, int h );
+    DirtyRect(const DirtyRect & d);
+    DirtyRect& operator =(const DirtyRect &d);
 
-    SDL_Rect calcBoundingBox( SDL_Rect src1, SDL_Rect &src2 );
+    ~DirtyRect();
+
+    void add(SDL_Rect src);
+
+    void clear();
+
+    void fill(int w, int h);
+
+    SDL_Rect calcBoundingBox(SDL_Rect src1, SDL_Rect & src2);
 
     int area;
     int total_history;
     int num_history;
     SDL_Rect bounding_box;
-    SDL_Rect *history;
+    SDL_Rect* history;
 };
 
 #endif // __DIRTY_RECT__

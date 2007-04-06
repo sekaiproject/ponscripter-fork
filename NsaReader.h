@@ -29,31 +29,30 @@
 #include "SarReader.h"
 #define MAX_EXTRA_ARCHIVE 9
 
-class NsaReader : public SarReader
-{
+class NsaReader : public SarReader {
 public:
-    NsaReader( char *path=NULL, const unsigned char *key_table=NULL );
+    NsaReader(char* path = NULL, const unsigned char* key_table = NULL);
     ~NsaReader();
 
-    int open( char *nsa_path=NULL, int archive_type = ARCHIVE_TYPE_NSA );
-    char *getArchiveName() const;
+    int open(char* nsa_path = NULL, int archive_type = ARCHIVE_TYPE_NSA);
+    char* getArchiveName() const;
     int getNumFiles();
-    
-    size_t getFileLength( const char *file_name );
-    size_t getFile( const char *file_name, unsigned char *buf, int *location=NULL );
-    struct FileInfo getFileByIndex( unsigned int index );
 
-    int openForConvert( char *nsa_name, int archive_type=ARCHIVE_TYPE_NSA );
-    int writeHeader( FILE *fp, int archive_type=ARCHIVE_TYPE_NSA );
-    size_t putFile( FILE *fp, int no, size_t offset, size_t length, size_t original_length, int compression_type, bool modified_flag, unsigned char *buffer );
-    
+    size_t getFileLength(const char* file_name);
+    size_t getFile(const char* file_name, unsigned char* buf, int* location = NULL);
+    struct FileInfo getFileByIndex(unsigned int index);
+
+    int openForConvert(char* nsa_name, int archive_type = ARCHIVE_TYPE_NSA);
+    int writeHeader(FILE* fp, int archive_type = ARCHIVE_TYPE_NSA);
+    size_t putFile(FILE* fp, int no, size_t offset, size_t length, size_t original_length, int compression_type, bool modified_flag, unsigned char* buffer);
+
 private:
     bool sar_flag;
     struct ArchiveInfo archive_info2[MAX_EXTRA_ARCHIVE];
-    int num_of_nsa_archives;
-    char *nsa_archive_ext;
+    int   num_of_nsa_archives;
+    char* nsa_archive_ext;
 
-    size_t getFileLengthSub( ArchiveInfo *ai, const char *file_name );
+    size_t getFileLengthSub(ArchiveInfo* ai, const char* file_name);
 };
 
 #endif // __NSA_READER_H__

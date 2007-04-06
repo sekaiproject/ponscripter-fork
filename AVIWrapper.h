@@ -1,5 +1,5 @@
 /* -*- C++ -*-
- * 
+ *
  *  AVIWrapper.h - avifile library wrapper class to play AVI video &
  *  audio stream
  *
@@ -33,45 +33,43 @@
 #include <avm_fourcc.h>
 #include <utils.h>
 
-class AVIWrapper
-{
+class AVIWrapper {
 public:
-    enum { AVI_STOP = 0,
-           AVI_PLAYING = 1
-    };
+    enum { AVI_STOP    = 0,
+           AVI_PLAYING = 1 };
     AVIWrapper();
     ~AVIWrapper();
 
-    int init( char *filename, bool debug_flag );
-    int initAV( SDL_Surface *surface, bool audio_open_flag );
-    int play( bool click_flag );
+    int init(char* filename, bool debug_flag);
+    int initAV(SDL_Surface* surface, bool audio_open_flag);
+    int play(bool click_flag);
 
-    void audioCallback( void *userdata, Uint8 *stream, int len );
-    int playVideo( void *userdata );
+    void audioCallback(void* userdata, Uint8* stream, int len);
+    int playVideo(void* userdata);
 
-    unsigned int getWidth(){ return width; };
-    unsigned int getHeight(){ return height; };
+    unsigned int getWidth() { return width; };
+    unsigned int getHeight() { return height; };
 
-private:    
+private:
     double getAudioTime();
-    int drawFrame( CImage *image );
+    int drawFrame(CImage* image);
 
-    SDL_Overlay *screen_overlay;
+    SDL_Overlay* screen_overlay;
     SDL_Rect screen_rect;
     unsigned int width;
     unsigned int height;
 
-    IAviReadFile *i_avi;
-    IAviReadStream *v_stream;
-    IAviReadStream *a_stream;
-    int remaining_count;
-    char *remaining_buffer;
+    IAviReadFile*   i_avi;
+    IAviReadStream* v_stream;
+    IAviReadStream* a_stream;
+    int   remaining_count;
+    char* remaining_buffer;
 
     bool debug_flag;
-    int status;
-    SDL_Thread *thread_id;
+    int  status;
+    SDL_Thread* thread_id;
     int64_t time_start;
-    double frame_start;
+    double  frame_start;
 };
 
 #endif // __AVI_WRAPPER_H__

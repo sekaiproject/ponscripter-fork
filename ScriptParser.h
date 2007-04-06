@@ -1,5 +1,5 @@
 /* -*- C++ -*-
- * 
+ *
  *  ScriptParser.h - Define block parser of Ponscripter
  *
  *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this
@@ -51,13 +51,12 @@
 #define DEFAULT_LOOKBACK_NAME3 "doffcur.bmp"
 #define DEFAULT_CURSOR0 "cursor0.bmp"
 #define DEFAULT_CURSOR1 "cursor1.bmp"
-#define DEFAULT_CURSOR_WAIT    ":l/3,160,2;cursor0.bmp"
+#define DEFAULT_CURSOR_WAIT ":l/3,160,2;cursor0.bmp"
 #define DEFAULT_CURSOR_NEWPAGE ":l/3,160,2;cursor1.bmp"
 
 typedef unsigned char uchar3[3];
 
-class ScriptParser
-{
+class ScriptParser {
 public:
     ScriptParser();
     virtual ~ScriptParser();
@@ -66,7 +65,7 @@ public:
     int open();
     int parseLine();
 
-    FILE *fopen(const char *path, const char *mode, const bool save = false);
+    FILE* fopen(const char* path, const char* mode, const bool save = false);
     void saveGlovalData();
 
     /* Command */
@@ -112,6 +111,7 @@ public:
     int maxkaisoupageCommand();
     int lookbackspCommand();
     int lookbackcolorCommand();
+
     //int lookbackbuttonCommand();
     int loadgosubCommand();
     int linepageCommand();
@@ -128,6 +128,7 @@ public:
     int gosubCommand();
     int globalonCommand();
     int getparamCommand();
+
     //int gameCommand();
     int forCommand();
     int filelogCommand();
@@ -152,30 +153,30 @@ public:
     int atoiCommand();
     int arcCommand();
     int addCommand();
-    
+
 protected:
-    struct UserFuncLUT{
-        struct UserFuncLUT *next;
-        char *command;
-        UserFuncLUT(){
-            next = NULL;
+    struct UserFuncLUT {
+        struct UserFuncLUT* next;
+        char* command;
+        UserFuncLUT() {
+            next    = NULL;
             command = NULL;
         };
-        ~UserFuncLUT(){
+        ~UserFuncLUT() {
             if (command) delete[] command;
         };
-    } root_user_func, *last_user_func;
+    } root_user_func, * last_user_func;
 
-    struct NestInfo{
+    struct NestInfo {
         enum { LABEL = 0,
                FOR   = 1 };
-        struct NestInfo *previous, *next;
-        int  nest_mode;
-        char *next_script; // used in gosub and for
-        int  var_no, to, step; // used in for
+        struct NestInfo* previous, * next;
+        int nest_mode;
+        char* next_script; // used in gosub and for
+        int var_no, to, step; // used in for
 
-        NestInfo(){
-            previous = next = NULL;
+        NestInfo() {
+            previous  = next = NULL;
             nest_mode = LABEL;
         };
     } last_tilde;
@@ -187,37 +188,34 @@ protected:
            SYSTEM_LOAD        = 4,
            SYSTEM_LOOKBACK    = 5,
            SYSTEM_WINDOWERASE = 6,
-           SYSTEM_MENU        = 7,
-           SYSTEM_YESNO       = 8,
-           SYSTEM_AUTOMODE    = 9,
-           SYSTEM_END         = 10
-    };
+           SYSTEM_MENU     = 7,
+           SYSTEM_YESNO    = 8,
+           SYSTEM_AUTOMODE = 9,
+           SYSTEM_END = 10 };
     enum { RET_NOMATCH   = 0,
            RET_SKIP_LINE = 1,
            RET_CONTINUE  = 2,
-           RET_WAIT      = 4,
-           RET_NOREAD    = 8,
-           RET_REREAD    = 16
-    };
+           RET_WAIT   = 4,
+           RET_NOREAD = 8,
+           RET_REREAD = 16 };
     enum { CLICK_NONE    = 0,
            CLICK_WAIT    = 1,
            CLICK_NEWPAGE = 2,
            CLICK_IGNORE  = 3,
-           CLICK_EOL     = 4
-    };
-    enum{ NORMAL_MODE, DEFINE_MODE };
+           CLICK_EOL = 4 };
+    enum { NORMAL_MODE, DEFINE_MODE };
     int current_mode;
     int debug_level;
 
-    char *archive_path;
-    char *nsa_path;
-    bool globalon_flag;
-    bool labellog_flag;
-    bool filelog_flag;
-    bool kidokuskip_flag;
-    bool kidokumode_flag;
+    char* archive_path;
+    char* nsa_path;
+    bool  globalon_flag;
+    bool  labellog_flag;
+    bool  filelog_flag;
+    bool  kidokuskip_flag;
+    bool  kidokumode_flag;
 
-    int z_order;
+    int  z_order;
     bool rmode_flag;
     bool windowback_flag;
     bool usewheel_flag;
@@ -226,72 +224,71 @@ protected:
     bool mode_ext_flag;
     bool force_button_shortcut_flag;
     bool zenkakko_flag;
-    
+
     int string_buffer_offset;
 
-    NestInfo root_nest_info, *last_nest_info;
+    NestInfo root_nest_info, * last_nest_info;
     ScriptHandler::LabelInfo current_label_info;
     int current_line;
 
     /* ---------------------------------------- */
     /* Global definitions */
-    int screen_width, screen_height;
-    int screen_texture_width, screen_texture_height;
-    int screen_bpp;
-    char *version_str;
-    int underline_value;
-
+    int   screen_width, screen_height;
+    int   screen_texture_width, screen_texture_height;
+    int   screen_bpp;
+    char* version_str;
+    int   underline_value;
 
     void deleteNestInfo();
-    void setStr( char **dst, const char *src, int num=-1 );
-    
-    void gosubReal( const char *label, char *next_script );
-    void setCurrentLabel( const char *label );
+    void setStr(char** dst, const char* src, int num = -1);
+
+    void gosubReal(const char* label, char* next_script);
+    void setCurrentLabel(const char* label);
     void readToken();
 
     /* ---------------------------------------- */
     /* Effect related variables */
-    struct EffectLink{
-        struct EffectLink *next;
+    struct EffectLink {
+        struct EffectLink* next;
         int no;
         int effect;
         int duration;
         AnimationInfo anim;
 
-        EffectLink(){
-            next = NULL;
-            effect = 10;
+        EffectLink() {
+            next     = NULL;
+            effect   = 10;
             duration = 0;
         };
     };
-    
-    EffectLink root_effect_link, *last_effect_link, window_effect, tmp_effect;
-    
-    int effect_blank;
+
+    EffectLink root_effect_link, * last_effect_link, window_effect, tmp_effect;
+
+    int  effect_blank;
     bool effect_cut_flag;
 
-    int readEffect( EffectLink *effect );
-    EffectLink *parseEffect();
+    int readEffect(EffectLink* effect);
+    EffectLink* parseEffect();
 
     /* ---------------------------------------- */
     /* Lookback related variables */
     //char *lookback_image_name[4];
     int lookback_sp[2];
     uchar3 lookback_color;
-    
+
     /* ---------------------------------------- */
     /* For loop related variables */
     bool break_flag;
-    
+
     /* ---------------------------------------- */
     /* Transmode related variables */
     int trans_mode;
-    
+
     /* ---------------------------------------- */
     /* Save/Load related variables */
-    struct SaveFileInfo{
+    struct SaveFileInfo {
         bool valid;
-        int  month, day, hour, minute;
+        int month, day, hour, minute;
         char sjis_no[5];
         char sjis_month[5];
         char sjis_day[5];
@@ -299,36 +296,39 @@ protected:
         char sjis_minute[5];
     };
     unsigned int num_save_file;
-    char *save_menu_name;
-    char *load_menu_name;
-    char *save_item_name;
+    char* save_menu_name;
+    char* load_menu_name;
+    char* save_item_name;
 
-    unsigned char *save_data_buf;
-    unsigned char *file_io_buf;
+    unsigned char* save_data_buf;
+    unsigned char* file_io_buf;
     size_t file_io_buf_ptr;
     size_t file_io_buf_len;
     size_t save_data_len;
-    
+
     /* ---------------------------------------- */
     /* Text related variables */
-    char *default_env_font;
-    int default_text_speed[3];
-    struct TextBuffer{
-        struct TextBuffer *next, *previous;
+    char* default_env_font;
+    int   default_text_speed[3];
+    struct TextBuffer {
+        struct TextBuffer* next, * previous;
         std::string contents;
-        int addBuffer( char ch ){
+        int addBuffer(char ch)
+        {
             contents += ch;
-	        return 0;
+            return 0;
         }
+
+
         void clear() { contents.clear(); }
         bool empty() { return contents.empty(); }
-    } *text_buffer, *start_text_buffer, *current_text_buffer; // ring buffer
-    int  max_text_buffer;
-    int  clickstr_line;
-    int  clickstr_state;
-    int  linepage_mode;
-    int  num_chars_in_sentence;
-    
+    }*  text_buffer, * start_text_buffer, * current_text_buffer; // ring buffer
+    int max_text_buffer;
+    int clickstr_line;
+    int clickstr_state;
+    int linepage_mode;
+    int num_chars_in_sentence;
+
     /* ---------------------------------------- */
     /* Sound related variables */
     int music_volume;
@@ -337,85 +337,82 @@ protected:
 
     enum { CLICKVOICE_NORMAL  = 0,
            CLICKVOICE_NEWPAGE = 1,
-           CLICKVOICE_NUM     = 2
-    };
-    char *clickvoice_file_name[CLICKVOICE_NUM];
+           CLICKVOICE_NUM = 2 };
+    char* clickvoice_file_name[CLICKVOICE_NUM];
 
     enum { SELECTVOICE_OPEN   = 0,
            SELECTVOICE_OVER   = 1,
            SELECTVOICE_SELECT = 2,
-           SELECTVOICE_NUM    = 3
-    };
-    char *selectvoice_file_name[SELECTVOICE_NUM];
+           SELECTVOICE_NUM = 3 };
+    char* selectvoice_file_name[SELECTVOICE_NUM];
 
     enum { MENUSELECTVOICE_OPEN   = 0,
            MENUSELECTVOICE_CANCEL = 1,
            MENUSELECTVOICE_OVER   = 2,
            MENUSELECTVOICE_CLICK  = 3,
            MENUSELECTVOICE_WARN   = 4,
-           MENUSELECTVOICE_YES    = 5,
-           MENUSELECTVOICE_NO     = 6,
-           MENUSELECTVOICE_NUM    = 7
-    };
-    char *menuselectvoice_file_name[MENUSELECTVOICE_NUM];
-     
+           MENUSELECTVOICE_YES = 5,
+           MENUSELECTVOICE_NO  = 6,
+           MENUSELECTVOICE_NUM = 7 };
+    char* menuselectvoice_file_name[MENUSELECTVOICE_NUM];
+
     /* ---------------------------------------- */
     /* Font related variables */
-    FontInfo *current_font, sentence_font, menu_font;
+    FontInfo* current_font, sentence_font, menu_font;
     int shade_distance[2];
 
     /* ---------------------------------------- */
     /* RMenu related variables */
-    struct RMenuLink{
-        RMenuLink *next;
-        char *label;
+    struct RMenuLink {
+        RMenuLink* next;
+        char* label;
         int system_call_no;
 
-        RMenuLink(){
+        RMenuLink() {
             next  = NULL;
             label = NULL;
         };
-        ~RMenuLink(){
+        ~RMenuLink() {
             if (label) delete[] label;
         };
     } root_rmenu_link;
     unsigned int rmenu_link_num, rmenu_link_width;
 
     void deleteRMenuLink();
-    int getSystemCallNo( const char *buffer );
-    unsigned char convHexToDec( char ch );
-    void readColor( uchar3 *color, const char *buf );
-    
-    void errorAndExit( const char *str, const char *reason=NULL );
+    int getSystemCallNo(const char* buffer);
+    unsigned char convHexToDec(char ch);
+    void readColor(uchar3* color, const char* buf);
+
+    void errorAndExit(const char* str, const char* reason = NULL);
 
     void allocFileIOBuf();
-    int saveFileIOBuf( const char *filename, int offset=0 );
-    int loadFileIOBuf( const char *filename );
+    int saveFileIOBuf(const char* filename, int offset = 0);
+    int loadFileIOBuf(const char* filename);
 
-    void writeChar( char c, bool output_flag );
+    void writeChar(char c, bool output_flag);
     char readChar();
-    void writeInt( int i, bool output_flag );
+    void writeInt(int i, bool output_flag);
     int readInt();
-    void writeStr( char *s, bool output_flag );
-    void readStr( char **s );
-    void writeVariables( int from, int to, bool output_flag );
-    void readVariables( int from, int to );
-    void writeArrayVariable( bool output_flag );
+    void writeStr(char* s, bool output_flag);
+    void readStr(char** s);
+    void writeVariables(int from, int to, bool output_flag);
+    void readVariables(int from, int to);
+    void writeArrayVariable(bool output_flag);
     void readArrayVariable();
-    void writeLog( ScriptHandler::LogInfo &info );
-    void readLog( ScriptHandler::LogInfo &info );
+    void writeLog(ScriptHandler::LogInfo &info);
+    void readLog(ScriptHandler::LogInfo &info);
 
     /* ---------------------------------------- */
     /* System customize related variables */
-    char *textgosub_label;
-    char *pretextgosub_label;
-    char *loadgosub_label;
+    char* textgosub_label;
+    char* pretextgosub_label;
+    char* loadgosub_label;
 
     ScriptHandler script_h;
-    
-    unsigned char *key_table;
 
-    void createKeyTable( const char *key_exe );
+    unsigned char* key_table;
+
+    void createKeyTable(const char* key_exe);
 };
 
 #endif // __SCRIPT_PARSER_H__

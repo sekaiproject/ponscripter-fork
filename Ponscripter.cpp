@@ -1,5 +1,5 @@
 /* -*- C++ -*-
- * 
+ *
  *  Ponscripter.cpp -- main function of Ponscripter
  *
  *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this
@@ -29,7 +29,7 @@
 static void optionHelp()
 {
     printf("Ponscripter version %s (NScr %d.%02d)\n",
-	   ONS_VERSION, NSC_VERSION / 100, NSC_VERSION % 100);
+        ONS_VERSION, NSC_VERSION / 100, NSC_VERSION % 100);
     printf("Usage: ponscripter [option ...] [root path]\n");
     printf("      --cdaudio\t\tuse CD audio if available\n");
     printf("      --cdnumber no\tchoose the CD-ROM drive number\n");
@@ -38,44 +38,47 @@ static void optionHelp()
 #ifndef MACOSX
     printf("  -r, --root path\tset the root path to the archives\n");
     printf("  -s, --save path\tset the path to use for saved games"
-	                     "(default: same as root path)\n");
+           "(default: same as root path)\n");
 #else
     printf("  -r, --root path\tset the root path to the archives"
-	                     "(default: Resources in Ponscripter bundle)\n");
+           "(default: Resources in Ponscripter bundle)\n");
     printf("  -s, --save path\tset the path to use for saved games"
-	                     "(default: folder in ~/Library/Preferences)\n");
+           "(default: folder in ~/Library/Preferences)\n");
 #endif
     printf("      --fullscreen\tstart in fullscreen mode\n");
     printf("      --window\t\tstart in window mode\n");
     printf("      --force-button-shortcut\tignore useescspc and getenter "
-	   "command\n");
+           "command\n");
     printf("      --enable-wheeldown-advance\tadvance the text on mouse "
-	   "wheeldown event\n");
+           "wheeldown event\n");
     printf("  -h, --help\t\tshow this help and exit\n");
     printf("  -v, --version\t\tshow the version information and exit\n");
     exit(0);
 }
 
+
 static void optionVersion()
 {
     printf("Ponscripter version %s (NScr %d.%02d)\n",
-	   ONS_VERSION, NSC_VERSION / 100, NSC_VERSION % 100);
+        ONS_VERSION, NSC_VERSION / 100, NSC_VERSION % 100);
     printf("Based on ONScripter by Ogapee <ogapee@aqua.dti2.ne.jp>\n\n");
     printf("Copyright (c) 2001-2006 Ogapee, 2006-2007 Haeleth.\n");
     printf("This is free software; see the source for copying conditions.\n");
     exit(0);
 }
-#if defined(QWS)
-int SDL_main( int argc, char **argv )
-#elif defined(PSP)
-extern "C" int main( int argc, char **argv )
+
+
+#if defined (QWS)
+int SDL_main(int argc, char** argv)
+#elif defined (PSP)
+extern "C" int main(int argc, char** argv)
 #else
-int main( int argc, char **argv )
+int main(int argc, char** argv)
 #endif
 {
-    ONScripterLabel ons;
+    PonscripterLabel ons;
 
-#if defined(PSP)
+#if defined (PSP)
     ons.disableRescale();
     ons.enableButtonShortCut();
 #endif
@@ -83,86 +86,89 @@ int main( int argc, char **argv )
     // ----------------------------------------
     // Parse options
     argv++;
-    while( argc > 1 ){
-        if ( argv[0][0] == '-' ){
-            if ( !strcmp( argv[0]+1, "h" ) || !strcmp( argv[0]+1, "-help" ) ){
+    while (argc > 1) {
+        if (argv[0][0] == '-') {
+            if (!strcmp(argv[0] + 1, "h") || !strcmp(argv[0] + 1, "-help")) {
                 optionHelp();
             }
-            else if ( !strcmp( argv[0]+1, "v" ) || !strcmp( argv[0]+1, "-version" ) ){
+            else if (!strcmp(argv[0] + 1, "v") || !strcmp(argv[0] + 1, "-version")) {
                 optionVersion();
             }
-            else if ( !strcmp( argv[0]+1, "-cdaudio" ) ){
+            else if (!strcmp(argv[0] + 1, "-cdaudio")) {
                 ons.enableCDAudio();
             }
-            else if ( !strcmp( argv[0]+1, "-cdnumber" ) ){
+            else if (!strcmp(argv[0] + 1, "-cdnumber")) {
                 argc--;
                 argv++;
                 ons.setCDNumber(atoi(argv[0]));
             }
-            else if ( !strcmp( argv[0]+1, "-registry" ) ){
+            else if (!strcmp(argv[0] + 1, "-registry")) {
                 argc--;
                 argv++;
                 ons.setRegistryFile(argv[0]);
             }
-            else if ( !strcmp( argv[0]+1, "-dll" ) ){
+            else if (!strcmp(argv[0] + 1, "-dll")) {
                 argc--;
                 argv++;
                 ons.setDLLFile(argv[0]);
             }
-            else if ( !strcmp( argv[0]+1, "r" ) || !strcmp( argv[0]+1, "-root" ) ){
+            else if (!strcmp(argv[0] + 1, "r") || !strcmp(argv[0] + 1, "-root")) {
                 argc--;
                 argv++;
                 ons.setArchivePath(argv[0]);
             }
-            else if ( !strcmp( argv[0]+1, "s" ) || !strcmp( argv[0]+1, "-save" ) ){
+            else if (!strcmp(argv[0] + 1, "s") || !strcmp(argv[0] + 1, "-save")) {
                 argc--;
                 argv++;
                 ons.setSavePath(argv[0]);
             }
-            else if ( !strcmp( argv[0]+1, "-fullscreen" ) ){
+            else if (!strcmp(argv[0] + 1, "-fullscreen")) {
                 ons.setFullscreenMode();
             }
-            else if ( !strcmp( argv[0]+1, "-window" ) ){
+            else if (!strcmp(argv[0] + 1, "-window")) {
                 ons.setWindowMode();
             }
-            else if ( !strcmp( argv[0]+1, "-force-button-shortcut" ) ){
+            else if (!strcmp(argv[0] + 1, "-force-button-shortcut")) {
                 ons.enableButtonShortCut();
             }
-            else if ( !strcmp( argv[0]+1, "-enable-wheeldown-advance" ) ){
+            else if (!strcmp(argv[0] + 1, "-enable-wheeldown-advance")) {
                 ons.enableWheelDownAdvance();
             }
-            else if ( !strcmp( argv[0]+1, "-disable-rescale" ) ){
+            else if (!strcmp(argv[0] + 1, "-disable-rescale")) {
                 ons.disableRescale();
             }
-            else if ( !strcmp( argv[0]+1, "-edit" ) ){
+            else if (!strcmp(argv[0] + 1, "-edit")) {
                 ons.enableEdit();
             }
-            else if ( !strcmp( argv[0]+1, "-key-exe" ) ){
+            else if (!strcmp(argv[0] + 1, "-key-exe")) {
                 argc--;
                 argv++;
                 ons.setKeyEXE(argv[0]);
             }
-            else{
-                printf(" unknown option %s\n", argv[0] );
+            else {
+                printf(" unknown option %s\n", argv[0]);
             }
         }
-	else if (!ons.hasArchivePath()) {
-	    ons.setArchivePath(argv[0]);
-	    argc--;
-	    argv++;
-	}
-	else{
+        else if (!ons.hasArchivePath()) {
+            ons.setArchivePath(argv[0]);
+            argc--;
+            argv++;
+        }
+        else {
             optionHelp();
         }
+
         argc--;
         argv++;
     }
-    
+
     // ----------------------------------------
     // Run Ponscripter
 
     if (ons.init()) exit(-1);
+
     ons.eventLoop();
-    
+
     exit(0);
 }
+

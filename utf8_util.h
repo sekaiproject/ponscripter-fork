@@ -1,5 +1,5 @@
 /* -*- C++ -*-
- * 
+ *
  *  utf8_util.cpp -- utility functions for handling Unicode text and
  *                   ligatures in Ponscripter
  *
@@ -29,8 +29,8 @@
 // Style bits
 const int Default = 0;
 const int Italic  = 1;
-const int Bold    = 2;
-const int Sans    = 4;
+const int Bold = 2;
+const int Sans = 4;
 
 char CharacterBytes(const char* string);
 

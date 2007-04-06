@@ -1,5 +1,5 @@
 /* -*- C++ -*-
- * 
+ *
  *  FontInfo.h - Font information storage class of Ponscripter
  *
  *  Copyright (c) 2001-2005 Ogapee (original ONScripter, of which this
@@ -39,22 +39,23 @@ extern void MapMetrics(int id, const char* filename);
 class FontInfo {
     float indent;
     float pos_x; int pos_y; // Current position
-    int font_size, font_size_mod;
+    int   font_size, font_size_mod;
 public:
     static int default_encoding;
 
     Font* font();
+
     uchar3 color;
     uchar3 on_color, off_color, nofile_color;
-    int top_x, top_y; // Top left origin
-    int area_x, area_y; // Size of the text windows
-    int pitch_x, pitch_y; // additional spacing
-    int wait_time;
-    bool is_bold;
-    bool is_shadow;
-    bool is_transparent;
-    bool is_newline_accepted;
-    uchar3  window_color;
+    int    top_x, top_y; // Top left origin
+    int    area_x, area_y; // Size of the text windows
+    int    pitch_x, pitch_y; // additional spacing
+    int    wait_time;
+    bool   is_bold;
+    bool   is_shadow;
+    bool   is_transparent;
+    bool   is_newline_accepted;
+    uchar3 window_color;
 
     int size() { return font_size_mod ? font_size_mod : font_size; }
     int base_size() { return font_size; }
@@ -66,24 +67,30 @@ public:
 
     float em_width();
     int line_space();
-    int line_top(int line_number) {
-	return (line_space() + pitch_y) * line_number;
+
+    int line_top(int line_number)
+    {
+        return (line_space() + pitch_y) * line_number;
     }
 
-    void SetIndent(const unsigned short indent_char) {
-	indent = GlyphAdvance(indent_char, 0);
+
+    void SetIndent(const unsigned short indent_char)
+    {
+        indent = GlyphAdvance(indent_char, 0);
     }
+
+
     void ClearIndent() { indent = 0; }
 
     FontInfo();
     void reset();
 
     float GetXOffset() const { return pos_x; }
-    int GetYOffset() const { return pos_y; }	
-    float GetX() const { return pos_x + float(top_x); }
+    int GetYOffset() const { return pos_y; }
+    float GetX() const { return pos_x + float (top_x); }
     int GetY() const { return pos_y + top_y; };
-	
-    void SetXY( float x=-1, int y=-1 );
+
+    void SetXY(float x = -1, int y = -1);
     void clear();
     void newLine();
     void setLineArea(int num);
@@ -98,8 +105,7 @@ public:
 
     SDL_Rect getFullArea(int ratio1, int ratio2);
 
-    SDL_Rect calcUpdatedArea(float start_x, int start_y, int ratio1,
-			     int ratio2);
+    SDL_Rect calcUpdatedArea(float start_x, int start_y, int ratio1, int ratio2);
     void addShadeArea(SDL_Rect &rect, int shade_distance[2]);
 
     int doSize();
