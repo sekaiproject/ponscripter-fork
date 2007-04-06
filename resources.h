@@ -1,4 +1,5 @@
-// A system for storing files within the executable rather than the data directory.
+// A system for storing files within the executable rather than the
+// data directory.
 
 #ifndef RESOURCES_H
 #define RESOURCES_H

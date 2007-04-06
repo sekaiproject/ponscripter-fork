@@ -18,7 +18,7 @@ GUI_OBJS = PonscripterLabel$(OBJSUFFIX)					\
 	PonscripterLabel_file$(OBJSUFFIX)				\
 	PonscripterLabel_file2$(OBJSUFFIX)				\
 	PonscripterLabel_image$(OBJSUFFIX)				\
-	PonscripterLabel_haeleth$(OBJSUFFIX) AnimationInfo$(OBJSUFFIX)	\
+	PonscripterLabel_ext$(OBJSUFFIX) AnimationInfo$(OBJSUFFIX)	\
 	FontInfo$(OBJSUFFIX) DirtyRect$(OBJSUFFIX)			\
 	resize_image$(OBJSUFFIX) utf8_util$(OBJSUFFIX)			\
 	font$(OBJSUFFIX) $(if $(NO_RESOURCES), ,resources$(OBJSUFFIX))
@@ -53,7 +53,7 @@ ScriptParser_command$(OBJSUFFIX): $(PARSER_HEADER)
 Ponscripter$(OBJSUFFIX): $(PONSCR_HEADER) version.h
 PonscripterLabel$(OBJSUFFIX): $(PONSCR_HEADER) utf8_util.h
 PonscripterLabel_command$(OBJSUFFIX): $(PONSCR_HEADER) version.h utf8_util.h
-PonscripterLabel_haeleth$(OBJSUFFIX): $(PONSCR_HEADER) utf8_util.h
+PonscripterLabel_ext$(OBJSUFFIX): $(PONSCR_HEADER) utf8_util.h
 PonscripterLabel_text$(OBJSUFFIX): $(PONSCR_HEADER) utf8_util.h font.h
 PonscripterLabel_effect$(OBJSUFFIX): $(PONSCR_HEADER)
 PonscripterLabel_event$(OBJSUFFIX): $(PONSCR_HEADER)
@@ -70,7 +70,6 @@ DirtyRect$(OBJSUFFIX) : DirtyRect.h
 MadWrapper$(OBJSUFFIX): MadWrapper.h
 AVIWrapper$(OBJSUFFIX): AVIWrapper.h
 utf8_util$(OBJSUFFIX): utf8_util.h
-ttf$(OBJSUFFIX): ttf.h
 
 ifndef NO_DEFAULT_ICON
 RESOURCES ?= default.png =icon.png

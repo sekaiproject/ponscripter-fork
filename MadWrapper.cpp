@@ -1,24 +1,27 @@
 /* -*- C++ -*-
  * 
- *  MadWrapper.cpp - SMPEG compatible wrapper functions for MAD: Mpeg Audio Decoder
+ *  MadWrapper.cpp - SMPEG compatible wrapper functions for MAD: Mpeg
+ *  Audio Decoder
  *
- *  Copyright (c) 2001-2005 Ogapee (original ONScripter, of which this is a fork).
+ *  Copyright (c) 2001-2005 Ogapee (original ONScripter, of which this
+ *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License as
+ *  published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+ *  02111-1307 USA
  */
 
 #include "MadWrapper.h"
@@ -63,9 +66,9 @@ static MAD_WRAPPER* init( SDL_RWops *src )
 
     mad->src = src;
 
-	mad_stream_init( &mad->Stream );
-	mad_frame_init( &mad->Frame );
-	mad_synth_init( &mad->Synth );
+    mad_stream_init( &mad->Stream );
+    mad_frame_init( &mad->Frame );
+    mad_synth_init( &mad->Synth );
     mad->volume = 64;
     
     mad->input_buf = new unsigned char[ INPUT_BUFFER_SIZE ];
@@ -199,9 +202,9 @@ void MAD_WRAPPER_stop( MAD_WRAPPER *mad )
 
 void MAD_WRAPPER_delete( MAD_WRAPPER *mad )
 {
-	mad_synth_finish( &mad->Synth );
-	mad_frame_finish( &mad->Frame );
-	mad_stream_finish( &mad->Stream );
+    mad_synth_finish( &mad->Synth );
+    mad_frame_finish( &mad->Frame );
+    mad_stream_finish( &mad->Stream );
 
     delete[] mad->input_buf;
     delete[] mad->output_buf;
@@ -233,11 +236,11 @@ void mp3callback( void *userdata, Uint8 *stream, int len )
 
 int main(void)
 {
-	if ( SDL_Init( SDL_INIT_TIMER | SDL_INIT_AUDIO ) < 0 ){
-		fprintf(stderr,
-			"Couldn't initialize SDL: %s\n", SDL_GetError());
-		exit(1);
-	}
+    if ( SDL_Init( SDL_INIT_TIMER | SDL_INIT_AUDIO ) < 0 ){
+	fprintf(stderr,
+		"Couldn't initialize SDL: %s\n", SDL_GetError());
+	exit(1);
+    }
 
     SDL_AudioSpec audio_format;
 

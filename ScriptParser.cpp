@@ -2,29 +2,31 @@
  *
  *  ScriptParser.cpp - Define block parser of Ponscripter
  *
- *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this is a fork).
+ *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this
+ *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License as
+ *  published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+ *  02111-1307 USA
  */
 
 #include "ScriptParser.h"
 
 #define VERSION_STR1 "Ponscripter"
-#define VERSION_STR2 "Copyright (C) 2001-2006 Studio O.G.A. All Rights Reserved."
+#define VERSION_STR2 "Copyright (C) 2001-2006 Studio O.G.A., 2006-2007 Haeleth."
 
 #define DEFAULT_SAVE_MENU_NAME "＜セーブ＞"
 #define DEFAULT_LOAD_MENU_NAME "＜ロード＞"
@@ -172,9 +174,9 @@ ScriptParser::ScriptParser()
     /* Sound related variables */
     int i;
     for ( i=0 ; i<     CLICKVOICE_NUM ; i++ )
-             clickvoice_file_name[i] = NULL;
+	clickvoice_file_name[i] = NULL;
     for ( i=0 ; i<    SELECTVOICE_NUM ; i++ )
-            selectvoice_file_name[i] = NULL;
+	selectvoice_file_name[i] = NULL;
     for ( i=0 ; i<MENUSELECTVOICE_NUM ; i++ )
         menuselectvoice_file_name[i] = NULL;
 }
@@ -334,7 +336,7 @@ int ScriptParser::open()
     if ( script_h.readScript( archive_path ) ) return -1;
 
     switch ( script_h.screen_size ){
-      case ScriptHandler::SCREEN_SIZE_800x600:
+    case ScriptHandler::SCREEN_SIZE_800x600:
 #if defined(PDA)
         screen_ratio1 = 2;
         screen_ratio2 = 5;
@@ -345,7 +347,7 @@ int ScriptParser::open()
         screen_width  = 800 * screen_ratio1 / screen_ratio2;
         screen_height = 600 * screen_ratio1 / screen_ratio2;
         break;
-      case ScriptHandler::SCREEN_SIZE_400x300:
+    case ScriptHandler::SCREEN_SIZE_400x300:
 #if defined(PDA)
         screen_ratio1 = 4;
         screen_ratio2 = 5;
@@ -356,14 +358,14 @@ int ScriptParser::open()
         screen_width  = 400 * screen_ratio1 / screen_ratio2;
         screen_height = 300 * screen_ratio1 / screen_ratio2;
         break;
-      case ScriptHandler::SCREEN_SIZE_320x240:
+    case ScriptHandler::SCREEN_SIZE_320x240:
         screen_ratio1 = 1;
         screen_ratio2 = 1;
         screen_width  = 320 * screen_ratio1 / screen_ratio2;
         screen_height = 240 * screen_ratio1 / screen_ratio2;
         break;
-      case ScriptHandler::SCREEN_SIZE_640x480:
-      default:
+    case ScriptHandler::SCREEN_SIZE_640x480:
+    default:
 #if defined(PDA)
         screen_ratio1 = 1;
         screen_ratio2 = 2;

@@ -1,24 +1,26 @@
 /* -*- C++ -*-
  *
- *  ONScripterLabel_effect.cpp - Effect executer of Ponscripter
+ *  PonscripterLabel_effect.cpp - Effect executer of Ponscripter
  *
- *  Copyright (c) 2001-2005 Ogapee (original ONScripter, of which this is a fork).
+ *  Copyright (c) 2001-2005 Ogapee (original ONScripter, of which this
+ *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License as
+ *  published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+ *  02111-1307 USA
  */
 
 #include "PonscripterLabel.h"
@@ -40,8 +42,8 @@ int ONScripterLabel::setEffect( EffectLink *effect )
 
 int ONScripterLabel::doEffect( EffectLink *effect, AnimationInfo *anim, int effect_image )
 {
-	int prevduration = effect->duration;
-	if ( ctrl_pressed_status || skip_to_wait ) effect->duration = 1;
+    int prevduration = effect->duration;
+    if ( ctrl_pressed_status || skip_to_wait ) effect->duration = 1;
     effect_start_time = SDL_GetTicks();
     if ( effect_counter == 0 ) effect_start_time_old = effect_start_time - 1;
     //printf("effect_counter %d timer between %d %d\n",effect_counter,effect_start_time,effect_start_time_old);
@@ -55,12 +57,12 @@ int ONScripterLabel::doEffect( EffectLink *effect, AnimationInfo *anim, int effe
         SDL_BlitSurface( accumulation_surface, NULL, effect_src_surface, NULL );
 
         switch( effect_image ){
-          case DIRECT_EFFECT_IMAGE:
+	case DIRECT_EFFECT_IMAGE:
             break;
 
-          case COLOR_EFFECT_IMAGE:
-          case BG_EFFECT_IMAGE:
-          case TACHI_EFFECT_IMAGE:
+	case COLOR_EFFECT_IMAGE:
+	case BG_EFFECT_IMAGE:
+	case TACHI_EFFECT_IMAGE:
             if (effect_no == 1){
                 refreshSurface( effect_dst_surface, &dirty_rect.bounding_box, refreshMode() );
             }
@@ -93,12 +95,12 @@ int ONScripterLabel::doEffect( EffectLink *effect, AnimationInfo *anim, int effe
     //printf("Effect number %d %d\n", effect_no, effect->duration );
 
     switch ( effect_no ){
-      case 0: // Instant display
-      case 1: // Instant display
+    case 0: // Instant display
+    case 1: // Instant display
         //drawEffect( &src_rect, &src_rect, effect_dst_surface );
         break;
 
-      case 2: // Left shutter
+    case 2: // Left shutter
         width = EFFECT_STRIPE_WIDTH * effect_counter / effect->duration;
         for ( i=0 ; i<screen_width/EFFECT_STRIPE_WIDTH ; i++ ){
             src_rect.x = i * EFFECT_STRIPE_WIDTH;
@@ -109,7 +111,7 @@ int ONScripterLabel::doEffect( EffectLink *effect, AnimationInfo *anim, int effe
         }
         break;
 
-      case 3: // Right shutter
+    case 3: // Right shutter
         width = EFFECT_STRIPE_WIDTH * effect_counter / effect->duration;
         for ( i=1 ; i<=screen_width/EFFECT_STRIPE_WIDTH ; i++ ){
             src_rect.x = i * EFFECT_STRIPE_WIDTH - width - 1;
@@ -120,7 +122,7 @@ int ONScripterLabel::doEffect( EffectLink *effect, AnimationInfo *anim, int effe
         }
         break;
 
-      case 4: // Top shutter
+    case 4: // Top shutter
         height = EFFECT_STRIPE_WIDTH * effect_counter / effect->duration;
         for ( i=0 ; i<screen_height/EFFECT_STRIPE_WIDTH ; i++ ){
             src_rect.x = 0;
@@ -131,7 +133,7 @@ int ONScripterLabel::doEffect( EffectLink *effect, AnimationInfo *anim, int effe
         }
         break;
 
-      case 5: // Bottom shutter
+    case 5: // Bottom shutter
         height = EFFECT_STRIPE_WIDTH * effect_counter / effect->duration;
         for ( i=1 ; i<=screen_height/EFFECT_STRIPE_WIDTH ; i++ ){
             src_rect.x = 0;
@@ -142,7 +144,7 @@ int ONScripterLabel::doEffect( EffectLink *effect, AnimationInfo *anim, int effe
         }
         break;
 
-      case 6: // Left curtain
+    case 6: // Left curtain
         width = EFFECT_STRIPE_CURTAIN_WIDTH * effect_counter * 2 / effect->duration;
         for ( i=0 ; i<=screen_width/EFFECT_STRIPE_CURTAIN_WIDTH ; i++ ){
             width2 = width - EFFECT_STRIPE_CURTAIN_WIDTH * EFFECT_STRIPE_CURTAIN_WIDTH * i / screen_width;
@@ -156,7 +158,7 @@ int ONScripterLabel::doEffect( EffectLink *effect, AnimationInfo *anim, int effe
         }
         break;
 
-      case 7: // Right curtain
+    case 7: // Right curtain
         width = EFFECT_STRIPE_CURTAIN_WIDTH * effect_counter * 2 / effect->duration;
         for ( i=0 ; i<=screen_width/EFFECT_STRIPE_CURTAIN_WIDTH ; i++ ){
             width2 = width - EFFECT_STRIPE_CURTAIN_WIDTH * EFFECT_STRIPE_CURTAIN_WIDTH * i / screen_width;
@@ -171,7 +173,7 @@ int ONScripterLabel::doEffect( EffectLink *effect, AnimationInfo *anim, int effe
         }
         break;
 
-      case 8: // Top curtain
+    case 8: // Top curtain
         height = EFFECT_STRIPE_CURTAIN_WIDTH * effect_counter * 2 / effect->duration;
         for ( i=0 ; i<=screen_height/EFFECT_STRIPE_CURTAIN_WIDTH ; i++ ){
             height2 = height - EFFECT_STRIPE_CURTAIN_WIDTH * EFFECT_STRIPE_CURTAIN_WIDTH * i / screen_height;
@@ -185,7 +187,7 @@ int ONScripterLabel::doEffect( EffectLink *effect, AnimationInfo *anim, int effe
         }
         break;
 
-      case 9: // Bottom curtain
+    case 9: // Bottom curtain
         height = EFFECT_STRIPE_CURTAIN_WIDTH * effect_counter * 2 / effect->duration;
         for ( i=0 ; i<=screen_height/EFFECT_STRIPE_CURTAIN_WIDTH ; i++ ){
             height2 = height - EFFECT_STRIPE_CURTAIN_WIDTH * EFFECT_STRIPE_CURTAIN_WIDTH * i / screen_height;
@@ -199,15 +201,15 @@ int ONScripterLabel::doEffect( EffectLink *effect, AnimationInfo *anim, int effe
         }
         break;
 
-      default:
+    default:
         printf("effect No. %d is not implemented. Crossfade is substituted for that.\n",effect_no);
 
-      case 10: // Cross fade
+    case 10: // Cross fade
         height = 256 * effect_counter / effect->duration;
         alphaBlend( NULL, ALPHA_BLEND_CONST, height, &dirty_rect.bounding_box );
         break;
 
-      case 11: // Left scroll
+    case 11: // Left scroll
         width = screen_width * effect_counter / effect->duration;
         src_rect.x = 0;
         dst_rect.x = width;
@@ -224,7 +226,7 @@ int ONScripterLabel::doEffect( EffectLink *effect, AnimationInfo *anim, int effe
         drawEffect(&dst_rect, &src_rect, effect_dst_surface);
         break;
 
-      case 12: // Right scroll
+    case 12: // Right scroll
         width = screen_width * effect_counter / effect->duration;
         src_rect.x = width;
         dst_rect.x = 0;
@@ -241,7 +243,7 @@ int ONScripterLabel::doEffect( EffectLink *effect, AnimationInfo *anim, int effe
         drawEffect(&dst_rect, &src_rect, effect_dst_surface);
         break;
 
-      case 13: // Top scroll
+    case 13: // Top scroll
         width = screen_height * effect_counter / effect->duration;
         src_rect.x = dst_rect.x = 0;
         src_rect.y = 0;
@@ -258,7 +260,7 @@ int ONScripterLabel::doEffect( EffectLink *effect, AnimationInfo *anim, int effe
         drawEffect(&dst_rect, &src_rect, effect_dst_surface);
         break;
 
-      case 14: // Bottom scroll
+    case 14: // Bottom scroll
         width = screen_height * effect_counter / effect->duration;
         src_rect.x = dst_rect.x = 0;
         src_rect.y = width;
@@ -275,23 +277,23 @@ int ONScripterLabel::doEffect( EffectLink *effect, AnimationInfo *anim, int effe
         drawEffect(&dst_rect, &src_rect, effect_dst_surface);
         break;
 
-      case 15: // Fade with mask
+    case 15: // Fade with mask
         alphaBlend( effect->anim.image_surface, ALPHA_BLEND_FADE_MASK, 256 * effect_counter / effect->duration, &dirty_rect.bounding_box );
         break;
 
-      case 16: // Mosaic out
+    case 16: // Mosaic out
         generateMosaic( effect_src_surface, 5 - 6 * effect_counter / effect->duration );
         break;
 
-      case 17: // Mosaic in
+    case 17: // Mosaic in
         generateMosaic( effect_dst_surface, 6 * effect_counter / effect->duration );
         break;
 
-      case 18: // Cross fade with mask
+    case 18: // Cross fade with mask
         alphaBlend( effect->anim.image_surface, ALPHA_BLEND_CROSSFADE_MASK, 256 * effect_counter * 2 / effect->duration, &dirty_rect.bounding_box );
         break;
 
-      case (CUSTOM_EFFECT_NO + 0 ): // quakey
+    case (CUSTOM_EFFECT_NO + 0 ): // quakey
         if ( effect_timer_resolution > effect->duration / 4 / effect->no )
             effect_timer_resolution = effect->duration / 4 / effect->no;
         dst_rect.x = 0;
@@ -301,7 +303,7 @@ int ONScripterLabel::doEffect( EffectLink *effect, AnimationInfo *anim, int effe
         drawEffect(&dst_rect, &src_rect, effect_dst_surface);
         break;
 
-      case (CUSTOM_EFFECT_NO + 1 ): // quakex
+    case (CUSTOM_EFFECT_NO + 1 ): // quakex
         if ( effect_timer_resolution > effect->duration / 4 / effect->no )
             effect_timer_resolution = effect->duration / 4 / effect->no;
         dst_rect.x = (Sint16)(sin(M_PI * 2.0 * effect->no * effect_counter / effect->duration) *
@@ -310,7 +312,7 @@ int ONScripterLabel::doEffect( EffectLink *effect, AnimationInfo *anim, int effe
         drawEffect(&dst_rect, &src_rect, effect_dst_surface);
         break;
 
-      case (CUSTOM_EFFECT_NO + 2 ): // quake
+    case (CUSTOM_EFFECT_NO + 2 ): // quake
         dst_rect.x = effect->no*((int)(3.0*rand()/(RAND_MAX+1.0)) - 1) * 2;
         dst_rect.y = effect->no*((int)(3.0*rand()/(RAND_MAX+1.0)) - 1) * 2;
         SDL_FillRect( accumulation_surface, NULL, SDL_MapRGBA( accumulation_surface->format, 0, 0, 0, 0xff ) );
@@ -323,7 +325,7 @@ int ONScripterLabel::doEffect( EffectLink *effect, AnimationInfo *anim, int effe
     effect_counter += effect_timer_resolution;
     if ( effect_counter < effect->duration && effect_no != 1 ){
         if ( effect_no != 0 ) flush( REFRESH_NONE_MODE, NULL, false );
-		effect->duration = prevduration;
+	effect->duration = prevduration;
         return RET_WAIT | RET_REREAD;
     }
     else{
@@ -331,7 +333,7 @@ int ONScripterLabel::doEffect( EffectLink *effect, AnimationInfo *anim, int effe
 
         if ( effect_no != 0 ) flush(REFRESH_NONE_MODE);
         if ( effect_no == 1 ) effect_counter = 0;
-		effect->duration = prevduration;
+	effect->duration = prevduration;
         event_mode = IDLE_EVENT_MODE;
 
         return RET_CONTINUE;

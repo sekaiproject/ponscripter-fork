@@ -1,24 +1,26 @@
 /* -*- C++ -*-
  *
- *  ONScripterLabel_rmenu.cpp - Right click menu handler of Ponscripter
+ *  PonscripterLabel_rmenu.cpp - Right click menu handler of Ponscripter
  *
- *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this is a fork).
+ *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this
+ *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License as
+ *  published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+ *  02111-1307 USA
  */
 
 #include "PonscripterLabel.h"
@@ -92,37 +94,37 @@ void ONScripterLabel::executeSystemCall()
     }
 
     switch( system_menu_mode ){
-      case SYSTEM_SKIP:
+    case SYSTEM_SKIP:
         executeSystemSkip();
         break;
-      case SYSTEM_RESET:
+    case SYSTEM_RESET:
         executeSystemReset();
         break;
-      case SYSTEM_SAVE:
+    case SYSTEM_SAVE:
         executeSystemSave();
         break;
-      case SYSTEM_YESNO:
+    case SYSTEM_YESNO:
         executeSystemYesNo();
         break;
-      case SYSTEM_LOAD:
+    case SYSTEM_LOAD:
         executeSystemLoad();
         break;
-      case SYSTEM_LOOKBACK:
+    case SYSTEM_LOOKBACK:
         executeSystemLookback();
         break;
-      case SYSTEM_WINDOWERASE:
+    case SYSTEM_WINDOWERASE:
         executeWindowErase();
         break;
-      case SYSTEM_MENU:
+    case SYSTEM_MENU:
         executeSystemMenu();
         break;
-      case SYSTEM_AUTOMODE:
+    case SYSTEM_AUTOMODE:
         executeSystemAutomode();
         break;
-      case SYSTEM_END:
+    case SYSTEM_END:
         executeSystemEnd();
         break;
-      default:
+    default:
         leaveSystemCall();
     }
 }
@@ -256,7 +258,7 @@ void ONScripterLabel::executeWindowErase()
 
 void ONScripterLabel::createSaveLoadMenu( bool is_save )
 {
-	SaveFileInfo save_file_info;
+    SaveFileInfo save_file_info;
     text_info.fill( 0, 0, 0, 0 );
 
     // Set up formatting details for saved games.
@@ -324,8 +326,8 @@ void ONScripterLabel::createSaveLoadMenu( bool is_save )
         menu_font.SetXY( 0 );
 
         if ( save_file_info.valid ){
-        	snprintf( buffer, buffer_size, "^%2d:", save_file_info.hour );
-        	float hw = menu_font.StringAdvance( buffer );
+	    snprintf( buffer, buffer_size, "^%2d:", save_file_info.hour );
+	    float hw = menu_font.StringAdvance( buffer );
             snprintf( buffer, buffer_size, "^%s %2d~x%d~%s %-2d~x%d~%2d:%02d", save_item_name, i,
                       int(entry_date_x), short_month[save_file_info.month - 1], save_file_info.day,
                       int(entry_time_x - hw), save_file_info.hour, save_file_info.minute );
@@ -375,7 +377,7 @@ void ONScripterLabel::executeSystemLoad()
     }
     else{
         system_menu_mode = SYSTEM_LOAD;
-		createSaveLoadMenu( false );
+	createSaveLoadMenu( false );
     }
 }
 
@@ -400,7 +402,7 @@ void ONScripterLabel::executeSystemSave()
     }
     else{
         system_menu_mode = SYSTEM_SAVE;
-		createSaveLoadMenu( true );
+	createSaveLoadMenu( true );
     }
 }
 
@@ -500,8 +502,8 @@ void ONScripterLabel::executeSystemYesNo()
 
         flush( refreshMode() );
 
-		float yes_len = menu_font.StringAdvance( MESSAGE_YES ),
-		       no_len = menu_font.StringAdvance( MESSAGE_NO );
+	float yes_len = menu_font.StringAdvance( MESSAGE_YES ),
+	    no_len = menu_font.StringAdvance( MESSAGE_NO );
 		
         strcpy( name, MESSAGE_YES );
         menu_font.SetXY( float(menu_font.area_x) / 4 - yes_len / 2, menu_font.line_top(2) );

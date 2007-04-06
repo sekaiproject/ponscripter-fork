@@ -1,24 +1,26 @@
 /* -*- C++ -*-
  *
- *  ONScripterLabel_command.cpp - Command executer of Ponscripter
+ *  PonscripterLabel_command.cpp - Command executer of Ponscripter
  *
- *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this is a fork).
+ *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this
+ *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License as
+ *  published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+ *  02111-1307 USA
  */
 
 #include "PonscripterLabel.h"
@@ -71,13 +73,13 @@ int ONScripterLabel::waittimerCommand()
 
 int ONScripterLabel::waitCommand()
 {
-   int count = script_h.readInt();
+    int count = script_h.readInt();
 
-   if( skip_flag || draw_one_page_flag || ctrl_pressed_status || skip_to_wait ) return RET_CONTINUE;
-   else {
-	   startTimer( count );
-	   return RET_WAIT;
-   }
+    if( skip_flag || draw_one_page_flag || ctrl_pressed_status || skip_to_wait ) return RET_CONTINUE;
+    else {
+	startTimer( count );
+	return RET_WAIT;
+    }
 }
 
 int ONScripterLabel::vspCommand()
@@ -242,7 +244,7 @@ int ONScripterLabel::talCommand()
         }
 
         return setEffect( parseEffect() );
-   }
+    }
 }
 
 int ONScripterLabel::tablegotoCommand()
@@ -978,12 +980,12 @@ int ONScripterLabel::quakeCommand()
     if ( tmp_effect.duration < tmp_effect.no * 4 ) tmp_effect.duration = tmp_effect.no * 4;
     tmp_effect.effect   = CUSTOM_EFFECT_NO + quake_type;
 
-	if ( ctrl_pressed_status || skip_to_wait )
-	{
-		dirty_rect.fill( screen_width, screen_height );
+    if ( ctrl_pressed_status || skip_to_wait )
+    {
+	dirty_rect.fill( screen_width, screen_height );
         SDL_BlitSurface( accumulation_surface, NULL, effect_dst_surface, NULL );
         return RET_CONTINUE;
-	}
+    }
 
     if ( event_mode & EFFECT_EVENT_MODE ){
         return doEffect( &tmp_effect, NULL, DIRECT_EFFECT_IMAGE );
@@ -1624,7 +1626,7 @@ int ONScripterLabel::inputCommand()
 int ONScripterLabel::indentCommand()
 {
     indent_offset = script_h.readInt();
-	fprintf(stderr, " warning: [indent] command is broken\n");
+    fprintf(stderr, " warning: [indent] command is broken\n");
     return RET_CONTINUE;
 }
 
@@ -2679,7 +2681,7 @@ int ONScripterLabel::btnwaitCommand()
 {
     bool del_flag=false, textbtn_flag=false;
 
-	if ( script_h.isName( "btnwait2" ) ){
+    if ( script_h.isName( "btnwait2" ) ){
         display_mode = next_display_mode = NORMAL_DISPLAY_MODE;
     }
     else if ( script_h.isName( "btnwait" ) ){
@@ -2876,9 +2878,9 @@ int ONScripterLabel::btnCommand()
 
 int ONScripterLabel::brCommand()
 {
-	int delta;
-	if (script_h.isName("br2")) delta = script_h.readInt();
-	else delta = 50;
+    int delta;
+    if (script_h.isName("br2")) delta = script_h.readInt();
+    else delta = 50;
 	
     int ret = enterTextDisplayMode();
     if ( ret != RET_NOMATCH ) return ret;
@@ -2888,13 +2890,13 @@ int ONScripterLabel::brCommand()
     sentence_font.newLine();
     sentence_font.set_mod_size(cs);
 
-	current_text_buffer->addBuffer( 0x17 );
-	current_text_buffer->addBuffer( ns & 0x7f );
-	current_text_buffer->addBuffer( (ns >> 7) & 0x7f );
-	current_text_buffer->addBuffer( 0x0a );
-	current_text_buffer->addBuffer( 0x17 );
-	current_text_buffer->addBuffer( cs & 0x7f );
-	current_text_buffer->addBuffer( (cs >> 7) & 0x7f );
+    current_text_buffer->addBuffer( 0x17 );
+    current_text_buffer->addBuffer( ns & 0x7f );
+    current_text_buffer->addBuffer( (ns >> 7) & 0x7f );
+    current_text_buffer->addBuffer( 0x0a );
+    current_text_buffer->addBuffer( 0x17 );
+    current_text_buffer->addBuffer( cs & 0x7f );
+    current_text_buffer->addBuffer( (cs >> 7) & 0x7f );
    
     return RET_CONTINUE;
 }

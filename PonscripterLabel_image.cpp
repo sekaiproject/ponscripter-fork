@@ -1,24 +1,26 @@
 /* -*- C++ -*-
  * 
- *  ONScripterLabel_image.cpp - Image processing in Ponscripter
+ *  PonscripterLabel_image.cpp - Image processing in Ponscripter
  *
- *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this is a fork).
+ *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this
+ *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License as
+ *  published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+ *  02111-1307 USA
  */
 
 #include "PonscripterLabel.h"
@@ -50,22 +52,22 @@ int ONScripterLabel::resizeSurface( SDL_Surface *src, SDL_Surface *dst )
 }
 
 #if defined(BPP16)
-#define blend_pixel(){\
-    Uint32 s1 = (*src1_buffer | *src1_buffer << 16) & 0x07e0f81f; \
-    Uint32 s2 = (*src2_buffer | *src2_buffer << 16) & 0x07e0f81f; \
-    src1_buffer++; \
-    src2_buffer++; \
-    mask_rb = (s1 + ((s2-s1) * mask2 >> 5)) & 0x07e0f81f; \
-    *dst_buffer++ = mask_rb | mask_rb >> 16; \
-}
+#define blend_pixel(){							\
+	Uint32 s1 = (*src1_buffer | *src1_buffer << 16) & 0x07e0f81f;	\
+	Uint32 s2 = (*src2_buffer | *src2_buffer << 16) & 0x07e0f81f;	\
+	src1_buffer++;							\
+	src2_buffer++;							\
+	mask_rb = (s1 + ((s2-s1) * mask2 >> 5)) & 0x07e0f81f;		\
+	*dst_buffer++ = mask_rb | mask_rb >> 16;			\
+    }
 #else
-#define blend_pixel(){\
-    mask_rb =  (((*src1_buffer & 0xff00ff) * mask1 + \
-                 (*src2_buffer & 0xff00ff) * mask2) >> 8) & 0xff00ff;\
-    mask  = (((*src1_buffer++ & 0x00ff00) * mask1 +\
-              (*src2_buffer++ & 0x00ff00) * mask2) >> 8) & 0x00ff00;\
-    *dst_buffer++ = mask_rb | mask;\
-}
+#define blend_pixel(){							\
+	mask_rb =  (((*src1_buffer & 0xff00ff) * mask1 +		\
+		     (*src2_buffer & 0xff00ff) * mask2) >> 8) & 0xff00ff; \
+	mask  = (((*src1_buffer++ & 0x00ff00) * mask1 +			\
+		  (*src2_buffer++ & 0x00ff00) * mask2) >> 8) & 0x00ff00; \
+	*dst_buffer++ = mask_rb | mask;					\
+    }
 #endif
 
 // alphaBlend

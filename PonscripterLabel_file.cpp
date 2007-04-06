@@ -1,24 +1,26 @@
 /* -*- C++ -*-
  *
- *  ONScripterLabel_file.cpp - FILE I/O of Ponscripter
+ *  PonscripterLabel_file.cpp - FILE I/O of Ponscripter
  *
- *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this is a fork).
+ *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this
+ *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License as
+ *  published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+ *  02111-1307 USA
  */
 
 #include "PonscripterLabel.h"
@@ -33,7 +35,7 @@
 #elif defined(MACOS9)
 #include <DateTimeUtils.h>
 #include <Files.h>
-extern "C" void c2pstrcpy(Str255 dst, const char *src);	//#include <TextUtils.h>
+extern "C" void c2pstrcpy(Str255 dst, const char *src);
 #elif defined(PSP)
 #include <pspiofilemgr.h>
 #endif
@@ -86,29 +88,29 @@ void ONScripterLabel::searchSaveFile( SaveFileInfo &save_file_info, int no )
     save_file_info.hour   = stm.wHour;
     save_file_info.minute = stm.wMinute;
 #elif defined(MACOS9)
-	sprintf( file_name, "%ssave%d.dat", script_h.save_path, no );
-	CInfoPBRec  pb;
-	Str255      p_file_name;
-	FSSpec      file_spec;
-	DateTimeRec tm;
-	c2pstrcpy( p_file_name, file_name );
-	if ( FSMakeFSSpec(0, 0, p_file_name, &file_spec) != noErr ){
-		save_file_info.valid = false;
-		return;
-	}
-	pb.hFileInfo.ioNamePtr = file_spec.name;
-	pb.hFileInfo.ioVRefNum = file_spec.vRefNum;
-	pb.hFileInfo.ioFDirIndex = 0;
-	pb.hFileInfo.ioDirID = file_spec.parID;
-	if (PBGetCatInfoSync(&pb) != noErr) {
-		save_file_info.valid = false;
-		return;
-	}
-	SecondsToDate( pb.hFileInfo.ioFlMdDat, &tm );
-	save_file_info.month  = tm.month;
-	save_file_info.day    = tm.day;
-	save_file_info.hour   = tm.hour;
-	save_file_info.minute = tm.minute;
+    sprintf( file_name, "%ssave%d.dat", script_h.save_path, no );
+    CInfoPBRec  pb;
+    Str255      p_file_name;
+    FSSpec      file_spec;
+    DateTimeRec tm;
+    c2pstrcpy( p_file_name, file_name );
+    if ( FSMakeFSSpec(0, 0, p_file_name, &file_spec) != noErr ){
+	save_file_info.valid = false;
+	return;
+    }
+    pb.hFileInfo.ioNamePtr = file_spec.name;
+    pb.hFileInfo.ioVRefNum = file_spec.vRefNum;
+    pb.hFileInfo.ioFDirIndex = 0;
+    pb.hFileInfo.ioDirID = file_spec.parID;
+    if (PBGetCatInfoSync(&pb) != noErr) {
+	save_file_info.valid = false;
+	return;
+    }
+    SecondsToDate( pb.hFileInfo.ioFlMdDat, &tm );
+    save_file_info.month  = tm.month;
+    save_file_info.day    = tm.day;
+    save_file_info.hour   = tm.hour;
+    save_file_info.minute = tm.minute;
 #elif defined(PSP)
     sprintf( file_name, "%ssave%d.dat", script_h.save_path, no );
     SceIoStat buf;

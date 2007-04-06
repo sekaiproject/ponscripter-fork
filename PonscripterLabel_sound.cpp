@@ -1,32 +1,34 @@
 /* -*- C++ -*-
  *
- *  ONScripterLabel_sound.cpp - Methods for playing sound
+ *  PonscripterLabel_sound.cpp - Methods for playing sound
  *
- *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this is a fork).
+ *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this
+ *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License as
+ *  published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+ *  02111-1307 USA
  */
 
 #include "PonscripterLabel.h"
-#if defined(LINUX)
+#ifdef LINUX
 #include <signal.h>
 #endif
 
-#if defined(USE_AVIFILE)
+#ifdef USE_AVIFILE
 #include "AVIWrapper.h"
 #endif
 
@@ -53,7 +55,7 @@ extern "C"{
     extern void oggcallback( void *userdata, Uint8 *stream, int len );
     extern Uint32 SDLCALL cdaudioCallback( Uint32 interval, void *param );
 #ifdef MACOSX
-	extern Uint32 SDLCALL midiSDLCallback( Uint32 interval, void *param );
+    extern Uint32 SDLCALL midiSDLCallback( Uint32 interval, void *param );
 #endif
 }
 extern void midiCallback( int sig );
@@ -83,9 +85,9 @@ extern long decodeOggVorbis(OVInfo *ovi, unsigned char *buf_dst, long len, bool 
         buf = (char*)ovi->cvt.buf;
     }
 
-#if defined(USE_OGG_VORBIS)
+#ifdef USE_OGG_VORBIS
     while(1){
-#if defined(INTEGER_OGG_VORBIS)
+#ifdef INTEGER_OGG_VORBIS
         long src_len = ov_read( &ovi->ovf, buf, len, &current_section);
 #else
         long src_len = ov_read( &ovi->ovf, buf, len, 0, 2, 1, &current_section);
@@ -281,7 +283,7 @@ int ONScripterLabel::playOGG(int format, unsigned char *buffer, long length, boo
 int ONScripterLabel::playExternalMusic(bool loop_flag)
 {
     int music_looping = loop_flag ? -1 : 0;
-#if defined(LINUX)
+#ifdef LINUX
     signal(SIGCHLD, musicCallback);
     if (music_cmd) music_looping = 0;
 #endif
@@ -313,7 +315,7 @@ int ONScripterLabel::playMIDI(bool loop_flag)
     int midi_looping = loop_flag ? -1 : 0;
 #endif
 
-#if defined(EXTERNAL_MIDI_PROGRAM)
+#ifdef EXTERNAL_MIDI_PROGRAM
     FILE *com_file;
     if ( midi_play_loop_flag ){
         if( (com_file = fopen("play_midi", "wb")) != NULL )
@@ -325,16 +327,16 @@ int ONScripterLabel::playMIDI(bool loop_flag)
     }
 #endif
 
-#if defined(LINUX)
+#ifdef LINUX
     signal(SIGCHLD, midiCallback);
     if (midi_cmd) midi_looping = 0;
 #endif
 
     Mix_VolumeMusic(music_volume);
 #ifdef MACOSX
-	// Emulate looping on MacOS ourselves to work around bug in SDL_Mixer
-	Mix_PlayMusic(midi_info, false);
-	timer_midi_id = SDL_AddTimer(1000, midiSDLCallback, NULL);
+    // Emulate looping on MacOS ourselves to work around bug in SDL_Mixer
+    Mix_PlayMusic(midi_info, false);
+    timer_midi_id = SDL_AddTimer(1000, midiSDLCallback, NULL);
 #else
     Mix_PlayMusic(midi_info, midi_looping);
 #endif
@@ -372,18 +374,18 @@ int ONScripterLabel::playMPEG( const char *filename, bool click_flag )
 
             while( SDL_PollEvent( &event ) ){
                 switch (event.type){
-                  case SDL_KEYDOWN:
+		case SDL_KEYDOWN:
                     if ( ((SDL_KeyboardEvent *)&event)->keysym.sym == SDLK_RETURN ||
                          ((SDL_KeyboardEvent *)&event)->keysym.sym == SDLK_SPACE ||
                          ((SDL_KeyboardEvent *)&event)->keysym.sym == SDLK_ESCAPE )
                         done_flag = true;
                     break;
-                  case SDL_QUIT:
+		case SDL_QUIT:
                     ret = 1;
-                  case SDL_MOUSEBUTTONDOWN:
+		case SDL_MOUSEBUTTONDOWN:
                     done_flag = true;
                     break;
-                  default:
+		default:
                     break;
                 }
             }
@@ -405,7 +407,7 @@ int ONScripterLabel::playMPEG( const char *filename, bool click_flag )
 
 void ONScripterLabel::playAVI( const char *filename, bool click_flag )
 {
-#if defined(USE_AVIFILE)
+#ifdef USE_AVIFILE
     char *absolute_filename = new char[ strlen(archive_path) + strlen(filename) + 1 ];
     sprintf( absolute_filename, "%s%s", archive_path, filename );
     for ( unsigned int i=0 ; i<strlen( absolute_filename ) ; i++ )
@@ -434,7 +436,7 @@ void ONScripterLabel::playAVI( const char *filename, bool click_flag )
 
 void ONScripterLabel::stopBGM( bool continue_flag )
 {
-#if defined(EXTERNAL_MIDI_PROGRAM)
+#ifdef EXTERNAL_MIDI_PROGRAM
     FILE *com_file;
     if( (com_file = fopen("stop_bgm", "wb")) != NULL )
         fclose(com_file);
@@ -561,7 +563,7 @@ void ONScripterLabel::setupWaveHeader( unsigned char *buffer, int channels, int 
 
     memcpy( buffer, &header, sizeof(header) );
 }
-#if defined(USE_OGG_VORBIS)
+#ifdef USE_OGG_VORBIS
 static size_t oc_read_func(void *ptr, size_t size, size_t nmemb, void *datasource)
 {
     OVInfo *ogg_vorbis_info = (OVInfo*)datasource;
@@ -610,7 +612,7 @@ OVInfo *ONScripterLabel::openOggVorbis( unsigned char *buf, long len, int &chann
 {
     OVInfo *ovi = NULL;
 
-#if defined(USE_OGG_VORBIS)
+#ifdef USE_OGG_VORBIS
     ovi = new OVInfo();
 
     ovi->buf = buf;
@@ -657,7 +659,7 @@ int ONScripterLabel::closeOggVorbis(OVInfo *ovi)
     if (ovi->buf){
         delete[] ovi->buf;
         ovi->buf = NULL;
-#if defined(USE_OGG_VORBIS)
+#ifdef USE_OGG_VORBIS
         ovi->length = 0;
         ovi->pos = 0;
         ov_clear(&ovi->ovf);

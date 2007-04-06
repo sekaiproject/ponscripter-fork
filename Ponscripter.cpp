@@ -1,24 +1,26 @@
 /* -*- C++ -*-
  * 
- *  onscripter.cpp -- main function of Ponscripter
+ *  Ponscripter.cpp -- main function of Ponscripter
  *
- *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this is a fork).
+ *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this
+ *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License as
+ *  published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+ *  02111-1307 USA
  */
 
 #include "PonscripterLabel.h"
@@ -26,36 +28,40 @@
 
 static void optionHelp()
 {
-    printf( "Ponscripter version %s (NScr %d.%02d)\n", ONS_VERSION, NSC_VERSION/100, NSC_VERSION%100 );
-    printf( "Usage: ponscripter [option ...]\n" );
-    printf( "      --cdaudio\t\tuse CD audio if available\n");
-    printf( "      --cdnumber no\tchoose the CD-ROM drive number\n");
-    printf( "      --registry file\tset a registry file\n");
-    printf( "      --dll file\tset a dll file\n");
+    printf("Ponscripter version %s (NScr %d.%02d)\n",
+	   ONS_VERSION, NSC_VERSION / 100, NSC_VERSION % 100);
+    printf("Usage: ponscripter [option ...] [root path]\n");
+    printf("      --cdaudio\t\tuse CD audio if available\n");
+    printf("      --cdnumber no\tchoose the CD-ROM drive number\n");
+    printf("      --registry file\tset a registry file\n");
+    printf("      --dll file\tset a dll file\n");
 #ifndef MACOSX
-    printf( "  -r, --root path\tset the root path to the archives\n");
-    printf( "  -s, --save path\tset the path to use for saved games (default: same as root path)\n");
+    printf("  -r, --root path\tset the root path to the archives\n");
+    printf("  -s, --save path\tset the path to use for saved games"
+	                     "(default: same as root path)\n");
 #else
-    printf( "  -r, --root path\tset the root path to the archives (default: Resources in Ponscripter bundle)\n");
-    printf( "  -s, --save path\tset the path to use for saved games (default: folder in ~/Library/Preferences)\n");
+    printf("  -r, --root path\tset the root path to the archives"
+	                     "(default: Resources in Ponscripter bundle)\n");
+    printf("  -s, --save path\tset the path to use for saved games"
+	                     "(default: folder in ~/Library/Preferences)\n");
 #endif
-    printf( "      --fullscreen\tstart in fullscreen mode\n");
-    printf( "      --window\t\tstart in window mode\n");
-    printf( "      --force-button-shortcut\tignore useescspc and getenter command\n");
-    printf( "      --enable-wheeldown-advance\tadvance the text on mouse wheeldown event\n");
-    printf( "      --disable-rescale\tdo not rescale the images in the archives when compiled with -DPDA\n");
-    printf( "      --edit\t\tenable editing the volumes and the variables when 'z' is pressed\n");
-    printf( "      --key-exe file\tset a file (*.EXE) that includes a key table\n");
-    printf( "  -h, --help\t\tshow this help and exit\n");
-    printf( "  -v, --version\t\tshow the version information and exit\n");
+    printf("      --fullscreen\tstart in fullscreen mode\n");
+    printf("      --window\t\tstart in window mode\n");
+    printf("      --force-button-shortcut\tignore useescspc and getenter "
+	   "command\n");
+    printf("      --enable-wheeldown-advance\tadvance the text on mouse "
+	   "wheeldown event\n");
+    printf("  -h, --help\t\tshow this help and exit\n");
+    printf("  -v, --version\t\tshow the version information and exit\n");
     exit(0);
 }
 
 static void optionVersion()
 {
-    printf("Ponscripter version %s (NScr %d.%02d)\n", ONS_VERSION, NSC_VERSION/100, NSC_VERSION%100 );
+    printf("Ponscripter version %s (NScr %d.%02d)\n",
+	   ONS_VERSION, NSC_VERSION / 100, NSC_VERSION % 100);
     printf("Based on ONScripter by Ogapee <ogapee@aqua.dti2.ne.jp>\n\n");
-    printf("Copyright (c) 2001-2006 Ogapee, 2006 Haeleth.\n");
+    printf("Copyright (c) 2001-2006 Ogapee, 2006-2007 Haeleth.\n");
     printf("This is free software; see the source for copying conditions.\n");
     exit(0);
 }
@@ -140,7 +146,12 @@ int main( int argc, char **argv )
                 printf(" unknown option %s\n", argv[0] );
             }
         }
-        else{
+	else if (!ons.hasArchivePath()) {
+	    ons.setArchivePath(argv[0]);
+	    argc--;
+	    argv++;
+	}
+	else{
             optionHelp();
         }
         argc--;

@@ -1,24 +1,26 @@
 /* -*- C++ -*-
  * 
- *  ONScripter_animation.cpp - Methods to manipulate AnimationInfo
+ *  Ponscripter_animation.cpp - Methods to manipulate AnimationInfo
  *
- *  Copyright (c) 2001-2005 Ogapee (original ONScripter, of which this is a fork).
+ *  Copyright (c) 2001-2005 Ogapee (original ONScripter, of which this
+ *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License as
+ *  published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+ *  02111-1307 USA
  */
 
 #include "PonscripterLabel.h"
@@ -122,42 +124,42 @@ void ONScripterLabel::resetRemainingTime( int t )
 
 void downscale4x(SDL_Surface* src, SDL_Rect* srcpos, SDL_Surface* dst, SDL_Rect* dstpos)
 {
-	SDL_LockSurface(src);
-	SDL_LockSurface(dst);
+    SDL_LockSurface(src);
+    SDL_LockSurface(dst);
 	
-	const int sp = src->pitch;
-	const int dp = dst->pitch;
+    const int sp = src->pitch;
+    const int dp = dst->pitch;
 
-	SDL_Rect sr, dr;
-	if (srcpos) sr = *srcpos; else { sr.x = 0; sr.y = 0; sr.w = src->w; sr.h = src->h; }
-	if (dstpos) dr = *dstpos; else { dr.x = 0; dr.y = 0; } dr.w = sr.w / 4; dr.h = sr.h / 4;
+    SDL_Rect sr, dr;
+    if (srcpos) sr = *srcpos; else { sr.x = 0; sr.y = 0; sr.w = src->w; sr.h = src->h; }
+    if (dstpos) dr = *dstpos; else { dr.x = 0; dr.y = 0; } dr.w = sr.w / 4; dr.h = sr.h / 4;
 
-	Uint8* src_scan = (Uint8*) src->pixels + sr.y * sp + sr.x * 4;
-	Uint8* dst_scan = (Uint8*) dst->pixels + dr.y * dp + dr.x * 4;
+    Uint8* src_scan = (Uint8*) src->pixels + sr.y * sp + sr.x * 4;
+    Uint8* dst_scan = (Uint8*) dst->pixels + dr.y * dp + dr.x * 4;
 	
-	for (int rows = dr.h; rows --> 0; src_scan += sp * 4, dst_scan += dp) {
-		Uint32* src1 = (Uint32*) src_scan;
-		Uint32* src2 = (Uint32*) (src_scan + sp);
-		Uint32* src3 = (Uint32*) (src_scan + sp * 2);
-		Uint32* src4 = (Uint32*) (src_scan + sp * 3);
-		Uint32* dest = (Uint32*) dst_scan;
-		int cols = dr.w;
-		while (cols --> 0) {
-			Uint32 a, b, c, d;
-			Uint32 p;
+    for (int rows = dr.h; rows --> 0; src_scan += sp * 4, dst_scan += dp) {
+	Uint32* src1 = (Uint32*) src_scan;
+	Uint32* src2 = (Uint32*) (src_scan + sp);
+	Uint32* src3 = (Uint32*) (src_scan + sp * 2);
+	Uint32* src4 = (Uint32*) (src_scan + sp * 3);
+	Uint32* dest = (Uint32*) dst_scan;
+	int cols = dr.w;
+	while (cols --> 0) {
+	    Uint32 a, b, c, d;
+	    Uint32 p;
 #			define AddPx(s) p = *s; a += p >> 24; b += (p >> 16) & 0xff; c += (p >> 8) & 0xff; d += p & 0xff
-			p = *src1++; a = p >> 24; b = (p >> 16) & 0xff; c = (p >> 8) & 0xff; d = p & 0xff;
-			               AddPx(src1++); AddPx(src1++); AddPx(src1++);
-			AddPx(src2++); AddPx(src2++); AddPx(src2++); AddPx(src2++);
-			AddPx(src3++); AddPx(src3++); AddPx(src3++); AddPx(src3++);
-			AddPx(src4++); AddPx(src4++); AddPx(src4++); AddPx(src4++);
-			a >>= 4; b >>= 4; c >>= 4; d >>= 4;
-			*dest++ = a << 24 | b << 16 | c << 8 | d;
-		}
+	    p = *src1++; a = p >> 24; b = (p >> 16) & 0xff; c = (p >> 8) & 0xff; d = p & 0xff;
+	    AddPx(src1++); AddPx(src1++); AddPx(src1++);
+	    AddPx(src2++); AddPx(src2++); AddPx(src2++); AddPx(src2++);
+	    AddPx(src3++); AddPx(src3++); AddPx(src3++); AddPx(src3++);
+	    AddPx(src4++); AddPx(src4++); AddPx(src4++); AddPx(src4++);
+	    a >>= 4; b >>= 4; c >>= 4; d >>= 4;
+	    *dest++ = a << 24 | b << 16 | c << 8 | d;
 	}
+    }
 
-	SDL_UnlockSurface(src);
-	SDL_UnlockSurface(dst);
+    SDL_UnlockSurface(src);
+    SDL_UnlockSurface(dst);
 }
 
 void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
@@ -169,36 +171,36 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
         FontInfo f_info = sentence_font;
         if (info) f_info = *info;
 
-		// handle private-use encodings
-		{
-			std::string dest;
-			const char* buf = anim->file_name;
-			char ch = *buf;
-			if (ch == '^') {
-				dest.push_back(ch);
-				ch = *++buf;
-			}
-			while (ch) {
-				char b2[5];
-				if (ch == '~' && (ch = *++buf) != '~') {
-					while (ch != '~') {
-						int l;
-						TranslateTag(buf, b2, l);
-						dest.append(b2);
-						buf += l;
-						ch = *buf;
-					}
-					ch = *++buf;
-					continue;
-				}
-				const unsigned short uc = UnicodeOfUTF8(buf);
-				buf += CharacterBytes(buf);
-				UTF8OfUnicode(uc, b2);
-				dest.append(b2);
-				ch = *buf;
-			}
-			setStr(&anim->file_name, dest.c_str());
+	// handle private-use encodings
+	{
+	    std::string dest;
+	    const char* buf = anim->file_name;
+	    char ch = *buf;
+	    if (ch == '^') {
+		dest.push_back(ch);
+		ch = *++buf;
+	    }
+	    while (ch) {
+		char b2[5];
+		if (ch == '~' && (ch = *++buf) != '~') {
+		    while (ch != '~') {
+			int l;
+			TranslateTag(buf, b2, l);
+			dest.append(b2);
+			buf += l;
+			ch = *buf;
+		    }
+		    ch = *++buf;
+		    continue;
 		}
+		const unsigned short uc = UnicodeOfUTF8(buf);
+		buf += CharacterBytes(buf);
+		UTF8OfUnicode(uc, b2);
+		dest.append(b2);
+		ch = *buf;
+	    }
+	    setStr(&anim->file_name, dest.c_str());
+	}
 
         if ( anim->font_size_x >= 0 ){ // in case of Sprite, not rclick menu
             f_info.top_x = anim->pos.x * screen_ratio2 / screen_ratio1;
@@ -222,7 +224,7 @@ void ONScripterLabel::setupAnimationInfo( AnimationInfo *anim, FontInfo *info )
 
         SDL_Rect pos;
         if (anim->is_tight_region){
-        	drawString( anim->file_name, anim->color_list[ anim->current_cell ], &f_info, false, NULL, &pos );
+	    drawString( anim->file_name, anim->color_list[ anim->current_cell ], &f_info, false, NULL, &pos );
         }
         else{
             pos = f_info.getFullArea(screen_ratio1, screen_ratio2);
