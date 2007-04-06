@@ -121,7 +121,6 @@ install-data-hook:
 install-exec-hook:
 	cd $(DESTDIR)$(bindir); rm -f libpng-config
 	cd $(DESTDIR)$(bindir); $(LN_S) $(PNGLIB_BASENAME)-config libpng-config
-	@set -x;\
 	cd $(DESTDIR)$(libdir);\
 	for ext in a la so; do\
 		rm -f libpng.$$ext;\
@@ -135,7 +134,6 @@ uninstall-hook:
 	rm -f $(DESTDIR)$(pkgconfigdir)/libpng.pc
 	rm -f $(DESTDIR)$(bindir)/libpng-config
 	@if test -n "@compatlib@"; then\
-		set -x;\
 		cd $(DESTDIR)$(libdir);\
 		for ext in a la so; do\
 			rm -f libpng.$$ext;\

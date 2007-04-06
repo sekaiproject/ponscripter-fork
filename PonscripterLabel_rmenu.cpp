@@ -21,7 +21,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "ONScripterLabel.h"
+#include "PonscripterLabel.h"
 
 #define MESSAGE_SAVE_EXIST "^%s%s    Date %s/%s    Time %s:%s"
 #define MESSAGE_SAVE_EMPTY "^%s%s    ------------------------"

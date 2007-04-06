@@ -21,7 +21,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "ONScripterLabel.h"
+#include "PonscripterLabel.h"
 
 #define EFFECT_STRIPE_WIDTH (16 * screen_ratio1 / screen_ratio2)
 #define EFFECT_STRIPE_CURTAIN_WIDTH (24 * screen_ratio1 / screen_ratio2)

@@ -1,0 +1,4 @@
+Use "./configure; make; make install", as you'd expect.  "./configure
+--help" describes available options.
+
+For Windows builds, use the MinGW compilers in the MSYS environment.

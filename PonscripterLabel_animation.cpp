@@ -21,7 +21,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "ONScripterLabel.h"
+#include "PonscripterLabel.h"
 #include "utf8_util.h"
 
 int ONScripterLabel::proceedAnimation()
@@ -349,7 +349,7 @@ void ONScripterLabel::parseTaggedString( AnimationInfo *anim )
         anim->num_of_cells = getNumberFromBuffer( (const char**)&buffer );
         buffer++;
         if ( anim->num_of_cells == 0 ){
-            fprintf( stderr, "ONScripterLabel::parseTaggedString  The number of cells is 0\n");
+            fprintf( stderr, "PonscripterLabel::parseTaggedString  The number of cells is 0\n");
             return;
         }
 
