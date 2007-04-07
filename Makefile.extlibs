@@ -14,14 +14,14 @@ ES = extlib/src
 SDLSRC  = $(ES)/SDL-1.2.11
 SDLISRC = $(ES)/SDL_image-1.2.5
 ZSRC    = $(ES)/zlib-1.2.3
-PNGSRC  = $(ES)/libpng-1.2.14
+PNGSRC  = $(ES)/libpng-1.2.16
 JPEGSRC = $(ES)/jpeg-6b
 SDLMSRC = $(ES)/SDL_mixer-1.2.7
 OGGSRC  = $(ES)/libogg-1.1.3
 VORBSRC = $(ES)/libvorbis-1.1.2
 SMPGSRC = $(ES)/smpeg
-BZSRC   = $(ES)/bzip2-1.0.3
-FTSRC   = $(ES)/freetype-2.2.1
+BZSRC   = $(ES)/bzip2-1.0.4
+FTSRC   = $(ES)/freetype-2.3.3
 
 LPREFIX = $(shell pwd)/extlib
 
@@ -230,8 +230,8 @@ $(EL)/libbz2$(LIBSUFFIX): $(foreach fn,$(BZOBJS),$(BZSRC)/$(fn)$(OBJSUFFIX))
 	rm -f $@
 	$(AR) cq $@ $^
 	@if [ -f "$(RANLIB)" -o -f /usr/bin/ranlib -o \
-		-f /bin/ranlib -o -f /usr/ccs/bin/ranlib ]; then \
-		$(if $(RANLIB),$(RANLIB),ranlib) $@ ; \
+	    -f /bin/ranlib -o -f /usr/ccs/bin/ranlib ]; then \
+	    $(if $(RANLIB),$(RANLIB),ranlib) $@ ; \
 	fi
 
 $(EI)/bzlib.h: $(BZSRC)/bzlib.h
