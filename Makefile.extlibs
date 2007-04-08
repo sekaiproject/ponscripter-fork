@@ -94,17 +94,18 @@ $(EL)/libSDL_image$(LIBSUFFIX): $(SDLISRC)/Makefile
 internal_png = $(EL)/libpng$(LIBSUFFIX)
 internal_jpeg = $(EL)/libjpeg$(LIBSUFFIX)
 
-$(PNGSRC)/Makefile:
+$(PNGSRC)/Makefile: $(EL)/libz$(LIBSUFFIX)
 	@echo Configuring internal libpng...
 	@cd $(PNGSRC) && \
 	./configure --prefix="$(LPREFIX)" --disable-shared --disable-dependency-tracking $(REDIR)
 
-$(EL)/libpng$(LIBSUFFIX): $(PNGSRC)/Makefile $(EL)/libz$(LIBSUFFIX)
+$(EL)/libpng$(LIBSUFFIX): $(PNGSRC)/Makefile
 	@echo Building internal libpng...
 	@$(MAKE) -C $(PNGSRC) $(REDSO)
 	@$(MAKE) -C $(PNGSRC) install $(REDSO)
 
 $(EL)/libz$(LIBSUFFIX):
+	@echo Building internal zlib...
 	@$(MAKE) -C $(ZSRC) install prefix="$(LPREFIX)" $(REDSO)
 
 $(JPEGSRC)/Makefile:

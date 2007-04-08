@@ -1,4 +1,19 @@
-Use "./configure; make; make install", as you'd expect.  "./configure
---help" describes available options.
+* TO BUILD PONSCRIPTER FOR YOUR USE
 
-For Windows builds, use the MinGW compilers in the MSYS environment.
+This is the usual
+
+  ./configure
+  make
+  sudo make install
+
+
+* TO BUILD A REDISTRIBUTABLE PONSCRIPTER BINARY
+
+  ./configure --with-internal-libs
+  make
+
+
+* NOTES
+
+For Windows builds, use a MinGW toolchain in the MSYS environment.
+

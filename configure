@@ -414,7 +414,7 @@ then
 	OggVorbis_File vf;f=fopen("o.ogg","rb");int n=ov_open(f,&vf,0,0)<0;fclose(f);return n;}
 	_EOF
     INTERNAL_OGGLIBS=true
-    $CXX -logg -lvorbis -lvorbisfile test.cc -o otest #>/dev/null 2>&1
+    $CXX -logg -lvorbis -lvorbisfile test.cc -o otest >/dev/null 2>&1
     ./otest 2>/dev/null
     case $? in
     0) echo "yes"; INTERNAL_OGGLIBS=false ;;
@@ -611,11 +611,11 @@ if [ "$SYS" = "MinGW" ]
 then cat >> Makefile <<_EOF
 
 RCFILE ?= ponscr.rc
-win32rc.o: $(RCFILE)
+win32rc.o: \$(RCFILE)
 	windres $< -o $@
 
 SDL_win32_main.o: SDL_win32_main.c
-	$(CC) $(INCS) $(DEFS) -c $< -o $@
+	\$(CC) \$(INCS) \$(DEFS) -c \$< -o $@
 _EOF
 fi
 

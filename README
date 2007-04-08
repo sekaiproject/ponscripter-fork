@@ -1,39 +1,45 @@
-Ponscripter ("Proportional ONScripter") is a fork of ogapee's ONScripter, which 
-in turn is an enhanced clone of NScripter.
+Ponscripter ("Proportional ONScripter") is a fork of ogapee's
+ONScripter, which in turn is an enhanced clone of NScripter.
 
-While ONScripter adds basic support for Western text, it does so only insofar as 
-is easily done while retaining compatibility with unmodified Japanese games. 
-Ponscripter builds on the ONScripter source code, but removes many 
-Japanese-specific features (vertical text, ruby), and makes some fundamental 
-architectural changes to better support Western games (proportionally spaced 
-text, scripts encoded as UTF-8 rather than Shift_JIS).
+While ONScripter adds basic support for Western text, it does so only
+insofar as is easily done while retaining compatibility with
+unmodified Japanese games.  Ponscripter builds on the ONScripter
+source code, but removes many Japanese-specific features (vertical
+text, ruby), and makes some fundamental architectural changes to
+better support Western games (proportionally spaced text, scripts
+encoded as UTF-8 rather than Shift_JIS).
 
-The end result is a somewhat less stable and VASTLY less compatible engine -- 
-but it should more than make up for that by making games look good, if one takes 
-the time to convert them to make proper use of the new capabilities.
+The end result is a somewhat less stable and VASTLY less compatible
+engine -- but it should more than make up for that by making games
+look good, if one takes the time to convert them to make proper use of
+the new capabilities.
 
-I must repeat this for emphasis: unlike ONScripter, this can NOT be used to play 
-original Japanese games under any circumstances!  Nor can it be used to play any 
-English releases that have not been specifically ported to Ponscripter!
+I must repeat this for emphasis: unlike ONScripter, this can NOT be
+used to play original Japanese games under any circumstances!  Nor can
+it be used to play any English releases that have not been
+specifically ported to Ponscripter!
 
-PLEASE DO NOT USE THIS FORK UNLESS YOU KNOW EXACTLY WHAT YOU'RE DOING, OR 
-UNLESS YOU NEED TO RUN A GAME THAT HAS BEEN DESIGNED TO BE PLAYED WITH IT.
+PLEASE DO NOT USE THIS FORK UNLESS YOU KNOW EXACTLY WHAT YOU'RE DOING,
+OR UNLESS YOU NEED TO RUN A GAME THAT HAS BEEN DESIGNED TO BE PLAYED
+WITH IT.
 
-If you want a portable game engine that works well with both Japanese and 
-English games, and that strives to implement an NScripter-compatible system 
-conforming to all the games and technical documentation out there, then avoid 
-Ponscripter like the plague and stick with ONScripter, which does an admirable 
-job at that.  If you are an ONScripter _developer_ who wants pretty Western text 
-on Windows, OS X, or X11, and if you are willing to work to get it, then 
-porting your game to Ponscripter is likely to be easier than rewriting from 
-scratch in Ren'Py, but don't expect it to be effortless.
+If you want a portable game engine that works well with both Japanese
+and English games, and that strives to implement an
+NScripter-compatible system conforming to all the games and technical
+documentation out there, then avoid Ponscripter like the plague and
+stick with ONScripter, which does an admirable job at that.  If you
+are an ONScripter _developer_ who wants pretty Western text on
+Windows, OS X, or X11, and if you are willing to work to get it, then
+porting your game to Ponscripter is likely to be easier than rewriting
+from scratch in Ren'Py, but don't expect it to be effortless.
 
-Note that Ponscripter is still very much a work in progress: it is largely
-untested, and there is very little detailed documentation of the many changes.
-(What documentation there is can be found in the file "README.ponscripter".)
-If you use this, you do so at your own risk, and I will not be held liable for
-any damage that ensues.
+Note that Ponscripter is still very much a work in progress: it is
+largely untested, and there is very little detailed documentation of
+the many changes.  (What documentation there is can be found in the
+file "README.ponscripter".)  If you use this, you do so at your own
+risk, and I will not be held liable for any damage that ensues.
 
-Please do not bug ogapee with any problems you encounter herein.  (In fact, 
-please don't bug me with them either, unless you're using a binary I built to 
-run a game I intended it to run, or else unless you have solutions to offer.)
+Please do not bug ogapee with any problems you encounter herein.  (In
+fact, please don't bug me with them either, unless you're using a
+binary I built to run a game I intended it to run, or else unless you
+have solutions to offer.)
