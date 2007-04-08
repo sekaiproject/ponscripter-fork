@@ -625,7 +625,7 @@ if test -z "$LD"; then
     ac_prog=`($CC -print-prog-name=ld) 2>&5`
     case "$ac_prog" in
     # Accept absolute paths.
-    /* | [A-Za-z]:\\*)
+    /* | [A-Za-z]:[\\/]*)
       test -z "$LD" && LD="$ac_prog"
       ;;
     "")
