@@ -33,7 +33,7 @@ typedef unsigned char uchar3[3];
 
 class AnimationInfo {
 public:
-#if defined (BPP16)
+#ifdef BPP16
     typedef Uint16 ONSBuf;
 #else
     typedef Uint32 ONSBuf;

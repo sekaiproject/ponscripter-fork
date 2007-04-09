@@ -29,8 +29,8 @@
 #include <dirent.h>
 #endif
 
-#if defined (UTF8_FILESYSTEM)
-#if defined (MACOSX)
+#ifdef UTF8_FILESYSTEM
+#ifdef MACOSX
 #include <CoreFoundation/CoreFoundation.h>
 #else
 #include <iconv.h>
@@ -332,7 +332,7 @@ FILE* DirectReader::getFileHandle(const char* file_name, int &compression_type, 
         if (capital_name[i] == '/' || capital_name[i] == '\\') capital_name[i] = (char) DELIMITER;
     }
 
-#if defined (UTF8_FILESYSTEM)
+#ifdef UTF8_FILESYSTEM
     convertFromSJISToUTF8(capital_name_tmp, capital_name, len);
     strcpy(capital_name, capital_name_tmp);
     len = strlen(capital_name);
@@ -430,8 +430,8 @@ void DirectReader::convertFromSJISToEUC(char* buf)
 
 void DirectReader::convertFromSJISToUTF8(char* dst_buf, char* src_buf, size_t src_len)
 {
-#if defined (UTF8_FILESYSTEM)
-#if defined (MACOSX)
+#ifdef UTF8_FILESYSTEM
+#ifdef MACOSX
     CFStringRef unicodeStrRef = CFStringCreateWithBytes(nil, (const UInt8*) src_buf, src_len,
                                     kCFStringEncodingShiftJIS, false);
     Boolean ret = CFStringGetCString(unicodeStrRef, dst_buf, src_len * 2 + 1, kCFStringEncodingUTF8);

@@ -53,7 +53,7 @@ int PonscripterLabel::resizeSurface(SDL_Surface* src, SDL_Surface* dst)
 }
 
 
-#if defined (BPP16)
+#ifdef BPP16
 #define blend_pixel() { \
         Uint32 s1 = (*src1_buffer | *src1_buffer << 16) & 0x07e0f81f;   \
         Uint32 s2 = (*src2_buffer | *src2_buffer << 16) & 0x07e0f81f;   \
@@ -183,7 +183,7 @@ void PonscripterLabel::alphaBlend32(SDL_Surface* dst_surface, SDL_Rect dst_rect,
 
     unsigned char* src_buffer = (unsigned char*) src_surface->pixels + src_surface->pitch * y2 + x2;
     ONSBuf* dst_buffer = (AnimationInfo::ONSBuf*) dst_surface->pixels + dst_surface->w * dst_rect.y + dst_rect.x;
-#if defined (BPP16)
+#ifdef BPP16
     Uint32 src_color = ((color.r & 0xf8) << 8 |
                         (color.g & 0xfc) << 3 |
                         (color.b & 0xf8) >> 3);
@@ -202,7 +202,7 @@ void PonscripterLabel::alphaBlend32(SDL_Surface* dst_surface, SDL_Rect dst_rect,
             mask2 = *src_buffer >> fmt->Bloss;
             mask1 = mask2 ^ fmt->Bmask;
 
-#if defined (BPP16)
+#ifdef BPP16
             Uint32 d1 = (*dst_buffer | *dst_buffer << 16) & 0x07e0f81f;
 
             mask_rb = (d1 + ((src_color - d1) * mask2 >> 5)) & 0x07e0f81f; // red, green and blue pixel

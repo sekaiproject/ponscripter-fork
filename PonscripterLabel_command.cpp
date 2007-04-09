@@ -400,7 +400,7 @@ int PonscripterLabel::sp_rgb_gradationCommand()
     // replace pixels of the key-color with the specified color in gradation
     for (i = upper_bound; i <= lower_bound; i++) {
         ONSBuf* buf = (ONSBuf*) surface->pixels + surface->w * i;
-#if defined (BPP16)
+#ifdef BPP16
         unsigned char* alphap = si->alpha_buf + surface->w * i;
 #else
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN
@@ -427,7 +427,7 @@ int PonscripterLabel::sp_rgb_gradationCommand()
                 *alphap = alpha;
             }
 
-#if defined (BPP16)
+#ifdef BPP16
             alphap++;
 #else
             alphap += 4;
@@ -2842,7 +2842,7 @@ int PonscripterLabel::captionCommand()
     DirectReader::convertFromSJISToUTF8(buf2, (char*) buf1, len);
     delete[] buf1;
 #elif defined (LINUX)
-#if defined (UTF8_FILESYSTEM)
+#ifdef UTF8_FILESYSTEM
     char* buf1 = new char[len + 1];
     strcpy(buf1, buf);
     DirectReader::convertFromSJISToUTF8(buf2, buf1, len);
@@ -3131,7 +3131,7 @@ int PonscripterLabel::bltCommand()
         SDL_LockSurface(btndef_info.image_surface);
         ONSBuf* dst_buf = (ONSBuf*) accumulation_surface->pixels;
         ONSBuf* src_buf = (ONSBuf*) btndef_info.image_surface->pixels;
-#if defined (BPP16)
+#ifdef BPP16
         int dst_width = accumulation_surface->pitch / 2;
         int src_width = btndef_info.image_surface->pitch / 2;
 #else

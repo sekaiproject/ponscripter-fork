@@ -316,7 +316,7 @@ void PonscripterLabel::initSDL()
     if (icon) SDL_WM_SetIcon(icon, 0);
 #endif
 
-#if defined (BPP16)
+#ifdef BPP16
     screen_bpp = 16;
 #else
     screen_bpp = 32;

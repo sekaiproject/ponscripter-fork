@@ -382,7 +382,7 @@ void PonscripterLabel::generateMosaic(SDL_Surface* src_surface, int level)
     int width = 160;
     for (i = 0; i < level; i++) width >>= 1;
 
-#if defined (BPP16)
+#ifdef BPP16
     int total_width = accumulation_surface->pitch / 2;
 #else
     int total_width = accumulation_surface->pitch / 4;

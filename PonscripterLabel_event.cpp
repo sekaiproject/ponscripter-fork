@@ -24,7 +24,7 @@
  */
 
 #include "PonscripterLabel.h"
-#if defined (LINUX)
+#ifdef LINUX
 #include <sys/types.h>
 #include <sys/wait.h>
 #endif
@@ -50,7 +50,7 @@ SDL_TimerID timer_cdaudio_id = NULL;
 // to hard crash after the first play.  So, we work around that by manually causing the midis to loop.  This OS X midi
 // workaround is the work of Ben Carter.  Recommend for integration.  [Seung Park, 20060621]
 SDL_TimerID timer_mp3fadeout_id = NULL;
-#if defined (MACOSX)
+#ifdef MACOSX
 SDL_TimerID timer_midi_id = NULL;
 #endif
 bool ext_music_play_once_flag = false;
@@ -119,7 +119,7 @@ extern "C" Uint32 SDLCALL mp3fadeoutCallback(Uint32 interval, void* param)
 
 SDLKey transKey(SDLKey key)
 {
-#if defined (IPODLINUX)
+#ifdef IPODLINUX
     switch (key) {
     case SDLK_m:      key = SDLK_UP;      break; /* Menu                   */
     case SDLK_d:      key = SDLK_DOWN;    break; /* Play/Pause             */
@@ -139,7 +139,7 @@ SDLKey transKey(SDLKey key)
 
 SDLKey transJoystickButton(Uint8 button)
 {
-#if defined (PSP)
+#ifdef PSP
     SDLKey button_map[] = { SDLK_ESCAPE, /* TRIANGLE */
                             SDLK_RETURN, /* CIRCLE   */
                             SDLK_SPACE,  /* CROSS    */
@@ -321,7 +321,7 @@ void PonscripterLabel::advancePhase(int count)
 
 void midiCallback(int sig)
 {
-#if defined (LINUX)
+#ifdef LINUX
     int status;
     wait(&status);
 #endif
@@ -359,7 +359,7 @@ extern "C" void waveCallback(int channel)
 
 void musicCallback(int sig)
 {
-#if defined (LINUX)
+#ifdef LINUX
     int status;
     wait(&status);
 #endif

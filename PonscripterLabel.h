@@ -32,14 +32,14 @@
 #include <SDL_image.h>
 #include <SDL_mixer.h>
 
-#if defined (MP3_MAD)
+#ifdef MP3_MAD
 #include "MadWrapper.h"
 #else
 #include <smpeg.h>
 #endif
 
-#if defined (USE_OGG_VORBIS)
-#if defined (INTEGER_OGG_VORBIS)
+#ifdef USE_OGG_VORBIS
+#ifdef INTEGER_OGG_VORBIS
 #include <tremor/ivorbisfile.h>
 #else
 #include <vorbis/vorbisfile.h>
@@ -75,7 +75,7 @@ struct OVInfo {
     int mult2;
     unsigned char* buf;
     long decoded_length;
-#if defined (USE_OGG_VORBIS)
+#ifdef USE_OGG_VORBIS
     ogg_int64_t length;
     ogg_int64_t pos;
     OggVorbis_File ovf;

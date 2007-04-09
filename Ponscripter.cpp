@@ -68,7 +68,7 @@ static void optionVersion()
 }
 
 
-#if defined (QWS)
+#ifdef QWS
 int SDL_main(int argc, char** argv)
 #elif defined (PSP)
 extern "C" int main(int argc, char** argv)
@@ -78,7 +78,7 @@ int main(int argc, char** argv)
 {
     PonscripterLabel ons;
 
-#if defined (PSP)
+#ifdef PSP
     ons.disableRescale();
     ons.enableButtonShortCut();
 #endif
