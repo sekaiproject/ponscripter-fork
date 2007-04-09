@@ -3,7 +3,8 @@
 
     The WinMain function -- calls your program's main() function
     
-    Customised to handle stdout/stderr redirection in a UAC-compliant way by Peter Jolly, 2006-11-22
+    Customised to handle stdout/stderr redirection in a UAC-compliant
+    way by Peter Jolly, 2006-11-22
 */
 
 #include <stdio.h>
@@ -268,7 +269,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 	outputPath[0] = 0;
 	HMODULE shdll = LoadLibrary("shfolder");
 	if (shdll) {
-		GETFOLDERPATH gfp = GETFOLDERPATH(GetProcAddress(shdll, "SHGetFolderPathA"));
+		GETFOLDERPATH gfp = (GETFOLDERPATH)GetProcAddress(shdll, "SHGetFolderPathA");
 		if (gfp) {
 			char hpath[MAX_PATH];
 			HRESULT res = gfp(0, 0x0023, 0, 0, hpath);

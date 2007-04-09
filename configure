@@ -29,6 +29,10 @@ INTERNAL_LIBPNG=false
 INTERNAL_LIBJPEG=false
 INTERNAL_OGGLIBS=false
 
+SDL_CONFIG=sdl-config
+SMPEG_CONFIG=smpeg-config
+FREETYPE_CONFIG=freetype-config
+
 # Parse options
 prev=
 for opt
@@ -170,6 +174,8 @@ internalise_SDL() {
     INTERNAL_SDL_IMAGE=true
     INTERNAL_SDL_MIXER=true
     INTERNAL_SMPEG=true
+    SDL_CONFIG=./extlib/bin/sdl-config
+    SMPEG_CONFIG=./extlib/bin/smpeg-config
 }
 
 if $INTERNAL_LIBS
@@ -263,9 +269,6 @@ GNU?Make*)
 esac
 
 # Libraries
-SDL_CONFIG=sdl-config
-SMPEG_CONFIG=smpeg-config
-FREETYPE_CONFIG=freetype-config
 
 if $INTERNAL_SDL
 then
@@ -452,6 +455,7 @@ else
     then echo "yes"
     else echo "no"
 	INTERNAL_SMPEG=true
+	SMPEG_CONFIG=./extlib/bin/smpeg-config
     fi
 fi
 
@@ -476,10 +480,12 @@ else
 	then echo "yes"
 	else echo "too old"
 	    INTERNAL_FREETYPE=true
+	    FREETYPE_CONFIG=./extlib/bin/freetype-config
 	fi
     else
 	echo "no"
 	INTERNAL_FREETYPE=true
+	FREETYPE_CONFIG=./extlib/bin/freetype-config
     fi
 fi
 
@@ -488,7 +494,7 @@ MLIB=
 require() {
     if $1
     then
-        DEPS="$DEPS \$($2))"
+        DEPS="$DEPS \$($2)"
 	[ -n "$MLIB" ] && MLIB="$MLIB, "
 	MLIB="$MLIB$3"
     fi
@@ -637,10 +643,10 @@ then cat >> Makefile <<_EOF
 
 RCFILE ?= ponscr.rc
 win32rc.o: \$(RCFILE)
-	windres $< -o $@
+	windres \$< -o \$@
 
 SDL_win32_main.o: SDL_win32_main.c
-	\$(CC) \$(INCS) \$(DEFS) -c \$< -o $@
+	\$(CC) \$(INCS) \$(DEFS) -c \$< -o \$@
 _EOF
 fi
 

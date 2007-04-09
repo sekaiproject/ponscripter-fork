@@ -51,7 +51,7 @@ $(EB)/sdl-config: $(SDLSRC)/Makefile
 	@$(MAKE) -C $(SDLSRC) install $(REDSO)
 	@if $(WIN32); then \
 	    mv $@ $@.tmp; \
-	    sed -e 's/\(-lmingw32 -lSDLmain.*\)$/\1 -lwinmm/' $@.tmp > $@; \
+	    sed -e 's/\(-lmingw32 -lSDLmain.*\)$$/\1 -lwinmm/' $@.tmp > $@; \
 	    rm $@.tmp; \
 	fi # Fix for annoying Windows breakage
 
