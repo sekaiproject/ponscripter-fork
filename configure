@@ -483,6 +483,42 @@ else
     fi
 fi
 
+DEPS=
+MLIB=
+require() {
+    if $1
+    then
+        DEPS="$DEPS \$($2))"
+	[ -n "$MLIB" ] && MLIB="$MLIB, "
+	MLIB="$MLIB$3"
+    fi
+}
+require $INTERNAL_SDL       internal_sdl       SDL
+require $INTERNAL_LIBPNG    internal_png       libpng
+require $INTERNAL_LIBJPEG   internal_jpeg      libjpeg
+require $INTERNAL_SDL_IMAGE internal_sdl_image SDL_image
+require $INTERNAL_OGGLIBS   internal_ogglibs   "libogg, libvorbis"
+require $INTERNAL_SDL_MIXER internal_sdl_mixer SDL_mixer
+require $INTERNAL_BZIP2     internal_bzip2     libbz2
+require $INTERNAL_SMPEG     internal_smpeg     libsmpeg
+require $INTERNAL_FREETYPE  internal_freetype  Freetype
+
+if [ -n "$MLIB" -a ! -d extlib ]
+then
+    cat <<_EOF
+
+Unable to locate the following dependencies:
+
+  $MLIB
+
+The simplest way to solve this problem is to download the dependencies
+pack from the same place that you acquired this source code.
+Alternatively, you could install the appropriate development packages
+for your operating system.
+_EOF
+    exit
+fi
+
 $echo_n "Writing Makefile... ${nobr}"
 
 case "$SYS" in
@@ -492,17 +528,6 @@ Linux)  EXE=     ; OBJ=.o ; LIB=.a ; W32=     ;;
 *) echo "error: unsupported system";
    exit 1 ;;
 esac
-
-DEPS=
-$INTERNAL_SDL       && DEPS="$DEPS \$(internal_sdl)"
-$INTERNAL_LIBPNG    && DEPS="$DEPS \$(internal_png)"
-$INTERNAL_LIBJPEG   && DEPS="$DEPS \$(internal_jpeg)"
-$INTERNAL_SDL_IMAGE && DEPS="$DEPS \$(internal_sdl_image)"
-$INTERNAL_OGGLIBS   && DEPS="$DEPS \$(internal_ogglibs)"
-$INTERNAL_SDL_MIXER && DEPS="$DEPS \$(internal_sdl_mixer)"
-$INTERNAL_BZIP2     && DEPS="$DEPS \$(internal_bzip2)"
-$INTERNAL_SMPEG     && DEPS="$DEPS \$(internal_smpeg)"
-$INTERNAL_FREETYPE  && DEPS="$DEPS \$(internal_freetype)"
 
 cat > Makefile <<_EOF
 # -*- Makefile -*-
