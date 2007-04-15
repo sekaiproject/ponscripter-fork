@@ -2,7 +2,7 @@
  *
  *  Ponscripter_animation.cpp - Methods to manipulate AnimationInfo
  *
- *  Copyright (c) 2001-2005 Ogapee (original ONScripter, of which this
+ *  Copyright (c) 2001-2007 Ogapee (original ONScripter, of which this
  *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
@@ -152,12 +152,18 @@ void downscale4x(SDL_Surface* src, SDL_Rect* srcpos, SDL_Surface* dst, SDL_Rect*
         while (cols-- > 0) {
             Uint32 a, b, c, d;
             Uint32 p;
-#define AddPx(s) p = *s; a += p >> 24; b += (p >> 16) & 0xff; c += (p >> 8) & 0xff; d += p & 0xff
-            p = *src1++; a = p >> 24; b = (p >> 16) & 0xff; c = (p >> 8) & 0xff; d = p & 0xff;
+            p = *src1++;
+	    a = p >> 24;
+	    b = (p >> 16) & 0xff;
+	    c = (p >> 8) & 0xff;
+	    d = p & 0xff;
+#define AddPx(s) p = *s; a += p >> 24; b += (p >> 16) & 0xff;	\
+	                 c += (p >> 8) & 0xff; d += p & 0xff
             AddPx(src1++); AddPx(src1++); AddPx(src1++);
             AddPx(src2++); AddPx(src2++); AddPx(src2++); AddPx(src2++);
             AddPx(src3++); AddPx(src3++); AddPx(src3++); AddPx(src3++);
             AddPx(src4++); AddPx(src4++); AddPx(src4++); AddPx(src4++);
+#undef AddPx
             a >>= 4; b >>= 4; c >>= 4; d >>= 4;
             *dest++ = a << 24 | b << 16 | c << 8 | d;
         }
@@ -219,30 +225,29 @@ void PonscripterLabel::setupAnimationInfo(AnimationInfo* anim, FontInfo* info)
             f_info.set_size(anim->font_size_y);
             f_info.set_mod_size(0);
             if (anim->font_pitch >= 0)
-                f_info.pitch_x = anim->font_pitch;
+               f_info.pitch_x = anim->font_pitch;
 
             if (anim->is_single_line) {
-                f_info.area_x = int (ceil(f_info.StringAdvance(anim->file_name)));
-                f_info.area_y = f_info.line_space();
+               f_info.area_x = int(ceil(f_info.StringAdvance(anim->file_name)));
+               f_info.area_y = f_info.line_space();
             }
 
             if (anim->is_centered_text) {
-                anim->pos.x -= f_info.area_x / 2;
-                f_info.top_x = anim->pos.x * screen_ratio2 / screen_ratio1;
+               anim->pos.x -= f_info.area_x / 2;
+               f_info.top_x = anim->pos.x * screen_ratio2 / screen_ratio1;
             }
         }
 
         SDL_Rect pos;
         if (anim->is_tight_region) {
-            drawString(anim->file_name, anim->color_list[anim->current_cell], &f_info, false, NULL, &pos);
+            drawString(anim->file_name, anim->color_list[anim->current_cell],
+		       &f_info, false, NULL, &pos);
         }
         else {
             pos = f_info.getFullArea(screen_ratio1, screen_ratio2);
         }
 
-        if (info != NULL) {
-            info->SetXY(f_info.GetXOffset(), f_info.GetYOffset());
-        }
+        if (info) info->SetXY(f_info.GetXOffset(), f_info.GetYOffset());
 
         anim->allocImage(pos.w * anim->num_of_cells, pos.h);
         anim->fill(0, 0, 0, 0);
@@ -251,21 +256,19 @@ void PonscripterLabel::setupAnimationInfo(AnimationInfo* anim, FontInfo* info)
         for (int i = 0; i < anim->num_of_cells; i++) {
             f_info.clear();
             f_info.style = Default;
-            drawString(anim->file_name, anim->color_list[i], &f_info, false, NULL, NULL, anim);
+            drawString(anim->file_name, anim->color_list[i], &f_info, false,
+		       NULL, NULL, anim);
             f_info.top_x += anim->pos.w * screen_ratio2 / screen_ratio1;
         }
     }
     else {
-        SDL_Surface* surface = loadImage(anim->file_name);
-
-        SDL_Surface* surface_m = NULL;
-        if (anim->trans_mode == AnimationInfo::TRANS_MASK)
-            surface_m = loadImage(anim->mask_file_name);
-
-        anim->setupImage(surface, surface_m);
-
-        if (surface) SDL_FreeSurface(surface);
-
+	bool has_alpha;
+        SDL_Surface *surface = loadImage(anim->file_name, &has_alpha),
+                  *surface_m = anim->trans_mode == AnimationInfo::TRANS_MASK
+	                     ? loadImage(anim->mask_file_name)
+	                     : NULL;
+        anim->setupImage(surface, surface_m, has_alpha);
+        if (surface)   SDL_FreeSurface(surface);
         if (surface_m) SDL_FreeSurface(surface_m);
     }
 }
@@ -352,9 +355,9 @@ void PonscripterLabel::parseTaggedString(AnimationInfo* anim)
             buffer += 7;
         }
         else if (buffer[0] == '!') {
-            anim->trans_mode = AnimationInfo::TRANS_PALLET;
+            anim->trans_mode = AnimationInfo::TRANS_PALETTE;
             buffer++;
-            anim->pallet_number = getNumberFromBuffer((const char**) &buffer);
+            anim->palette_number = getNumberFromBuffer((const char**) &buffer);
         }
 
         if (anim->trans_mode != AnimationInfo::TRANS_STRING)

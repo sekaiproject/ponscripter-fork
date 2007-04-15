@@ -68,14 +68,12 @@ public:
     float em_width();
     int line_space();
 
-    int line_top(int line_number)
-    {
+    int line_top(int line_number) {
         return (line_space() + pitch_y) * line_number;
     }
 
 
-    void SetIndent(const unsigned short indent_char)
-    {
+    void SetIndent(const unsigned short indent_char) {
         indent = GlyphAdvance(indent_char, 0);
     }
 
@@ -105,7 +103,8 @@ public:
 
     SDL_Rect getFullArea(int ratio1, int ratio2);
 
-    SDL_Rect calcUpdatedArea(float start_x, int start_y, int ratio1, int ratio2);
+    SDL_Rect calcUpdatedArea(float start_x, int start_y,
+			     int ratio1, int ratio2);
     void addShadeArea(SDL_Rect &rect, int shade_distance[2]);
 
     int doSize();

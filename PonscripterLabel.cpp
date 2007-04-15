@@ -2,7 +2,7 @@
  *
  *  PonscripterLabel.cpp - Execution block parser of Ponscripter
  *
- *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this
+ *  Copyright (c) 2001-2007 Ogapee (original ONScripter, of which this
  *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
@@ -327,6 +327,27 @@ void PonscripterLabel::initSDL()
     screen_ratio2 *= 320;
     screen_width  = screen_width * PDA_WIDTH / 320;
     screen_height = screen_height * PDA_WIDTH / 320;
+#elif defined(PDA) && defined(PDA_AUTOSIZE)
+    SDL_Rect **modes;
+    modes = SDL_ListModes(NULL, 0);
+    if (modes == (SDL_Rect **)0){
+        fprintf(stderr, "No Video mode available.\n");
+        exit(-1);
+    }
+    else if (modes == (SDL_Rect **)-1){
+        // no restriction
+    }
+ 	else{
+        int width;
+        if (modes[0]->w * 3 > modes[0]->h * 4)
+            width = (modes[0]->h / 3) * 4;
+        else
+            width = (modes[0]->w / 4) * 4;
+        screen_ratio1 *= width;
+        screen_ratio2 *= 320;
+        screen_width   = screen_width  * width / 320;
+        screen_height  = screen_height * width / 320;
+    }
 #endif
 
     screen_surface = SDL_SetVideoMode(screen_width, screen_height, screen_bpp,
@@ -453,16 +474,16 @@ void PonscripterLabel::setDLLFile(const char* filename)
 void PonscripterLabel::setArchivePath(const char* path)
 {
     if (archive_path) delete[] archive_path;
-    archive_path = new char[RELATIVEPATHLENGTH + strlen(path) + 2];
-    sprintf(archive_path, RELATIVEPATH "%s%c", path, DELIMITER);
+    archive_path = new char[strlen(path) + 2];
+    sprintf(archive_path, "%s%c", path, DELIMITER);
 }
 
 
 void PonscripterLabel::setSavePath(const char* path)
 {
     if (script_h.save_path) delete[] script_h.save_path;
-    script_h.save_path = new char[RELATIVEPATHLENGTH + strlen(path) + 2];
-    sprintf(script_h.save_path, RELATIVEPATH "%s%c", path, DELIMITER);
+    script_h.save_path = new char[strlen(path) + 2];
+    sprintf(script_h.save_path, "%s%c", path, DELIMITER);
 }
 
 
@@ -547,8 +568,8 @@ int PonscripterLabel::init()
         // TODO: optionally permit saves to be per-user rather than shared?
         HMODULE shdll = LoadLibrary("shfolder");
         if (shdll) {
-            GETFOLDERPATH gfp = GETFOLDERPATH(GetProcAddress(shdll,
-                                        "SHGetFolderPathA"));
+            GETFOLDERPATH gfp =
+		GETFOLDERPATH(GetProcAddress(shdll, "SHGetFolderPathA"));
             if (gfp) {
                 char hpath[MAX_PATH];
                 HRESULT res = gfp(0, 0x0023, 0, 0, hpath);
@@ -571,7 +592,7 @@ int PonscripterLabel::init()
         using namespace Carbon;
         FSRef home;
         FSFindFolder(kUserDomain, kPreferencesFolderType, kDontCreateFolder,
-            &home);
+		     &home);
         char hpath[32768];
         FSRefMakePath(&home, (UInt8*) hpath, 32768);
         script_h.save_path = new char[strlen(hpath) + strlen(gameid) + 8];
@@ -594,7 +615,7 @@ int PonscripterLabel::init()
             // save directory.  Either way, issue a warning and then
             // fall back on default ONScripter behaviour.
             fprintf(stderr, "Warning: could not create save directory ~/.%s.\n",
-                gameid);
+		    gameid);
             script_h.save_path = archive_path;
         }
 #else
@@ -622,11 +643,14 @@ int PonscripterLabel::init()
 
     accumulation_surface =
 	AnimationInfo::allocSurface(screen_width, screen_height);
+    accumulation_comp_surface =
+	AnimationInfo::allocSurface(screen_width, screen_height);
     effect_src_surface =
 	AnimationInfo::allocSurface(screen_width, screen_height);
     effect_dst_surface =
 	AnimationInfo::allocSurface(screen_width, screen_height);
     SDL_SetAlpha(accumulation_surface, 0, SDL_ALPHA_OPAQUE);
+    SDL_SetAlpha(accumulation_comp_surface, 0, SDL_ALPHA_OPAQUE);    
     SDL_SetAlpha(effect_src_surface, 0, SDL_ALPHA_OPAQUE);
     SDL_SetAlpha(effect_dst_surface, 0, SDL_ALPHA_OPAQUE);
     screenshot_surface = 0;
@@ -716,8 +740,7 @@ void PonscripterLabel::reset()
     key_pressed_flag = false;
     shift_pressed_status = 0;
     ctrl_pressed_status  = 0;
-    display_mode = next_display_mode = NORMAL_DISPLAY_MODE;
-    current_refresh_mode = REFRESH_NORMAL_MODE;
+    display_mode = NORMAL_DISPLAY_MODE;
     event_mode = IDLE_EVENT_MODE;
     all_sprite_hide_flag = false;
 
@@ -870,10 +893,21 @@ flush(int refresh_mode, SDL_Rect* rect, bool clear_dirty_flag,
 
 void PonscripterLabel::flushDirect(SDL_Rect &rect, int refresh_mode)
 {
-    //printf("flush %d: %d %d %d %d\n", refresh_mode, rect.x, rect.y, rect.w, rect.h );
-
     refreshSurface(accumulation_surface, &rect, refresh_mode);
 
+    if (refresh_mode != REFRESH_NONE_MODE &&
+	!(refresh_mode & REFRESH_CURSOR_MODE)) {
+        if (refresh_mode & REFRESH_SHADOW_MODE)
+            refreshSurface(accumulation_comp_surface, &rect,
+			   (refresh_mode & ~REFRESH_SHADOW_MODE
+			                 & ~REFRESH_TEXT_MODE)
+			                 | REFRESH_COMP_MODE);
+        else
+            refreshSurface(accumulation_comp_surface, &rect,
+			   refresh_mode | refresh_shadow_text_mode
+			                | REFRESH_COMP_MODE);
+    }
+    
     SDL_BlitSurface(accumulation_surface, &rect, screen_surface, &rect);
     SDL_UpdateRect(screen_surface, rect.x, rect.y, rect.w, rect.h);
 }
@@ -931,8 +965,8 @@ void PonscripterLabel::mouseOverCheck(int x, int y)
         }
 
         if (exbtn_d_button_link.exbtn_ctl) {
-            decodeExbtnControl(accumulation_surface, exbtn_d_button_link.
-                exbtn_ctl, &check_src_rect, &check_dst_rect);
+            decodeExbtnControl(exbtn_d_button_link.exbtn_ctl, &check_src_rect,
+			       &check_dst_rect);
         }
 
         if (p_button_link) {
@@ -953,8 +987,7 @@ void PonscripterLabel::mouseOverCheck(int x, int y)
                 sprite_info[p_button_link->sprite_no].setCell(1);
                 sprite_info[p_button_link->sprite_no].visible = true;
                 if (pbt == ButtonLink::EX_SPRITE_BUTTON) {
-                    decodeExbtnControl(accumulation_surface,
-				       p_button_link->exbtn_ctl,
+                    decodeExbtnControl(p_button_link->exbtn_ctl,
 				       &check_src_rect, &check_dst_rect);
                 }
             }
@@ -1145,7 +1178,8 @@ int PonscripterLabel::parseLine()
                        string_buffer_offset);
         float len = sentence_font.GlyphAdvance(first_ch, UnicodeOfUTF8(it));
         while (1) {
-            // For each character (not char!) before a break is found, get unicode.
+            // For each character (not char!) before a break is found,
+            // get unicode.
             unsigned short ch = UnicodeOfUTF8(it);
             it += CharacterBytes(it);
 
@@ -1224,18 +1258,16 @@ int PonscripterLabel::parseLine()
 }
 
 
-SDL_Surface* PonscripterLabel::loadImage(char* file_name)
+SDL_Surface* PonscripterLabel::loadImage(char* file_name, bool* has_alpha)
 {
     if (!file_name) return 0;
     unsigned long length = ScriptHandler::cBR->getFileLength(file_name);
     if (length == 0) {
-        if (strcmp(file_name,
-                DEFAULT_LOOKBACK_NAME0) != 0 &&
-            strcmp(file_name, DEFAULT_LOOKBACK_NAME1) != 0
-            && strcmp(file_name,
-                DEFAULT_LOOKBACK_NAME2) != 0 &&
-            strcmp(file_name, DEFAULT_LOOKBACK_NAME3) != 0
-            && strcmp(file_name, DEFAULT_CURSOR1) != 0)
+        if (strcmp(file_name, DEFAULT_LOOKBACK_NAME0) != 0 &&
+            strcmp(file_name, DEFAULT_LOOKBACK_NAME1) != 0 &&
+            strcmp(file_name, DEFAULT_LOOKBACK_NAME2) != 0 &&
+            strcmp(file_name, DEFAULT_LOOKBACK_NAME3) != 0 &&
+	    strcmp(file_name, DEFAULT_CURSOR1) != 0)
             fprintf(stderr, " *** can't find file [%s] ***\n", file_name);
         return 0;
     }
@@ -1254,6 +1286,7 @@ SDL_Surface* PonscripterLabel::loadImage(char* file_name)
         tmp = IMG_LoadJPG_RW(src);
         SDL_RWclose(src);
     }
+    if (has_alpha) *has_alpha = tmp->format->Amask;
 
     delete[] buffer;
     if (!tmp) {
@@ -1447,10 +1480,10 @@ PonscripterLabel::getSelectableSentence(char* buffer, FontInfo* info,
 }
 
 
-void PonscripterLabel::
-decodeExbtnControl(SDL_Surface* surface, const char* ctl_str,
-                   SDL_Rect* check_src_rect,
-                   SDL_Rect* check_dst_rect)
+void
+PonscripterLabel::decodeExbtnControl(const char* ctl_str,
+				     SDL_Rect* check_src_rect,
+				     SDL_Rect* check_dst_rect)
 {
     char sound_name[256];
     int  i, sprite_no, sprite_no2, cell_no;
@@ -1465,7 +1498,7 @@ decodeExbtnControl(SDL_Surface* surface, const char* ctl_str,
                 sprite_no2 = getNumberFromBuffer(&ctl_str);
             }
             for (i = sprite_no; i <= sprite_no2; i++)
-                refreshSprite(surface, i, false, cell_no, 0, 0);
+                refreshSprite(i, false, cell_no, 0, 0);
         }
         else if (com == 'P' || com == 'p') {
             sprite_no = getNumberFromBuffer(&ctl_str);
@@ -1475,8 +1508,8 @@ decodeExbtnControl(SDL_Surface* surface, const char* ctl_str,
             }
             else
                 cell_no = 0;
-            refreshSprite(surface, sprite_no, true, cell_no, check_src_rect,
-                check_dst_rect);
+            refreshSprite(sprite_no, true, cell_no,
+			  check_src_rect, check_dst_rect);
         }
         else if (com == 'S' || com == 's') {
             sprite_no = getNumberFromBuffer(&ctl_str);
@@ -1590,7 +1623,8 @@ void PonscripterLabel::saveEnvData()
         writeInt(DEFAULT_VOLUME - se_volume, output_flag);
         writeInt(DEFAULT_VOLUME - music_volume, output_flag);
         writeInt(kidokumode_flag ? 1 : 0, output_flag);
-        writeInt(0, output_flag); // ?
+        writeChar(0, output_flag); // ?
+        writeInt(1000, output_flag);
 
         if (i == 1) break;
         allocFileIOBuf();
@@ -1603,19 +1637,9 @@ void PonscripterLabel::saveEnvData()
 
 int PonscripterLabel::refreshMode()
 {
-    int ret = REFRESH_NORMAL_MODE;
-
-    if (next_display_mode == TEXT_DISPLAY_MODE
-        || (system_menu_mode == SYSTEM_NULL)
-        && erase_text_window_mode == 0
-        && (current_refresh_mode & REFRESH_SHADOW_MODE)
-        && text_on_flag) {
-        ret = refresh_shadow_text_mode;
-    }
-
-    if (system_menu_mode == SYSTEM_NULL) current_refresh_mode = ret;
-
-    return ret;
+    return display_mode == TEXT_DISPLAY_MODE
+	 ? refresh_shadow_text_mode
+	 : REFRESH_NORMAL_MODE;
 }
 
 

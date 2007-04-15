@@ -2,7 +2,7 @@
  *
  *  PonscripterLabel_file.cpp - FILE I/O of Ponscripter
  *
- *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this
+ *  Copyright (c) 2001-2007 Ogapee (original ONScripter, of which this
  *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
@@ -43,7 +43,7 @@ extern "C" void c2pstrcpy(Str255 dst, const char* src);
 
 #define SAVEFILE_MAGIC_NUMBER "ONS"
 #define SAVEFILE_VERSION_MAJOR 2
-#define SAVEFILE_VERSION_MINOR 2
+#define SAVEFILE_VERSION_MINOR 4
 
 #define READ_LENGTH 4096
 
@@ -505,8 +505,7 @@ int PonscripterLabel::loadSaveFile(int no)
     num_chars_in_sentence = 0;
     cached_text_buffer = current_text_buffer;
 
-    display_mode = next_display_mode = TEXT_DISPLAY_MODE;
-    current_refresh_mode = REFRESH_NORMAL_MODE;
+    display_mode = shelter_display_mode = TEXT_DISPLAY_MODE;
 
     event_mode = tmp_event_mode;
     if (event_mode & WAIT_BUTTON_MODE) event_mode = WAIT_SLEEP_MODE;
@@ -564,7 +563,7 @@ int PonscripterLabel::saveSaveFile(int no)
         }
 
         size_t magic_len = strlen(SAVEFILE_MAGIC_NUMBER) + 2;
-        sprintf(filename, RELATIVEPATH "sav%csave%d.dat", DELIMITER, no);
+        sprintf(filename, "sav%csave%d.dat", DELIMITER, no);
         saveFileIOBuf(filename, magic_len);
     }
 

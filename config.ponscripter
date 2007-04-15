@@ -16,7 +16,8 @@ endif
 
 ifdef NARCI
 CFLAGS := $(CFLAGS) -D 'EMBOLDEN=font->embolden && font->currsize < 20' -DKERNING
-RESOURCES = $(GAME).png =icon.png $(foreach n,0 1 2 3 4 5 6 7,narci_fonts/face$(n).ttf =face$(n).ttf)
+RESOURCES = $(GAME).png =icon.png \
+            $(foreach n,0 1 2 3 4 5 6 7,narci_fonts/face$(n).ttf =face$(n).ttf)
 RCFILE = $(GAME).rc
 
 .PHONY: fonts

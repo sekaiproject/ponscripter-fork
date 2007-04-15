@@ -2,7 +2,7 @@
  *
  *  ScriptParser_command.cpp - Define command executer of Ponscripter
  *
- *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this
+ *  Copyright (c) 2001-2007 Ogapee (original ONScripter, of which this
  *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
@@ -132,7 +132,7 @@ int ScriptParser::textgosubCommand()
 {
     if (current_mode != DEFINE_MODE) errorAndExit("textgosub: not in the define section");
 
-    setStr(&textgosub_label, script_h.readLabel() + 1);
+    setStr(&textgosub_label, script_h.readStr() + 1);
     script_h.enableTextgosub(true);
 
     return RET_CONTINUE;
@@ -346,12 +346,18 @@ int ScriptParser::rmenuCommand()
 
 int ScriptParser::returnCommand()
 {
-    if (!last_nest_info->previous || last_nest_info->nest_mode != NestInfo::LABEL)
+    if (!last_nest_info->previous ||
+	last_nest_info->nest_mode != NestInfo::LABEL)
         errorAndExit("return: not in gosub");
 
     current_label_info = script_h.getLabelByAddress(last_nest_info->next_script);
     current_line = script_h.getLineByAddress(last_nest_info->next_script);
-    script_h.setCurrent(last_nest_info->next_script);
+
+    char *buf = script_h.getNext();
+    if (buf[0] == 0x0a || buf[0] == ':' || buf[0] == ';')
+	script_h.setCurrent(last_nest_info->next_script);
+    else
+	setCurrentLabel(script_h.readStr() + 1);
 
     last_nest_info = last_nest_info->previous;
     delete last_nest_info->next;
@@ -363,9 +369,10 @@ int ScriptParser::returnCommand()
 
 int ScriptParser::pretextgosubCommand()
 {
-    if (current_mode != DEFINE_MODE) errorAndExit("pretextgosub: not in the define section");
+    if (current_mode != DEFINE_MODE)
+	errorAndExit("pretextgosub: not in the define section");
 
-    setStr(&pretextgosub_label, script_h.readLabel() + 1);
+    setStr(&pretextgosub_label, script_h.readStr() + 1);
 
     return RET_CONTINUE;
 }
@@ -373,7 +380,8 @@ int ScriptParser::pretextgosubCommand()
 
 int ScriptParser::numaliasCommand()
 {
-    if (current_mode != DEFINE_MODE) errorAndExit("numalias: numalias: not in the define section");
+    if (current_mode != DEFINE_MODE)
+	errorAndExit("numalias: numalias: not in the define section");
 
     script_h.readLabel();
     const char* save_buf = script_h.saveStringBuffer();
@@ -387,16 +395,15 @@ int ScriptParser::numaliasCommand()
 
 int ScriptParser::nsadirCommand()
 {
-    if (current_mode != DEFINE_MODE) errorAndExit("nsadir: not in the define section");
+    if (current_mode != DEFINE_MODE)
+	errorAndExit("nsadir: not in the define section");
 
     const char* buf = script_h.readStr();
 
-    if (strlen(nsa_path) > 0) {
-        delete[] nsa_path;
-    }
+    if (nsa_path) delete[] nsa_path;
 
     nsa_path = new char[strlen(buf) + 2];
-    sprintf(nsa_path, RELATIVEPATH "%s%c", buf, DELIMITER);
+    sprintf(nsa_path, "%s%c", buf, DELIMITER);
 
     return RET_CONTINUE;
 }
@@ -437,7 +444,7 @@ int ScriptParser::nextCommand()
     val = script_h.variable_data[last_nest_info->var_no].num;
 
     if (break_flag
-        || last_nest_info->step >= 0 && val > last_nest_info->to
+        || last_nest_info->step > 0 && val > last_nest_info->to
         || last_nest_info->step < 0 && val < last_nest_info->to) {
         break_flag = false;
         last_nest_info = last_nest_info->previous;
@@ -656,9 +663,10 @@ int ScriptParser::lookbackcolorCommand()
 
 int ScriptParser::loadgosubCommand()
 {
-    if (current_mode != DEFINE_MODE) errorAndExit("loadgosub: not in the define section");
+    if (current_mode != DEFINE_MODE)
+	errorAndExit("loadgosub: not in the define section");
 
-    setStr(&loadgosub_label, script_h.readLabel() + 1);
+    setStr(&loadgosub_label, script_h.readStr() + 1);
 
     return RET_CONTINUE;
 }
@@ -666,7 +674,8 @@ int ScriptParser::loadgosubCommand()
 
 int ScriptParser::linepageCommand()
 {
-    if (current_mode != DEFINE_MODE) errorAndExit("linepage: not in the define section");
+    if (current_mode != DEFINE_MODE)
+	errorAndExit("linepage: not in the define section");
 
     if (script_h.isName("linepage2")) {
         linepage_mode = 2;
@@ -790,23 +799,15 @@ int ScriptParser::ifCommand()
     while (1) {
         if (script_h.compareString("fchk")) {
             script_h.readLabel();
-            if (script_h.getNext()[0] == '*')
-                buf = script_h.readLabel();
-            else
-                buf = script_h.readStr();
+	    buf = script_h.readStr();
 
             f = (script_h.findAndAddLog(script_h.log_info[ScriptHandler::FILE_LOG], buf, false) != NULL);
-            //printf("fchk %s(%d,%d) ", tmp_string_buffer, (findAndAddFileLog( tmp_string_buffer, fasle )), condition_flag );
         }
         else if (script_h.compareString("lchk")) {
             script_h.readLabel();
-            if (script_h.getNext()[0] == '*')
-                buf = script_h.readLabel();
-            else
-                buf = script_h.readStr();
+	    buf = script_h.readStr();
 
             f = (script_h.findAndAddLog(script_h.log_info[ScriptHandler::LABEL_LOG], buf + 1, false) != NULL);
-            //printf("lchk %s (%d,%d)\n", buf, f, condition_flag );
         }
         else {
             int no = script_h.readInt();
@@ -902,7 +903,7 @@ int ScriptParser::humanzCommand()
 
 int ScriptParser::gotoCommand()
 {
-    setCurrentLabel(script_h.readLabel() + 1);
+    setCurrentLabel(script_h.readStr() + 1);
 
     return RET_CONTINUE;
 }
@@ -922,7 +923,7 @@ void ScriptParser::gosubReal(const char* label, char* next_script)
 
 int ScriptParser::gosubCommand()
 {
-    const char* buf = script_h.readLabel();
+    const char* buf = script_h.readStr();
     gosubReal(buf + 1, script_h.getNext());
 
     return RET_CONTINUE;
@@ -931,7 +932,8 @@ int ScriptParser::gosubCommand()
 
 int ScriptParser::globalonCommand()
 {
-    if (current_mode != DEFINE_MODE) errorAndExit("globalon: not in the define section");
+    if (current_mode != DEFINE_MODE)
+	errorAndExit("globalon: not in the define section");
 
     globalon_flag = true;
 
@@ -988,8 +990,8 @@ int ScriptParser::forCommand()
         errorAndExit("for: no integer variable.");
 
     last_nest_info->var_no = script_h.current_variable.var_no;
-    if (last_nest_info->var_no < 0
-        || last_nest_info->var_no >= VARIABLE_RANGE)
+    if (last_nest_info->var_no < 0 ||
+        last_nest_info->var_no >= VARIABLE_RANGE)
         last_nest_info->var_no = VARIABLE_RANGE;
 
     script_h.pushVariable();
@@ -998,7 +1000,8 @@ int ScriptParser::forCommand()
         errorAndExit("for: no =");
 
     script_h.setCurrent(script_h.getNext() + 1);
-    script_h.setInt(&script_h.pushed_variable, script_h.readInt());
+    int from = script_h.readInt();
+    script_h.setInt(&script_h.pushed_variable, from);
 
     if (!script_h.compareString("to"))
         errorAndExit("for: no to");
@@ -1015,6 +1018,9 @@ int ScriptParser::forCommand()
         last_nest_info->step = 1;
     }
 
+    break_flag = last_nest_info->step > 0 && from > last_nest_info->to ||
+		 last_nest_info->step < 0 && from < last_nest_info->to;
+    
     /* ---------------------------------------- */
     /* Step forward callee's label info */
     last_nest_info->next_script = script_h.getNext();
@@ -1025,7 +1031,8 @@ int ScriptParser::forCommand()
 
 int ScriptParser::filelogCommand()
 {
-    if (current_mode != DEFINE_MODE) errorAndExit("filelog: not in the define section");
+    if (current_mode != DEFINE_MODE)
+	errorAndExit("filelog: not in the define section");
 
     filelog_flag = true;
     readLog(script_h.log_info[ScriptHandler::FILE_LOG]);
@@ -1036,7 +1043,8 @@ int ScriptParser::filelogCommand()
 
 int ScriptParser::effectcutCommand()
 {
-    if (current_mode != DEFINE_MODE) errorAndExit("effectcut: not in the define section.");
+    if (current_mode != DEFINE_MODE)
+	errorAndExit("effectcut: not in the define section.");
 
     effect_cut_flag = true;
 
@@ -1248,7 +1256,7 @@ int ScriptParser::breakCommand()
         delete last_nest_info->next;
         last_nest_info->next = NULL;
 
-        setCurrentLabel(script_h.readLabel() + 1);
+        setCurrentLabel(script_h.readStr() + 1);
     }
     else {
         break_flag = true;

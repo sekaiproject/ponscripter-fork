@@ -126,6 +126,12 @@ int PonscripterLabel::loadSaveFile2(int file_version)
     readInt(); // 0
     readInt(); // 0
 
+    if (file_version >= 203) {
+	readInt(); // -1
+	readInt(); // -1
+	readInt(); // -1
+    }
+    
     for (i = 0; i < MAX_SPRITE_NUM; i++) {
         sprite_info[i].remove();
         readStr(&sprite_info[i].image_name);
@@ -140,6 +146,7 @@ int PonscripterLabel::loadSaveFile2(int file_version)
         else sprite_info[i].visible = false;
 
         sprite_info[i].current_cell = readInt();
+	if (file_version >= 203) readInt(); // -1
     }
 
     readVariables(0, script_h.global_variable_border);
@@ -346,6 +353,7 @@ int PonscripterLabel::loadSaveFile2(int file_version)
     }
 
     if (file_version >= 201) {
+	// Ruby support has been stripped out.
         char* ignored = NULL;
         readInt();
         readInt();
@@ -354,17 +362,48 @@ int PonscripterLabel::loadSaveFile2(int file_version)
         if (ignored) delete[] ignored;
     }
 
+    if (file_version >= 204){
+        readInt();
+        
+        for (i = 0; i < MAX_SPRITE2_NUM; ++i) {
+            sprite2_info[i].remove();
+            readStr(&sprite2_info[i].image_name);
+            if (sprite2_info[i].image_name) {
+                parseTaggedString(&sprite2_info[i]);
+                setupAnimationInfo(&sprite2_info[i]);
+            }
+            sprite2_info[i].pos.x = readInt() * screen_ratio1 / screen_ratio2;
+            sprite2_info[i].pos.y = readInt() * screen_ratio1 / screen_ratio2;
+            sprite2_info[i].scale_x = readInt();
+            sprite2_info[i].scale_y = readInt();
+            sprite2_info[i].rot = readInt();
+	    sprite2_info[i].visible = readInt() == 1;
+            j = readInt();
+	    sprite2_info[i].trans = j == -1 ? 256 : j;
+            sprite2_info[i].blending_mode = readInt();
+        }
+
+        readInt();
+        readInt();
+        readInt();
+        readInt();
+        readInt();
+        readInt();
+    }
+    
     int text_num = readInt();
     start_text_buffer = current_text_buffer;
     for (i = 0; i < text_num; i++) {
         clearCurrentTextBuffer();
         char c;
         while ((c = readChar())) current_text_buffer->addBuffer(c);
+	if (file_version == 203) readChar();
         current_text_buffer = current_text_buffer->next;
     }
-
     clearCurrentTextBuffer();
 
+    if (file_version >= 204) { readInt(); readInt(); }
+    
     i = readInt();
     current_label_info = script_h.getLabelByLine(i);
     current_line = i - current_label_info.start_line;
@@ -379,8 +418,7 @@ int PonscripterLabel::loadSaveFile2(int file_version)
 
     script_h.setCurrent(buf);
 
-    display_mode = next_display_mode = NORMAL_DISPLAY_MODE;
-    current_refresh_mode = REFRESH_NORMAL_MODE;
+    display_mode = shelter_display_mode = NORMAL_DISPLAY_MODE;
 
     clickstr_state = CLICK_NONE;
     event_mode = 0; //WAIT_SLEEP_MODE;
@@ -450,12 +488,17 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
     writeInt(0, output_flag);
     writeInt(0, output_flag);
 
+    writeInt(-1, output_flag);
+    writeInt(-1, output_flag);
+    writeInt(-1, output_flag);
+    
     for (i = 0; i < MAX_SPRITE_NUM; i++) {
         writeStr(sprite_info[i].image_name, output_flag);
         writeInt(sprite_info[i].pos.x * screen_ratio2 / screen_ratio1, output_flag);
         writeInt(sprite_info[i].pos.y * screen_ratio2 / screen_ratio1, output_flag);
         writeInt(sprite_info[i].visible ? 1 : 0, output_flag);
         writeInt(sprite_info[i].current_cell, output_flag);
+	writeInt(-1, output_flag);
     }
 
     writeVariables(0, script_h.global_variable_border, output_flag);
@@ -575,10 +618,37 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
     writeStr(loop_bgm_name[0], output_flag);
     writeStr(loop_bgm_name[1], output_flag);
 
+    // Ruby is gone, gone, gone.
     writeInt(0, output_flag);
     writeInt(0, output_flag);
     writeInt(0, output_flag);
     writeStr("", output_flag);
+
+    writeInt(0, output_flag);
+
+    for (i = 0; i < MAX_SPRITE2_NUM; ++i) {
+        writeStr(sprite2_info[i].image_name, output_flag);
+        writeInt(sprite2_info[i].pos.x * screen_ratio2 / screen_ratio1,
+		 output_flag);
+        writeInt(sprite2_info[i].pos.y * screen_ratio2 / screen_ratio1,
+		 output_flag);
+        writeInt(sprite2_info[i].scale_x, output_flag);
+        writeInt(sprite2_info[i].scale_y, output_flag);
+        writeInt(sprite2_info[i].rot, output_flag);
+        writeInt(sprite2_info[i].visible, output_flag);
+        if (sprite2_info[i].trans == 256)
+            writeInt(-1, output_flag);
+        else
+            writeInt(sprite2_info[i].trans, output_flag);
+        writeInt(sprite2_info[i].blending_mode, output_flag);
+    }
+
+    writeInt(0, output_flag);
+    writeInt(0, output_flag);
+    writeInt(0, output_flag);
+    writeInt(0, output_flag);
+    writeInt(0, output_flag);
+    writeInt(0, output_flag);
 
     TextBuffer* tb = current_text_buffer;
     int text_num = 0;
@@ -594,6 +664,9 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
         writeChar(0, output_flag);
         tb = tb->next;
     }
+
+    writeInt(0, output_flag);
+    writeInt(0, output_flag);
 
     writeInt(current_label_info.start_line + current_line, output_flag);
     char* buf = script_h.getAddressByLine(current_label_info.start_line + current_line);

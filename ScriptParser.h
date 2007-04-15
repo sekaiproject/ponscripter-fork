@@ -2,7 +2,7 @@
  *
  *  ScriptParser.h - Define block parser of Ponscripter
  *
- *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this
+ *  Copyright (c) 2001-2007 Ogapee (original ONScripter, of which this
  *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
@@ -268,7 +268,7 @@ protected:
     bool effect_cut_flag;
 
     int readEffect(EffectLink* effect);
-    EffectLink* parseEffect();
+    EffectLink* parseEffect(bool init_flag);
 
     /* ---------------------------------------- */
     /* Lookback related variables */

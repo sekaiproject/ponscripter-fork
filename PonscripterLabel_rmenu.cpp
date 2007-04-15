@@ -2,7 +2,7 @@
  *
  *  PonscripterLabel_rmenu.cpp - Right click menu handler of Ponscripter
  *
- *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this
+ *  Copyright (c) 2001-2007 Ogapee (original ONScripter, of which this
  *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
@@ -48,7 +48,8 @@ void PonscripterLabel::enterSystemCall()
     event_mode = IDLE_EVENT_MODE;
     system_menu_enter_flag = true;
     yesno_caller = SYSTEM_NULL;
-    next_display_mode = TEXT_DISPLAY_MODE;
+    shelter_display_mode = display_mode;
+    display_mode = TEXT_DISPLAY_MODE;
     shelter_draw_cursor_flag = draw_cursor_flag;
     draw_cursor_flag = false;
 }
@@ -57,8 +58,8 @@ void PonscripterLabel::enterSystemCall()
 void PonscripterLabel::leaveSystemCall(bool restore_flag)
 {
     current_font = &sentence_font;
-    next_display_mode = display_mode;
-    system_menu_mode  = SYSTEM_NULL;
+    display_mode = shelter_display_mode;
+    system_menu_mode = SYSTEM_NULL;
     system_menu_enter_flag = false;
     yesno_caller = SYSTEM_NULL;
     key_pressed_flag = false;
@@ -259,7 +260,7 @@ void PonscripterLabel::executeWindowErase()
         leaveSystemCall();
     }
     else {
-        next_display_mode = NORMAL_DISPLAY_MODE;
+        display_mode = NORMAL_DISPLAY_MODE;
         flush(mode_saya_flag ? REFRESH_SAYA_MODE : REFRESH_NORMAL_MODE);
 
         event_mode = WAIT_BUTTON_MODE;
@@ -465,6 +466,7 @@ void PonscripterLabel::executeSystemYesNo()
                 indent_offset = 0;
                 line_enter_status    = 0;
                 string_buffer_offset = 0;
+		break_flag = false;
 
                 if (loadgosub_label)
                     gosubReal(loadgosub_label, script_h.getCurrent());

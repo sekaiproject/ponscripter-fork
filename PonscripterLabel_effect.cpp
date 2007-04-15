@@ -2,7 +2,7 @@
  *
  *  PonscripterLabel_effect.cpp - Effect executer of Ponscripter
  *
- *  Copyright (c) 2001-2005 Ogapee (original ONScripter, of which this
+ *  Copyright (c) 2001-2007 Ogapee (original ONScripter, of which this
  *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
@@ -41,7 +41,8 @@ int PonscripterLabel::setEffect(EffectLink* effect)
 }
 
 
-int PonscripterLabel::doEffect(EffectLink* effect, AnimationInfo* anim, int effect_image)
+int PonscripterLabel::doEffect(EffectLink* effect, AnimationInfo* anim,
+			       int effect_image, bool clear_dirty_region)
 {
     int prevduration = effect->duration;
     if (ctrl_pressed_status || skip_to_wait) effect->duration = 1;
@@ -49,7 +50,6 @@ int PonscripterLabel::doEffect(EffectLink* effect, AnimationInfo* anim, int effe
     effect_start_time = SDL_GetTicks();
     if (effect_counter == 0) effect_start_time_old = effect_start_time - 1;
 
-    //printf("effect_counter %d timer between %d %d\n",effect_counter,effect_start_time,effect_start_time_old);
     effect_timer_resolution = effect_start_time - effect_start_time_old;
     effect_start_time_old = effect_start_time;
 
@@ -66,14 +66,35 @@ int PonscripterLabel::doEffect(EffectLink* effect, AnimationInfo* anim, int effe
         case COLOR_EFFECT_IMAGE:
         case BG_EFFECT_IMAGE:
         case TACHI_EFFECT_IMAGE:
-            if (effect_no == 1) {
-                refreshSurface(effect_dst_surface, &dirty_rect.bounding_box, refreshMode());
-            }
-            else {
-                refreshSurface(effect_dst_surface, NULL, refreshMode());
-            }
-
-            break;
+	    int refresh_mode = refreshMode();
+	    if (effect_no == 1) {
+		refreshSurface(effect_dst_surface, &dirty_rect.bounding_box,
+			       refresh_mode);
+		if (refresh_mode & REFRESH_SHADOW_MODE)
+		    refreshSurface(accumulation_comp_surface,
+				   &dirty_rect.bounding_box,
+				   (refresh_mode & ~REFRESH_SHADOW_MODE
+				    & ~REFRESH_TEXT_MODE)
+				   | REFRESH_COMP_MODE);
+                else
+                    refreshSurface(accumulation_comp_surface,
+				   &dirty_rect.bounding_box,
+				   refresh_mode | refresh_shadow_text_mode
+				   | REFRESH_COMP_MODE);
+	    }
+	    else {
+		refreshSurface(effect_dst_surface, NULL, refresh_mode);
+		if (refresh_mode & REFRESH_SHADOW_MODE)
+		    refreshSurface(accumulation_comp_surface, NULL,
+				   (refresh_mode & ~REFRESH_SHADOW_MODE
+				    & ~REFRESH_TEXT_MODE)
+				   | REFRESH_COMP_MODE);
+		else
+		    refreshSurface(accumulation_comp_surface, NULL,
+				   refresh_mode | refresh_shadow_text_mode
+				   | REFRESH_COMP_MODE);
+	    }
+	    break;
         }
 
         /* Load mask image */
@@ -340,17 +361,19 @@ int PonscripterLabel::doEffect(EffectLink* effect, AnimationInfo* anim, int effe
 
     effect_counter += effect_timer_resolution;
     if (effect_counter < effect->duration && effect_no != 1) {
-        if (effect_no != 0) flush(REFRESH_NONE_MODE, NULL, false);
-
-        effect->duration = prevduration;
+        if (effect_no)
+	    flush(REFRESH_NONE_MODE, NULL, false);
+	effect->duration = prevduration;
         return RET_WAIT | RET_REREAD;
     }
     else {
-        SDL_BlitSurface(effect_dst_surface, &dirty_rect.bounding_box, accumulation_surface, &dirty_rect.bounding_box);
+        SDL_BlitSurface(effect_dst_surface,   &dirty_rect.bounding_box,
+			accumulation_surface, &dirty_rect.bounding_box);
 
-        if (effect_no != 0) flush(REFRESH_NONE_MODE);
-
-        if (effect_no == 1) effect_counter = 0;
+        if (effect_no)
+	    flush(REFRESH_NONE_MODE, NULL, clear_dirty_region);
+        if (effect_no == 1)
+	    effect_counter = 0;
 
         effect->duration = prevduration;
         event_mode = IDLE_EVENT_MODE;

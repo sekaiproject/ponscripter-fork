@@ -5,6 +5,9 @@
  *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this
  *  is a fork).
  *
+ *  Most of this particular class has in fact been rewritten largely
+ *  from scratch.
+ *
  *  ogapee@aqua.dti2.ne.jp
  *
  *  This program is free software; you can redistribute it and/or
@@ -318,7 +321,8 @@ SDL_Rect FontInfo::getFullArea(int ratio1, int ratio2)
 }
 
 
-SDL_Rect FontInfo::calcUpdatedArea(float start_x, int start_y, int ratio1, int ratio2)
+SDL_Rect FontInfo::calcUpdatedArea(float start_x, int start_y,
+				   int ratio1, int ratio2)
 {
     doSize();
     SDL_Rect rect;

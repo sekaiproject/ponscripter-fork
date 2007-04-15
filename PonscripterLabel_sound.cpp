@@ -2,7 +2,7 @@
  *
  *  PonscripterLabel_sound.cpp - Methods for playing sound
  *
- *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this
+ *  Copyright (c) 2001-2007 Ogapee (original ONScripter, of which this
  *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
@@ -601,8 +601,8 @@ static size_t oc_read_func(void* ptr, size_t size, size_t nmemb, void* datasourc
 {
     OVInfo* ogg_vorbis_info = (OVInfo*) datasource;
 
-    size_t len = size * nmemb;
-    if (ogg_vorbis_info->pos + len > size_t(ogg_vorbis_info->length))
+    ogg_int64_t len = size * nmemb;
+    if (ogg_vorbis_info->pos + len > ogg_vorbis_info->length)
         len = ogg_vorbis_info->length - ogg_vorbis_info->pos;
 
     memcpy(ptr, ogg_vorbis_info->buf + ogg_vorbis_info->pos, len);

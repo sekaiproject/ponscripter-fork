@@ -254,14 +254,15 @@ void PonscripterLabel::makeMonochromeSurface(SDL_Surface* surface, SDL_Rect &cli
     ONSBuf* buf = (ONSBuf*) surface->pixels + clip.y * surface->w + clip.x, c;
 
     SDL_PixelFormat* fmt = surface->format;
+    uchar3* lut = monocro_color_lut;
     for (int i = clip.y; i < clip.y + clip.h; i++) {
         for (int j = clip.x; j < clip.x + clip.w; j++) {
-            c = ((((*buf & fmt->Rmask) >> fmt->Rshift) << fmt->Rloss) * 77 +
-                 (((*buf & fmt->Gmask) >> fmt->Gshift) << fmt->Gloss) * 151 +
-                 (((*buf & fmt->Bmask) >> fmt->Bshift) << fmt->Bloss) * 28) >> 8;
-            *buf++ = ((monocro_color_lut[c][0] >> fmt->Rloss) << surface->format->Rshift |
-                      (monocro_color_lut[c][1] >> fmt->Gloss) << surface->format->Gshift |
-                      (monocro_color_lut[c][2] >> fmt->Bloss) << surface->format->Bshift);
+            c = ((*buf & fmt->Rmask >> fmt->Rshift << fmt->Rloss) * 77 +
+                 (*buf & fmt->Gmask >> fmt->Gshift << fmt->Gloss) * 151 +
+                 (*buf & fmt->Bmask >> fmt->Bshift << fmt->Bloss) * 28) >> 8;
+            *buf++ = lut[c][0] >> fmt->Rloss << surface->format->Rshift
+                   | lut[c][1] >> fmt->Gloss << surface->format->Gshift
+                   | lut[c][2] >> fmt->Bloss << surface->format->Bshift;
         }
 
         buf += surface->w - clip.w;
@@ -271,93 +272,87 @@ void PonscripterLabel::makeMonochromeSurface(SDL_Surface* surface, SDL_Rect &cli
 }
 
 
-void PonscripterLabel::refreshSurface(SDL_Surface* surface, SDL_Rect* clip_src, int refresh_mode)
+void
+PonscripterLabel::refreshSurface(SDL_Surface* surface, SDL_Rect* clip_src,
+				 int refresh_mode)
 {
     if (refresh_mode == REFRESH_NONE_MODE) return;
 
     SDL_Rect clip = { 0, 0, surface->w, surface->h };
-    if (clip_src) if (AnimationInfo::doClipping(&clip, clip_src)) return;
+    if (clip_src && AnimationInfo::doClipping(&clip, clip_src)) return;
 
+    bool is_drawable = !(refresh_mode & REFRESH_COMP_MODE);
     int i, top;
+    
+    if (is_drawable) {
+	SDL_FillRect(surface, &clip, SDL_MapRGB(surface->format, 0, 0, 0));
+	drawTaggedSurface(surface, &bg_info, clip);
+	if (!all_sprite_hide_flag) {
+	    if (z_order < 10 && refresh_mode & REFRESH_SAYA_MODE)
+		top = 9;
+	    else
+		top = z_order;
+	    
+	    for (i = MAX_SPRITE_NUM - 1; i > top; --i)
+		if (sprite_info[i].image_surface && sprite_info[i].visible)
+		    drawTaggedSurface(surface, &sprite_info[i], clip);
+	}
 
-    SDL_FillRect(surface, &clip, SDL_MapRGB(surface->format, 0, 0, 0));
-
-    drawTaggedSurface(surface, &bg_info, clip);
-
-    if (!all_sprite_hide_flag) {
-        if (z_order < 10 && refresh_mode & REFRESH_SAYA_MODE)
-            top = 9;
-        else
-            top = z_order;
-
-        for (i = MAX_SPRITE_NUM - 1; i > top; i--) {
-            if (sprite_info[i].image_surface && sprite_info[i].visible) {
-                drawTaggedSurface(surface, &sprite_info[i], clip);
-            }
-        }
+	for (i = 0; i < 3; ++i)
+	    if (human_order[2 - i] >= 0 &&
+		tachi_info[human_order[2 - i]].image_surface)
+		drawTaggedSurface(surface, &tachi_info[human_order[2 - i]],
+				  clip);
     }
-
-    for (i = 0; i < 3; i++) {
-        if (human_order[2 - i] >= 0 && tachi_info[human_order[2 - i]].image_surface) {
-            drawTaggedSurface(surface, &tachi_info[human_order[2 - i]], clip);
-        }
-    }
-
+    
     if (windowback_flag) {
-        if (nega_mode == 1) makeNegaSurface(surface, clip);
-
-        if (monocro_flag) makeMonochromeSurface(surface, clip);
-
-        if (nega_mode == 2) makeNegaSurface(surface, clip);
-
+	if (is_drawable) {
+	    if (nega_mode == 1) makeNegaSurface(surface, clip);
+	    if (monocro_flag) makeMonochromeSurface(surface, clip);
+	    if (nega_mode == 2) makeNegaSurface(surface, clip);
+	    SDL_BlitSurface(surface, &clip, accumulation_comp_surface, &clip);
+	}
         if (refresh_mode & REFRESH_SHADOW_MODE)
             shadowTextDisplay(surface, clip);
-
         if (refresh_mode & REFRESH_TEXT_MODE)
             text_info.blendOnSurface(surface, 0, 0, clip);
+	is_drawable = true;
     }
 
-    if (!all_sprite_hide_flag) {
-        if (refresh_mode & REFRESH_SAYA_MODE)
-            top = 10;
-        else
-            top = 0;
+    if (is_drawable) {
+	if (!all_sprite_hide_flag) {
+	    if (refresh_mode & REFRESH_SAYA_MODE)
+		top = 10;
+	    else
+		top = 0;
 
-        for (i = z_order; i >= top; i--) {
-            if (sprite_info[i].image_surface && sprite_info[i].visible) {
-                drawTaggedSurface(surface, &sprite_info[i], clip);
-            }
-        }
+	    for (i = z_order; i >= top; --i)
+		if (sprite_info[i].image_surface && sprite_info[i].visible)
+		    drawTaggedSurface(surface, &sprite_info[i], clip);
+	}
+	if (!windowback_flag) {
+	    if (nega_mode == 1) makeNegaSurface(surface, clip);
+	    if (monocro_flag) makeMonochromeSurface(surface, clip);
+	    if (nega_mode == 2) makeNegaSurface(surface, clip);
+	}
+	if (!(refresh_mode & REFRESH_SAYA_MODE)) {
+	    for (i = 0; i < MAX_PARAM_NUM; ++i)
+		if (bar_info[i])
+		    drawTaggedSurface(surface, bar_info[i], clip);
+	    for (i = 0; i < MAX_PARAM_NUM; ++i)
+		if (prnum_info[i])
+		    drawTaggedSurface(surface, prnum_info[i], clip);
+	}
     }
 
     if (!windowback_flag) {
-        if (nega_mode == 1) makeNegaSurface(surface, clip);
-
-        if (monocro_flag) makeMonochromeSurface(surface, clip);
-
-        if (nega_mode == 2) makeNegaSurface(surface, clip);
-    }
-
-    if (!(refresh_mode & REFRESH_SAYA_MODE)) {
-        for (i = 0; i < MAX_PARAM_NUM; i++) {
-            if (bar_info[i]) {
-                drawTaggedSurface(surface, bar_info[i], clip);
-            }
-        }
-
-        for (i = 0; i < MAX_PARAM_NUM; i++) {
-            if (prnum_info[i]) {
-                drawTaggedSurface(surface, prnum_info[i], clip);
-            }
-        }
-    }
-
-    if (!windowback_flag) {
+	if (is_drawable)
+            SDL_BlitSurface(surface, &clip, accumulation_comp_surface, &clip);
         if (refresh_mode & REFRESH_SHADOW_MODE)
             shadowTextDisplay(surface, clip);
-
         if (refresh_mode & REFRESH_TEXT_MODE)
             text_info.blendOnSurface(surface, 0, 0, clip);
+	is_drawable = true;
     }
 
     if (refresh_mode & REFRESH_CURSOR_MODE && !textgosub_label) {
@@ -367,29 +362,28 @@ void PonscripterLabel::refreshSurface(SDL_Surface* surface, SDL_Rect* clip_src, 
             drawTaggedSurface(surface, &cursor_info[CURSOR_NEWPAGE_NO], clip);
     }
 
-    ButtonLink* p_button_link = root_button_link.next;
-    while (p_button_link) {
-        if (p_button_link->show_flag > 0) {
-            drawTaggedSurface(surface, p_button_link->anim[p_button_link->show_flag - 1], clip);
-        }
-
-        p_button_link = p_button_link->next;
-    }
+    ButtonLink* bl = &root_button_link;
+    while ((bl = bl->next))
+        if (bl->show_flag > 0)
+            drawTaggedSurface(surface, bl->anim[bl->show_flag - 1], clip);
 }
 
 
-void PonscripterLabel::refreshSprite(SDL_Surface* surface, int sprite_no, bool active_flag, int cell_no, SDL_Rect* check_src_rect, SDL_Rect* check_dst_rect)
+void
+PonscripterLabel::refreshSprite(int sprite_no, bool active_flag, int cell_no,
+				SDL_Rect* check_src_rect,
+				SDL_Rect* check_dst_rect)
 {
     if (sprite_info[sprite_no].image_name
         && (sprite_info[sprite_no].visible != active_flag
             || (cell_no >= 0 && sprite_info[sprite_no].current_cell != cell_no)
-            || AnimationInfo::doClipping(check_src_rect, &sprite_info[sprite_no].pos) == 0
-            || AnimationInfo::doClipping(check_dst_rect, &sprite_info[sprite_no].pos) == 0)) {
-        if (cell_no >= 0)
-            sprite_info[sprite_no].setCell(cell_no);
-
+            || AnimationInfo::doClipping(check_src_rect,
+					 &sprite_info[sprite_no].pos) == 0
+            || AnimationInfo::doClipping(check_dst_rect,
+					 &sprite_info[sprite_no].pos) == 0))
+    {
+        if (cell_no >= 0) sprite_info[sprite_no].setCell(cell_no);
         sprite_info[sprite_no].visible = active_flag;
-
         dirty_rect.add(sprite_info[sprite_no].pos);
     }
 }
