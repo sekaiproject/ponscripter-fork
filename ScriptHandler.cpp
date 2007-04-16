@@ -1065,6 +1065,10 @@ int ScriptHandler::labelScript()
         }
     }
 
+    // Index label names.
+    for (LabelInfo::iterator i = label_info.begin(); i != label_info.end(); ++i)
+	label_names[i->name] = i;
+    
     return 0;
 }
 
@@ -1180,10 +1184,10 @@ ScriptHandler::LabelInfo::iterator ScriptHandler::findLabel(string label)
     for (string::size_type i = 0; i < label.size(); ++i)
         if ('A' <= label[i] && label[i] <= 'Z')
 	    label[i] += 'a' - 'A';
- 
-    for (LabelInfo::iterator i = label_info.begin(); i < label_info.end(); ++i)
-	if (i->name == label)
-            return i;
+
+    LabelInfo::dic::iterator e = label_names.find(label);
+    if (e != label_names.end())
+	return e->second;
 
     label = "Label \"" + label + "\" is not found.";
     errorAndExit(label.c_str());

@@ -34,9 +34,20 @@
 #include <string>
 using std::string;
 
+#ifdef __GNU_C__
+#include <ext/hash_map>
+#define DICTIONARY __gnu_cxx::hash_map
+#else
+#include <map>
+#define DICTIONARY std::map
+#endif
+
+template <typename T> inline T pred(T t) { return --t; }
+template <typename T> inline T succ(T t) { return ++t; }
+
 #include "BaseReader.h"
 
-#define VARIABLE_RANGE 4096
+const int VARIABLE_RANGE = 4096;
 
 typedef unsigned char uchar3[3];
 
@@ -48,6 +59,7 @@ public:
     struct LabelInfo {
 	typedef std::vector<LabelInfo> vec;
 	typedef vec::iterator iterator;
+	typedef DICTIONARY<string, iterator> dic;
 	string name;
         char* label_header;
         char* start_address;
@@ -317,6 +329,7 @@ private:
     char* str_string_buffer; // updated only by readStr
 
     LabelInfo::vec label_info;
+    LabelInfo::dic label_names;
     
     bool  skip_enabled;
     bool  kidokuskip_flag;
