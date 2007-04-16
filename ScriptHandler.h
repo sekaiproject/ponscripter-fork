@@ -46,11 +46,14 @@ public:
            END_COMMA = 1,
            END_1BYTE_CHAR = 2 };
     struct LabelInfo {
+	typedef std::vector<LabelInfo> vec;
+	typedef vec::iterator iterator;
 	string name;
         char* label_header;
         char* start_address;
         int start_line;
         int num_of_lines;
+	LabelInfo() : start_address(NULL) {}
     };
 
     struct ArrayVariable {
@@ -66,7 +69,7 @@ public:
         ~ArrayVariable() {
             if (data) delete[] data;
         };
-        ArrayVariable& operator =(const ArrayVariable& av)
+        ArrayVariable& operator=(const ArrayVariable& av)
         {
             no = av.no;
             num_dim = av.num_dim;
@@ -286,7 +289,7 @@ private:
         };
     };
 
-    int findLabel(string label);
+    LabelInfo::iterator findLabel(string label);
 
     char* checkComma(char* buf);
     void parseStr(char** buf);
@@ -313,9 +316,8 @@ private:
     char* saved_string_buffer; // updated only by saveStringBuffer
     char* str_string_buffer; // updated only by readStr
 
-    LabelInfo* label_info;
-    int num_of_labels;
-
+    LabelInfo::vec label_info;
+    
     bool  skip_enabled;
     bool  kidokuskip_flag;
     char* kidoku_buffer;

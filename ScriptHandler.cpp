@@ -38,8 +38,6 @@ BaseReader * ScriptHandler::cBR = NULL;
 ScriptHandler::ScriptHandler()
     : game_identifier("Ponscripter")
 {
-    num_of_labels = 0;
-    
     script_buffer = NULL;
     kidoku_buffer = NULL;
     log_info[LABEL_LOG].filename = "NScrllog.dat";
@@ -498,20 +496,19 @@ char* ScriptHandler::getAddressByLine(int line)
 
 ScriptHandler::LabelInfo ScriptHandler::getLabelByAddress(char* address)
 {
-    int i;
-    for (i = 0; i < num_of_labels - 1; i++) {
+    LabelInfo::vec::size_type i;
+    for (i = 0; i < label_info.size() - 1; i++) {
         if (label_info[i + 1].start_address > address)
             return label_info[i];
     }
-
     return label_info[i];
 }
 
 
 ScriptHandler::LabelInfo ScriptHandler::getLabelByLine(int line)
 {
-    int i;
-    for (i = 0; i < num_of_labels - 1; i++) {
+    LabelInfo::vec::size_type i;
+    for (i = 0; i < label_info.size() - 1; i++) {
         if (label_info[i + 1].start_line > line)
             return label_info[i];
     }
@@ -881,8 +878,6 @@ int ScriptHandler::readScriptSub(FILE* fp, char** buf, int encrypt_mode)
             cr_flag = false;
         }
 
-	if (ch == '*' && newline_flag) ++num_of_labels;
-	
         if (ch == 0x0d) {
             cr_flag = true;
             continue;
@@ -1037,32 +1032,32 @@ int ScriptHandler::readScript(const char* path)
 
 int ScriptHandler::labelScript()
 {
-    int   label_counter = -1;
-    int   current_line  = 0;
+    int current_line = 0;
     char* buf = script_buffer;
-    label_info = new LabelInfo[num_of_labels + 1];
+    label_info.clear();
 
     while (buf < script_buffer + script_buffer_length) {
         SKIP_SPACE(buf);
         if (*buf == '*') {
             setCurrent(buf);
             readLabel();
-	    ++label_counter;
-	    label_info[label_counter].name = string_buffer + 1;
-            label_info[label_counter].label_header = buf;
-            label_info[label_counter].num_of_lines = 1;
-            label_info[label_counter].start_line = current_line;
+	    LabelInfo new_label;
+	    new_label.name = string_buffer + 1;
+            new_label.label_header = buf;
+            new_label.num_of_lines = 1;
+            new_label.start_line = current_line;
 	    buf = getNext();
             if (*buf == 0x0a) {
                 buf++;
                 SKIP_SPACE(buf);
                 current_line++;
             }
-	    label_info[label_counter].start_address = buf;
+	    new_label.start_address = buf;
+	    label_info.push_back(new_label);
         }
         else {
-	    if (label_counter >= 0)
-		label_info[label_counter].num_of_lines++;
+	    if (label_info.size())
+		label_info.back().num_of_lines++;
 
             while (*buf != 0x0a) buf++;
             buf++;
@@ -1070,30 +1065,26 @@ int ScriptHandler::labelScript()
         }
     }
 
-    label_info[num_of_labels].start_address = NULL;
-
     return 0;
 }
 
 
 ScriptHandler::LabelInfo ScriptHandler::lookupLabel(const string& label)
 {
-    int i = findLabel(label);
-
-    findAndAddLog(log_info[LABEL_LOG], label_info[i].name.c_str(), true);
-    return label_info[i];
+    LabelInfo::iterator i = findLabel(label);
+    findAndAddLog(log_info[LABEL_LOG], i->name.c_str(), true);
+    return *i;
 }
 
 
 ScriptHandler::LabelInfo ScriptHandler::lookupLabelNext(const string& label)
 {
-    int i = findLabel(label);
-    if (i + 1 < num_of_labels) {
-        findAndAddLog(log_info[LABEL_LOG], label_info[i+1].name.c_str(), true);
-        return label_info[i + 1];
-     }
-
-    return label_info[num_of_labels];
+    LabelInfo::iterator i = findLabel(label);
+    if (++i != label_info.end()) {
+	findAndAddLog(log_info[LABEL_LOG], i->name.c_str(), true);
+        return *i;
+    }
+    return LabelInfo();
 }
 
 
@@ -1184,20 +1175,19 @@ void ScriptHandler::addStringBuffer(char ch)
 // ----------------------------------------
 // Private methods
 
-int ScriptHandler::findLabel(string label)
+ScriptHandler::LabelInfo::iterator ScriptHandler::findLabel(string label)
 {
     for (string::size_type i = 0; i < label.size(); ++i)
         if ('A' <= label[i] && label[i] <= 'Z')
 	    label[i] += 'a' - 'A';
  
-    for (int i = 0; i < num_of_labels; ++i)
-	if (label_info[i].name == label)
+    for (LabelInfo::iterator i = label_info.begin(); i < label_info.end(); ++i)
+	if (i->name == label)
             return i;
 
     label = "Label \"" + label + "\" is not found.";
     errorAndExit(label.c_str());
-
-    return -1; // dummy
+    return label_info.end(); // dummy
 }
 
 
