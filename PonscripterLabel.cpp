@@ -473,17 +473,15 @@ void PonscripterLabel::setDLLFile(const char* filename)
 
 void PonscripterLabel::setArchivePath(const char* path)
 {
-    if (archive_path) delete[] archive_path;
-    archive_path = new char[strlen(path) + 2];
-    sprintf(archive_path, "%s%c", path, DELIMITER);
+    archive_path = path;
+    archive_path += DELIMITER;
 }
 
 
 void PonscripterLabel::setSavePath(const char* path)
 {
-    if (script_h.save_path) delete[] script_h.save_path;
-    script_h.save_path = new char[strlen(path) + 2];
-    sprintf(script_h.save_path, "%s%c", path, DELIMITER);
+    script_h.save_path = path;
+    script_h.save_path += DELIMITER;
 }
 
 
@@ -531,7 +529,7 @@ void PonscripterLabel::setKeyEXE(const char* filename)
 
 int PonscripterLabel::init()
 {
-    if (archive_path == 0) {
+    if (archive_path.empty()) {
 #ifdef MACOSX
         // On OS X, store archives etc in the application bundle by
         // default.
@@ -542,8 +540,8 @@ int PonscripterLabel::init()
         GetProcessBundleLocation(&psn, &bundle);
         char bpath[32768];
         FSRefMakePath(&bundle, (UInt8*) bpath, 32768);
-        archive_path = new char[strlen(bpath) + 32];
-        sprintf(archive_path, "%s/Contents/Resources/", bpath);
+	archive_path = bpath;
+	archive_path += "/Contents/Resources/";
 #else
         // Otherwise, data is either stored with the executable, or in
         // some unpredictable location that must be defined by using
@@ -559,10 +557,9 @@ int PonscripterLabel::init()
 
     if (open()) return -1;
 
-    if (script_h.save_path == 0) {
+    if (script_h.save_path.empty()) {
         // Per-platform configuration for saved games.
-        const char* gameid = script_h.game_identifier ? script_h.
-                             game_identifier : "Ponscripter";
+        string gameid = script_h.game_identifier;
 #ifdef WIN32
         // On Windows, store in [Profiles]/All Users/Application Data.
         // TODO: optionally permit saves to be per-user rather than shared?
@@ -574,10 +571,9 @@ int PonscripterLabel::init()
                 char hpath[MAX_PATH];
                 HRESULT res = gfp(0, 0x0023, 0, 0, hpath);
                 if (res != S_FALSE && res != E_FAIL && res != E_INVALIDARG) {
-                    script_h.
-                    save_path = new char[strlen(hpath) + strlen(gameid) + 3];
-                    sprintf(script_h.save_path, "%s/%s/", hpath, gameid);
-                    CreateDirectory(script_h.save_path, 0);
+		    script_h.save_path = hpath;
+		    script_h.save_path += "/" + gameid + "/";
+                    CreateDirectory(script_h.save_path.c_str(), 0);
                 }
             }
             FreeLibrary(shdll);
@@ -602,20 +598,18 @@ int PonscripterLabel::init()
         // On Linux (and other POSIX-a-likes), place in ~/.gameid
         passwd* pwd = getpwuid(getuid());
         if (pwd) {
-            script_h.
-            save_path = new char[strlen(pwd->pw_dir) + strlen(gameid) + 4];
-            sprintf(script_h.save_path, "%s/.%s/", pwd->pw_dir, gameid);
-            if (mkdir(script_h.save_path, 0755) != 0 && errno != EEXIST) {
-                delete[] script_h.save_path;
-                script_h.save_path = 0;
-            }
+	    script_h.save_path = pwd->pw_dir;
+	    script_h.save_path += "/." + gameid + "/";
+            if (mkdir(script_h.save_path.c_str(), 0755) != 0 &&
+		errno != EEXIST)
+                script_h.save_path.clear();
         }
-        if (script_h.save_path == 0) {
+        if (script_h.save_path.empty()) {
             // Error; either getpwuid failed, or we couldn't create a
             // save directory.  Either way, issue a warning and then
             // fall back on default ONScripter behaviour.
             fprintf(stderr, "Warning: could not create save directory ~/.%s.\n",
-		    gameid);
+		    gameid.c_str());
             script_h.save_path = archive_path;
         }
 #else
@@ -624,11 +618,7 @@ int PonscripterLabel::init()
         script_h.save_path = archive_path;
 #endif
     }
-    if (script_h.game_identifier) {
-        delete[] script_h.game_identifier;
-        script_h.game_identifier = 0;
-    }
-    else {
+    if (script_h.game_identifier.empty()) {
         fprintf(stderr,
             "This game is not intended to be played with Ponscripter.\n"
             "Please play it with NScripter instead, or with a properly "
@@ -971,14 +961,12 @@ void PonscripterLabel::mouseOverCheck(int x, int y)
 
         if (p_button_link) {
             if (system_menu_mode != SYSTEM_NULL) {
-                if (menuselectvoice_file_name[MENUSELECTVOICE_OVER])
-                    playSound(menuselectvoice_file_name[MENUSELECTVOICE_OVER],
-                        SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
+                playSound(menuselectvoice_file_name[MENUSELECTVOICE_OVER],
+			  SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
             }
             else {
-                if (selectvoice_file_name[SELECTVOICE_OVER])
-                    playSound(selectvoice_file_name[SELECTVOICE_OVER],
-                        SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
+		playSound(selectvoice_file_name[SELECTVOICE_OVER],
+			  SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
             }
             check_dst_rect = p_button_link->image_rect;
 	    const int pbt = p_button_link->button_type;
@@ -1019,10 +1007,10 @@ void PonscripterLabel::executeLabel()
     while (current_line < current_label_info.num_of_lines) {
         if (debug_level > 0)
             printf("*****  executeLabel %s:%d/%d:%d:%d *****\n",
-                current_label_info.name,
-                current_line,
-                current_label_info.num_of_lines,
-                string_buffer_offset, display_mode);
+		   current_label_info.name,
+		   current_line,
+		   current_label_info.num_of_lines,
+		   string_buffer_offset, display_mode);
 
         if (script_h.getStringBuffer()[0] == '~') {
             last_tilde.next_script = script_h.getNext();
@@ -1439,8 +1427,8 @@ void PonscripterLabel::newPage(bool next_flag)
 
 
 PonscripterLabel::ButtonLink*
-PonscripterLabel::getSelectableSentence(char* buffer, FontInfo* info,
-				       bool flush_flag, bool nofile_flag)
+PonscripterLabel::getSelectableSentence(const string& buffer, FontInfo* info,
+					bool flush_flag, bool nofile_flag)
 {
     float current_x;
     current_x = info->GetXOffset();
@@ -1463,7 +1451,7 @@ PonscripterLabel::getSelectableSentence(char* buffer, FontInfo* info,
             anim->color_list[0][i] = info->off_color[i];
         anim->color_list[1][i] = info->on_color[i];
     }
-    setStr(&anim->file_name, buffer);
+    setStr(&anim->file_name, buffer.c_str());
     anim->pos.x   = Sint16(floor(info->GetX() * screen_ratio1 / screen_ratio2));
     anim->pos.y   = info->GetY() * screen_ratio1 / screen_ratio2;
     anim->visible = true;

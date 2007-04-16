@@ -99,7 +99,7 @@ public:
     void setSavePath(const char* path);
     void setArchivePath(const char* path);
 
-    bool hasArchivePath() const { return archive_path; }
+    bool hasArchivePath() const { return !archive_path.empty(); }
     void setFullscreenMode();
     void setWindowMode();
     void enableButtonShortCut();
@@ -436,7 +436,7 @@ private:
                        LOOKBACK_BUTTON   = 3,
                        TMP_SPRITE_BUTTON = 4 } BUTTON_TYPE;
 
-        struct ButtonLink* next;
+        ButtonLink* next;
         BUTTON_TYPE button_type;
         int no;
         int sprite_no;
@@ -610,7 +610,7 @@ private:
 	SELECT_CSEL_MODE  = 3
     };
     struct SelectLink {
-        struct SelectLink* next;
+        SelectLink* next;
         char* text;
         char* label;
 
@@ -624,12 +624,13 @@ private:
             if (label) delete[] label;
         };
     } root_select_link, * shelter_select_link;
-    struct NestInfo select_label_info;
+    NestInfo select_label_info;
     int shortcut_mouse_line;
 
     void deleteSelectLink();
-    struct ButtonLink* getSelectableSentence(char* buffer, FontInfo* info,
-			   bool flush_flag = true, bool nofile_flag = false);
+    ButtonLink* getSelectableSentence(const string& buffer, FontInfo* info,
+				      bool flush_flag = true,
+				      bool nofile_flag = false);
 
     /* ---------------------------------------- */
     /* Sound related variables */
@@ -678,6 +679,13 @@ private:
 
     int playSound(const char* filename, int format, bool loop_flag,
 		  int channel = 0);
+    int playSound(const string& filename, int format, bool loop_flag,
+		  int channel = 0)
+    {
+	if (filename.empty()) return SOUND_NONE;
+	return playSound(filename.c_str(), format, loop_flag, channel);
+    }
+    
     void playCDAudio();
     int playWave(Mix_Chunk* chunk, int format, bool loop_flag, int channel);
     int playMP3();
@@ -765,7 +773,7 @@ private:
     int  shelter_event_mode;
     int  shelter_display_mode;
     bool shelter_draw_cursor_flag;
-    struct TextBuffer* cached_text_buffer;
+    TextBuffer* cached_text_buffer;
 
     void enterSystemCall();
     void leaveSystemCall(bool restore_flag = true);

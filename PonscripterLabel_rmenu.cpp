@@ -147,17 +147,15 @@ void PonscripterLabel::executeSystemMenu()
         deleteButtonLink();
 
         if (current_button_state.button == -1) {
-            if (menuselectvoice_file_name[MENUSELECTVOICE_CANCEL])
-                playSound(menuselectvoice_file_name[MENUSELECTVOICE_CANCEL],
-                    SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
+	    playSound(menuselectvoice_file_name[MENUSELECTVOICE_CANCEL],
+		      SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
 
             leaveSystemCall();
             return;
         }
 
-        if (menuselectvoice_file_name[MENUSELECTVOICE_CLICK])
-            playSound(menuselectvoice_file_name[MENUSELECTVOICE_CLICK],
-                SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
+	playSound(menuselectvoice_file_name[MENUSELECTVOICE_CLICK],
+		  SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
 
         link = root_rmenu_link.next;
         while (link) {
@@ -172,9 +170,8 @@ void PonscripterLabel::executeSystemMenu()
         advancePhase();
     }
     else {
-        if (menuselectvoice_file_name[MENUSELECTVOICE_OPEN])
-            playSound(menuselectvoice_file_name[MENUSELECTVOICE_OPEN],
-                SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
+	playSound(menuselectvoice_file_name[MENUSELECTVOICE_OPEN],
+		  SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
 
         system_menu_mode = SYSTEM_MENU;
         yesno_caller = SYSTEM_MENU;
@@ -276,28 +273,30 @@ void PonscripterLabel::createSaveLoadMenu(bool is_save)
 
     // Set up formatting details for saved games.
     const float sw = float (screen_width * screen_ratio2) / float (screen_ratio1);
-    const int   buffer_size = 256;
-    char  buffer[buffer_size], no_save_line[buffer_size];
+    const int buf_sz = 1024;
+    char  buf[buf_sz], no_save_line[buf_sz];
     float lw, entry_offs_x, entry_date_x, entry_time_x;
     {
         float max_ew = 0, max_dw = 0, max_hw = 0, max_mw = 0;
         for (unsigned int i = 1; i <= num_save_file; i++) {
-            snprintf(buffer, buffer_size, "^%s %-2d", save_item_name, i);
-            lw = menu_font.StringAdvance(buffer);
+            snprintf(buf, buf_sz, "^%s %-2d", save_item_name.c_str(), i);
+            lw = menu_font.StringAdvance(buf);
             if (lw > max_ew) max_ew = lw;
 
             searchSaveFile(save_file_info, i);
             if (save_file_info.valid) {
-                snprintf(buffer, buffer_size, "^%s %2d", short_month[save_file_info.month - 1], save_file_info.day);
-                lw = menu_font.StringAdvance(buffer);
+                snprintf(buf, buf_sz, "^%s %2d",
+			 short_month[save_file_info.month - 1],
+			 save_file_info.day);
+                lw = menu_font.StringAdvance(buf);
                 if (lw > max_dw) max_dw = lw;
 
-                snprintf(buffer, buffer_size, "^%2d:", save_file_info.hour);
-                lw = menu_font.StringAdvance(buffer);
+                snprintf(buf, buf_sz, "^%2d:", save_file_info.hour);
+                lw = menu_font.StringAdvance(buf);
                 if (lw > max_hw) max_hw = lw;
 
-                snprintf(buffer, buffer_size, "^%02d", save_file_info.minute);
-                lw = menu_font.StringAdvance(buffer);
+                snprintf(buf, buf_sz, "^%02d", save_file_info.minute);
+                lw = menu_font.StringAdvance(buf);
                 if (lw > max_mw) max_mw = lw;
             }
         }
@@ -314,7 +313,8 @@ void PonscripterLabel::createSaveLoadMenu(bool is_save)
             entry_offs_x = (sw - lw) / 2;
             entry_date_x = max_ew + 24;
             entry_time_x = lw - max_mw;
-            int nslw = int ((max_dw + 16 + max_hw + max_mw) / menu_font.StringAdvance("-"));
+            int nslw = int((max_dw + 16 + max_hw + max_mw)
+			   / menu_font.StringAdvance("-"));
             nslw -= nslw % 3;
             no_save_line[0] = '-';
             for (int i = 1; i < nslw; ++i) no_save_line[i] = '-';
@@ -324,11 +324,12 @@ void PonscripterLabel::createSaveLoadMenu(bool is_save)
     }
 
     // Set up the menu.
-    menu_font.area_x = int (lw);
+    menu_font.area_x = int(lw);
     menu_font.area_y = menu_font.line_top(num_save_file + 2);
-    menu_font.top_x  = int (entry_offs_x);
-    menu_font.top_y  = (screen_height * screen_ratio2 / screen_ratio1 - menu_font.area_y) / 2;
-    char* menu_name = is_save ? save_menu_name : load_menu_name;
+    menu_font.top_x  = int(entry_offs_x);
+    menu_font.top_y  = (screen_height * screen_ratio2 / screen_ratio1
+			- menu_font.area_y) / 2;
+    string& menu_name = is_save ? save_menu_name : load_menu_name;
     menu_font.SetXY((lw - menu_font.StringAdvance(menu_name)) / 2, 0);
     ButtonLink* ooga = getSelectableSentence(menu_name, &menu_font, false);
     root_button_link.insert(ooga);
@@ -344,19 +345,23 @@ void PonscripterLabel::createSaveLoadMenu(bool is_save)
         menu_font.SetXY(0);
 
         if (save_file_info.valid) {
-            snprintf(buffer, buffer_size, "^%2d:", save_file_info.hour);
-            float hw = menu_font.StringAdvance(buffer);
-            snprintf(buffer, buffer_size, "^%s %2d~x%d~%s %-2d~x%d~%2d:%02d", save_item_name, i,
-                int (entry_date_x), short_month[save_file_info.month - 1], save_file_info.day,
-                int (entry_time_x - hw), save_file_info.hour, save_file_info.minute);
+            snprintf(buf, buf_sz, "^%2d:", save_file_info.hour);
+            float hw = menu_font.StringAdvance(buf);
+            snprintf(buf, buf_sz, "^%s %2d~x%d~%s %-2d~x%d~%2d:%02d",
+		     save_item_name.c_str(), i, int(entry_date_x),
+		     short_month[save_file_info.month - 1], save_file_info.day,
+		     int(entry_time_x - hw), save_file_info.hour,
+		     save_file_info.minute);
             disable = false;
         }
         else {
-            snprintf(buffer, buffer_size, "^%s %2d~x%d~%s", save_item_name, i, int (entry_date_x), no_save_line);
+            snprintf(buf, buf_sz, "^%s %2d~x%d~%s", save_item_name.c_str(), i,
+		     int(entry_date_x), no_save_line);
             disable = !is_save;
         }
 
-        ButtonLink* button = getSelectableSentence(buffer, &menu_font, false, disable);
+        ButtonLink* button = getSelectableSentence(buf, &menu_font, false,
+						   disable);
         root_button_link.insert(button);
         button->no = i;
         flush(refreshMode());
@@ -443,9 +448,8 @@ void PonscripterLabel::executeSystemYesNo()
         deleteButtonLink();
 
         if (current_button_state.button == 1) { // yes is selected
-            if (menuselectvoice_file_name[MENUSELECTVOICE_YES])
-                playSound(menuselectvoice_file_name[MENUSELECTVOICE_YES],
-                    SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
+	    playSound(menuselectvoice_file_name[MENUSELECTVOICE_YES],
+		      SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
 
             if (yesno_caller == SYSTEM_SAVE) {
                 saveSaveFile(yesno_selected_file_no);
@@ -468,7 +472,7 @@ void PonscripterLabel::executeSystemYesNo()
                 string_buffer_offset = 0;
 		break_flag = false;
 
-                if (loadgosub_label)
+                if (!loadgosub_label.empty())
                     gosubReal(loadgosub_label, script_h.getCurrent());
 
                 readToken();
@@ -484,9 +488,8 @@ void PonscripterLabel::executeSystemYesNo()
             }
         }
         else {
-            if (menuselectvoice_file_name[MENUSELECTVOICE_NO])
-                playSound(menuselectvoice_file_name[MENUSELECTVOICE_NO],
-                    SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
+	    playSound(menuselectvoice_file_name[MENUSELECTVOICE_NO],
+		      SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
 
             system_menu_mode = yesno_caller & 0xf;
             if (yesno_caller == SYSTEM_RESET)
@@ -501,16 +504,14 @@ void PonscripterLabel::executeSystemYesNo()
         if (yesno_caller == SYSTEM_SAVE) {
             SaveFileInfo save_file_info;
             searchSaveFile(save_file_info, yesno_selected_file_no);
-            sprintf(name, MESSAGE_SAVE_CONFIRM,
-                save_item_name,
-                save_file_info.sjis_no);
+            sprintf(name, MESSAGE_SAVE_CONFIRM, save_item_name.c_str(),
+		    save_file_info.sjis_no);
         }
         else if (yesno_caller == SYSTEM_LOAD) {
             SaveFileInfo save_file_info;
             searchSaveFile(save_file_info, yesno_selected_file_no);
-            sprintf(name, MESSAGE_LOAD_CONFIRM,
-                save_item_name,
-                save_file_info.sjis_no);
+            sprintf(name, MESSAGE_LOAD_CONFIRM, save_item_name.c_str(),
+		    save_file_info.sjis_no);
         }
         else if (yesno_caller == SYSTEM_RESET)
             strcpy(name, MESSAGE_RESET_CONFIRM);

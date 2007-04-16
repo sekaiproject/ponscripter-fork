@@ -29,6 +29,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <string>
+using std::string;
+
 #include "BaseReader.h"
 
 #define VARIABLE_RANGE 4096
@@ -160,15 +164,16 @@ public:
     void pushVariable();
     int  getIntVariable(VariableInfo* var_info = NULL);
 
-    int  getStringFromInteger(char* buffer, int no, int num_column, bool is_zero_inserted = false);
+    int  getStringFromInteger(char* buffer, int no, int num_column,
+			      bool is_zero_inserted = false);
 
     int  readScriptSub(FILE* fp, char** buf, int encrypt_mode);
-    int  readScript(char* path);
+    int  readScript(const char* path);
     int  labelScript();
 
     LabelInfo lookupLabel(const char* label);
     LabelInfo lookupLabelNext(const char* label);
-    void errorAndExit(char* str);
+    void errorAndExit(const char* str);
 
     ArrayVariable* getRootArrayVariable();
     void loadArrayVariable(FILE* fp);
@@ -234,8 +239,8 @@ public:
            SCREEN_SIZE_320x240 = 3 };
     int global_variable_border;
 
-    char* game_identifier;
-    char* save_path;
+    string game_identifier;
+    string save_path;
 
     static BaseReader* cBR;
 
@@ -297,7 +302,7 @@ private:
 
     ArrayVariable* root_array_variable, * current_array_variable;
 
-    char* archive_path;
+    string archive_path;
     int   script_buffer_length;
     char* script_buffer;
     char* tmp_script_buf;

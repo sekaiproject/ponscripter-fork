@@ -306,7 +306,8 @@ int PonscripterLabel::clickWait()
 {
     skip_to_wait = 0;
 
-    if ((skip_flag || draw_one_page_flag || ctrl_pressed_status) && !textgosub_label) {
+    if ((skip_flag || draw_one_page_flag || ctrl_pressed_status) &&
+	textgosub_label.empty()) {
         clickstr_state = CLICK_NONE;
         flush(refreshMode());
         string_buffer_offset++;
@@ -317,7 +318,7 @@ int PonscripterLabel::clickWait()
     else {
         clickstr_state   = CLICK_WAIT;
         key_pressed_flag = false;
-        if (textgosub_label) {
+        if (!textgosub_label.empty()) {
             saveoffCommand();
 
             textgosub_clickstr_state = CLICK_WAIT;
@@ -326,7 +327,7 @@ int PonscripterLabel::clickWait()
 
             gosubReal(textgosub_label, script_h.getNext());
             indent_offset = 0;
-            line_enter_status    = 0;
+            line_enter_status = 0;
             string_buffer_offset = 0;
             return RET_CONTINUE;
         }
@@ -345,20 +346,20 @@ int PonscripterLabel::clickNewPage()
     clickstr_state = CLICK_NEWPAGE;
     if (skip_flag || draw_one_page_flag || ctrl_pressed_status) flush(refreshMode());
 
-    if ((skip_flag || ctrl_pressed_status) && !textgosub_label) {
+    if ((skip_flag || ctrl_pressed_status) && textgosub_label.empty()) {
         event_mode = WAIT_SLEEP_MODE;
         advancePhase();
         num_chars_in_sentence = 0;
     }
     else {
         key_pressed_flag = false;
-        if (textgosub_label) {
+        if (!textgosub_label.empty()) {
             saveoffCommand();
 
             textgosub_clickstr_state = CLICK_NEWPAGE;
             gosubReal(textgosub_label, script_h.getNext());
             indent_offset = 0;
-            line_enter_status    = 0;
+            line_enter_status = 0;
             string_buffer_offset = 0;
             return RET_CONTINUE;
         }
@@ -372,7 +373,7 @@ int PonscripterLabel::clickNewPage()
 
 int PonscripterLabel::textCommand()
 {
-    if (pretextgosub_label
+    if (!pretextgosub_label.empty()
         && (line_enter_status == 0
             || (line_enter_status == 1
                 && (script_h.getStringBuffer()[string_buffer_offset] == '['

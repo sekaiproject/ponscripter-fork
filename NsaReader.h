@@ -31,10 +31,10 @@
 
 class NsaReader : public SarReader {
 public:
-    NsaReader(char* path = NULL, const unsigned char* key_table = NULL);
+    NsaReader(const char* path = NULL, const unsigned char* key_table = NULL);
     ~NsaReader();
 
-    int open(char* nsa_path = NULL, int archive_type = ARCHIVE_TYPE_NSA);
+    int open(const char* nsa_path = NULL, int archive_type = ARCHIVE_TYPE_NSA);
     char* getArchiveName() const;
     int getNumFiles();
 
@@ -42,7 +42,7 @@ public:
     size_t getFile(const char* file_name, unsigned char* buf, int* location = NULL);
     struct FileInfo getFileByIndex(unsigned int index);
 
-    int openForConvert(char* nsa_name, int archive_type = ARCHIVE_TYPE_NSA);
+    int openForConvert(const char* nsa_name, int archive_type = ARCHIVE_TYPE_NSA);
     int writeHeader(FILE* fp, int archive_type = ARCHIVE_TYPE_NSA);
     size_t putFile(FILE* fp, int no, size_t offset, size_t length, size_t original_length, int compression_type, bool modified_flag, unsigned char* buffer);
 

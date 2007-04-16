@@ -28,9 +28,9 @@
 #define VERSION_STR1 "Ponscripter"
 #define VERSION_STR2 "Copyright (C) 2001-2006 Studio O.G.A., 2006-2007 Haeleth."
 
-#define DEFAULT_SAVE_MENU_NAME "＜セーブ＞"
-#define DEFAULT_LOAD_MENU_NAME "＜ロード＞"
-#define DEFAULT_SAVE_ITEM_NAME "しおり"
+#define DEFAULT_SAVE_MENU_NAME "Save"
+#define DEFAULT_LOAD_MENU_NAME "Load"
+#define DEFAULT_SAVE_ITEM_NAME "Slot"
 
 #define DEFAULT_TEXT_SPEED_LOW 40
 #define DEFAULT_TEXT_SPEED_MIDDLE 20
@@ -153,15 +153,8 @@ ScriptParser::ScriptParser()
     debug_level = 0;
     srand(time(NULL));
 
-    archive_path = NULL;
-    version_str  = NULL;
-    nsa_path  = "";
     key_table = NULL;
     force_button_shortcut_flag = false;
-
-    save_menu_name = NULL;
-    load_menu_name = NULL;
-    save_item_name = NULL;
 
     file_io_buf     = NULL;
     save_data_buf   = NULL;
@@ -170,35 +163,13 @@ ScriptParser::ScriptParser()
     save_data_len   = 0;
 
     text_buffer = NULL;
-
-    /* ---------------------------------------- */
-    /* Sound related variables */
-    int i;
-    for (i = 0; i < CLICKVOICE_NUM; i++)
-        clickvoice_file_name[i] = NULL;
-
-    for (i = 0; i < SELECTVOICE_NUM; i++)
-        selectvoice_file_name[i] = NULL;
-
-    for (i = 0; i < MENUSELECTVOICE_NUM; i++)
-        menuselectvoice_file_name[i] = NULL;
 }
 
 
 ScriptParser::~ScriptParser()
 {
     reset();
-
-    if (version_str) delete[] version_str;
-
-    if (save_menu_name) delete[] save_menu_name;
-
-    if (load_menu_name) delete[] load_menu_name;
-
-    if (save_item_name) delete[] save_item_name;
-
     if (file_io_buf) delete[] file_io_buf;
-
     if (save_data_buf) delete[] save_data_buf;
 }
 
@@ -215,10 +186,7 @@ void ScriptParser::reset()
     last_user_func = &root_user_func;
 
     // reset misc variables
-    if (strlen(nsa_path) > 0) {
-        delete[] nsa_path;
-        nsa_path = "";
-    }
+    nsa_path.clear();
 
     globalon_flag   = false;
     labellog_flag   = false;
@@ -237,19 +205,12 @@ void ScriptParser::reset()
     break_flag = false;
     trans_mode = AnimationInfo::TRANS_TOPLEFT;
 
-    if (version_str) delete[] version_str;
-
-    version_str = new char[strlen(VERSION_STR1) +
-                           strlen("\n") +
-                           strlen(VERSION_STR2) +
-                           strlen("\n") +
-                           + 1];
-    sprintf(version_str, "%s\n%s\n", VERSION_STR1, VERSION_STR2);
+    version_str = VERSION_STR1 "\n" VERSION_STR2 "\n";
     z_order = 499;
 
-    textgosub_label    = NULL;
-    pretextgosub_label = NULL;
-    loadgosub_label = NULL;
+    textgosub_label.clear();
+    pretextgosub_label.clear();
+    loadgosub_label.clear();
 
     /* ---------------------------------------- */
     /* Lookback related variables */
@@ -260,9 +221,9 @@ void ScriptParser::reset()
 
     /* ---------------------------------------- */
     /* Save/Load related variables */
-    setStr(&save_menu_name, DEFAULT_SAVE_MENU_NAME);
-    setStr(&load_menu_name, DEFAULT_LOAD_MENU_NAME);
-    setStr(&save_item_name, DEFAULT_SAVE_ITEM_NAME);
+    save_menu_name = DEFAULT_SAVE_MENU_NAME;
+    load_menu_name = DEFAULT_LOAD_MENU_NAME;
+    save_item_name = DEFAULT_SAVE_ITEM_NAME;
     num_save_file = 9;
 
     /* ---------------------------------------- */
@@ -294,13 +255,11 @@ void ScriptParser::reset()
     /* Sound related variables */
     int i;
     for (i = 0; i < CLICKVOICE_NUM; i++)
-        setStr(&clickvoice_file_name[i], NULL);
-
+	clickvoice_file_name[i].clear();
     for (i = 0; i < SELECTVOICE_NUM; i++)
-        setStr(&selectvoice_file_name[i], NULL);
-
+	selectvoice_file_name[i].clear();
     for (i = 0; i < MENUSELECTVOICE_NUM; i++)
-        setStr(&menuselectvoice_file_name[i], NULL);
+	menuselectvoice_file_name[i].clear();
 
     /* ---------------------------------------- */
     /* Menu related variables */
@@ -344,10 +303,10 @@ void ScriptParser::reset()
 
 int ScriptParser::open()
 {
-    ScriptHandler::cBR = new DirectReader(archive_path, key_table);
+    ScriptHandler::cBR = new DirectReader(archive_path.c_str(), key_table);
     ScriptHandler::cBR->open();
 
-    if (script_h.readScript(archive_path)) return -1;
+    if (script_h.readScript(archive_path.c_str())) return -1;
 
     switch (script_h.screen_size) {
     case ScriptHandler::SCREEN_SIZE_800x600:
@@ -776,14 +735,14 @@ void ScriptParser::errorAndExit(const char* str, const char* reason)
 {
     if (reason)
         fprintf(stderr, " *** Parse error at %s:%d [%s]; %s ***\n",
-            current_label_info.name,
-            current_line,
-            str, reason);
+		current_label_info.name,
+		current_line,
+		str, reason);
     else
         fprintf(stderr, " *** Parse error at %s:%d [%s] ***\n",
-            current_label_info.name,
-            current_line,
-            str);
+		current_label_info.name,
+		current_line,
+		str);
 
     exit(-1);
 }
@@ -802,7 +761,7 @@ void ScriptParser::deleteNestInfo()
 }
 
 
-void ScriptParser::setStr(char** dst, const char* src, int num)
+void ScriptParser::SET_STR(char** dst, const char* src, int num)
 {
     if (*dst) delete[] * dst;
 
@@ -822,9 +781,9 @@ void ScriptParser::setStr(char** dst, const char* src, int num)
 }
 
 
-void ScriptParser::setCurrentLabel(const char* label)
+void ScriptParser::setCurrentLabel(const string& label)
 {
-    current_label_info = script_h.lookupLabel(label);
+    current_label_info = script_h.lookupLabel(label.c_str());
     current_line = script_h.getLineByAddress(current_label_info.start_address);
     script_h.setCurrent(current_label_info.start_address);
 }
@@ -903,11 +862,9 @@ ScriptParser::EffectLink* ScriptParser::parseEffect(bool init_flag)
 
 FILE* ScriptParser::fopen(const char* path, const char* mode, const bool save)
 {
-    char filename[256];
-    const char* root = save ? script_h.save_path : archive_path;
-    sprintf(filename, "%s%s", root, path);
-
-    return ::fopen(filename, mode);
+    string filename = save ? script_h.save_path : archive_path;
+    filename += path;
+    return ::fopen(filename.c_str(), mode);
 }
 
 

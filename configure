@@ -620,7 +620,12 @@ cat >> Makefile <<_EOF
 CC  = $CC
 CXX = $CXX
 LD  = \$(CXX) -o 
+
+ifdef DEBUG
+PSCFLAGS = -g -ggdb3 -O0 -Wall -Wpointer-arith -Werror
+else
 PSCFLAGS = -O3 -Wall -Wpointer-arith -Werror -fomit-frame-pointer -pipe 
+endif
 
 TARGET = ponscr$EXE
 

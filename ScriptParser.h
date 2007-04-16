@@ -26,12 +26,16 @@
 #ifndef __SCRIPT_PARSER_H__
 #define __SCRIPT_PARSER_H__
 
+// change this to identify char*s that should be strings
+#define SET_STR setStr
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include <time.h>
 #include <string>
+using std::string;
 
 #include "ScriptHandler.h"
 #include "NsaReader.h"
@@ -207,13 +211,14 @@ protected:
     int current_mode;
     int debug_level;
 
-    char* archive_path;
-    char* nsa_path;
-    bool  globalon_flag;
-    bool  labellog_flag;
-    bool  filelog_flag;
-    bool  kidokuskip_flag;
-    bool  kidokumode_flag;
+    string archive_path;
+    string nsa_path;
+
+    bool globalon_flag;
+    bool labellog_flag;
+    bool filelog_flag;
+    bool kidokuskip_flag;
+    bool kidokumode_flag;
 
     int  z_order;
     bool rmode_flag;
@@ -233,17 +238,17 @@ protected:
 
     /* ---------------------------------------- */
     /* Global definitions */
-    int   screen_width, screen_height;
-    int   screen_texture_width, screen_texture_height;
-    int   screen_bpp;
-    char* version_str;
-    int   underline_value;
+    int    screen_width, screen_height;
+    int    screen_texture_width, screen_texture_height;
+    int    screen_bpp;
+    string version_str;
+    int    underline_value;
 
     void deleteNestInfo();
-    void setStr(char** dst, const char* src, int num = -1);
+    void SET_STR(char** dst, const char* src, int num = -1);
 
-    void gosubReal(const char* label, char* next_script);
-    void setCurrentLabel(const char* label);
+    void gosubReal(const string& label, char* next_script);
+    void setCurrentLabel(const string& label);
     void readToken();
 
     /* ---------------------------------------- */
@@ -296,9 +301,9 @@ protected:
         char sjis_minute[5];
     };
     unsigned int num_save_file;
-    char* save_menu_name;
-    char* load_menu_name;
-    char* save_item_name;
+    string save_menu_name;
+    string load_menu_name;
+    string save_item_name;
 
     unsigned char* save_data_buf;
     unsigned char* file_io_buf;
@@ -312,7 +317,7 @@ protected:
     int   default_text_speed[3];
     struct TextBuffer {
         struct TextBuffer* next, * previous;
-        std::string contents;
+        string contents;
         int addBuffer(char ch)
         {
             contents += ch;
@@ -337,24 +342,24 @@ protected:
 
     enum { CLICKVOICE_NORMAL  = 0,
            CLICKVOICE_NEWPAGE = 1,
-           CLICKVOICE_NUM = 2 };
-    char* clickvoice_file_name[CLICKVOICE_NUM];
+           CLICKVOICE_NUM     = 2 };
+    string clickvoice_file_name[CLICKVOICE_NUM];
 
     enum { SELECTVOICE_OPEN   = 0,
            SELECTVOICE_OVER   = 1,
            SELECTVOICE_SELECT = 2,
-           SELECTVOICE_NUM = 3 };
-    char* selectvoice_file_name[SELECTVOICE_NUM];
+           SELECTVOICE_NUM    = 3 };
+    string selectvoice_file_name[SELECTVOICE_NUM];
 
     enum { MENUSELECTVOICE_OPEN   = 0,
            MENUSELECTVOICE_CANCEL = 1,
            MENUSELECTVOICE_OVER   = 2,
            MENUSELECTVOICE_CLICK  = 3,
            MENUSELECTVOICE_WARN   = 4,
-           MENUSELECTVOICE_YES = 5,
-           MENUSELECTVOICE_NO  = 6,
-           MENUSELECTVOICE_NUM = 7 };
-    char* menuselectvoice_file_name[MENUSELECTVOICE_NUM];
+           MENUSELECTVOICE_YES    = 5,
+           MENUSELECTVOICE_NO     = 6,
+           MENUSELECTVOICE_NUM    = 7 };
+    string menuselectvoice_file_name[MENUSELECTVOICE_NUM];
 
     /* ---------------------------------------- */
     /* Font related variables */
@@ -365,16 +370,9 @@ protected:
     /* RMenu related variables */
     struct RMenuLink {
         RMenuLink* next;
-        char* label;
+        string label;
         int system_call_no;
-
-        RMenuLink() {
-            next  = NULL;
-            label = NULL;
-        };
-        ~RMenuLink() {
-            if (label) delete[] label;
-        };
+        RMenuLink() : next(0) {}
     } root_rmenu_link;
     unsigned int rmenu_link_num, rmenu_link_width;
 
@@ -404,9 +402,9 @@ protected:
 
     /* ---------------------------------------- */
     /* System customize related variables */
-    char* textgosub_label;
-    char* pretextgosub_label;
-    char* loadgosub_label;
+    string textgosub_label;
+    string pretextgosub_label;
+    string loadgosub_label;
 
     ScriptHandler script_h;
 

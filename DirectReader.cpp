@@ -52,7 +52,7 @@ static iconv_t iconv_cd = NULL;
 #define N (1 << EI)  /* buffer size */
 #define F ((1 << EJ) + P)  /* lookahead buffer size */
 
-DirectReader::DirectReader(char* path, const unsigned char* key_table)
+DirectReader::DirectReader(const char* path, const unsigned char* key_table)
 {
     file_full_path = NULL;
     file_sub_path  = NULL;
@@ -255,7 +255,7 @@ void DirectReader::writeLong(FILE* fp, unsigned long ch)
 }
 
 
-int DirectReader::open(char* name, int archive_type)
+int DirectReader::open(const char* name, int archive_type)
 {
     return 0;
 }

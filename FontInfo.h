@@ -26,6 +26,7 @@
 #ifndef __FONT_INFO_H__
 #define __FONT_INFO_H__
 
+#include <string>
 #include <SDL.h>
 #include "font.h"
 
@@ -95,6 +96,9 @@ public:
 
     float GlyphAdvance(unsigned short unicode, unsigned short next = 0);
     float StringAdvance(const char* string);
+    float StringAdvance(const std::string& s) {
+	return StringAdvance(s.c_str());
+    }
 
     bool isNoRoomFor(float margin = 0.0);
     bool isLineEmpty();

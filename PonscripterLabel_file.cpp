@@ -47,16 +47,23 @@ extern "C" void c2pstrcpy(Str255 dst, const char* src);
 
 #define READ_LENGTH 4096
 
+inline string str(int i)
+{
+    char buf[1024];
+    sprintf(buf, "%d", i);
+    return string(buf);
+}
+
 void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
 {
-    char file_name[256];
+    string filename;
 
     script_h.getStringFromInteger(save_file_info.sjis_no, no, (num_save_file >= 10) ? 2 : 1);
 #if defined (LINUX) || defined (MACOSX)
-    sprintf(file_name, "%ssave%d.dat", script_h.save_path, no);
+    filename = script_h.save_path + "save" + str(no) + ".dat";
     struct stat buf;
     struct tm*  tm;
-    if (stat(file_name, &buf) != 0) {
+    if (stat(filename.c_str(), &buf) != 0) {
         save_file_info.valid = false;
         return;
     }
@@ -68,12 +75,12 @@ void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
     save_file_info.hour   = tm->tm_hour;
     save_file_info.minute = tm->tm_min;
 #elif defined (WIN32)
-    sprintf(file_name, "%ssave%d.dat", script_h.save_path, no);
+    filename = script_h.save_path + "save" + str(no) + ".dat";    
     HANDLE     handle;
     FILETIME   tm, ltm;
     SYSTEMTIME stm;
 
-    handle = CreateFile(file_name, GENERIC_READ, 0, NULL,
+    handle = CreateFile(filename.c_str(), GENERIC_READ, 0, NULL,
                  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (handle == INVALID_HANDLE_VALUE) {
         save_file_info.valid = false;
@@ -89,36 +96,10 @@ void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
     save_file_info.day    = stm.wDay;
     save_file_info.hour   = stm.wHour;
     save_file_info.minute = stm.wMinute;
-#elif defined (MACOS9)
-    sprintf(file_name, "%ssave%d.dat", script_h.save_path, no);
-    CInfoPBRec pb;
-    Str255 p_file_name;
-    FSSpec file_spec;
-    DateTimeRec tm;
-    c2pstrcpy(p_file_name, file_name);
-    if (FSMakeFSSpec(0, 0, p_file_name, &file_spec) != noErr) {
-        save_file_info.valid = false;
-        return;
-    }
-
-    pb.hFileInfo.ioNamePtr   = file_spec.name;
-    pb.hFileInfo.ioVRefNum   = file_spec.vRefNum;
-    pb.hFileInfo.ioFDirIndex = 0;
-    pb.hFileInfo.ioDirID = file_spec.parID;
-    if (PBGetCatInfoSync(&pb) != noErr) {
-        save_file_info.valid = false;
-        return;
-    }
-
-    SecondsToDate(pb.hFileInfo.ioFlMdDat, &tm);
-    save_file_info.month = tm.month;
-    save_file_info.day    = tm.day;
-    save_file_info.hour   = tm.hour;
-    save_file_info.minute = tm.minute;
 #elif defined (PSP)
-    sprintf(file_name, "%ssave%d.dat", script_h.save_path, no);
+    filename = script_h.save_path + "save" + str(no) + ".dat";    
     SceIoStat buf;
-    if (sceIoGetstat(file_name, &buf) < 0) {
+    if (sceIoGetstat(filename.c_str(), &buf) < 0) {
         save_file_info.valid = false;
         return;
     }
@@ -128,13 +109,12 @@ void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
     save_file_info.hour   = buf.st_mtime.hour;
     save_file_info.minute = buf.st_mtime.minute;
 #else
-    sprintf(file_name, "save%d.dat", no);
+    filename = "save" + str(no) + ".dat";        
     FILE* fp;
-    if ((fp = fopen(file_name, "rb")) == NULL) {
+    if ((fp = fopen(filename.c_str(), "rb")) == NULL) {
         save_file_info.valid = false;
         return;
     }
-
     fclose(fp);
 
     save_file_info.month = 1;

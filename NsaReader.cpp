@@ -28,7 +28,7 @@
 #define NSA_ARCHIVE_NAME "arc"
 #define NSA_ARCHIVE_NAME2 "arc%d"
 
-NsaReader::NsaReader(char* path, const unsigned char* key_table)
+NsaReader::NsaReader(const char* path, const unsigned char* key_table)
     : SarReader(path, key_table)
 {
     sar_flag = true;
@@ -45,7 +45,7 @@ NsaReader::~NsaReader()
 { }
 
 
-int NsaReader::open(char* nsa_path, int archive_type)
+int NsaReader::open(const char* nsa_path, int archive_type)
 {
     int  i;
     char archive_name[256], archive_name2[256];
@@ -84,7 +84,7 @@ int NsaReader::open(char* nsa_path, int archive_type)
 }
 
 
-int NsaReader::openForConvert(char* nsa_name, int archive_type)
+int NsaReader::openForConvert(const char* nsa_name, int archive_type)
 {
     sar_flag = false;
     if ((archive_info.file_handle = ::fopen(nsa_name, "rb")) == NULL) {

@@ -709,9 +709,8 @@ int PonscripterLabel::selectCommand()
     if (event_mode & WAIT_BUTTON_MODE) {
         if (current_button_state.button <= 0) return RET_WAIT | RET_REREAD;
 
-        if (selectvoice_file_name[SELECTVOICE_SELECT])
-            playSound(selectvoice_file_name[SELECTVOICE_SELECT],
-                SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
+	playSound(selectvoice_file_name[SELECTVOICE_SELECT],
+		  SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
 
         event_mode = IDLE_EVENT_MODE;
 
@@ -755,9 +754,8 @@ int PonscripterLabel::selectCommand()
         float old_x = sentence_font.GetXOffset();
         int   old_y = sentence_font.GetYOffset();
 
-        if (selectvoice_file_name[SELECTVOICE_OPEN])
-            playSound(selectvoice_file_name[SELECTVOICE_OPEN],
-                SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
+	playSound(selectvoice_file_name[SELECTVOICE_OPEN],
+		  SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
 
         last_select_link = &root_select_link;
 
@@ -765,7 +763,8 @@ int PonscripterLabel::selectCommand()
             if (script_h.getNext()[0] != 0x0a && comma_flag == true) {
                 const char* buf = script_h.readStr();
                 comma_flag = (script_h.getEndStatus() & ScriptHandler::END_COMMA);
-                if (select_mode != SELECT_NUM_MODE && !comma_flag) errorAndExit("select: comma is needed here.");
+                if (select_mode != SELECT_NUM_MODE && !comma_flag)
+		    errorAndExit("select: comma is needed here.");
 
                 // Text part
                 SelectLink* slink = new SelectLink();
@@ -892,16 +891,15 @@ int PonscripterLabel::savescreenshotCommand()
     else if (script_h.isName("savescreenshot2")) { }
 
     const char* buf = script_h.readStr();
-    char filename[256];
 
     char* ext = strrchr(buf, '.');
     if (ext && (!strcmp(ext + 1, "BMP") || !strcmp(ext + 1, "bmp"))) {
-        sprintf(filename, "%s%s", archive_path, buf);
-        for (unsigned int i = 0; i < strlen(filename); i++)
-            if (filename[i] == '/' || filename[i] == '\\')
-                filename[i] = DELIMITER;
+	string filename = archive_path + buf;
+	for (string::iterator i = filename.begin(); i != filename.end(); ++i)
+	    if (*i == '/' || *i == '\\')
+		*i = DELIMITER;
 
-        SDL_SaveBMP(screenshot_surface, filename);
+        SDL_SaveBMP(screenshot_surface, filename.c_str());
     }
     else
         printf("savescreenshot: file %s is not supported.\n", buf);
@@ -1581,7 +1579,7 @@ int PonscripterLabel::loadgameCommand()
 
         refreshMouseOverButton();
 
-        if (loadgosub_label)
+        if (!loadgosub_label.empty())
             gosubReal(loadgosub_label, script_h.getCurrent());
 
         readToken();

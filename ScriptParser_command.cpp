@@ -31,7 +31,8 @@
 
 int ScriptParser::zenkakkoCommand()
 {
-    if (current_mode != DEFINE_MODE) errorAndExit(script_h.getStringBuffer(), "not in the define section");
+    if (current_mode != DEFINE_MODE)
+	errorAndExit(script_h.getStringBuffer(), "not in the define section");
 
     zenkakko_flag = true;
 
@@ -41,7 +42,8 @@ int ScriptParser::zenkakkoCommand()
 
 int ScriptParser::windowbackCommand()
 {
-    if (current_mode != DEFINE_MODE) errorAndExit(script_h.getStringBuffer(), "not in the define section");
+    if (current_mode != DEFINE_MODE)
+	errorAndExit(script_h.getStringBuffer(), "not in the define section");
 
     windowback_flag = true;
 
@@ -51,15 +53,10 @@ int ScriptParser::windowbackCommand()
 
 int ScriptParser::versionstrCommand()
 {
-    delete[] version_str;
-
-    script_h.readStr();
-    const char* save_buf = script_h.saveStringBuffer();
-
-    const char* buf = script_h.readStr();
-    version_str = new char[strlen(save_buf) + strlen(buf) + strlen("\n") * 2 + 1];
-    sprintf(version_str, "%s\n%s\n", save_buf, buf);
-
+    version_str = script_h.readStr();
+    version_str += '\n';
+    version_str += script_h.readStr();
+    version_str += '\n';
     return RET_CONTINUE;
 }
 
@@ -130,9 +127,10 @@ int ScriptParser::timeCommand()
 
 int ScriptParser::textgosubCommand()
 {
-    if (current_mode != DEFINE_MODE) errorAndExit("textgosub: not in the define section");
+    if (current_mode != DEFINE_MODE)
+	errorAndExit("textgosub: not in the define section");
 
-    setStr(&textgosub_label, script_h.readStr() + 1);
+    textgosub_label = script_h.readStr() + 1;
     script_h.enableTextgosub(true);
 
     return RET_CONTINUE;
@@ -241,10 +239,11 @@ int ScriptParser::shadedistanceCommand()
 
 int ScriptParser::selectvoiceCommand()
 {
-    if (current_mode != DEFINE_MODE) errorAndExit("selectvoice: not in the define section");
+    if (current_mode != DEFINE_MODE)
+	errorAndExit("selectvoice: not in the define section");
 
     for (int i = 0; i < SELECTVOICE_NUM; i++)
-        setStr(&selectvoice_file_name[i], script_h.readStr());
+        selectvoice_file_name[i] = script_h.readStr();
 
     return RET_CONTINUE;
 }
@@ -272,15 +271,9 @@ int ScriptParser::savenumberCommand()
 
 int ScriptParser::savenameCommand()
 {
-    const char* buf = script_h.readStr();
-    setStr(&save_menu_name, buf);
-
-    buf = script_h.readStr();
-    setStr(&load_menu_name, buf);
-
-    buf = script_h.readStr();
-    setStr(&save_item_name, buf);
-
+    save_menu_name = script_h.readStr();
+    load_menu_name = script_h.readStr();
+    save_item_name = script_h.readStr();
     return RET_CONTINUE;
 }
 
@@ -328,12 +321,8 @@ int ScriptParser::rmenuCommand()
     bool comma_flag = true;
     while (comma_flag) {
         link->next = new RMenuLink();
-
-        const char* buf = script_h.readStr();
-        setStr(&link->next->label, buf);
-
+        link->next->label = script_h.readStr();
         link->next->system_call_no = getSystemCallNo(script_h.readLabel());
-
         link = link->next;
         rmenu_link_num++;
 
@@ -372,7 +361,7 @@ int ScriptParser::pretextgosubCommand()
     if (current_mode != DEFINE_MODE)
 	errorAndExit("pretextgosub: not in the define section");
 
-    setStr(&pretextgosub_label, script_h.readStr() + 1);
+    pretextgosub_label = script_h.readStr() + 1;
 
     return RET_CONTINUE;
 }
@@ -397,14 +386,8 @@ int ScriptParser::nsadirCommand()
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("nsadir: not in the define section");
-
-    const char* buf = script_h.readStr();
-
-    if (nsa_path) delete[] nsa_path;
-
-    nsa_path = new char[strlen(buf) + 2];
-    sprintf(nsa_path, "%s%c", buf, DELIMITER);
-
+    nsa_path = script_h.readStr();
+    nsa_path += DELIMITER;
     return RET_CONTINUE;
 }
 
@@ -421,10 +404,9 @@ int ScriptParser::nsaCommand()
     }
 
     delete ScriptHandler::cBR;
-    ScriptHandler::cBR = new NsaReader(archive_path, key_table);
-    if (ScriptHandler::cBR->open(nsa_path, archive_type)) {
+    ScriptHandler::cBR = new NsaReader(archive_path.c_str(), key_table);
+    if (ScriptHandler::cBR->open(nsa_path.c_str(), archive_type))
         fprintf(stderr, " *** failed to open Nsa archive, ignored.  ***\n");
-    }
 
     return RET_CONTINUE;
 }
@@ -600,10 +582,11 @@ int ScriptParser::menusetwindowCommand()
 
 int ScriptParser::menuselectvoiceCommand()
 {
-    if (current_mode != DEFINE_MODE) errorAndExit("menuselectvoice: not in the define section");
+    if (current_mode != DEFINE_MODE)
+	errorAndExit("menuselectvoice: not in the define section");
 
     for (int i = 0; i < MENUSELECTVOICE_NUM; i++)
-        setStr(&menuselectvoice_file_name[i], script_h.readStr());
+        menuselectvoice_file_name[i] = script_h.readStr();
 
     return RET_CONTINUE;
 }
@@ -666,7 +649,7 @@ int ScriptParser::loadgosubCommand()
     if (current_mode != DEFINE_MODE)
 	errorAndExit("loadgosub: not in the define section");
 
-    setStr(&loadgosub_label, script_h.readStr() + 1);
+    loadgosub_label = script_h.readStr() + 1;
 
     return RET_CONTINUE;
 }
@@ -909,7 +892,7 @@ int ScriptParser::gotoCommand()
 }
 
 
-void ScriptParser::gosubReal(const char* label, char* next_script)
+void ScriptParser::gosubReal(const string& label, char* next_script)
 {
     last_nest_info->next = new NestInfo();
     last_nest_info->next->previous = last_nest_info;
@@ -923,8 +906,8 @@ void ScriptParser::gosubReal(const char* label, char* next_script)
 
 int ScriptParser::gosubCommand()
 {
-    const char* buf = script_h.readStr();
-    gosubReal(buf + 1, script_h.getNext());
+    string buf = script_h.readStr() + 1;
+    gosubReal(buf, script_h.getNext());
 
     return RET_CONTINUE;
 }
@@ -1223,10 +1206,11 @@ int ScriptParser::cmpCommand()
 
 int ScriptParser::clickvoiceCommand()
 {
-    if (current_mode != DEFINE_MODE) errorAndExit("clickvoice: not in the define section");
+    if (current_mode != DEFINE_MODE)
+	errorAndExit("clickvoice: not in the define section");
 
     for (int i = 0; i < CLICKVOICE_NUM; i++)
-        setStr(&clickvoice_file_name[i], script_h.readStr());
+        clickvoice_file_name[i] = script_h.readStr();
 
     return RET_CONTINUE;
 }
@@ -1291,14 +1275,15 @@ int ScriptParser::arcCommand()
 
     if (strcmp(ScriptHandler::cBR->getArchiveName(), "direct") == 0) {
         delete ScriptHandler::cBR;
-        ScriptHandler::cBR = new SarReader(archive_path, key_table);
-        if (ScriptHandler::cBR->open(buf2)) {
-            fprintf(stderr, " *** failed to open archive %s, ignored.  ***\n", buf2);
-        }
+        ScriptHandler::cBR = new SarReader(archive_path.c_str(), key_table);
+        if (ScriptHandler::cBR->open(buf2))
+            fprintf(stderr, " *** failed to open archive %s, ignored.  ***\n",
+		    buf2);
     }
     else if (strcmp(ScriptHandler::cBR->getArchiveName(), "sar") == 0) {
         if (ScriptHandler::cBR->open(buf2)) {
-            fprintf(stderr, " *** failed to open archive %s, ignored.  ***\n", buf2);
+            fprintf(stderr, " *** failed to open archive %s, ignored.  ***\n",
+		    buf2);
         }
     }
 

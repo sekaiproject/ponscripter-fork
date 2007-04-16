@@ -124,7 +124,8 @@ extern long decodeOggVorbis(OVInfo* ovi, unsigned char* buf_dst, long len, bool 
 }
 
 
-int PonscripterLabel::playSound(const char* filename, int format, bool loop_flag, int channel)
+int PonscripterLabel::playSound(const char* filename, int format,
+				bool loop_flag, int channel)
 {
     if (!audio_open_flag) return SOUND_NONE;
 
@@ -306,10 +307,9 @@ int PonscripterLabel::playExternalMusic(bool loop_flag)
 
     Mix_SetMusicCMD(music_cmd);
 
-    char music_filename[256];
-    sprintf(music_filename, "%s%s", archive_path, TMP_MUSIC_FILE);
-    if ((music_info = Mix_LoadMUS(music_filename)) == NULL) {
-        fprintf(stderr, "can't load Music file %s\n", music_filename);
+    string music_filename = archive_path + TMP_MUSIC_FILE;
+    if ((music_info = Mix_LoadMUS(music_filename.c_str())) == NULL) {
+        fprintf(stderr, "can't load Music file %s\n", music_filename.c_str());
         return -1;
     }
 
@@ -324,9 +324,8 @@ int PonscripterLabel::playMIDI(bool loop_flag)
 {
     Mix_SetMusicCMD(midi_cmd);
 
-    char midi_filename[256];
-    sprintf(midi_filename, "%s%s", archive_path, TMP_MIDI_FILE);
-    if ((midi_info = Mix_LoadMUS(midi_filename)) == NULL) return -1;
+    string midi_filename = archive_path + TMP_MIDI_FILE;
+    if ((midi_info = Mix_LoadMUS(midi_filename.c_str())) == NULL) return -1;
 
 #ifndef MACOSX
     int midi_looping = loop_flag ? -1 : 0;
@@ -545,14 +544,12 @@ void PonscripterLabel::stopBGM(bool continue_flag)
 void PonscripterLabel::playClickVoice()
 {
     if (clickstr_state == CLICK_NEWPAGE) {
-        if (clickvoice_file_name[CLICKVOICE_NEWPAGE])
-            playSound(clickvoice_file_name[CLICKVOICE_NEWPAGE],
-                SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
+	playSound(clickvoice_file_name[CLICKVOICE_NEWPAGE],
+		  SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
     }
     else if (clickstr_state == CLICK_WAIT) {
-        if (clickvoice_file_name[CLICKVOICE_NORMAL])
-            playSound(clickvoice_file_name[CLICKVOICE_NORMAL],
-                SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
+	playSound(clickvoice_file_name[CLICKVOICE_NORMAL],
+		  SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
     }
 }
 

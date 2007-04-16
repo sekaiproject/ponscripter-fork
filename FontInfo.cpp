@@ -254,7 +254,8 @@ float FontInfo::StringAdvance(const char* string)
     while (*string) {
         int cb = CharacterBytes(string);
         next = UnicodeOfUTF8(string + cb);
-        if (!processCode(string)) pos_x += GlyphAdvance(unicode, next);
+	if (!processCode(string))
+	    pos_x += GlyphAdvance(unicode, next);
 
         unicode = next;
         string += cb;

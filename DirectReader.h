@@ -33,10 +33,10 @@
 
 class DirectReader : public BaseReader {
 public:
-    DirectReader(char* path = NULL, const unsigned char* key_table = NULL);
+    DirectReader(const char* path = 0, const unsigned char* key_table = 0);
     ~DirectReader();
 
-    int open(char* name = NULL, int archive_type = ARCHIVE_TYPE_NONE);
+    int open(const char* name = NULL, int archive_type = ARCHIVE_TYPE_NONE);
     int close();
 
     char* getArchiveName() const;

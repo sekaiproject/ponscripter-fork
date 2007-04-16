@@ -81,7 +81,7 @@ struct BaseReader {
 
     virtual ~BaseReader() { };
 
-    virtual int open(char* name = NULL, int archive_type = ARCHIVE_TYPE_NONE) = 0;
+    virtual int open(const char* name = NULL, int archive_type = ARCHIVE_TYPE_NONE) = 0;
 
     virtual int close() = 0;
 
