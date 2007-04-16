@@ -1047,8 +1047,8 @@ int ScriptHandler::labelScript()
         if (*buf == '*') {
             setCurrent(buf);
             readLabel();
-	    label_info[++label_counter].name = new char[strlen(string_buffer)];
-	    strcpy(label_info[label_counter].name, string_buffer + 1);
+	    ++label_counter;
+	    label_info[label_counter].name = string_buffer + 1;
             label_info[label_counter].label_header = buf;
             label_info[label_counter].num_of_lines = 1;
             label_info[label_counter].start_line = current_line;
@@ -1076,20 +1076,20 @@ int ScriptHandler::labelScript()
 }
 
 
-ScriptHandler::LabelInfo ScriptHandler::lookupLabel(const char* label)
+ScriptHandler::LabelInfo ScriptHandler::lookupLabel(const string& label)
 {
     int i = findLabel(label);
 
-    findAndAddLog(log_info[LABEL_LOG], label_info[i].name, true);
+    findAndAddLog(log_info[LABEL_LOG], label_info[i].name.c_str(), true);
     return label_info[i];
 }
 
 
-ScriptHandler::LabelInfo ScriptHandler::lookupLabelNext(const char* label)
+ScriptHandler::LabelInfo ScriptHandler::lookupLabelNext(const string& label)
 {
     int i = findLabel(label);
     if (i + 1 < num_of_labels) {
-        findAndAddLog(log_info[LABEL_LOG], label_info[i + 1].name, true);
+        findAndAddLog(log_info[LABEL_LOG], label_info[i+1].name.c_str(), true);
         return label_info[i + 1];
      }
 
@@ -1184,25 +1184,18 @@ void ScriptHandler::addStringBuffer(char ch)
 // ----------------------------------------
 // Private methods
 
-int ScriptHandler::findLabel(const char* label)
+int ScriptHandler::findLabel(string label)
 {
-    int  i;
-    char capital_label[256];
+    for (string::size_type i = 0; i < label.size(); ++i)
+        if ('A' <= label[i] && label[i] <= 'Z')
+	    label[i] += 'a' - 'A';
  
-    for (i = 0; i < int(strlen(label)) + 1; i++) {
-        capital_label[i] = label[i];
-        if ('A' <= capital_label[i] && capital_label[i] <= 'Z')
-	    capital_label[i] += 'a' - 'A';
-    }
- 
-    for (i = 0; i < num_of_labels; i++) {
-	if (!strcmp(label_info[i].name, capital_label))
+    for (int i = 0; i < num_of_labels; ++i)
+	if (label_info[i].name == label)
             return i;
-    }
 
-    char* p = new char[strlen(label) + 32];
-    sprintf(p, "Label \"%s\" is not found.", label);
-    errorAndExit(p);
+    label = "Label \"" + label + "\" is not found.";
+    errorAndExit(label.c_str());
 
     return -1; // dummy
 }

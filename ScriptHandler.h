@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <vector>
 #include <string>
 using std::string;
 
@@ -45,7 +46,7 @@ public:
            END_COMMA = 1,
            END_1BYTE_CHAR = 2 };
     struct LabelInfo {
-        char* name;
+	string name;
         char* label_header;
         char* start_address;
         int start_line;
@@ -171,8 +172,8 @@ public:
     int  readScript(const char* path);
     int  labelScript();
 
-    LabelInfo lookupLabel(const char* label);
-    LabelInfo lookupLabelNext(const char* label);
+    LabelInfo lookupLabel(const string& label);
+    LabelInfo lookupLabelNext(const string& label);
     void errorAndExit(const char* str);
 
     ArrayVariable* getRootArrayVariable();
@@ -285,7 +286,7 @@ private:
         };
     };
 
-    int findLabel(const char* label);
+    int findLabel(string label);
 
     char* checkComma(char* buf);
     void parseStr(char** buf);

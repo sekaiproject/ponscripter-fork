@@ -1007,7 +1007,7 @@ void PonscripterLabel::executeLabel()
     while (current_line < current_label_info.num_of_lines) {
         if (debug_level > 0)
             printf("*****  executeLabel %s:%d/%d:%d:%d *****\n",
-		   current_label_info.name,
+		   current_label_info.name.c_str(),
 		   current_line,
 		   current_label_info.num_of_lines,
 		   string_buffer_offset, display_mode);

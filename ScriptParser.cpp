@@ -735,12 +735,12 @@ void ScriptParser::errorAndExit(const char* str, const char* reason)
 {
     if (reason)
         fprintf(stderr, " *** Parse error at %s:%d [%s]; %s ***\n",
-		current_label_info.name,
+		current_label_info.name.c_str(),
 		current_line,
 		str, reason);
     else
         fprintf(stderr, " *** Parse error at %s:%d [%s] ***\n",
-		current_label_info.name,
+		current_label_info.name.c_str(),
 		current_line,
 		str);
 
@@ -783,7 +783,7 @@ void ScriptParser::SET_STR(char** dst, const char* src, int num)
 
 void ScriptParser::setCurrentLabel(const string& label)
 {
-    current_label_info = script_h.lookupLabel(label.c_str());
+    current_label_info = script_h.lookupLabel(label);
     current_line = script_h.getLineByAddress(current_label_info.start_address);
     script_h.setCurrent(current_label_info.start_address);
 }
