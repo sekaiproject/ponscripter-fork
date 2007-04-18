@@ -133,9 +133,9 @@ public:
     void skipToken();
 
     // function for string access
-    inline char* getStringBuffer() { return string_buffer; };
-    char* saveStringBuffer();
-    void addStringBuffer(char ch);
+    inline string& getStringBuffer() { return string_buffer; }
+    const char* saveStringBuffer();
+    void addStringBuffer(char ch) { string_buffer += ch; }
 
     // function for direct manipulation of script address
     inline char* getCurrent() { return current_script; };
@@ -151,7 +151,7 @@ public:
     LabelInfo getLabelByAddress(char* address);
     LabelInfo getLabelByLine(int line);
 
-    bool isName(const char* name);
+    bool isName(const string& name);
     bool isText();
     bool compareString(const char* buf);
 
@@ -269,34 +269,20 @@ private:
     };
 
     struct Alias {
-        struct Alias* next;
-        char* alias;
+        Alias* next;
+        string alias;
         int num;
-        char* str;
+        string str;
 
         Alias() {
-            next  = NULL;
-            alias = NULL;
-            str = NULL;
+            next = NULL;
         };
-        Alias(const char* name, int num) {
-            next  = NULL;
-            alias = new char[strlen(name) + 1];
-            strcpy(alias, name);
-            str = NULL;
+        Alias(const string& name, int num) : alias(name) {
+            next = NULL;
             this->num = num;
         };
-        Alias(const char* name, const char* str) {
-            next  = NULL;
-            alias = new char[strlen(name) + 1];
-            strcpy(alias, name);
-            this->str = new char[strlen(str) + 1];
-            strcpy(this->str, str);
-        };
-        ~Alias() {
-            if (alias) delete[] alias;
-
-            if (str) delete[] str;
+        Alias(const string& name, const string& s) : alias(name), str(s) {
+            next = NULL;
         };
     };
 
@@ -322,10 +308,9 @@ private:
     char* script_buffer;
     char* tmp_script_buf;
 
-    char* string_buffer; // update only be readToken
-    int   string_counter;
-    char* saved_string_buffer; // updated only by saveStringBuffer
-    char* str_string_buffer; // updated only by readStr
+    string string_buffer; // updated only by readToken
+    string saved_string_buffer; // updated only by saveStringBuffer
+    string str_string_buffer; // updated only by readStr
 
     LabelInfo::vec label_info;
     LabelInfo::dic label_names;

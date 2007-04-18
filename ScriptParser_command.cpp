@@ -1102,7 +1102,7 @@ int ScriptParser::defvoicevolCommand()
 int ScriptParser::defsubCommand()
 {
     last_user_func->next = new UserFuncLUT();
-    setStr(&last_user_func->next->command, script_h.readLabel());
+    last_user_func->next->command = script_h.readLabel();
     last_user_func = last_user_func->next;
 
     return RET_CONTINUE;
@@ -1189,12 +1189,10 @@ int ScriptParser::cmpCommand()
     script_h.readInt();
     script_h.pushVariable();
 
-    script_h.readStr();
-    char* save_buf = script_h.saveStringBuffer();
+    string buf1 = script_h.readStr();
+    string buf2 = script_h.readStr();
 
-    const char* buf = script_h.readStr();
-
-    int val = strcmp(save_buf, buf);
+    int val = buf1.compare(buf2);
     if (val > 0) val = 1;
     else if (val < 0) val = -1;
 

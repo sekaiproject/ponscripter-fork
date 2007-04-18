@@ -160,13 +160,9 @@ public:
 protected:
     struct UserFuncLUT {
         struct UserFuncLUT* next;
-        char* command;
+        string command;
         UserFuncLUT() {
-            next    = NULL;
-            command = NULL;
-        };
-        ~UserFuncLUT() {
-            if (command) delete[] command;
+            next = NULL;
         };
     } root_user_func, * last_user_func;
 
@@ -381,6 +377,8 @@ protected:
     void readColor(uchar3* color, const char* buf);
 
     void errorAndExit(const char* str, const char* reason = NULL);
+    void errorAndExit(const string& str, const char* reason = NULL)
+	{ errorAndExit(str.c_str(), reason); }
 
     void allocFileIOBuf();
     int saveFileIOBuf(const char* filename, int offset = 0);

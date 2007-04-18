@@ -185,7 +185,7 @@ void PonscripterLabel::setupAnimationInfo(AnimationInfo* anim, FontInfo* info)
 
         // handle private-use encodings
         {
-            std::string dest;
+            string dest;
             const char* buf = anim->file_name;
             char ch = *buf;
             if (ch == '^') {
@@ -194,12 +194,10 @@ void PonscripterLabel::setupAnimationInfo(AnimationInfo* anim, FontInfo* info)
             }
 
             while (ch) {
-                char b2[5];
                 if (ch == '~' && (ch = *++buf) != '~') {
                     while (ch != '~') {
                         int l;
-                        TranslateTag(buf, b2, l);
-                        dest.append(b2);
+                        dest += TranslateTag(buf, l);
                         buf += l;
                         ch = *buf;
                     }
@@ -207,10 +205,11 @@ void PonscripterLabel::setupAnimationInfo(AnimationInfo* anim, FontInfo* info)
                     continue;
                 }
 
+		// The reason we convert to and from UTF8 is that
+		// UnicodeOfUTF8 also converts ligatures.
                 const unsigned short uc = UnicodeOfUTF8(buf);
                 buf += CharacterBytes(buf);
-                UTF8OfUnicode(uc, b2);
-                dest.append(b2);
+                dest += UTF8OfUnicode(uc);
                 ch = *buf;
             }
             setStr(&anim->file_name, dest.c_str());

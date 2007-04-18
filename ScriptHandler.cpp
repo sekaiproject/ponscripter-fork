@@ -66,9 +66,6 @@ ScriptHandler::~ScriptHandler()
 
     if (kidoku_buffer) delete[] kidoku_buffer;
 
-    delete[] string_buffer;
-    delete[] string_buffer;
-    delete[] saved_string_buffer;
     delete[] variable_data;
 }
 
@@ -165,7 +162,7 @@ const char* ScriptHandler::readToken()
     markAsKidoku(buf);
 
     readTokenTop:
-    string_counter = 0;
+    string_buffer.clear();
     char ch = *buf;
     if (ch == ';') { // comment
         addStringBuffer(ch);
@@ -185,9 +182,10 @@ const char* ScriptHandler::readToken()
         do {
             char bytes = CharacterBytes(buf);
             if (bytes > 1) {
-                if (textgosub_flag && !ignore_click_flag && checkClickstr(buf) > 0) loop_flag = false;
-
-                while (bytes--) addStringBuffer(*buf++);
+                if (textgosub_flag && !ignore_click_flag &&
+		    checkClickstr(buf) > 0) loop_flag = false;
+		string_buffer.append(buf, bytes);
+		buf += bytes;
                 SKIP_SPACE(buf);
                 ch = *buf;
             }
@@ -199,33 +197,32 @@ const char* ScriptHandler::readToken()
                     addStrVariable(&buf);
                 }
                 else {
-                    if (textgosub_flag && !ignore_click_flag && checkClickstr(buf) == 1)
+                    if (textgosub_flag && !ignore_click_flag &&
+			checkClickstr(buf) == 1)
                         loop_flag = false;
 
-                    addStringBuffer(ch);
+                    string_buffer += ch;
                     buf++;
                     ignore_click_flag = false;
                     if (ch == '_') ignore_click_flag = true;
                 }
 
-                if (ch >= '0' && ch <= '9' && (*buf == ' ' || *buf == '\t'
-                                               || *buf == '^'
-                    ) && string_counter % 2 == 1) addStringBuffer(' ');
+                if (ch >= '0' && ch <= '9' &&
+		    (*buf == ' ' || *buf == '\t' || *buf == '^') &&
+		    string_buffer.size() % 2)
+		    string_buffer += ' ';
 
                 ch = *buf;
-                if (ch == 0x0a || ch == '\0' || !loop_flag
-                    || ch == '^'
-                ) break;
+                if (ch == 0x0a || ch == '\0' || !loop_flag || ch == '^')
+		    break;
 
                 SKIP_SPACE(buf);
                 ch = *buf;
             }
         }
-        while (ch != 0x0a && ch != '\0' && loop_flag
-               && ch != '^'
-        );
+        while (ch != 0x0a && ch != '\0' && loop_flag && ch != '^') /*nop*/;
         if (loop_flag && ch == 0x0a && !(textgosub_flag && linepage_flag)) {
-            addStringBuffer(ch);
+            string_buffer += ch;
             markAsKidoku(buf++);
         }
 
@@ -235,7 +232,7 @@ const char* ScriptHandler::readToken()
         ch = *++buf;
         while (ch != '^' && ch != 0x0a && ch != '\0') {
             if ((ch == '\\' || ch == '@') && (buf[1] == 0x0a || buf[1] == 0)) {
-                addStringBuffer(*buf++);
+                string_buffer += *buf++;
                 ch = *buf;
                 break;
             }
@@ -243,7 +240,7 @@ const char* ScriptHandler::readToken()
             if (ch == '~' && (ch = *++buf) != '~') {
                 while (ch != '~') {
                     int l;
-                    string_counter += TranslateTag(buf, string_buffer + string_counter, l);
+		    string_buffer += TranslateTag(buf, l);
                     buf += l;
                     ch = *buf;
                 }
@@ -253,13 +250,13 @@ const char* ScriptHandler::readToken()
 
             const unsigned short uc = UnicodeOfUTF8(buf);
             buf += CharacterBytes(buf);
-            string_counter += UTF8OfUnicode(uc, string_buffer + string_counter);
+            string_buffer += UTF8OfUnicode(uc);
             ch = *buf;
         }
         if (ch == '^') ++buf;
 
         if (ch == 0x0a && !(textgosub_flag && linepage_flag)) {
-            addStringBuffer(ch);
+            string_buffer += ch;
             markAsKidoku(buf++);
         }
 
@@ -272,7 +269,7 @@ const char* ScriptHandler::readToken()
         do {
             if (ch >= 'A' && ch <= 'Z') ch += 'a' - 'A';
 
-            addStringBuffer(ch);
+            string_buffer += ch;
             ch = *++buf;
         }
         while ((ch >= 'a' && ch <= 'z')
@@ -284,20 +281,19 @@ const char* ScriptHandler::readToken()
         return readLabel();
     }
     else if (ch == '~' || ch == 0x0a || ch == ':') {
-        addStringBuffer(ch);
+        string_buffer += ch;
         markAsKidoku(buf++);
     }
     else if (ch != '\0') {
-        fprintf(stderr, "readToken: skip unknown heading character %c (%x)\n", ch, ch);
+        fprintf(stderr, "readToken: skip unknown heading character %c (%x)\n",
+		ch, ch);
         buf++;
         goto readTokenTop;
     }
 
     next_script = checkComma(buf);
 
-    //printf("readToken [%s] len=%d [%c(%x)] %p\n", string_buffer, strlen(string_buffer), ch, ch, next_script);
-
-    return string_buffer;
+    return string_buffer.c_str();
 }
 
 
@@ -310,7 +306,7 @@ const char* ScriptHandler::readLabel()
     SKIP_SPACE(current_script);
     char* buf = current_script;
 
-    string_counter = 0;
+    string_buffer.clear();
     char ch = *buf;
     if (ch == '$') {
         addStrVariable(&buf);
@@ -320,7 +316,7 @@ const char* ScriptHandler::readLabel()
              || ch == '_' || ch == '*') {
         if (ch >= 'A' && ch <= 'Z') ch += 'a' - 'A';
 
-        addStringBuffer(ch);
+        string_buffer += ch;
         buf++;
         if (ch == '*') SKIP_SPACE(buf);
 
@@ -331,16 +327,14 @@ const char* ScriptHandler::readLabel()
                || ch == '_') {
             if (ch >= 'A' && ch <= 'Z') ch += 'a' - 'A';
 
-            addStringBuffer(ch);
+            string_buffer += ch;
             ch = *++buf;
         }
     }
 
-    addStringBuffer('\0');
-
     next_script = checkComma(buf);
 
-    return string_buffer;
+    return string_buffer.c_str();
 }
 
 
@@ -353,31 +347,25 @@ const char* ScriptHandler::readStr()
     SKIP_SPACE(current_script);
     char* buf = current_script;
 
-    string_buffer[0] = '\0';
-    string_counter = 0;
+    string_buffer.clear();
 
     while (1) {
         parseStr(&buf);
         buf = checkComma(buf);
-        string_counter += strlen(str_string_buffer);
-        if (string_counter + 1 >= STRING_BUFFER_LENGTH)
-            errorAndExit("readStr: string length exceeds 2048 bytes.");
-
-        strcat(string_buffer, str_string_buffer);
+	string_buffer += str_string_buffer;
         if (buf[0] != '+') break;
 
         buf++;
     }
     next_script = buf;
 
-    return string_buffer;
+    return string_buffer.c_str();
 }
 
 
 int ScriptHandler::readInt()
 {
-    string_counter = 0;
-    string_buffer[string_counter] = '\0';
+    string_buffer.clear();
 
     end_status = END_NONE;
     current_variable.type = VAR_NONE;
@@ -421,10 +409,10 @@ void ScriptHandler::skipToken()
 
 
 // string access function
-char* ScriptHandler::saveStringBuffer()
+const char* ScriptHandler::saveStringBuffer()
 {
-    strcpy(saved_string_buffer, string_buffer);
-    return saved_string_buffer;
+    saved_string_buffer = string_buffer;
+    return saved_string_buffer.c_str();
 }
 
 
@@ -517,9 +505,9 @@ ScriptHandler::LabelInfo ScriptHandler::getLabelByLine(int line)
 }
 
 
-bool ScriptHandler::isName(const char* name)
+bool ScriptHandler::isName(const string& name)
 {
-    return (strncmp(name, string_buffer, strlen(name)) == 0) ? true : false;
+    return string_buffer.compare(0, name.size(), name) == 0;
 }
 
 
@@ -1042,7 +1030,7 @@ int ScriptHandler::labelScript()
             setCurrent(buf);
             readLabel();
 	    LabelInfo new_label;
-	    new_label.name = string_buffer + 1;
+	    new_label.name.assign(string_buffer, 1, string_buffer.size() - 1);
             new_label.label_header = buf;
             new_label.num_of_lines = 1;
             new_label.start_line = current_line;
@@ -1161,18 +1149,8 @@ void ScriptHandler::addStrAlias(const char* str1, const char* str2)
 
 void ScriptHandler::errorAndExit(const char* str)
 {
-    fprintf(stderr, " **** Script error, %s [%s] ***\n", str, string_buffer);
+    fprintf(stderr, " **** Script error, %s [%s] ***\n", str, string_buffer.c_str());
     exit(-1);
-}
-
-
-void ScriptHandler::addStringBuffer(char ch)
-{
-    if (string_counter + 1 == STRING_BUFFER_LENGTH)
-        errorAndExit("addStringBuffer: string exceeds 2048.");
-
-    string_buffer[string_counter++] = ch;
-    string_buffer[string_counter] = '\0';
 }
 
 
@@ -1220,13 +1198,11 @@ void ScriptHandler::parseStr(char** buf)
 
         (*buf)++;
 
-        if (findAndAddLog(log_info[FILE_LOG], str_string_buffer, false)) {
+        if (findAndAddLog(log_info[FILE_LOG], str_string_buffer.c_str(), false)) {
             parseStr(buf);
-            char* tmp_buf = new char[strlen(str_string_buffer) + 1];
-            strcpy(tmp_buf, str_string_buffer);
+	    string tmp_buf = str_string_buffer; // FIXME: hideous ugliness
             parseStr(buf);
-            strcpy(str_string_buffer, tmp_buf);
-            delete[] tmp_buf;
+	    str_string_buffer = tmp_buf;
         }
         else {
             parseStr(buf);
@@ -1238,10 +1214,7 @@ void ScriptHandler::parseStr(char** buf)
     else if (**buf == '$') {
         (*buf)++;
         int no = parseInt(buf);
-        if (variable_data[no].str)
-            strcpy(str_string_buffer, variable_data[no].str);
-        else
-            str_string_buffer[0] = '\0';
+	str_string_buffer = variable_data[no].str;
 
         current_variable.type   = VAR_STR;
         current_variable.var_no = no;
@@ -1250,25 +1223,23 @@ void ScriptHandler::parseStr(char** buf)
             current_variable.var_no = VARIABLE_RANGE;
     }
     else if (**buf == '"') {
-        int c = 0;
+	str_string_buffer.clear();
         (*buf)++;
-        while (**buf != '"' && **buf != 0x0a)
-            str_string_buffer[c++] = *(*buf)++;
-        str_string_buffer[c] = '\0';
+	while (**buf != '"' && **buf != 0x0a)
+            str_string_buffer.push_back(*(*buf)++);
         if (**buf == '"') (*buf)++;
 
         current_variable.type |= VAR_CONST;
     }
     else if (**buf == '^') {
-        int c = 0;
-        str_string_buffer[c++] = *(*buf)++;
+        str_string_buffer.assign(1, *(*buf)++);
 
         char ch = **buf;
         while (ch != '^' && ch != 0x0a && ch != '\0') {
             if (ch == '~' && (ch = *++ (*buf)) != '~') {
                 while (ch != '~') {
                     int l;
-                    c    += TranslateTag(*buf, str_string_buffer + c, l);
+                    str_string_buffer += TranslateTag(*buf, l);
                     *buf += l;
                     ch = **buf;
                 }
@@ -1278,46 +1249,39 @@ void ScriptHandler::parseStr(char** buf)
 
             const unsigned short uc = UnicodeOfUTF8(*buf);
             *buf += CharacterBytes(*buf);
-            c += UTF8OfUnicode(uc, str_string_buffer + c);
+            str_string_buffer += UTF8OfUnicode(uc);
             ch = **buf;
         }
 
-        str_string_buffer[c] = '\0';
         if (**buf == '^') (*buf)++;
 
         current_variable.type |= VAR_CONST;
         end_status |= END_1BYTE_CHAR;
     }
     else if (**buf == '#') { // for color
-        for (int i = 0; i < 7; i++)
-            str_string_buffer[i] = *(*buf)++;
-
-        str_string_buffer[7]  = '\0';
+	str_string_buffer.assign(*buf, 7);
+	*buf += 7;
         current_variable.type = VAR_NONE;
     }
     else if (**buf == '*') { // label
-        int c = 0;
-        str_string_buffer[c++] = *(*buf)++;
+        str_string_buffer.assign(1, *(*buf)++);
         SKIP_SPACE(*buf);
         char ch = **buf;
         while((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') ||
               (ch >= '0' && ch <= '9') || ch == '_')
 	{
             if (ch >= 'A' && ch <= 'Z') ch += 'a' - 'A';
-            str_string_buffer[c++] = ch;
+            str_string_buffer += ch;
             ch = *++(*buf);
         }
-        str_string_buffer[c] = 0;
         current_variable.type |= VAR_CONST;
     }   
     else { // str alias
-        char ch, alias_buf[512];
-        int  alias_buf_len = 0;
+        char ch;
+	string alias_buf;
         bool first_flag = true;
 
         while (1) {
-            if (alias_buf_len == 511) break;
-
             ch = **buf;
 
             if ((ch >= 'a' && ch <= 'z')
@@ -1326,22 +1290,23 @@ void ScriptHandler::parseStr(char** buf)
                 if (ch >= 'A' && ch <= 'Z') ch += 'a' - 'A';
 
                 first_flag = false;
-                alias_buf[alias_buf_len++] = ch;
+                alias_buf += ch;
             }
             else if (ch >= '0' && ch <= '9') {
-                if (first_flag) errorAndExit("parseStr: number is not allowed for the first letter of str alias.");
+                if (first_flag)
+		    errorAndExit("parseStr: number is not allowed for the "
+				 "first letter of str alias.");
 
                 first_flag = false;
-                alias_buf[alias_buf_len++] = ch;
+                alias_buf += ch;
             }
             else break;
 
             (*buf)++;
         }
-        alias_buf[alias_buf_len] = '\0';
 
-        if (alias_buf_len == 0) {
-            str_string_buffer[0]  = '\0';
+        if (!alias_buf) {
+            str_string_buffer.clear();
             current_variable.type = VAR_NONE;
             return;
         }
@@ -1349,15 +1314,14 @@ void ScriptHandler::parseStr(char** buf)
         Alias* p_str_alias = root_str_alias.next;
 
         while (p_str_alias) {
-            if (!strcmp(p_str_alias->alias, (const char*) alias_buf)) {
-                strcpy(str_string_buffer, p_str_alias->str);
+            if (p_str_alias->alias == alias_buf) {
+                str_string_buffer = p_str_alias->str;
                 break;
             }
-
             p_str_alias = p_str_alias->next;
         }
         if (!p_str_alias) {
-            printf("can't find str alias for %s...\n", alias_buf);
+            printf("can't find str alias for %s...\n", alias_buf.c_str());
             exit(-1);
         }
 
@@ -1390,8 +1354,9 @@ int ScriptHandler::parseInt(char** buf)
         return * getArrayPtr(current_variable.var_no, current_variable.array, 0);
     }
     else {
-        char ch, alias_buf[256];
-        int  alias_buf_len   = 0, alias_no = 0;
+        char ch;
+	string alias_buf;
+        int alias_no = 0;
         bool direct_num_flag = false;
         bool num_alias_flag  = false;
         bool hex_num_flag = (*buf)[0] == '0' & (*buf)[1] == 'x';
@@ -1413,7 +1378,7 @@ int ScriptHandler::parseInt(char** buf)
                 if (direct_num_flag)
                     alias_no = alias_no * 10 + ch - '0';
                 else
-                    alias_buf[alias_buf_len++] = ch;
+                    alias_buf += ch;
             }
             else if (isalpha(ch) || ch == '_') {
                 if (ch >= 'A' && ch <= 'Z') ch += 'a' - 'A';
@@ -1421,7 +1386,7 @@ int ScriptHandler::parseInt(char** buf)
                 if (hex_num_flag || direct_num_flag) break;
 
                 num_alias_flag = true;
-                alias_buf[alias_buf_len++] = ch;
+                alias_buf += ch;
             }
             else break;
 
@@ -1436,12 +1401,10 @@ int ScriptHandler::parseInt(char** buf)
         /* ---------------------------------------- */
         /* Solve num aliases */
         if (num_alias_flag) {
-            alias_buf[alias_buf_len] = '\0';
             Alias* p_num_alias = root_num_alias.next;
 
             while (p_num_alias) {
-                if (!strcmp(p_num_alias->alias,
-                        (const char*) alias_buf)) {
+                if (p_num_alias->alias == alias_buf) {
                     alias_no = p_num_alias->num;
                     break;
                 }
@@ -1449,7 +1412,7 @@ int ScriptHandler::parseInt(char** buf)
                 p_num_alias = p_num_alias->next;
             }
             if (!p_num_alias) {
-                //printf("can't find num alias for %s... assume 0.\n", alias_buf );
+                printf("can't find num alias for %s... assume 0.\n", alias_buf.c_str());
                 current_variable.type = VAR_NONE;
                 *buf = buf_start;
                 return 0;

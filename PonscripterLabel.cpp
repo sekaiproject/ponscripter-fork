@@ -1101,7 +1101,7 @@ bool PonscripterLabel::check_orphan_control()
     // stranded at the end of a line.
     if (string_buffer_offset < 5) return false;
     const unsigned short p =
-        UnicodeOfUTF8(PreviousCharacter(script_h.getStringBuffer() +
+        UnicodeOfUTF8(PreviousCharacter(script_h.getStringBuffer().c_str() +
 					string_buffer_offset));
     return p == '.' || p == 0xff0e || p == ',' || p == 0xff0c
         || p == ':' || p == 0xff1a || p == ';' || p == 0xff1b
@@ -1112,27 +1112,26 @@ bool PonscripterLabel::check_orphan_control()
 int PonscripterLabel::parseLine()
 {
     int ret, lut_counter = 0;
-    const char* s_buf = script_h.getStringBuffer();
-    const char* cmd = script_h.getStringBuffer();
-    if (cmd[0] == '_') cmd++;
+    const string& cmd = script_h.getStringBuffer();
+    int cmdoffs = (cmd[0] == '_') ? 1 : 0;
 
     if (!script_h.isText()) {
         while (func_lut[lut_counter].method) {
-            if (!strcmp(func_lut[lut_counter].command, cmd)) {
+            if (strcmp(cmd.c_str() + cmdoffs, func_lut[lut_counter].command) == 0) {
                 return (this->*func_lut[lut_counter].method)();
             }
             lut_counter++;
         }
 
-        if (s_buf[0] == 0x0a)
+        if (cmd[0] == 0x0a)
             return RET_CONTINUE;
-        else if (s_buf[0] == 'v' && s_buf[1] >= '0' && s_buf[1] <= '9')
+        else if (cmd[0] == 'v' && cmd[1] >= '0' && cmd[1] <= '9')
             return vCommand();
-        else if (s_buf[0] == 'd' && s_buf[1] == 'v' && s_buf[2] >= '0' &&
-                 s_buf[2] <= '9')
+        else if (cmd[0] == 'd' && cmd[1] == 'v' && cmd[2] >= '0' &&
+                 cmd[2] <= '9')
             return dvCommand();
 
-        fprintf(stderr, " command [%s] is not supported yet!!\n", s_buf);
+        fprintf(stderr, " command [%s] is not supported yet!!\n", cmd.c_str());
 
         script_h.skipToken();
 
@@ -1145,9 +1144,9 @@ int PonscripterLabel::parseLine()
 
 //--------INDENT ROUTINE--------------------------------------------------------
     if (sentence_font.GetXOffset() == 0 && sentence_font.GetYOffset() == 0) {
-        const unsigned short first_ch = UnicodeOfUTF8(script_h.
-                                            getStringBuffer() +
-                                            string_buffer_offset);
+        const unsigned short
+	    first_ch = UnicodeOfUTF8(script_h.getStringBuffer().c_str() +
+				     string_buffer_offset);
         if (is_indent_char(first_ch))
             sentence_font.SetIndent(first_ch);
         else
@@ -1158,11 +1157,11 @@ int PonscripterLabel::parseLine()
     ret = textCommand();
 
 //--------LINE BREAKING ROUTINE-------------------------------------------------
-    const unsigned short first_ch = UnicodeOfUTF8(script_h.getStringBuffer() +
+    const unsigned short first_ch = UnicodeOfUTF8(script_h.getStringBuffer().c_str() +
                                         string_buffer_offset);
     if (is_break_char(first_ch) && !new_line_skip_flag) {
-        char* it = script_h.getStringBuffer() + string_buffer_offset
-                   + CharacterBytes(script_h.getStringBuffer() +
+        const char* it = script_h.getStringBuffer().c_str() + string_buffer_offset
+	    + CharacterBytes(script_h.getStringBuffer().c_str() +
                        string_buffer_offset);
         float len = sentence_font.GlyphAdvance(first_ch, UnicodeOfUTF8(it));
         while (1) {

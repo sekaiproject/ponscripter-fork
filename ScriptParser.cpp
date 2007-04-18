@@ -378,18 +378,17 @@ void ScriptParser::readColor(uchar3* color, const char* buf)
 
 int ScriptParser::parseLine()
 {
-    if (debug_level > 0) printf("ScriptParser::Parseline %s\n", script_h.getStringBuffer());
+    const string& cmd = script_h.getStringBuffer();
+    if (debug_level > 0) printf("ScriptParser::Parseline %s\n", cmd.c_str());
 
-    if (script_h.getStringBuffer()[0] == ';') return RET_CONTINUE;
-    else if (script_h.getStringBuffer()[0] == '*') return RET_CONTINUE;
-    else if (script_h.getStringBuffer()[0] == ':') return RET_CONTINUE;
+    if (cmd[0] == ';' || cmd[0] == '*' || cmd[0] == ':') return RET_CONTINUE;
     else if (script_h.isText()) return RET_NOMATCH;
 
-    const char* cmd = script_h.getStringBuffer();
+    int cmpoffs = 0;
     if (cmd[0] != '_') {
         UserFuncLUT* uf = root_user_func.next;
         while (uf) {
-            if (!strcmp(uf->command, cmd)) {
+            if (cmd == uf->command) {
                 gosubReal(cmd, script_h.getNext());
                 return RET_CONTINUE;
             }
@@ -398,16 +397,15 @@ int ScriptParser::parseLine()
         }
     }
     else {
-        cmd++;
+	++cmpoffs;
     }
 
     int lut_counter = 0;
     while (func_lut[lut_counter].method) {
-        if (!strcmp(func_lut[lut_counter].command, cmd)) {
+        if (strcmp(cmd.c_str() + cmpoffs, func_lut[lut_counter].command) == 0) {
             return (this->*func_lut[lut_counter].method)();
         }
-
-        lut_counter++;
+        ++lut_counter;
     }
 
     return RET_NOMATCH;
@@ -798,14 +796,14 @@ void ScriptParser::readToken()
         char ch = (linepage_mode == 1) ? '\\' : '@';
 
         // ugly work around
-        unsigned int len = strlen(script_h.getStringBuffer());
-        if (script_h.getStringBuffer()[len - 1] == 0x0a) {
-            script_h.getStringBuffer()[len - 1] = ch;
-            script_h.addStringBuffer(0x0a);
-        }
-        else {
-            script_h.addStringBuffer(ch);
-        }
+	string& s = script_h.getStringBuffer();
+	if (s && s.back() == 0x0a) {
+	    s.back() = ch;
+	    s.push_back(0x0a);
+	}
+	else {
+	    s.push_back(ch);
+	}
     }
 }
 

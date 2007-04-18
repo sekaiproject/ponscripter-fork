@@ -110,9 +110,9 @@ int PonscripterLabel::voicevolCommand()
 
 int PonscripterLabel::vCommand()
 {
-    char buf[256];
-
-    sprintf(buf, "wav%c%s.wav", DELIMITER, script_h.getStringBuffer() + 1);
+    string buf = "wav";
+    buf += DELIMITER;
+    buf.append(script_h.getStringBuffer(), 1);
     playSound(buf, SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
 
     return RET_CONTINUE;
@@ -774,7 +774,7 @@ int PonscripterLabel::selectCommand()
                 // Label part
                 if (select_mode != SELECT_NUM_MODE) {
                     script_h.readStr();
-                    setStr(&slink->label, script_h.getStringBuffer() + 1);
+                    setStr(&slink->label, script_h.getStringBuffer().c_str() + 1);
                     //printf("Select label %s\n", slink->label );
                 }
 
@@ -2453,9 +2453,9 @@ int PonscripterLabel::dwaveCommand()
 
 int PonscripterLabel::dvCommand()
 {
-    char buf[256];
-
-    sprintf(buf, "voice%c%s.wav", DELIMITER, script_h.getStringBuffer() + 2);
+    string buf = "voice";
+    buf += DELIMITER;
+    buf.append(script_h.getStringBuffer(), 2);
     playSound(buf, SOUND_WAVE | SOUND_OGG, false, 0);
 
     return RET_CONTINUE;

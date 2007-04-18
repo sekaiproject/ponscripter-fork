@@ -274,6 +274,25 @@ UTF8OfUnicode(const unsigned short ch, char* out)
     }
 }
 
+string
+UTF8OfUnicode(const unsigned short ch)
+{
+    string rv;
+    if (ch <= 0x80) {
+        rv.push_uchar(ch);
+    }
+    else if (ch < 0x800) {
+	rv.push_uchar(0xc0 | ch >> 6);
+	rv.push_uchar(0x80 | ch & 0x3f);
+    }
+    else {
+	rv.push_uchar(0xe0 | ch >> 12);
+	rv.push_uchar(0x80 | ch >> 6 & 0x3f);
+        rv.push_uchar(0x80 | ch & 0x3f);
+    }
+    return rv;
+}
+
 
 void
 SetEncoding(int& encoding, const char flag)
@@ -281,11 +300,11 @@ SetEncoding(int& encoding, const char flag)
     switch (flag) {
     case ' ': return;
     case 'd': encoding  = Default; return;
-    case 'r': encoding &= ~Italic;  return;
+    case 'r': encoding &= ~Italic; return;
     case 'i': encoding ^= Italic;  return;
-    case 't': encoding &= ~Bold;    return;
+    case 't': encoding &= ~Bold;   return;
     case 'b': encoding ^= Bold;    return;
-    case 'f': encoding &= ~Sans;    return;
+    case 'f': encoding &= ~Sans;   return;
     case 's': encoding ^= Sans;    return;
     case '+': case '-':   case '*': case '/':
     case 'x': case 'y': case 'n': case 'u':
@@ -302,21 +321,10 @@ SetEncoding(int& encoding, const char flag)
 }
 
 
-inline int
-set_out(char* out, char val, char ext = 0)
+inline string
+set_int(char val, const char* src, int& in_len, int mulby = 1, int offset = 0)
 {
-    *out++ = val;
-    if (ext) *out++ = ext;
-
-    *out = 0;
-    return ext ? 2 : 1;
-}
-
-
-inline int
-set_int(char* out, char val, const char* src, int& in_len, int mulby = 1, int offset = 0)
-{
-    *out++ = val;
+    string rv(1, val);
     ++src;
     int i = 0;
     while (*src >= '0' && *src <= '9') {
@@ -325,54 +333,52 @@ set_int(char* out, char val, const char* src, int& in_len, int mulby = 1, int of
     }
     i = i * mulby + offset;
     const char c1 = i & 0x7f, c2 = (i >> 7) & 0x7f;
-    *out++ = c1 ? c1 : -1;
-    *out++ = c2 ? c2 : -1;
-    *out = 0;
-    return 3;
+    rv.push_back(c1 ? c1 : -1);
+    rv.push_back(c2 ? c2 : -1);
+    return rv;
 }
 
 
-int
-TranslateTag(const char* flag, char* out, int& in_len)
+string
+TranslateTag(const char* flag, int& in_len)
 {
     in_len = 1;
     switch (*flag) {
-    case ' ': return 0;
-    case 'd': return set_out(out, 0x10);
-    case 'r': return set_out(out, 0x11);
-    case 'i': return set_out(out, 0x12);
-    case 't': return set_out(out, 0x13);
-    case 'b': return set_out(out, 0x14);
-    case 'f': return set_out(out, 0x15);
-    case 's': return set_out(out, 0x16);
-    case '=': return set_int(out, 0x17, flag, in_len);
-    case '+': return set_int(out, 0x18, flag, in_len, -1, 8192);
-    case '-': return set_int(out, 0x18, flag, in_len, 1, 8192);
-    case '%': return set_int(out, 0x19, flag, in_len);
+    case ' ': return string();
+    case 'd': return string(1, 0x10);
+    case 'r': return string(1, 0x11);
+    case 'i': return string(1, 0x12);
+    case 't': return string(1, 0x13);
+    case 'b': return string(1, 0x14);
+    case 'f': return string(1, 0x15);
+    case 's': return string(1, 0x16);
+    case '=': return set_int(0x17, flag, in_len);
+    case '+': return set_int(0x18, flag, in_len, -1, 8192);
+    case '-': return set_int(0x18, flag, in_len, 1, 8192);
+    case '%': return set_int(0x19, flag, in_len);
     case 'x':
         if (flag[1] == '+' || flag[1] == '-') {
             ++in_len;
-            return set_int(out, 0x1a, flag + 1, in_len,
-                       flag[1] == '-' ? -1 : 1, 8192);
+            return set_int(0x1a, flag + 1, in_len,
+			   flag[1] == '-' ? -1 : 1, 8192);
         }
-        else return set_int(out, 0x1b, flag, in_len);
+        else return set_int(0x1b, flag, in_len);
 
     case 'y': if (flag[1] == '+' || flag[1] == '-') {
             ++in_len;
-            return set_int(out, 0x1c, flag + 1, in_len,
-                       flag[1] == '-' ? -1 : 1, 8192);
+            return set_int(0x1c, flag + 1, in_len,
+			   flag[1] == '-' ? -1 : 1, 8192);
     }
-        else return set_int(out, 0x1d, flag, in_len);
+        else return set_int(0x1d, flag, in_len);
 
-    case 'c': return set_int(out, 0x1e, flag, in_len);
-    case 'n': return set_out(out, 0x1f, 0x10);
-    case 'u': return set_out(out, 0x1f, 0x11);
+    case 'c': return set_int(0x1e, flag, in_len);
+    case 'n': return string("\x1f\x10");
+    case 'u': return string("\x1f\x11");
     case 0:
         fprintf(stderr, "Error: non-matching ~tags~\n");
         exit(1);
     default:
         fprintf(stderr, "Warning: unknown tag ~%c~\n", *flag);
-        *out = 0;
-        return 0;
+        return string();
     }
 }

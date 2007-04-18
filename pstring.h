@@ -9,6 +9,7 @@
 #ifndef PSTRING_H
 #define PSTRING_H
 
+#include <stdio.h>
 #include <string>
 
 class string {
@@ -219,8 +220,11 @@ public:
     int compare(size_type pos, size_type n, const char* s,
 		size_type len = npos) const
 	{ return s ? c.compare(pos, n, s, len) : 1; }
-    
+
+    // Extensions
     operator bool() const { return !empty(); }
+    void push_uchar(unsigned char e) { c.push_back(char(e)); }
+    char& back() { return c[c.size() - 1]; }
 };
 
 inline string operator+(const string& s1, const string& s2)

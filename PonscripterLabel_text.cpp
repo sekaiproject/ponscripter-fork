@@ -377,7 +377,7 @@ int PonscripterLabel::textCommand()
         && (line_enter_status == 0
             || (line_enter_status == 1
                 && (script_h.getStringBuffer()[string_buffer_offset] == '['
-                    || zenkakko_flag && UnicodeOfUTF8(script_h.getStringBuffer() + string_buffer_offset) == 0x3010 /*y */)))) {
+                    || zenkakko_flag && UnicodeOfUTF8(script_h.getStringBuffer().c_str() + string_buffer_offset) == 0x3010 /*y */)))) {
         gosubReal(pretextgosub_label, script_h.getCurrent());
         line_enter_status = 1;
         return RET_CONTINUE;
@@ -401,14 +401,14 @@ int PonscripterLabel::processText()
     if (event_mode & (WAIT_INPUT_MODE | WAIT_SLEEP_MODE)) {
         draw_cursor_flag = false;
         if (clickstr_state == CLICK_WAIT) {
-            if (script_h.checkClickstr(script_h.getStringBuffer() + string_buffer_offset) != 1) string_buffer_offset++;
+            if (script_h.checkClickstr(script_h.getStringBuffer().c_str() + string_buffer_offset) != 1) string_buffer_offset++;
 
             string_buffer_offset++;
             clickstr_state = CLICK_NONE;
         }
         else if (clickstr_state == CLICK_NEWPAGE) {
             event_mode = IDLE_EVENT_MODE;
-            if (script_h.checkClickstr(script_h.getStringBuffer() + string_buffer_offset) != 1) string_buffer_offset++;
+            if (script_h.checkClickstr(script_h.getStringBuffer().c_str() + string_buffer_offset) != 1) string_buffer_offset++;
 
             string_buffer_offset++;
             newPage(true);
@@ -427,7 +427,7 @@ int PonscripterLabel::processText()
             }
         }
         else
-            string_buffer_offset += CharacterBytes(script_h.getStringBuffer() + string_buffer_offset);
+            string_buffer_offset += CharacterBytes(script_h.getStringBuffer().c_str() + string_buffer_offset);
 
         event_mode = IDLE_EVENT_MODE;
     }
@@ -524,7 +524,7 @@ int PonscripterLabel::processText()
             if (!((hexchecker >= '0' && hexchecker <= '9') || (hexchecker >= 'a' && hexchecker <= 'f') || (hexchecker >= 'A' && hexchecker <= 'F'))) goto notacommand;
         }
 
-        readColor(&sentence_font.color, script_h.getStringBuffer() + string_buffer_offset);
+        readColor(&sentence_font.color, script_h.getStringBuffer().c_str() + string_buffer_offset);
         string_buffer_offset += 7;
 
         return RET_CONTINUE | RET_NOREAD;
@@ -546,7 +546,7 @@ int PonscripterLabel::processText()
         bool flush_flag = !(skip_flag || draw_one_page_flag ||
 			    ctrl_pressed_status);
 
-        drawChar(script_h.getStringBuffer() + string_buffer_offset,
+        drawChar(script_h.getStringBuffer().c_str() + string_buffer_offset,
 		 &sentence_font, flush_flag, true, accumulation_surface,
 		 &text_info);
         ++num_chars_in_sentence;
