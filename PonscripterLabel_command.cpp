@@ -1579,7 +1579,7 @@ int PonscripterLabel::loadgameCommand()
 
         refreshMouseOverButton();
 
-        if (!loadgosub_label.empty())
+        if (loadgosub_label)
             gosubReal(loadgosub_label, script_h.getCurrent());
 
         readToken();

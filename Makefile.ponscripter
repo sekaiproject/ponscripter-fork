@@ -21,7 +21,8 @@ GUI_OBJS = PonscripterLabel$(OBJSUFFIX)					\
 	PonscripterLabel_ext$(OBJSUFFIX) AnimationInfo$(OBJSUFFIX)	\
 	FontInfo$(OBJSUFFIX) DirtyRect$(OBJSUFFIX)			\
 	resize_image$(OBJSUFFIX) utf8_util$(OBJSUFFIX)			\
-	font$(OBJSUFFIX) $(if $(NO_RESOURCES), ,resources$(OBJSUFFIX))
+	font$(OBJSUFFIX) $(if $(NO_RESOURCES), ,resources$(OBJSUFFIX))  \
+	pstring$(OBJSUFFIX)
 DECODER_OBJS = DirectReader$(OBJSUFFIX) SarReader$(OBJSUFFIX)	\
 	NsaReader$(OBJSUFFIX)
 PONSCR_OBJS = Ponscripter$(OBJSUFFIX) $(DECODER_OBJS)		\
@@ -29,7 +30,7 @@ PONSCR_OBJS = Ponscripter$(OBJSUFFIX) $(DECODER_OBJS)		\
 	ScriptParser_command$(OBJSUFFIX) $(GUI_OBJS) $(EXT_OBJS)
 PARSER_HEADER = $(EXTRADEPS) BaseReader.h SarReader.h NsaReader.h	\
 	DirectReader.h ScriptHandler.h ScriptParser.h AnimationInfo.h	\
-	FontInfo.h DirtyRect.h
+	FontInfo.h DirtyRect.h pstring.h
 PONSCR_HEADER = font.h PonscripterLabel.h $(PARSER_HEADER)
 
 ponscr$(EXESUFFIX): $(PONSCR_OBJS)

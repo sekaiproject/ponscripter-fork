@@ -45,7 +45,7 @@ int PonscripterLabel::proceedAnimation()
         }
     }
 
-    if (textgosub_label.empty()
+    if (!textgosub_label
         && (clickstr_state == CLICK_WAIT
             || clickstr_state == CLICK_NEWPAGE)) {
         if (clickstr_state == CLICK_WAIT)
@@ -109,7 +109,7 @@ void PonscripterLabel::resetRemainingTime(int t)
         }
     }
 
-    if (textgosub_label.empty()
+    if (!textgosub_label
         && (clickstr_state == CLICK_WAIT
             || clickstr_state == CLICK_NEWPAGE)) {
         if (clickstr_state == CLICK_WAIT)
@@ -432,7 +432,7 @@ void PonscripterLabel::stopAnimation(int click)
 
     event_mode    &= ~WAIT_TIMER_MODE;
     remaining_time = -1;
-    if (!textgosub_label.empty()) return;
+    if (textgosub_label) return;
 
     if (click == CLICK_WAIT) no = CURSOR_WAIT_NO;
     else if (click == CLICK_NEWPAGE) no = CURSOR_NEWPAGE_NO;

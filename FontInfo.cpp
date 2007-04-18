@@ -32,7 +32,6 @@
 #include "ScriptHandler.h"
 #include "resources.h"
 #include <stdio.h>
-#include <string>
 #include <math.h>
 
 int screen_ratio1 = 1, screen_ratio2 = 1;
@@ -45,8 +44,8 @@ static class FontsStruct {
     friend void MapMetrics(int, const char*);
 
     static const int count = 8;
-    std::string mapping[count];
-    std::string metrics[count];
+    string mapping[count];
+    string metrics[count];
     Font* font_[count];
 public:
     Font* font(int style);
@@ -94,7 +93,7 @@ Font* FontsStruct::font(int style)
     if (fp) {
         fclose(fp);
         const char* metnam = NULL;
-        if (!metrics[style].empty()) {
+        if (metrics[style]) {
             fp = fopen(metrics[style].c_str(), "rb");
             if (fp) {
                 metnam = metrics[style].c_str();
@@ -108,7 +107,7 @@ Font* FontsStruct::font(int style)
         Uint8* data = new Uint8[len], * mdat = NULL;
         ScriptHandler::cBR->getFile(mapping[style].c_str(), data);
         size_t mlen = 0;
-        if (!metrics[style].empty() && (mlen = ScriptHandler::cBR->getFileLength(metrics[style].c_str()))) {
+        if (metrics[style] && (mlen = ScriptHandler::cBR->getFileLength(metrics[style].c_str()))) {
             mdat = new Uint8[mlen];
             ScriptHandler::cBR->getFile(metrics[style].c_str(), mdat);
         }
@@ -118,7 +117,7 @@ Font* FontsStruct::font(int style)
     else {
         const InternalResource* fres, * mres = NULL;
         fres = getResource(mapping[style].c_str());
-        if (!metrics[style].empty()) mres = getResource(metrics[style].c_str());
+        if (metrics[style]) mres = getResource(metrics[style].c_str());
 
         if (fres) font_[style] = new Font(fres, mres);
     }

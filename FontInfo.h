@@ -26,8 +26,8 @@
 #ifndef __FONT_INFO_H__
 #define __FONT_INFO_H__
 
-#include <string>
 #include <SDL.h>
+#include "pstring.h"
 #include "font.h"
 
 extern int screen_ratio1, screen_ratio2;
@@ -96,7 +96,7 @@ public:
 
     float GlyphAdvance(unsigned short unicode, unsigned short next = 0);
     float StringAdvance(const char* string);
-    float StringAdvance(const std::string& s) {
+    float StringAdvance(const string& s) {
 	return StringAdvance(s.c_str());
     }
 

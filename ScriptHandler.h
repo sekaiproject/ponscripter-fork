@@ -31,8 +31,7 @@
 #include <string.h>
 
 #include <vector>
-#include <string>
-using std::string;
+#include "pstring.h"
 
 #ifdef __GNU_C__
 #include <ext/hash_map>

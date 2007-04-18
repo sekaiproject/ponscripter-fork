@@ -472,7 +472,7 @@ void PonscripterLabel::executeSystemYesNo()
                 string_buffer_offset = 0;
 		break_flag = false;
 
-                if (!loadgosub_label.empty())
+                if (loadgosub_label)
                     gosubReal(loadgosub_label, script_h.getCurrent());
 
                 readToken();
@@ -559,7 +559,7 @@ void PonscripterLabel::setupLookbackButton()
 
     /* ---------------------------------------- */
     /* Previous button check */
-    if (!current_text_buffer->previous->empty()
+    if (current_text_buffer->previous
         && current_text_buffer != start_text_buffer) {
         ButtonLink* button = new ButtonLink();
         root_button_link.insert(button);

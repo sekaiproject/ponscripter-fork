@@ -307,7 +307,7 @@ int PonscripterLabel::clickWait()
     skip_to_wait = 0;
 
     if ((skip_flag || draw_one_page_flag || ctrl_pressed_status) &&
-	textgosub_label.empty()) {
+	!textgosub_label) {
         clickstr_state = CLICK_NONE;
         flush(refreshMode());
         string_buffer_offset++;
@@ -318,7 +318,7 @@ int PonscripterLabel::clickWait()
     else {
         clickstr_state   = CLICK_WAIT;
         key_pressed_flag = false;
-        if (!textgosub_label.empty()) {
+        if (textgosub_label) {
             saveoffCommand();
 
             textgosub_clickstr_state = CLICK_WAIT;
@@ -346,14 +346,14 @@ int PonscripterLabel::clickNewPage()
     clickstr_state = CLICK_NEWPAGE;
     if (skip_flag || draw_one_page_flag || ctrl_pressed_status) flush(refreshMode());
 
-    if ((skip_flag || ctrl_pressed_status) && textgosub_label.empty()) {
+    if ((skip_flag || ctrl_pressed_status) && !textgosub_label) {
         event_mode = WAIT_SLEEP_MODE;
         advancePhase();
         num_chars_in_sentence = 0;
     }
     else {
         key_pressed_flag = false;
-        if (!textgosub_label.empty()) {
+        if (textgosub_label) {
             saveoffCommand();
 
             textgosub_clickstr_state = CLICK_NEWPAGE;
@@ -373,7 +373,7 @@ int PonscripterLabel::clickNewPage()
 
 int PonscripterLabel::textCommand()
 {
-    if (!pretextgosub_label.empty()
+    if (pretextgosub_label
         && (line_enter_status == 0
             || (line_enter_status == 1
                 && (script_h.getStringBuffer()[string_buffer_offset] == '['
