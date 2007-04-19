@@ -225,6 +225,12 @@ public:
     operator bool() const { return !empty(); }
     void push_uchar(unsigned char e) { c.push_back(char(e)); }
     char& back() { return c[c.size() - 1]; }
+
+    // Perl-like stuff
+    char pop() { char e = back(); c.resize(c.size() - 1); return e; }
+    string& push(char e) { c.push_back(e); return *this; }
+    char shift() { char e = c[0]; c.erase(0, 1); return e; }
+    string& unshift(char e) { c.insert(0, 1, e); return *this; }
 };
 
 inline string operator+(const string& s1, const string& s2)

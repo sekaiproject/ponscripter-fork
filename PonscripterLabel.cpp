@@ -56,7 +56,7 @@ extern "C" void waveCallback(int channel);
 #define DEFAULT_ENV_FONT "Sans"
 #define DEFAULT_VOLUME 100
 
-typedef int (PonscripterLabel::* FuncList)();
+typedef int (PonscripterLabel::*FuncList)();
 static struct FuncLUT {
     char command[40];
     FuncList method;
@@ -1112,12 +1112,12 @@ bool PonscripterLabel::check_orphan_control()
 int PonscripterLabel::parseLine()
 {
     int ret, lut_counter = 0;
-    const string& cmd = script_h.getStringBuffer();
-    int cmdoffs = (cmd[0] == '_') ? 1 : 0;
+    string cmd = script_h.getStringBuffer();
+    if (cmd[0] == '_') cmd.shift();
 
     if (!script_h.isText()) {
         while (func_lut[lut_counter].method) {
-            if (strcmp(cmd.c_str() + cmdoffs, func_lut[lut_counter].command) == 0) {
+            if (cmd == func_lut[lut_counter].command) {
                 return (this->*func_lut[lut_counter].method)();
             }
             lut_counter++;

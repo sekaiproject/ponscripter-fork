@@ -378,13 +378,12 @@ void ScriptParser::readColor(uchar3* color, const char* buf)
 
 int ScriptParser::parseLine()
 {
-    const string& cmd = script_h.getStringBuffer();
+    string cmd = script_h.getStringBuffer();
     if (debug_level > 0) printf("ScriptParser::Parseline %s\n", cmd.c_str());
 
     if (cmd[0] == ';' || cmd[0] == '*' || cmd[0] == ':') return RET_CONTINUE;
     else if (script_h.isText()) return RET_NOMATCH;
 
-    int cmpoffs = 0;
     if (cmd[0] != '_') {
         UserFuncLUT* uf = root_user_func.next;
         while (uf) {
@@ -397,12 +396,12 @@ int ScriptParser::parseLine()
         }
     }
     else {
-	++cmpoffs;
+	cmd.shift();
     }
 
     int lut_counter = 0;
     while (func_lut[lut_counter].method) {
-        if (strcmp(cmd.c_str() + cmpoffs, func_lut[lut_counter].command) == 0) {
+        if (cmd == func_lut[lut_counter].command) {
             return (this->*func_lut[lut_counter].method)();
         }
         ++lut_counter;
