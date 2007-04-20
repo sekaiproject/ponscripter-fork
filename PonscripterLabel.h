@@ -369,8 +369,8 @@ private:
     int  yesno_selected_file_no;
 
     bool   monocro_flag;
-    uchar3 monocro_color;
-    uchar3 monocro_color_lut[256];
+    rgb_t monocro_color;
+    rgb_t monocro_color_lut[256];
     int nega_mode;
 
     enum { TRAP_NONE = 0,
@@ -568,7 +568,7 @@ private:
     void drawChar(const char* text, FontInfo* info, bool flush_flag,
 	     bool lookback_flag, SDL_Surface* surface,
 	     AnimationInfo* cache_info, SDL_Rect* clip = 0);
-    void drawString(const char* str, uchar3 color, FontInfo* info,
+    void drawString(const char* str, rgb_t color, FontInfo* info,
 	     bool flush_flag, SDL_Surface* surface, SDL_Rect* rect = 0,
 	     AnimationInfo* cache_info = 0);
     void restoreTextBuffer();

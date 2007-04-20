@@ -1075,7 +1075,7 @@ void PonscripterLabel::timerEvent(void)
 
         if (ret & RET_CONTINUE) {
             if (ret == RET_CONTINUE) {
-                readToken(); // skip tailing \0 and mark kidoku
+                readToken(); // skip trailing \0 and mark kidoku
             }
 
             if (effect_blank == 0 || effect_counter == 0) goto timerEventTop;

@@ -335,9 +335,9 @@ void PonscripterLabel::parseTaggedString(AnimationInfo* anim)
                 anim->num_of_cells++;
                 i += 7;
             }
-            anim->color_list = new uchar3[anim->num_of_cells];
+            anim->color_list = new rgb_t[anim->num_of_cells];
             for (i = 0; i < anim->num_of_cells; i++) {
-                readColor(&anim->color_list[i], buffer);
+                anim->color_list[i] = readColour(buffer);
                 buffer += 7;
             }
         }
@@ -350,7 +350,7 @@ void PonscripterLabel::parseTaggedString(AnimationInfo* anim)
         }
         else if (buffer[0] == '#') {
             anim->trans_mode = AnimationInfo::TRANS_DIRECT;
-            readColor(&anim->direct_color, buffer);
+            anim->direct_color = readColour(buffer);
             buffer += 7;
         }
         else if (buffer[0] == '!') {

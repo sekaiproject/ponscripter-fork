@@ -251,11 +251,8 @@ int ScriptParser::selectvoiceCommand()
 
 int ScriptParser::selectcolorCommand()
 {
-    const char* buf = script_h.readStr();
-    readColor(&sentence_font.on_color, buf);
-
-    buf = script_h.readStr();
-    readColor(&sentence_font.off_color, buf);
+    sentence_font.on_color = readColour(script_h.readStr());
+    sentence_font.off_color = readColour(script_h.readStr());
 
     return RET_CONTINUE;
 }
@@ -570,10 +567,10 @@ int ScriptParser::menusetwindowCommand()
 
     const char* buf = script_h.readStr();
     if (strlen(buf)) { // Comma may or may not be appeared in this case.
-        readColor(&menu_font.window_color, buf);
+        menu_font.window_color = readColour(buf);
     }
     else {
-        menu_font.window_color[0] = menu_font.window_color[1] = menu_font.window_color[2] = 0x99;
+        menu_font.window_color.set(0x99);
     }
 
     return RET_CONTINUE;
@@ -594,14 +591,9 @@ int ScriptParser::menuselectvoiceCommand()
 
 int ScriptParser::menuselectcolorCommand()
 {
-    const char* buf = script_h.readStr();
-    readColor(&menu_font.on_color, buf);
-
-    buf = script_h.readStr();
-    readColor(&menu_font.off_color, buf);
-
-    buf = script_h.readStr();
-    readColor(&menu_font.nofile_color, buf);
+    menu_font.on_color = readColour(script_h.readStr());
+    menu_font.off_color = readColour(script_h.readStr());    
+    menu_font.nofile_color = readColour(script_h.readStr());
 
     return RET_CONTINUE;
 }
@@ -637,8 +629,7 @@ int ScriptParser::lookbackspCommand()
 
 int ScriptParser::lookbackcolorCommand()
 {
-    const char* buf = script_h.readStr();
-    readColor(&lookback_color, buf);
+    lookback_color = readColour(script_h.readStr());
 
     return RET_CONTINUE;
 }

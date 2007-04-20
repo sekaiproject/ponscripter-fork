@@ -288,9 +288,10 @@ int PonscripterLabel::loadSaveFile(int no)
     }
 
     /* Should be char, not integer !! */
-    for (i = 0; i < 3; i++)
-        sentence_font.window_color[i] = readInt();
-
+    sentence_font.window_color.r = readInt();
+    sentence_font.window_color.g = readInt();
+    sentence_font.window_color.b = readInt();
+    
     readStr(&sentence_font_info.image_name);
 
     sentence_font_info.pos.x = readInt() * screen_ratio1 / screen_ratio2;
@@ -362,18 +363,22 @@ int PonscripterLabel::loadSaveFile(int no)
         monocro_flag = (readChar() == 1) ? true : false;
     }
 
-    for (i = 0; i < 3; i++) monocro_color[i] = readChar();
-
+    monocro_color.r = readChar();
+    monocro_color.g = readChar();
+    monocro_color.b = readChar();
+    
     if (file_version >= 101) {
-        for (i = 0; i < 3; i++) monocro_color[i] = readChar();
+	monocro_color.r = readChar();
+	monocro_color.g = readChar();
+	monocro_color.b = readChar();
 
         readChar(); // obsolete, need_refresh_flag
     }
 
     for (i = 0; i < 256; i++) {
-        monocro_color_lut[i][0] = (monocro_color[0] * i) >> 8;
-        monocro_color_lut[i][1] = (monocro_color[1] * i) >> 8;
-        monocro_color_lut[i][2] = (monocro_color[2] * i) >> 8;
+        monocro_color_lut[i].r = (monocro_color.r * i) >> 8;
+        monocro_color_lut[i].g = (monocro_color.g * i) >> 8;
+        monocro_color_lut[i].b = (monocro_color.b * i) >> 8;
     }
 
     /* Load nega flag */
@@ -384,9 +389,9 @@ int PonscripterLabel::loadSaveFile(int no)
     /* ---------------------------------------- */
     /* Load current images */
     bg_info.remove();
-    bg_info.color[0] = (unsigned char) readChar();
-    bg_info.color[1] = (unsigned char) readChar();
-    bg_info.color[2] = (unsigned char) readChar();
+    bg_info.color.r = (unsigned char) readChar();
+    bg_info.color.g = (unsigned char) readChar();
+    bg_info.color.b = (unsigned char) readChar();
     bg_info.num_of_cells = 1;
     readStr(&bg_info.file_name);
     setupAnimationInfo(&bg_info);
@@ -394,7 +399,7 @@ int PonscripterLabel::loadSaveFile(int no)
 
     if (bg_effect_image == COLOR_EFFECT_IMAGE) {
         bg_info.allocImage(screen_width, screen_height);
-        bg_info.fill(bg_info.color[0], bg_info.color[1], bg_info.color[2], 0xff);
+        bg_info.fill(bg_info.color, 0xff);
         bg_info.pos.x = 0;
         bg_info.pos.y = 0;
     }

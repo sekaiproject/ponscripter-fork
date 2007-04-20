@@ -150,12 +150,10 @@ void FontInfo::reset()
 
     font_size = 26;
 
-    color[0]        = color[1] = color[2] = 0xff;
-    on_color[0]     = on_color[1] = on_color[2] = 0xff;
-    off_color[0]    = off_color[1] = off_color[2] = 0xaa;
-    nofile_color[0] = 0x55;
-    nofile_color[1] = 0x55;
-    nofile_color[2] = 0x99;
+    color.set(0xff);
+    on_color.set(0xff);
+    off_color.set(0xaa);
+    nofile_color.set(0x55, 0x55, 0x99);
 
     is_bold   = true;
     is_shadow = true;

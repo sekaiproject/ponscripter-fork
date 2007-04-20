@@ -632,9 +632,6 @@ void PonscripterLabel::setupLookbackButton()
 
 void PonscripterLabel::executeSystemLookback()
 {
-    int i;
-    uchar3 color;
-
     current_font = &sentence_font;
     if (event_mode & WAIT_BUTTON_MODE) {
         if (current_button_state.button == 0
@@ -685,13 +682,10 @@ void PonscripterLabel::executeSystemLookback()
     setupLookbackButton();
     refreshMouseOverButton();
 
-    for (i = 0; i < 3; i++) {
-        color[i] = sentence_font.color[i];
-        sentence_font.color[i] = lookback_color[i];
-    }
-
+    rgb_t color = sentence_font.color;
+    sentence_font.color = lookback_color;
     restoreTextBuffer();
-    for (i = 0; i < 3; i++) sentence_font.color[i] = color[i];
+    sentence_font.color = color;
 
     dirty_rect.fill(screen_width, screen_height);
     flush(refreshMode());

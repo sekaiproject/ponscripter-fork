@@ -151,7 +151,7 @@ void AnimationInfo::removeTag()
     is_centered_text = false;
     direction = 1;
 
-    color[0] = color[1] = color[2] = 0;
+    color.set(0);
 }
 
 
@@ -666,9 +666,9 @@ void AnimationInfo::setupImage(SDL_Surface* surface, SDL_Surface* surface_m,
         ref_color = *(buffer + surface->w - 1);
     }
     else if (trans_mode == TRANS_DIRECT) {
-        ref_color = direct_color[0] << fmt->Rshift |
-                    direct_color[1] << fmt->Gshift |
-                    direct_color[2] << fmt->Bshift;
+        ref_color = direct_color.r << fmt->Rshift |
+                    direct_color.g << fmt->Gshift |
+                    direct_color.b << fmt->Bshift;
     }
 
     ref_color &= RGBMASK;

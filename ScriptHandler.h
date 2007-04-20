@@ -29,26 +29,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include <vector>
-#include "pstring.h"
 
-#ifdef __GNU_C__
-#include <ext/hash_map>
-#define DICTIONARY __gnu_cxx::hash_map
-#else
-#include <map>
-#define DICTIONARY std::map
-#endif
-
-template <typename T> inline T pred(T t) { return --t; }
-template <typename T> inline T succ(T t) { return ++t; }
-
+#include "defs.h"
 #include "BaseReader.h"
 
 const int VARIABLE_RANGE = 4096;
-
-typedef unsigned char uchar3[3];
 
 class ScriptHandler {
 public:
@@ -58,7 +44,7 @@ public:
     struct LabelInfo {
 	typedef std::vector<LabelInfo> vec;
 	typedef vec::iterator iterator;
-	typedef DICTIONARY<string, iterator> dic;
+	typedef dictionary<string, iterator>::t dic;
 	string name;
         char* label_header;
         char* start_address;

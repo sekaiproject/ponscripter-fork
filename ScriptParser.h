@@ -34,7 +34,6 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
-#include "pstring.h"
 
 #include "ScriptHandler.h"
 #include "NsaReader.h"
@@ -56,8 +55,6 @@
 #define DEFAULT_CURSOR1 "cursor1.bmp"
 #define DEFAULT_CURSOR_WAIT ":l/3,160,2;cursor0.bmp"
 #define DEFAULT_CURSOR_NEWPAGE ":l/3,160,2;cursor1.bmp"
-
-typedef unsigned char uchar3[3];
 
 class ScriptParser {
 public:
@@ -274,7 +271,7 @@ protected:
     /* Lookback related variables */
     //char *lookback_image_name[4];
     int lookback_sp[2];
-    uchar3 lookback_color;
+    rgb_t lookback_color;
 
     /* ---------------------------------------- */
     /* For loop related variables */
@@ -374,7 +371,7 @@ protected:
     void deleteRMenuLink();
     int getSystemCallNo(const char* buffer);
     unsigned char convHexToDec(char ch);
-    void readColor(uchar3* color, const char* buf);
+    rgb_t readColour(const char* buf);
 
     void errorAndExit(const char* str, const char* reason = NULL);
     void errorAndExit(const string& str, const char* reason = NULL)

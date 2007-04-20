@@ -114,9 +114,9 @@ void PonscripterLabel::drawChar(const char* text, FontInfo* info, bool flush_fla
 		      clip, dst_rect);
         }
 
-        color.r = info->color[0];
-        color.g = info->color[1];
-        color.b = info->color[2];
+        color.r = info->color.r;
+        color.g = info->color.g;
+        color.b = info->color.b;	
         drawGlyph(surface, info, color, unicode, x, y, false, cache_info,
 		  clip, dst_rect);
 
@@ -141,21 +141,17 @@ void PonscripterLabel::drawChar(const char* text, FontInfo* info, bool flush_fla
 
 
 void
-PonscripterLabel::drawString(const char* str, uchar3 color, FontInfo* info,
+PonscripterLabel::drawString(const char* str, rgb_t color, FontInfo* info,
 			     bool flush_flag, SDL_Surface* surface,
 			     SDL_Rect* rect, AnimationInfo* cache_info)
 {
-    int i;
-
     float start_x = info->GetXOffset();
     int   start_y = info->GetYOffset();
 
     /* ---------------------------------------- */
     /* Draw selected characters */
-    uchar3 org_color;
-    for (i = 0; i < 3; i++) org_color[i] = info->color[i];
-
-    for (i = 0; i < 3; i++) info->color[i] = color[i];
+    rgb_t org_color = info->color;
+    info->color = color;
 
     bool skip_whitespace_flag = true;
     while (*str) {
@@ -176,7 +172,7 @@ PonscripterLabel::drawString(const char* str, uchar3 color, FontInfo* info,
             str += CharacterBytes(str);
         }
     }
-    for (i = 0; i < 3; i++) info->color[i] = org_color[i];
+    info->color = org_color;
 
     /* ---------------------------------------- */
     /* Calculate the area of selection */
@@ -524,7 +520,7 @@ int PonscripterLabel::processText()
             if (!((hexchecker >= '0' && hexchecker <= '9') || (hexchecker >= 'a' && hexchecker <= 'f') || (hexchecker >= 'A' && hexchecker <= 'F'))) goto notacommand;
         }
 
-        readColor(&sentence_font.color, script_h.getStringBuffer().c_str() + string_buffer_offset);
+        sentence_font.color = readColour(script_h.getStringBuffer().c_str() + string_buffer_offset);
         string_buffer_offset += 7;
 
         return RET_CONTINUE | RET_NOREAD;

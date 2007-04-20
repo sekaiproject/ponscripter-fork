@@ -320,14 +320,14 @@ int PonscripterLabel::strspCommand()
     }
     if (ai->num_of_cells == 0) {
         ai->num_of_cells = 1;
-        ai->color_list = new uchar3[ai->num_of_cells];
-        ai->color_list[0][0] = ai->color_list[0][1] = ai->color_list[0][2] = 0xff;
+        ai->color_list = new rgb_t[ai->num_of_cells];
+	ai->color_list[0].set(0xff);
     }
     else {
-        ai->color_list = new uchar3[ai->num_of_cells];
+        ai->color_list = new rgb_t[ai->num_of_cells];
         script_h.setCurrent(buffer);
         for (int i = 0; i < ai->num_of_cells; i++)
-            readColor(&ai->color_list[i], script_h.readStr());
+	    ai->color_list[i] = readColour(script_h.readStr());
     }
 
     ai->trans_mode = AnimationInfo::TRANS_STRING;
@@ -587,7 +587,7 @@ void PonscripterLabel::setwindowCore()
     dirty_rect.add(sentence_font_info.pos);
     if (buf[0] == '#') {
         sentence_font.is_transparent = true;
-        readColor(&sentence_font.window_color, buf);
+        sentence_font.window_color = readColour(buf);
 
         sentence_font_info.pos.x = script_h.readInt() * screen_ratio1 / screen_ratio2;
         sentence_font_info.pos.y = script_h.readInt() * screen_ratio1 / screen_ratio2;
@@ -608,7 +608,7 @@ void PonscripterLabel::setwindowCore()
         }
 
 #endif
-        sentence_font.window_color[0] = sentence_font.window_color[1] = sentence_font.window_color[2] = 0xff;
+        sentence_font.window_color.set(0xff);
     }
 }
 
@@ -632,7 +632,7 @@ int PonscripterLabel::setwindow2Command()
     const char* buf = script_h.readStr();
     if (buf[0] == '#') {
         sentence_font.is_transparent = true;
-        readColor(&sentence_font.window_color, buf);
+        sentence_font.window_color = readColour(buf);
     }
     else {
         sentence_font.is_transparent = false;
@@ -1118,7 +1118,7 @@ int PonscripterLabel::prnumCommand()
     prnum_info[no]->trans_mode   = AnimationInfo::TRANS_STRING;
     prnum_info[no]->num_of_cells = 1;
     prnum_info[no]->setCell(0);
-    prnum_info[no]->color_list = new uchar3[prnum_info[no]->num_of_cells];
+    prnum_info[no]->color_list = new rgb_t[prnum_info[no]->num_of_cells];
 
     prnum_info[no]->param = script_h.readInt();
     prnum_info[no]->pos.x = script_h.readInt() * screen_ratio1 / screen_ratio2;
@@ -1127,7 +1127,7 @@ int PonscripterLabel::prnumCommand()
     prnum_info[no]->font_size_y = script_h.readInt();
 
     const char* buf = script_h.readStr();
-    readColor(&prnum_info[no]->color_list[0], buf);
+    prnum_info[no]->color_list[0] = readColour(buf);
 
     char num_buf[7];
     script_h.getStringFromInteger(num_buf, prnum_info[no]->param, 3);
@@ -1320,12 +1320,12 @@ int PonscripterLabel::monocroCommand()
     }
     else {
         monocro_flag = true;
-        readColor(&monocro_color, script_h.readStr());
+        monocro_color = readColour(script_h.readStr());
 
         for (int i = 0; i < 256; i++) {
-            monocro_color_lut[i][0] = (monocro_color[0] * i) >> 8;
-            monocro_color_lut[i][1] = (monocro_color[1] * i) >> 8;
-            monocro_color_lut[i][2] = (monocro_color[2] * i) >> 8;
+            monocro_color_lut[i].r = (monocro_color.r * i) >> 8;
+            monocro_color_lut[i].g = (monocro_color.g * i) >> 8;
+            monocro_color_lut[i].b = (monocro_color.b * i) >> 8;
         }
     }
 
@@ -1521,14 +1521,14 @@ int PonscripterLabel::logspCommand()
     script_h.setCurrent(current);
     if (num == 0) {
         si.num_of_cells = 1;
-        si.color_list = new uchar3[si.num_of_cells];
-        readColor(&si.color_list[0], "#ffffff");
+        si.color_list = new rgb_t[si.num_of_cells];
+        si.color_list[0].set(0xff);
     }
     else {
         si.num_of_cells = num;
-        si.color_list = new uchar3[si.num_of_cells];
+        si.color_list = new rgb_t[si.num_of_cells];
         for (int i = 0; i < num; i++) {
-            readColor(&si.color_list[i], script_h.readStr());
+            si.color_list[i] = readColour(script_h.readStr());
         }
     }
 
@@ -3235,14 +3235,13 @@ int PonscripterLabel::barCommand()
     bar_info[no]->pos.h = script_h.readInt() * screen_ratio1 / screen_ratio2;
     bar_info[no]->max_param = script_h.readInt();
 
-    const char* buf = script_h.readStr();
-    readColor(&bar_info[no]->color, buf);
+    bar_info[no]->color = readColour(script_h.readStr());
 
     int w = bar_info[no]->max_width * bar_info[no]->param / bar_info[no]->max_param;
     if (bar_info[no]->max_width > 0 && w > 0) {
         bar_info[no]->pos.w = w;
         bar_info[no]->allocImage(bar_info[no]->pos.w, bar_info[no]->pos.h);
-        bar_info[no]->fill(bar_info[no]->color[0], bar_info[no]->color[1], bar_info[no]->color[2], 0xff);
+        bar_info[no]->fill(bar_info[no]->color, 0xff);
         dirty_rect.add(bar_info[no]->pos);
     }
 

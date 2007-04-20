@@ -28,8 +28,7 @@
 
 #include <SDL.h>
 #include <string.h>
-
-typedef unsigned char uchar3[3];
+#include "defs.h"
 
 class AnimationInfo {
 public:
@@ -49,16 +48,16 @@ public:
 
     /* Variables from TaggedInfo */
     int      trans_mode;
-    uchar3   direct_color;
+    rgb_t   direct_color;
     int      palette_number;
-    uchar3   color;
+    rgb_t   color;
     SDL_Rect pos; // pos and size of the current cell
 
     int     num_of_cells;
     int     current_cell;
     int     direction;
     int*    duration_list;
-    uchar3* color_list;
+    rgb_t* color_list;
     int     loop_mode;
     bool    is_animatable;
     bool    is_single_line;
@@ -114,6 +113,7 @@ public:
     void allocImage(int w, int h);
     void copySurface(SDL_Surface* surface, SDL_Rect* rect);
     void fill(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
+    void fill(rgb_t rgb, Uint8 a) { fill(rgb.r, rgb.g, rgb.b, a); }
     void setupImage(SDL_Surface* surface, SDL_Surface* surface_m,
 		    bool has_alpha);
 };

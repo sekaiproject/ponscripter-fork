@@ -27,12 +27,10 @@
 #define __FONT_INFO_H__
 
 #include <SDL.h>
-#include "pstring.h"
+#include "defs.h"
 #include "font.h"
 
 extern int screen_ratio1, screen_ratio2;
-
-typedef unsigned char uchar3[3];
 
 extern void MapFont(int id, const char* filename);
 extern void MapMetrics(int id, const char* filename);
@@ -46,8 +44,8 @@ public:
 
     Font* font();
 
-    uchar3 color;
-    uchar3 on_color, off_color, nofile_color;
+    rgb_t color;
+    rgb_t on_color, off_color, nofile_color;
     int    top_x, top_y; // Top left origin
     int    area_x, area_y; // Size of the text windows
     int    pitch_x, pitch_y; // additional spacing
@@ -56,7 +54,7 @@ public:
     bool   is_shadow;
     bool   is_transparent;
     bool   is_newline_accepted;
-    uchar3 window_color;
+    rgb_t window_color;
 
     int size() { return font_size_mod ? font_size_mod : font_size; }
     int base_size() { return font_size; }

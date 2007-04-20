@@ -40,9 +40,9 @@ int PonscripterLabel::loadSaveFile2(int file_version)
 
     readInt(); // 0
     rmode_flag = (readInt() == 1) ? true : false;
-    sentence_font.color[0] = readInt();
-    sentence_font.color[1] = readInt();
-    sentence_font.color[2] = readInt();
+    sentence_font.color.r = readInt();
+    sentence_font.color.g = readInt();
+    sentence_font.color.b = readInt();
     cursor_info[0].remove();
     readStr(&cursor_info[0].image_name);
     if (cursor_info[0].image_name) {
@@ -74,9 +74,10 @@ int PonscripterLabel::loadSaveFile2(int file_version)
     sentence_font.set_mod_size(readInt());
     sentence_font.pitch_x = readInt();
     sentence_font.pitch_y = readInt();
-    for (i = 0; i < 3; i++)
-        sentence_font.window_color[2 - i] = readChar();
-
+    sentence_font.window_color.b = readChar();
+    sentence_font.window_color.g = readChar();
+    sentence_font.window_color.r = readChar();
+    
     if (readChar() == 0x00) sentence_font.is_transparent = true;
     else sentence_font.is_transparent = false;
 
@@ -191,13 +192,14 @@ int PonscripterLabel::loadSaveFile2(int file_version)
     if (readInt() == 1) monocro_flag = true;
     else monocro_flag = false;
 
-    for (i = 0; i < 3; i++)
-        monocro_color[2 - i] = readInt();
+    monocro_color.b = readInt();
+    monocro_color.g = readInt();
+    monocro_color.r = readInt();
 
     for (i = 0; i < 256; i++) {
-        monocro_color_lut[i][0] = (monocro_color[0] * i) >> 8;
-        monocro_color_lut[i][1] = (monocro_color[1] * i) >> 8;
-        monocro_color_lut[i][2] = (monocro_color[2] * i) >> 8;
+        monocro_color_lut[i].r = (monocro_color.r * i) >> 8;
+        monocro_color_lut[i].g = (monocro_color.g * i) >> 8;
+        monocro_color_lut[i].b = (monocro_color.b * i) >> 8;
     }
 
     nega_mode = readInt();
@@ -265,16 +267,17 @@ int PonscripterLabel::loadSaveFile2(int file_version)
             bar_info[i]->max_width = readInt() * screen_ratio1 / screen_ratio2;
             bar_info[i]->pos.h = readInt() * screen_ratio1 / screen_ratio2;
             bar_info[i]->max_param = readInt();
-            for (j = 0; j < 3; j++)
-                bar_info[i]->color[2 - j] = readChar();
-
+	    bar_info[i]->color.b = readChar();
+	    bar_info[i]->color.g = readChar();
+	    bar_info[i]->color.r = readChar();
+	    
             readChar(); // 0x00
 
             int w = bar_info[i]->max_width * bar_info[i]->param / bar_info[i]->max_param;
             if (bar_info[i]->max_width > 0 && w > 0) {
                 bar_info[i]->pos.w = w;
                 bar_info[i]->allocImage(bar_info[i]->pos.w, bar_info[i]->pos.h);
-                bar_info[i]->fill(bar_info[i]->color[0], bar_info[i]->color[1], bar_info[i]->color[2], 0xff);
+                bar_info[i]->fill(bar_info[i]->color, 0xff);
             }
         }
         else {
@@ -294,15 +297,16 @@ int PonscripterLabel::loadSaveFile2(int file_version)
             prnum_info[i] = new AnimationInfo();
             prnum_info[i]->trans_mode   = AnimationInfo::TRANS_STRING;
             prnum_info[i]->num_of_cells = 1;
-            prnum_info[i]->color_list = new uchar3[1];
+            prnum_info[i]->color_list = new rgb_t[1];
 
             prnum_info[i]->param = j;
             prnum_info[i]->pos.x = readInt() * screen_ratio1 / screen_ratio2;
             prnum_info[i]->pos.y = readInt() * screen_ratio1 / screen_ratio2;
             prnum_info[i]->font_size_x = readInt();
             prnum_info[i]->font_size_y = readInt();
-            for (j = 0; j < 3; j++)
-                prnum_info[i]->color_list[0][2 - j] = readChar();
+	    prnum_info[i]->color_list[0].b = readChar();
+	    prnum_info[i]->color_list[0].g = readChar();
+	    prnum_info[i]->color_list[0].r = readChar();
 
             readChar(); // 0x00
 
@@ -430,7 +434,7 @@ int PonscripterLabel::loadSaveFile2(int file_version)
 
 void PonscripterLabel::saveSaveFile2(bool output_flag)
 {
-    int i, j;
+    int i;
 
     writeInt(1, output_flag);
     writeInt((sentence_font.is_bold ? 1 : 0), output_flag);
@@ -438,9 +442,9 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
 
     writeInt(0, output_flag);
     writeInt((rmode_flag) ? 1 : 0, output_flag);
-    writeInt(sentence_font.color[0], output_flag);
-    writeInt(sentence_font.color[1], output_flag);
-    writeInt(sentence_font.color[2], output_flag);
+    writeInt(sentence_font.color.r, output_flag);
+    writeInt(sentence_font.color.g, output_flag);
+    writeInt(sentence_font.color.b, output_flag);
     writeStr(cursor_info[0].image_name, output_flag);
     writeStr(cursor_info[1].image_name, output_flag);
 
@@ -456,9 +460,10 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
     writeInt(sentence_font.mod_size(), output_flag);
     writeInt(sentence_font.pitch_x, output_flag);
     writeInt(sentence_font.pitch_y, output_flag);
-    for (i = 0; i < 3; i++)
-        writeChar(sentence_font.window_color[2 - i], output_flag);
-
+    writeChar(sentence_font.window_color.b, output_flag);
+    writeChar(sentence_font.window_color.g, output_flag);
+    writeChar(sentence_font.window_color.r, output_flag);
+    
     writeChar((sentence_font.is_transparent) ? 0x00 : 0xff, output_flag);
     writeInt(sentence_font.wait_time, output_flag);
     writeInt(sentence_font_info.pos.x * screen_ratio2 / screen_ratio1, output_flag);
@@ -529,8 +534,9 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
     }
 
     writeInt((monocro_flag) ? 1 : 0, output_flag);
-    for (i = 0; i < 3; i++)
-        writeInt(monocro_color[2 - i], output_flag);
+    writeInt(monocro_color.b, output_flag);
+    writeInt(monocro_color.g, output_flag);
+    writeInt(monocro_color.r, output_flag);
 
     writeInt(nega_mode, output_flag);
 
@@ -565,8 +571,9 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
             writeInt(bar_info[i]->max_width * screen_ratio2 / screen_ratio1, output_flag);
             writeInt(bar_info[i]->pos.h * screen_ratio2 / screen_ratio1, output_flag);
             writeInt(bar_info[i]->max_param, output_flag);
-            for (j = 0; j < 3; j++)
-                writeChar(bar_info[i]->color[2 - j], output_flag);
+	    writeChar(bar_info[i]->color.b, output_flag);
+	    writeChar(bar_info[i]->color.g, output_flag);
+	    writeChar(bar_info[i]->color.r, output_flag);
 
             writeChar(0x00, output_flag);
         }
@@ -588,8 +595,9 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
             writeInt(prnum_info[i]->pos.y * screen_ratio2 / screen_ratio1, output_flag);
             writeInt(prnum_info[i]->font_size_x, output_flag);
             writeInt(prnum_info[i]->font_size_y, output_flag);
-            for (j = 0; j < 3; j++)
-                writeChar(prnum_info[i]->color_list[0][2 - j], output_flag);
+	    writeChar(prnum_info[i]->color_list[0].b, output_flag);
+	    writeChar(prnum_info[i]->color_list[0].g, output_flag);
+	    writeChar(prnum_info[i]->color_list[0].r, output_flag);
 
             writeChar(0x00, output_flag);
         }

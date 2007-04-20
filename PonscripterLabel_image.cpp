@@ -254,15 +254,15 @@ void PonscripterLabel::makeMonochromeSurface(SDL_Surface* surface, SDL_Rect &cli
     ONSBuf* buf = (ONSBuf*) surface->pixels + clip.y * surface->w + clip.x, c;
 
     SDL_PixelFormat* fmt = surface->format;
-    uchar3* lut = monocro_color_lut;
+    rgb_t* lut = monocro_color_lut;
     for (int i = clip.y; i < clip.y + clip.h; i++) {
         for (int j = clip.x; j < clip.x + clip.w; j++) {
             c = ((*buf & fmt->Rmask >> fmt->Rshift << fmt->Rloss) * 77 +
                  (*buf & fmt->Gmask >> fmt->Gshift << fmt->Gloss) * 151 +
                  (*buf & fmt->Bmask >> fmt->Bshift << fmt->Bloss) * 28) >> 8;
-            *buf++ = lut[c][0] >> fmt->Rloss << surface->format->Rshift
-                   | lut[c][1] >> fmt->Gloss << surface->format->Gshift
-                   | lut[c][2] >> fmt->Bloss << surface->format->Bshift;
+            *buf++ = lut[c].r >> fmt->Rloss << surface->format->Rshift
+                   | lut[c].g >> fmt->Gloss << surface->format->Gshift
+                   | lut[c].b >> fmt->Bloss << surface->format->Bshift;
         }
 
         buf += surface->w - clip.w;
@@ -394,17 +394,17 @@ void PonscripterLabel::createBackground()
     bg_effect_image = COLOR_EFFECT_IMAGE;
 
     if (!strcmp(bg_info.file_name, "white")) {
-        bg_info.color[0] = bg_info.color[1] = bg_info.color[2] = 0xff;
+        bg_info.color.set(0xff);
     }
     else if (!strcmp(bg_info.file_name, "black")) {
-        bg_info.color[0] = bg_info.color[1] = bg_info.color[2] = 0x00;
+        bg_info.color.set(0x00);
     }
     else {
         if (bg_info.file_name[0] == '#') {
-            readColor(&bg_info.color, bg_info.file_name);
+            bg_info.color = readColour(bg_info.file_name);
         }
         else {
-            bg_info.color[0] = bg_info.color[1] = bg_info.color[2] = 0x00;
+            bg_info.color.set(0x00);
             setStr(&bg_info.image_name, bg_info.file_name);
             parseTaggedString(&bg_info);
             bg_info.trans_mode = AnimationInfo::TRANS_COPY;
@@ -424,6 +424,6 @@ void PonscripterLabel::createBackground()
         bg_info.pos.x = 0;
         bg_info.pos.y = 0;
         bg_info.allocImage(screen_width, screen_height);
-        bg_info.fill(bg_info.color[0], bg_info.color[1], bg_info.color[2], 0xff);
+        bg_info.fill(bg_info.color, 0xff);
     }
 }

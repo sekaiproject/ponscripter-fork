@@ -843,9 +843,7 @@ void PonscripterLabel::resetSentenceFont()
     sentence_font.pitch_x   = 0;
     sentence_font.pitch_y   = 0;
     sentence_font.wait_time = 20;
-    sentence_font.window_color[0] = sentence_font.
-                                    window_color[1] = sentence_font.
-                                                      window_color[2] = 0x99;
+    sentence_font.window_color.set(0x99);
     sentence_font_info.pos.x = 0;
     sentence_font_info.pos.y = 0;
     sentence_font_info.pos.w = screen_width + 1;
@@ -1379,18 +1377,17 @@ void PonscripterLabel::shadowTextDisplay(SDL_Surface* surface, SDL_Rect &clip)
         ONSBuf* buf = (ONSBuf*) surface->pixels + rect.y * surface->w + rect.x;
 
         SDL_PixelFormat* fmt = surface->format;
-        uchar3 color;
-        color[0] = current_font->window_color[0] >> fmt->Rloss;
-        color[1] = current_font->window_color[1] >> fmt->Gloss;
-        color[2] = current_font->window_color[2] >> fmt->Bloss;
+        rgb_t color(current_font->window_color.r >> fmt->Rloss,
+                     current_font->window_color.g >> fmt->Gloss,
+                     current_font->window_color.b >> fmt->Bloss);
 
         for (int i = rect.y; i < rect.y + rect.h; i++) {
             for (int j = rect.x; j < rect.x + rect.w; j++, buf++) {
-                *buf = (((*buf & fmt->Rmask) >> fmt->Rshift) * color[0] >>
+                *buf = (((*buf & fmt->Rmask) >> fmt->Rshift) * color.r >>
                         (8 - fmt->Rloss)) << fmt->Rshift |
-                       (((*buf & fmt->Gmask) >> fmt->Gshift) * color[1] >>
+                       (((*buf & fmt->Gmask) >> fmt->Gshift) * color.g >>
                         (8 - fmt->Gloss)) << fmt->Gshift |
-		       (((*buf & fmt->Bmask) >> fmt->Bshift) * color[2] >>
+		       (((*buf & fmt->Bmask) >> fmt->Bshift) * color.b >>
                         (8 - fmt->Bloss)) << fmt->Bshift;
             }
             buf += surface->w - rect.w;
@@ -1441,15 +1438,12 @@ PonscripterLabel::getSelectableSentence(const string& buffer, FontInfo* info,
 
     anim->trans_mode = AnimationInfo::TRANS_STRING;
     anim->is_single_line = false;
+
     anim->num_of_cells = 2;
-    anim->color_list = new uchar3[anim->num_of_cells];
-    for (int i = 0; i < 3; i++) {
-        if (nofile_flag)
-            anim->color_list[0][i] = info->nofile_color[i];
-        else
-            anim->color_list[0][i] = info->off_color[i];
-        anim->color_list[1][i] = info->on_color[i];
-    }
+    anim->color_list = new rgb_t[anim->num_of_cells];
+    anim->color_list[0] = nofile_flag ? info->nofile_color : info->off_color;
+    anim->color_list[1] = info->on_color;
+
     setStr(&anim->file_name, buffer.c_str());
     anim->pos.x   = Sint16(floor(info->GetX() * screen_ratio1 / screen_ratio2));
     anim->pos.y   = info->GetY() * screen_ratio1 / screen_ratio2;

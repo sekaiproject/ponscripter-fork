@@ -215,9 +215,7 @@ void ScriptParser::reset()
     /* ---------------------------------------- */
     /* Lookback related variables */
     lookback_sp[0]    = lookback_sp[1] = -1;
-    lookback_color[0] = 0xff;
-    lookback_color[1] = 0xff;
-    lookback_color[2] = 0x00;
+    lookback_color.set(0xff, 0xff, 0x00);
 
     /* ---------------------------------------- */
     /* Save/Load related variables */
@@ -271,7 +269,7 @@ void ScriptParser::reset()
     menu_font.area_y  = 23;
     menu_font.pitch_x = 0;
     menu_font.pitch_y = 0;
-    menu_font.window_color[0] = menu_font.window_color[1] = menu_font.window_color[2] = 0xcc;
+    menu_font.window_color.set(0xcc);
 
     deleteRMenuLink();
 
@@ -366,13 +364,12 @@ unsigned char ScriptParser::convHexToDec(char ch)
 }
 
 
-void ScriptParser::readColor(uchar3* color, const char* buf)
+rgb_t ScriptParser::readColour(const char* buf)
 {
-    if (buf[0] != '#') errorAndExit("readColor: no preceeding #.");
-
-    (*color)[0] = convHexToDec(buf[1]) << 4 | convHexToDec(buf[2]);
-    (*color)[1] = convHexToDec(buf[3]) << 4 | convHexToDec(buf[4]);
-    (*color)[2] = convHexToDec(buf[5]) << 4 | convHexToDec(buf[6]);
+    if (buf[0] != '#') errorAndExit("readColour: no preceeding #.");
+    return rgb_t(convHexToDec(buf[1]) << 4 | convHexToDec(buf[2]),
+		  convHexToDec(buf[3]) << 4 | convHexToDec(buf[4]),
+		  convHexToDec(buf[5]) << 4 | convHexToDec(buf[6]));
 }
 
 
