@@ -56,7 +56,7 @@ extern "C" void waveCallback(int channel);
 #define DEFAULT_ENV_FONT "Sans"
 #define DEFAULT_VOLUME 100
 
-typedef int (PonscripterLabel::*PonscrFun)();
+typedef int (PonscripterLabel::*PonscrFun)(const string&);
 static class sfunc_lut_t {
     typedef dictionary<string, PonscrFun>::t dic_t;
     dic_t dict;
@@ -698,7 +698,7 @@ int PonscripterLabel::init()
 
     for (i = 0; i < MAX_PARAM_NUM; i++) bar_info[i] = prnum_info[i] = 0;
 
-    defineresetCommand();
+    defineresetCommand("definereset");
     readToken();
 
     loadEnvData();
@@ -809,8 +809,8 @@ void PonscripterLabel::resetSub()
     deleteButtonLink();
     deleteSelectLink();
 
-    stopCommand();
-    loopbgmstopCommand();
+    stopCommand("stop");
+    loopbgmstopCommand("loopbgmstop");
     setStr(&loop_bgm_name[1], 0);
 
     // ----------------------------------------
@@ -821,8 +821,8 @@ void PonscripterLabel::resetSub()
     createBackground();
     for (i = 0; i < 3; i++) tachi_info[i].reset();
     for (i = 0; i < MAX_SPRITE_NUM; i++) sprite_info[i].reset();
-    barclearCommand();
-    prnumclearCommand();
+    barclearCommand("barclear");
+    prnumclearCommand("prnumclear");
     for (i = 0; i < 2; i++) cursor_info[i].reset();
     for (i = 0; i < 4; i++) lookback_info[i].reset();
     sentence_font_info.reset();
@@ -1021,7 +1021,7 @@ void PonscripterLabel::executeLabel()
             readToken();
             continue;
         }
-        if (break_flag && !script_h.isName("next")) {
+        if (break_flag && script_h.getStringBuffer() != "next") {
             if (script_h.getStringBuffer()[string_buffer_offset] == 0x0a)
                 current_line++;
 
@@ -1069,7 +1069,7 @@ void PonscripterLabel::executeLabel()
     }
 
     fprintf(stderr, " ***** End *****\n");
-    endCommand();
+    endCommand("end");
 }
 
 
@@ -1121,15 +1121,15 @@ int PonscripterLabel::parseLine()
 
     if (!script_h.isText()) {
 	PonscrFun f = func_lut.get(cmd);
-	if (f) return (this->*f)();
+	if (f) return (this->*f)(cmd);
 
         if (cmd[0] == 0x0a)
             return RET_CONTINUE;
         else if (cmd[0] == 'v' && cmd[1] >= '0' && cmd[1] <= '9')
-            return vCommand();
+            return vCommand(cmd);
         else if (cmd[0] == 'd' && cmd[1] == 'v' && cmd[2] >= '0' &&
                  cmd[2] <= '9')
-            return dvCommand();
+            return dvCommand(cmd);
 
         fprintf(stderr, " command [%s] is not supported yet!!\n", cmd.c_str());
 
@@ -1569,19 +1569,24 @@ void PonscripterLabel::loadEnvData()
     kidokumode_flag = true;
 
     if (loadFileIOBuf("envdata") == 0) {
-        if (readInt() == 1 && window_mode == false) menu_fullCommand();
-        if (readInt() == 0) volume_on_flag = false;
+        if (readInt() == 1 && window_mode == false)
+	    menu_fullCommand("menu_full");
+        if (readInt() == 0)
+	    volume_on_flag = false;
         text_speed_no = readInt();
-        if (readInt() == 1) draw_one_page_flag = true;
+        if (readInt() == 1)
+	    draw_one_page_flag = true;
         readStr(&default_env_font);
         if (default_env_font == 0)
             setStr(&default_env_font, DEFAULT_ENV_FONT);
-        if (readInt() == 0) cdaudio_on_flag = false;
+        if (readInt() == 0)
+	    cdaudio_on_flag = false;
         readStr(&default_cdrom_drive);
         voice_volume = DEFAULT_VOLUME - readInt();
         se_volume    = DEFAULT_VOLUME - readInt();
         music_volume = DEFAULT_VOLUME - readInt();
-        if (readInt() == 0) kidokumode_flag = false;
+        if (readInt() == 0)
+	    kidokumode_flag = false;
     }
     else {
         setStr(&default_env_font, DEFAULT_ENV_FONT);

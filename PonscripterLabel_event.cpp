@@ -766,7 +766,7 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
 
     if (shift_pressed_status && event->keysym.sym == SDLK_q &&
 	current_mode == NORMAL_MODE) {
-        endCommand();
+        endCommand("end");
     }
 
     if ((trap_mode & TRAP_LEFT_CLICK)
@@ -1000,8 +1000,8 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
 
     if (event_mode & (WAIT_INPUT_MODE | WAIT_BUTTON_MODE)) {
         if (event->keysym.sym == SDLK_f) {
-            if (fullscreen_mode) menu_windowCommand();
-            else menu_fullCommand();
+            if (fullscreen_mode) menu_windowCommand("menu_window");
+            else menu_fullCommand("menu_full");
         }
     }
 
@@ -1224,7 +1224,7 @@ int PonscripterLabel::eventLoop()
             break;
 
         case SDL_QUIT:
-            endCommand();
+            endCommand("end");
             break;
 
         default:

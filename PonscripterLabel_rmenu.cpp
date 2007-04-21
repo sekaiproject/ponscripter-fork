@@ -478,13 +478,13 @@ void PonscripterLabel::executeSystemYesNo()
                 readToken();
             }
             else if (yesno_caller == SYSTEM_RESET) {
-                resetCommand();
+                resetCommand("reset");
                 readToken();
                 event_mode = IDLE_EVENT_MODE;
                 leaveSystemCall(false);
             }
             else if (yesno_caller == SYSTEM_END) {
-                endCommand();
+                endCommand("end");
             }
         }
         else {

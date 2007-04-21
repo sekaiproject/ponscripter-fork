@@ -315,7 +315,7 @@ int PonscripterLabel::clickWait()
         clickstr_state   = CLICK_WAIT;
         key_pressed_flag = false;
         if (textgosub_label) {
-            saveoffCommand();
+            saveoffCommand("saveoff");
 
             textgosub_clickstr_state = CLICK_WAIT;
             if (script_h.getNext()[0] == 0x0a)
@@ -350,7 +350,7 @@ int PonscripterLabel::clickNewPage()
     else {
         key_pressed_flag = false;
         if (textgosub_label) {
-            saveoffCommand();
+            saveoffCommand("saveoff");
 
             textgosub_clickstr_state = CLICK_NEWPAGE;
             gosubReal(textgosub_label, script_h.getNext());

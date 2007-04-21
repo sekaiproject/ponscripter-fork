@@ -206,8 +206,8 @@ int PonscripterLabel::loadSaveFile2(int file_version)
 
     // ----------------------------------------
     // Sound
-    stopCommand();
-    loopbgmstopCommand();
+    stopCommand("stop");
+    loopbgmstopCommand("loopbgmstop");
 
     readStr(&midi_file_name); // MIDI file
     readStr(&wave_file_name); // wave, waveloop
@@ -253,7 +253,7 @@ int PonscripterLabel::loadSaveFile2(int file_version)
     erase_text_window_mode = readInt();
     readInt(); // 1
 
-    barclearCommand();
+    barclearCommand("barclear");
     for (i = 0; i < MAX_PARAM_NUM; i++) {
         j = readInt();
         if (j != 0) {
@@ -290,7 +290,7 @@ int PonscripterLabel::loadSaveFile2(int file_version)
         }
     }
 
-    prnumclearCommand();
+    prnumclearCommand("prnumclear");
     for (i = 0; i < MAX_PARAM_NUM; i++) {
         j = readInt();
         if (prnum_info[i]) {

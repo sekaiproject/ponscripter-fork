@@ -30,25 +30,23 @@
  * Sets <ivar> to the width, in pixels, of <string> as rendered in the
  * current sentence font.
  */
-int PonscripterLabel::haeleth_text_extentCommand()
+int PonscripterLabel::haeleth_text_extentCommand(const string& cmd)
 {
     script_h.readInt();
     script_h.pushVariable();
-    const char* buf = script_h.readStr();
-    if (*buf == '^') ++buf;
+    string buf = script_h.readStr();
+    if (buf[0] == '^') buf.shift();
 
-    char localbuf[1024];
-    strcpy(localbuf, buf);
     FontInfo f = sentence_font;
     if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
-        int s1 = script_h.readInt(), s2 = script_h.readInt();
+        int s1 = script_h.readInt();
+	int s2 = script_h.readInt();
         f.set_size(s1 > s2 ? s1 : s2);
         f.set_mod_size(0);
         f.pitch_x = script_h.readInt();
     }
 
-    script_h.setInt(&script_h.pushed_variable,
-        int (ceil(f.StringAdvance(localbuf))));
+    script_h.setInt(&script_h.pushed_variable, int(ceil(f.StringAdvance(buf))));
     return RET_CONTINUE;
 }
 
@@ -60,14 +58,14 @@ int PonscripterLabel::haeleth_text_extentCommand()
  * which must be large enough and appropriately positioned!) in the
  * current sentence font.
  */
-int PonscripterLabel::haeleth_centre_lineCommand()
+int PonscripterLabel::haeleth_centre_lineCommand(const string& cmd)
 {
-    const char* buf = script_h.readStr();
-    if (*buf == '^') ++buf;
+    string buf = script_h.readStr();
+    if (buf[0] == '^') buf.shift();
 
-    sentence_font.SetXY(float (screen_width) / 2.0
-        - sentence_font.StringAdvance(buf) / 2.0
-        - sentence_font.top_x, -1);
+    sentence_font.SetXY(float (screen_width) / 2.0 -
+			sentence_font.StringAdvance(buf) / 2.0 -
+			sentence_font.top_x, -1);
     return RET_CONTINUE;
 }
 
@@ -78,13 +76,14 @@ int PonscripterLabel::haeleth_centre_lineCommand()
  * the start of a screen.  If the first character of a screen is not
  * in the given string, any set indent will be cleared.
  */
-int PonscripterLabel::haeleth_char_setCommand()
+int PonscripterLabel::haeleth_char_setCommand(const string& cmd)
 {
-    unsigned short*& char_set = script_h.isName("h_indentstr")
-                                ? indent_chars
-                                : break_chars;
-    if (indent_chars) {
-        delete[] char_set; char_set = 0;
+    unsigned short*& char_set = cmd == "h_indentstr"
+	                      ? indent_chars
+	                      : break_chars;
+    if (char_set) {
+        delete[] char_set;
+	char_set = 0;
     }
 
     const char* buf = script_h.readStr();
@@ -107,7 +106,7 @@ int PonscripterLabel::haeleth_char_setCommand()
  * the start of every subsequent text display command.  Note that this
  * has no effect on text sprites.
  */
-int PonscripterLabel::haeleth_font_styleCommand()
+int PonscripterLabel::haeleth_font_styleCommand(const string& cmd)
 {
     const char* buf = script_h.readStr();
     if (*buf == '^') ++buf;
@@ -130,7 +129,7 @@ int PonscripterLabel::haeleth_font_styleCommand()
  *
  * Assigns a font file to be associated with the given style number.
  */
-int PonscripterLabel::haeleth_map_fontCommand()
+int PonscripterLabel::haeleth_map_fontCommand(const string& cmd)
 {
     int id = script_h.readInt();
     MapFont(id, script_h.readStr());
@@ -149,7 +148,7 @@ int PonscripterLabel::haeleth_map_fontCommand()
  * Rendermode is light or normal; if not specified, it will be light
  * when hinting is light, otherwise normal.
  */
-int PonscripterLabel::haeleth_hinting_modeCommand()
+int PonscripterLabel::haeleth_hinting_modeCommand(const string& cmd)
 {
     if (script_h.compareString("light")) hinting = LightHinting;
     else if (script_h.compareString("full")) hinting = FullHinting;
@@ -183,7 +182,7 @@ int PonscripterLabel::haeleth_hinting_modeCommand()
  * Ligature definitions are LIFO, so e.g. you must define "ff" before
  * "ffi", or the latter will never be seen.
  */
-int PonscripterLabel::haeleth_ligate_controlCommand()
+int PonscripterLabel::haeleth_ligate_controlCommand(const string& cmd)
 {
     if (script_h.compareString("none")) {
         script_h.readLabel();

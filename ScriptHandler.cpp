@@ -505,12 +505,6 @@ ScriptHandler::LabelInfo ScriptHandler::getLabelByLine(int line)
 }
 
 
-bool ScriptHandler::isName(const string& name)
-{
-    return string_buffer.compare(0, name.size(), name) == 0;
-}
-
-
 bool ScriptHandler::isText()
 {
     return text_flag;

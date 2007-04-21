@@ -137,7 +137,6 @@ public:
     LabelInfo getLabelByAddress(char* address);
     LabelInfo getLabelByLine(int line);
 
-    bool isName(const string& name);
     bool isText();
     bool compareString(const char* buf);
 
