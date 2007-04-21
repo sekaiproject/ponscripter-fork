@@ -38,115 +38,122 @@
 
 #define MAX_TEXT_BUFFER 17
 
-typedef int (ScriptParser::* FuncList)();
-static struct FuncLUT {
-    char command[40];
-    FuncList method;
-} func_lut[] =
-{
-    { "zenkakko", &ScriptParser::zenkakkoCommand },
-    { "windoweffect", &ScriptParser::effectCommand },
-    { "windowback", &ScriptParser::windowbackCommand },
-    { "versionstr", &ScriptParser::versionstrCommand },
-    { "usewheel", &ScriptParser::usewheelCommand },
-    { "useescspc", &ScriptParser::useescspcCommand },
-    { "underline", &ScriptParser::underlineCommand },
-    { "transmode", &ScriptParser::transmodeCommand },
-    { "time", &ScriptParser::timeCommand },
-    { "textgosub", &ScriptParser::textgosubCommand },
-    { "tan", &ScriptParser::tanCommand },
-    { "sub", &ScriptParser::subCommand },
-    { "stralias", &ScriptParser::straliasCommand },
-    { "spi", &ScriptParser::soundpressplginCommand },
-    { "soundpressplgin", &ScriptParser::soundpressplginCommand },
-    { "skip", &ScriptParser::skipCommand },
-    { "sin", &ScriptParser::sinCommand },
-    { "shadedistance", &ScriptParser::shadedistanceCommand },
-    { "selectvoice", &ScriptParser::selectvoiceCommand },
-    { "selectcolor", &ScriptParser::selectcolorCommand },
-    { "savenumber", &ScriptParser::savenumberCommand },
-    { "savename", &ScriptParser::savenameCommand },
-    { "sar", &ScriptParser::nsaCommand },
-    { "rubyon", &ScriptParser::rubyonCommand },
-    { "rubyoff", &ScriptParser::rubyoffCommand },
-    { "roff", &ScriptParser::roffCommand },
-    { "rmenu", &ScriptParser::rmenuCommand },
-    { "return", &ScriptParser::returnCommand },
-    { "pretextgosub", &ScriptParser::pretextgosubCommand },
-    { "numalias", &ScriptParser::numaliasCommand },
-    { "nsadir", &ScriptParser::nsadirCommand },
-    { "nsa", &ScriptParser::nsaCommand },
-    { "notif", &ScriptParser::ifCommand },
-    { "next", &ScriptParser::nextCommand },
-    { "nsa", &ScriptParser::arcCommand },
-    { "ns3", &ScriptParser::nsaCommand },
-    { "ns2", &ScriptParser::nsaCommand },
-    { "mul", &ScriptParser::mulCommand },
-    { "movl", &ScriptParser::movCommand },
-    { "mov10", &ScriptParser::movCommand },
-    { "mov9", &ScriptParser::movCommand },
-    { "mov8", &ScriptParser::movCommand },
-    { "mov7", &ScriptParser::movCommand },
-    { "mov6", &ScriptParser::movCommand },
-    { "mov5", &ScriptParser::movCommand },
-    { "mov4", &ScriptParser::movCommand },
-    { "mov3", &ScriptParser::movCommand },
-    { "mov", &ScriptParser::movCommand },
-    { "mode_saya", &ScriptParser::mode_sayaCommand },
-    { "mode_ext", &ScriptParser::mode_extCommand },
-    { "mod", &ScriptParser::modCommand },
-    { "mid", &ScriptParser::midCommand },
-    { "menusetwindow", &ScriptParser::menusetwindowCommand },
-    { "menuselectvoice", &ScriptParser::menuselectvoiceCommand },
-    { "menuselectcolor", &ScriptParser::menuselectcolorCommand },
-    { "maxkaisoupage", &ScriptParser::maxkaisoupageCommand },
-    { "lookbacksp", &ScriptParser::lookbackspCommand },
-    { "lookbackcolor", &ScriptParser::lookbackcolorCommand },
-    //{"lookbackbutton",      &ScriptParser::lookbackbuttonCommand},
-    { "loadgosub", &ScriptParser::loadgosubCommand },
-    { "linepage2", &ScriptParser::linepageCommand },
-    { "linepage", &ScriptParser::linepageCommand },
-    { "len", &ScriptParser::lenCommand },
-    { "labellog", &ScriptParser::labellogCommand },
-    { "kidokuskip", &ScriptParser::kidokuskipCommand },
-    { "kidokumode", &ScriptParser::kidokumodeCommand },
-    { "itoa2", &ScriptParser::itoaCommand },
-    { "itoa", &ScriptParser::itoaCommand },
-    { "intlimit", &ScriptParser::intlimitCommand },
-    { "inc", &ScriptParser::incCommand },
-    { "if", &ScriptParser::ifCommand },
-    { "humanz", &ScriptParser::humanzCommand },
-    { "goto", &ScriptParser::gotoCommand },
-    { "gosub", &ScriptParser::gosubCommand },
-    { "globalon", &ScriptParser::globalonCommand },
-    { "getparam", &ScriptParser::getparamCommand },
-    //{"game",    &ScriptParser::gameCommand},
-    { "for", &ScriptParser::forCommand },
-    { "filelog", &ScriptParser::filelogCommand },
-    { "effectcut", &ScriptParser::effectcutCommand },
-    { "effectblank", &ScriptParser::effectblankCommand },
-    { "effect", &ScriptParser::effectCommand },
-    { "div", &ScriptParser::divCommand },
-    { "dim", &ScriptParser::dimCommand },
-    { "defvoicevol", &ScriptParser::defvoicevolCommand },
-    { "defsub", &ScriptParser::defsubCommand },
-    { "defsevol", &ScriptParser::defsevolCommand },
-    { "defmp3vol", &ScriptParser::defmp3volCommand },
-    { "defaultspeed", &ScriptParser::defaultspeedCommand },
-    { "defaultfont", &ScriptParser::defaultfontCommand },
-    { "dec", &ScriptParser::decCommand },
-    { "date", &ScriptParser::dateCommand },
-    { "cos", &ScriptParser::cosCommand },
-    { "cmp", &ScriptParser::cmpCommand },
-    { "clickvoice", &ScriptParser::clickvoiceCommand },
-    { "clickstr", &ScriptParser::clickstrCommand },
-    { "break", &ScriptParser::breakCommand },
-    { "automode", &ScriptParser::mode_extCommand },
-    { "atoi", &ScriptParser::atoiCommand },
-    { "arc", &ScriptParser::arcCommand },
-    { "add", &ScriptParser::addCommand },
-    { "", NULL }
-};
+typedef int (ScriptParser::*ParserFun)();
+static class func_lut_t {
+    typedef dictionary<string, ParserFun>::t dic_t;
+    dic_t dict;
+public:
+    func_lut_t();
+    ParserFun get(string what) const {
+	dic_t::const_iterator it = dict.find(what);
+	if (it == dict.end()) return 0;
+	return it->second;
+    }
+} func_lut;
+func_lut_t::func_lut_t() {
+    dict["add"]             = &ScriptParser::addCommand;
+    dict["arc"]             = &ScriptParser::arcCommand;
+    dict["atoi"]            = &ScriptParser::atoiCommand;
+    dict["automode"]        = &ScriptParser::mode_extCommand;
+    dict["break"]           = &ScriptParser::breakCommand;
+    dict["clickstr"]        = &ScriptParser::clickstrCommand;
+    dict["clickvoice"]      = &ScriptParser::clickvoiceCommand;
+    dict["cmp"]             = &ScriptParser::cmpCommand;
+    dict["cos"]             = &ScriptParser::cosCommand;
+    dict["date"]            = &ScriptParser::dateCommand;
+    dict["dec"]             = &ScriptParser::decCommand;
+    dict["defaultfont"]     = &ScriptParser::defaultfontCommand;
+    dict["defaultspeed"]    = &ScriptParser::defaultspeedCommand;
+    dict["defmp3vol"]       = &ScriptParser::defmp3volCommand;
+    dict["defsevol"]        = &ScriptParser::defsevolCommand;
+    dict["defsub"]          = &ScriptParser::defsubCommand;
+    dict["defvoicevol"]     = &ScriptParser::defvoicevolCommand;
+    dict["dim"]             = &ScriptParser::dimCommand;
+    dict["div"]             = &ScriptParser::divCommand;
+    dict["effect"]          = &ScriptParser::effectCommand;
+    dict["effectblank"]     = &ScriptParser::effectblankCommand;
+    dict["effectcut"]       = &ScriptParser::effectcutCommand;
+    dict["filelog"]         = &ScriptParser::filelogCommand;
+    dict["for"]             = &ScriptParser::forCommand;
+  //dict["game"]            = &ScriptParser::gameCommand;
+    dict["getparam"]        = &ScriptParser::getparamCommand;
+    dict["globalon"]        = &ScriptParser::globalonCommand;
+    dict["gosub"]           = &ScriptParser::gosubCommand;
+    dict["goto"]            = &ScriptParser::gotoCommand;
+    dict["humanz"]          = &ScriptParser::humanzCommand;
+    dict["if"]              = &ScriptParser::ifCommand;
+    dict["inc"]             = &ScriptParser::incCommand;
+    dict["intlimit"]        = &ScriptParser::intlimitCommand;
+    dict["itoa"]            = &ScriptParser::itoaCommand;
+    dict["itoa2"]           = &ScriptParser::itoaCommand;
+    dict["kidokumode"]      = &ScriptParser::kidokumodeCommand;
+    dict["kidokuskip"]      = &ScriptParser::kidokuskipCommand;
+    dict["labellog"]        = &ScriptParser::labellogCommand;
+    dict["len"]             = &ScriptParser::lenCommand;
+    dict["linepage"]        = &ScriptParser::linepageCommand;
+    dict["linepage2"]       = &ScriptParser::linepageCommand;
+    dict["loadgosub"]       = &ScriptParser::loadgosubCommand;
+  //dict["lookbackbutton]   = &ScriptParser::lookbackbuttonCommand;
+    dict["lookbackcolor"]   = &ScriptParser::lookbackcolorCommand;
+    dict["lookbacksp"]      = &ScriptParser::lookbackspCommand;
+    dict["maxkaisoupage"]   = &ScriptParser::maxkaisoupageCommand;
+    dict["menuselectcolor"] = &ScriptParser::menuselectcolorCommand;
+    dict["menuselectvoice"] = &ScriptParser::menuselectvoiceCommand;
+    dict["menusetwindow"]   = &ScriptParser::menusetwindowCommand;
+    dict["mid"]             = &ScriptParser::midCommand;
+    dict["mod"]             = &ScriptParser::modCommand;
+    dict["mode_ext"]        = &ScriptParser::mode_extCommand;
+    dict["mode_saya"]       = &ScriptParser::mode_sayaCommand;
+    dict["mov"]             = &ScriptParser::movCommand;
+    dict["mov10"]           = &ScriptParser::movCommand;
+    dict["mov3"]            = &ScriptParser::movCommand;
+    dict["mov4"]            = &ScriptParser::movCommand;
+    dict["mov5"]            = &ScriptParser::movCommand;
+    dict["mov6"]            = &ScriptParser::movCommand;
+    dict["mov7"]            = &ScriptParser::movCommand;
+    dict["mov8"]            = &ScriptParser::movCommand;
+    dict["mov9"]            = &ScriptParser::movCommand;
+    dict["movl"]            = &ScriptParser::movCommand;
+    dict["mul"]             = &ScriptParser::mulCommand;
+    dict["next"]            = &ScriptParser::nextCommand;
+    dict["notif"]           = &ScriptParser::ifCommand;
+    dict["ns2"]             = &ScriptParser::nsaCommand;
+    dict["ns3"]             = &ScriptParser::nsaCommand;
+    dict["nsa"]             = &ScriptParser::arcCommand;
+    dict["nsa"]             = &ScriptParser::nsaCommand;
+    dict["nsadir"]          = &ScriptParser::nsadirCommand;
+    dict["numalias"]        = &ScriptParser::numaliasCommand;
+    dict["pretextgosub"]    = &ScriptParser::pretextgosubCommand;
+    dict["return"]          = &ScriptParser::returnCommand;
+    dict["rmenu"]           = &ScriptParser::rmenuCommand;
+    dict["roff"]            = &ScriptParser::roffCommand;
+    dict["rubyoff"]         = &ScriptParser::rubyoffCommand;
+    dict["rubyon"]          = &ScriptParser::rubyonCommand;
+    dict["sar"]             = &ScriptParser::nsaCommand;
+    dict["savename"]        = &ScriptParser::savenameCommand;
+    dict["savenumber"]      = &ScriptParser::savenumberCommand;
+    dict["selectcolor"]     = &ScriptParser::selectcolorCommand;
+    dict["selectvoice"]     = &ScriptParser::selectvoiceCommand;
+    dict["shadedistance"]   = &ScriptParser::shadedistanceCommand;
+    dict["sin"]             = &ScriptParser::sinCommand;
+    dict["skip"]            = &ScriptParser::skipCommand;
+    dict["soundpressplgin"] = &ScriptParser::soundpressplginCommand;
+    dict["spi"]             = &ScriptParser::soundpressplginCommand;
+    dict["stralias"]        = &ScriptParser::straliasCommand;
+    dict["sub"]             = &ScriptParser::subCommand;
+    dict["tan"]             = &ScriptParser::tanCommand;
+    dict["textgosub"]       = &ScriptParser::textgosubCommand;
+    dict["time"]            = &ScriptParser::timeCommand;
+    dict["transmode"]       = &ScriptParser::transmodeCommand;
+    dict["underline"]       = &ScriptParser::underlineCommand;
+    dict["useescspc"]       = &ScriptParser::useescspcCommand;
+    dict["usewheel"]        = &ScriptParser::usewheelCommand;
+    dict["versionstr"]      = &ScriptParser::versionstrCommand;
+    dict["windowback"]      = &ScriptParser::windowbackCommand;
+    dict["windoweffect"]    = &ScriptParser::effectCommand;
+    dict["zenkakko"]        = &ScriptParser::zenkakkoCommand;
+}
+
 
 ScriptParser::ScriptParser()
 {
@@ -396,15 +403,8 @@ int ScriptParser::parseLine()
 	cmd.shift();
     }
 
-    int lut_counter = 0;
-    while (func_lut[lut_counter].method) {
-        if (cmd == func_lut[lut_counter].command) {
-            return (this->*func_lut[lut_counter].method)();
-        }
-        ++lut_counter;
-    }
-
-    return RET_NOMATCH;
+    ParserFun f = func_lut.get(cmd);
+    return f ? (this->*f)() : RET_NOMATCH;
 }
 
 

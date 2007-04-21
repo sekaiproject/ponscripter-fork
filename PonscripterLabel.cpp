@@ -56,211 +56,217 @@ extern "C" void waveCallback(int channel);
 #define DEFAULT_ENV_FONT "Sans"
 #define DEFAULT_VOLUME 100
 
-typedef int (PonscripterLabel::*FuncList)();
-static struct FuncLUT {
-    char command[40];
-    FuncList method;
-} func_lut[] =
-{
-    { "wavestop", &PonscripterLabel::wavestopCommand },
-    { "waveloop", &PonscripterLabel::waveCommand },
-    { "wave", &PonscripterLabel::waveCommand },
-    { "waittimer", &PonscripterLabel::waittimerCommand },
-    { "wait", &PonscripterLabel::waitCommand },
-    { "vsp", &PonscripterLabel::vspCommand },
-    { "voicevol", &PonscripterLabel::voicevolCommand },
-    { "trap", &PonscripterLabel::trapCommand },
-    { "textspeed", &PonscripterLabel::textspeedCommand },
-    { "textshow", &PonscripterLabel::textshowCommand },
-    { "texton", &PonscripterLabel::textonCommand },
-    { "textoff", &PonscripterLabel::textoffCommand },
-    { "texthide", &PonscripterLabel::texthideCommand },
-    { "textclear", &PonscripterLabel::textclearCommand },
-    { "textbtnwait", &PonscripterLabel::btnwaitCommand },
-    { "texec", &PonscripterLabel::texecCommand },
-    { "tateyoko", &PonscripterLabel::tateyokoCommand },
-    { "tal", &PonscripterLabel::talCommand },
-    { "tablegoto", &PonscripterLabel::tablegotoCommand },
-    { "systemcall", &PonscripterLabel::systemcallCommand },
-    { "strsp", &PonscripterLabel::strspCommand },
-    { "stop", &PonscripterLabel::stopCommand },
-    { "sp_rgb_gradation", &PonscripterLabel::sp_rgb_gradationCommand },
-    { "spstr", &PonscripterLabel::spstrCommand },
-    { "spreload", &PonscripterLabel::spreloadCommand },
-    { "splitstring", &PonscripterLabel::splitCommand },
-    { "split", &PonscripterLabel::splitCommand },
-    { "spclclk", &PonscripterLabel::spclclkCommand },
-    { "spbtn", &PonscripterLabel::spbtnCommand },
-    { "skipoff", &PonscripterLabel::skipoffCommand },
-    { "sevol", &PonscripterLabel::sevolCommand },
-    { "setwindow3", &PonscripterLabel::setwindow3Command },
-    { "setwindow2", &PonscripterLabel::setwindow2Command },
-    { "setwindow", &PonscripterLabel::setwindowCommand },
-    { "setcursor", &PonscripterLabel::setcursorCommand },
-    { "selnum", &PonscripterLabel::selectCommand },
-    { "selgosub", &PonscripterLabel::selectCommand },
-    { "selectbtnwait", &PonscripterLabel::btnwaitCommand },
-    { "select", &PonscripterLabel::selectCommand },
-    { "savetime", &PonscripterLabel::savetimeCommand },
-    { "savescreenshot2", &PonscripterLabel::savescreenshotCommand },
-    { "savescreenshot", &PonscripterLabel::savescreenshotCommand },
-    { "saveon", &PonscripterLabel::saveonCommand },
-    { "saveoff", &PonscripterLabel::saveoffCommand },
-    { "savegame", &PonscripterLabel::savegameCommand },
-    { "savefileexist", &PonscripterLabel::savefileexistCommand },
-    { "rnd", &PonscripterLabel::rndCommand },
-    { "rnd2", &PonscripterLabel::rndCommand },
-    { "rmode", &PonscripterLabel::rmodeCommand },
-    { "resettimer", &PonscripterLabel::resettimerCommand },
-    { "reset", &PonscripterLabel::resetCommand },
-    { "repaint", &PonscripterLabel::repaintCommand },
-    { "quakey", &PonscripterLabel::quakeCommand },
-    { "quakex", &PonscripterLabel::quakeCommand },
-    { "quake", &PonscripterLabel::quakeCommand },
-    { "puttext", &PonscripterLabel::puttextCommand },
-    { "prnumclear", &PonscripterLabel::prnumclearCommand },
-    { "prnum", &PonscripterLabel::prnumCommand },
-    { "print", &PonscripterLabel::printCommand },
-    { "playstop", &PonscripterLabel::playstopCommand },
-    { "playonce", &PonscripterLabel::playCommand },
-    { "play", &PonscripterLabel::playCommand },
-    { "ofscpy", &PonscripterLabel::ofscopyCommand },
-    { "ofscopy", &PonscripterLabel::ofscopyCommand },
-    { "nega", &PonscripterLabel::negaCommand },
-    { "msp", &PonscripterLabel::mspCommand },
-    { "mpegplay", &PonscripterLabel::mpegplayCommand },
-    { "mp3vol", &PonscripterLabel::mp3volCommand },
-    { "mp3stop", &PonscripterLabel::playstopCommand },
-    { "mp3save", &PonscripterLabel::mp3Command },
-    { "mp3loop", &PonscripterLabel::mp3Command },
-    { "mp3fadeout", &PonscripterLabel::mp3fadeoutCommand },
-    { "mp3", &PonscripterLabel::mp3Command },
-    { "movemousecursor", &PonscripterLabel::movemousecursorCommand },
-    { "monocro", &PonscripterLabel::monocroCommand },
-    { "menu_window", &PonscripterLabel::menu_windowCommand },
-    { "menu_full", &PonscripterLabel::menu_fullCommand },
-    { "menu_automode", &PonscripterLabel::menu_automodeCommand },
-    { "lsph", &PonscripterLabel::lspCommand },
-    { "lsp", &PonscripterLabel::lspCommand },
-    { "lr_trap", &PonscripterLabel::trapCommand },
-    { "loopbgmstop", &PonscripterLabel::loopbgmstopCommand },
-    { "loopbgm", &PonscripterLabel::loopbgmCommand },
-    { "lookbackflush", &PonscripterLabel::lookbackflushCommand },
-    { "lookbackbutton", &PonscripterLabel::lookbackbuttonCommand },
-    { "logsp2", &PonscripterLabel::logspCommand },
-    { "logsp", &PonscripterLabel::logspCommand },
-    { "locate", &PonscripterLabel::locateCommand },
-    { "loadgame", &PonscripterLabel::loadgameCommand },
-    { "ld", &PonscripterLabel::ldCommand },
-    { "jumpf", &PonscripterLabel::jumpfCommand },
-    { "jumpb", &PonscripterLabel::jumpbCommand },
-    { "isfull", &PonscripterLabel::isfullCommand },
-    { "isskip", &PonscripterLabel::isskipCommand },
-    { "ispage", &PonscripterLabel::ispageCommand },
-    { "isdown", &PonscripterLabel::isdownCommand },
-    { "input", &PonscripterLabel::inputCommand },
-    { "indent", &PonscripterLabel::indentCommand },
-    { "humanorder", &PonscripterLabel::humanorderCommand },
-    { "h_textextent", &PonscripterLabel::haeleth_text_extentCommand },
-    { "h_rendering", &PonscripterLabel::haeleth_hinting_modeCommand },
-    { "h_mapfont", &PonscripterLabel::haeleth_map_fontCommand },
-    { "h_ligate", &PonscripterLabel::haeleth_ligature_controlCommand },
-    { "h_indentstr", &PonscripterLabel::haeleth_char_setCommand },
-    { "h_fontstyle", &PonscripterLabel::haeleth_font_styleCommand },
-    { "h_centreline", &PonscripterLabel::haeleth_centre_lineCommand },
-    { "h_breakstr", &PonscripterLabel::haeleth_char_setCommand },
-    { "getzxc", &PonscripterLabel::getzxcCommand },
-    { "getvoicevol", &PonscripterLabel::getvoicevolCommand },
-    { "getversion", &PonscripterLabel::getversionCommand },
-    { "gettimer", &PonscripterLabel::gettimerCommand },
-    { "getspsize", &PonscripterLabel::getspsizeCommand },
-    { "getspmode", &PonscripterLabel::getspmodeCommand },
-    { "getsevol", &PonscripterLabel::getsevolCommand },
-    { "getscreenshot", &PonscripterLabel::getscreenshotCommand },
-    { "gettext", &PonscripterLabel::gettextCommand },
-    { "gettag", &PonscripterLabel::gettagCommand },
-    { "gettab", &PonscripterLabel::gettabCommand },
-    { "getret", &PonscripterLabel::getretCommand },
-    { "getreg", &PonscripterLabel::getregCommand },
-    { "getpageup", &PonscripterLabel::getpageupCommand },
-    { "getpage", &PonscripterLabel::getpageCommand },
-    { "getmp3vol", &PonscripterLabel::getmp3volCommand },
-    { "getmousepos", &PonscripterLabel::getmouseposCommand },
-    { "getlog", &PonscripterLabel::getlogCommand },
-    { "getinsert", &PonscripterLabel::getinsertCommand },
-    { "getfunction", &PonscripterLabel::getfunctionCommand },
-    { "getenter", &PonscripterLabel::getenterCommand },
-    { "getcursorpos", &PonscripterLabel::getcursorposCommand },
-    { "getcursor", &PonscripterLabel::getcursorCommand },
-    { "getcselstr", &PonscripterLabel::getcselstrCommand },
-    { "getcselnum", &PonscripterLabel::getcselnumCommand },
-    { "getbtntimer", &PonscripterLabel::gettimerCommand },
-    { "getbgmvol", &PonscripterLabel::getmp3volCommand },
-    { "game", &PonscripterLabel::gameCommand },
-    { "fileexist", &PonscripterLabel::fileexistCommand },
-    { "existspbtn", &PonscripterLabel::spbtnCommand },
-    { "exec_dll", &PonscripterLabel::exec_dllCommand },
-    { "exbtn_d", &PonscripterLabel::exbtnCommand },
-    { "exbtn", &PonscripterLabel::exbtnCommand },
-    { "erasetextwindow", &PonscripterLabel::erasetextwindowCommand },
-    { "end", &PonscripterLabel::endCommand },
-    { "dwavestop", &PonscripterLabel::dwavestopCommand },
-    { "dwaveplayloop", &PonscripterLabel::dwaveCommand },
-    { "dwaveplay", &PonscripterLabel::dwaveCommand },
-    { "dwaveloop", &PonscripterLabel::dwaveCommand },
-    { "dwaveload", &PonscripterLabel::dwaveCommand },
-    { "dwave", &PonscripterLabel::dwaveCommand },
-    { "drawtext", &PonscripterLabel::drawtextCommand },
-    { "drawsp3", &PonscripterLabel::drawsp3Command },
-    { "drawsp2", &PonscripterLabel::drawsp2Command },
-    { "drawsp", &PonscripterLabel::drawspCommand },
-    { "drawfill", &PonscripterLabel::drawfillCommand },
-    { "drawclear", &PonscripterLabel::drawclearCommand },
-    { "drawbg2", &PonscripterLabel::drawbg2Command },
-    { "drawbg", &PonscripterLabel::drawbgCommand },
-    { "draw", &PonscripterLabel::drawCommand },
-    { "delay", &PonscripterLabel::delayCommand },
-    { "definereset", &PonscripterLabel::defineresetCommand },
-    { "csp", &PonscripterLabel::cspCommand },
-    { "cselgoto", &PonscripterLabel::cselgotoCommand },
-    { "cselbtn", &PonscripterLabel::cselbtnCommand },
-    { "csel", &PonscripterLabel::selectCommand },
-    { "click", &PonscripterLabel::clickCommand },
-    { "cl", &PonscripterLabel::clCommand },
-    { "chvol", &PonscripterLabel::chvolCommand },
-    { "checkpage", &PonscripterLabel::checkpageCommand },
-    { "cellcheckspbtn", &PonscripterLabel::spbtnCommand },
-    { "cellcheckexbtn", &PonscripterLabel::exbtnCommand },
-    { "cell", &PonscripterLabel::cellCommand },
-    { "caption", &PonscripterLabel::captionCommand },
-    { "btnwait2", &PonscripterLabel::btnwaitCommand },
-    { "btnwait", &PonscripterLabel::btnwaitCommand },
-    { "btntime2", &PonscripterLabel::btntimeCommand },
-    { "btntime", &PonscripterLabel::btntimeCommand },
-    { "btndown", &PonscripterLabel::btndownCommand },
-    { "btndef", &PonscripterLabel::btndefCommand },
-    { "btn", &PonscripterLabel::btnCommand },
-    { "br2", &PonscripterLabel::brCommand },
-    { "br", &PonscripterLabel::brCommand },
-    { "blt", &PonscripterLabel::bltCommand },
-    { "bgmvol", &PonscripterLabel::mp3volCommand },
-    { "bgmstop", &PonscripterLabel::playstopCommand },
-    { "bgmonce", &PonscripterLabel::mp3Command },
-    { "bgm", &PonscripterLabel::mp3Command },
-    { "bgcpy", &PonscripterLabel::bgcopyCommand },
-    { "bgcopy", &PonscripterLabel::bgcopyCommand },
-    { "bg", &PonscripterLabel::bgCommand },
-    { "barclear", &PonscripterLabel::barclearCommand },
-    { "bar", &PonscripterLabel::barCommand },
-    { "avi", &PonscripterLabel::aviCommand },
-    { "automode_time", &PonscripterLabel::automode_timeCommand },
-    { "autoclick", &PonscripterLabel::autoclickCommand },
-    { "amsp", &PonscripterLabel::amspCommand },
-    { "allspresume", &PonscripterLabel::allspresumeCommand },
-    { "allsphide", &PonscripterLabel::allsphideCommand },
-    { "abssetcursor", &PonscripterLabel::setcursorCommand },
-    { "", 0 }
-};
+typedef int (PonscripterLabel::*PonscrFun)();
+static class sfunc_lut_t {
+    typedef dictionary<string, PonscrFun>::t dic_t;
+    dic_t dict;
+public:
+    sfunc_lut_t();
+    PonscrFun get(string what) const {
+	dic_t::const_iterator it = dict.find(what);
+	if (it == dict.end()) return 0;
+	return it->second;
+    }
+} func_lut;
+sfunc_lut_t::sfunc_lut_t() {
+    dict["abssetcursor"]     = &PonscripterLabel::setcursorCommand;
+    dict["allsphide"]        = &PonscripterLabel::allsphideCommand;
+    dict["allspresume"]      = &PonscripterLabel::allspresumeCommand;
+    dict["amsp"]             = &PonscripterLabel::amspCommand;
+    dict["autoclick"]        = &PonscripterLabel::autoclickCommand;
+    dict["automode_time"]    = &PonscripterLabel::automode_timeCommand;
+    dict["avi"]              = &PonscripterLabel::aviCommand;
+    dict["bar"]              = &PonscripterLabel::barCommand;
+    dict["barclear"]         = &PonscripterLabel::barclearCommand;
+    dict["bg"]               = &PonscripterLabel::bgCommand;
+    dict["bgcopy"]           = &PonscripterLabel::bgcopyCommand;
+    dict["bgcpy"]            = &PonscripterLabel::bgcopyCommand;
+    dict["bgm"]              = &PonscripterLabel::mp3Command;
+    dict["bgmonce"]          = &PonscripterLabel::mp3Command;
+    dict["bgmstop"]          = &PonscripterLabel::playstopCommand;
+    dict["bgmvol"]           = &PonscripterLabel::mp3volCommand;
+    dict["blt"]              = &PonscripterLabel::bltCommand;
+    dict["br"]               = &PonscripterLabel::brCommand;
+    dict["br2"]              = &PonscripterLabel::brCommand;
+    dict["btn"]              = &PonscripterLabel::btnCommand;
+    dict["btndef"]           = &PonscripterLabel::btndefCommand;
+    dict["btndown"]          = &PonscripterLabel::btndownCommand;
+    dict["btntime"]          = &PonscripterLabel::btntimeCommand;
+    dict["btntime2"]         = &PonscripterLabel::btntimeCommand;
+    dict["btnwait"]          = &PonscripterLabel::btnwaitCommand;
+    dict["btnwait2"]         = &PonscripterLabel::btnwaitCommand;
+    dict["caption"]          = &PonscripterLabel::captionCommand;
+    dict["cell"]             = &PonscripterLabel::cellCommand;
+    dict["cellcheckexbtn"]   = &PonscripterLabel::exbtnCommand;
+    dict["cellcheckspbtn"]   = &PonscripterLabel::spbtnCommand;
+    dict["checkpage"]        = &PonscripterLabel::checkpageCommand;
+    dict["chvol"]            = &PonscripterLabel::chvolCommand;
+    dict["cl"]               = &PonscripterLabel::clCommand;
+    dict["click"]            = &PonscripterLabel::clickCommand;
+    dict["csel"]             = &PonscripterLabel::selectCommand;
+    dict["cselbtn"]          = &PonscripterLabel::cselbtnCommand;
+    dict["cselgoto"]         = &PonscripterLabel::cselgotoCommand;
+    dict["csp"]              = &PonscripterLabel::cspCommand;
+    dict["definereset"]      = &PonscripterLabel::defineresetCommand;
+    dict["delay"]            = &PonscripterLabel::delayCommand;
+    dict["draw"]             = &PonscripterLabel::drawCommand;
+    dict["drawbg"]           = &PonscripterLabel::drawbgCommand;
+    dict["drawbg2"]          = &PonscripterLabel::drawbg2Command;
+    dict["drawclear"]        = &PonscripterLabel::drawclearCommand;
+    dict["drawfill"]         = &PonscripterLabel::drawfillCommand;
+    dict["drawsp"]           = &PonscripterLabel::drawspCommand;
+    dict["drawsp2"]          = &PonscripterLabel::drawsp2Command;
+    dict["drawsp3"]          = &PonscripterLabel::drawsp3Command;
+    dict["drawtext"]         = &PonscripterLabel::drawtextCommand;
+    dict["dwave"]            = &PonscripterLabel::dwaveCommand;
+    dict["dwaveload"]        = &PonscripterLabel::dwaveCommand;
+    dict["dwaveloop"]        = &PonscripterLabel::dwaveCommand;
+    dict["dwaveplay"]        = &PonscripterLabel::dwaveCommand;
+    dict["dwaveplayloop"]    = &PonscripterLabel::dwaveCommand;
+    dict["dwavestop"]        = &PonscripterLabel::dwavestopCommand;
+    dict["end"]              = &PonscripterLabel::endCommand;
+    dict["erasetextwindow"]  = &PonscripterLabel::erasetextwindowCommand;
+    dict["exbtn"]            = &PonscripterLabel::exbtnCommand;
+    dict["exbtn_d"]          = &PonscripterLabel::exbtnCommand;
+    dict["exec_dll"]         = &PonscripterLabel::exec_dllCommand;
+    dict["existspbtn"]       = &PonscripterLabel::spbtnCommand;
+    dict["fileexist"]        = &PonscripterLabel::fileexistCommand;
+    dict["game"]             = &PonscripterLabel::gameCommand;
+    dict["getbgmvol"]        = &PonscripterLabel::getmp3volCommand;
+    dict["getbtntimer"]      = &PonscripterLabel::gettimerCommand;
+    dict["getcselnum"]       = &PonscripterLabel::getcselnumCommand;
+    dict["getcselstr"]       = &PonscripterLabel::getcselstrCommand;
+    dict["getcursor"]        = &PonscripterLabel::getcursorCommand;
+    dict["getcursorpos"]     = &PonscripterLabel::getcursorposCommand;
+    dict["getenter"]         = &PonscripterLabel::getenterCommand;
+    dict["getfunction"]      = &PonscripterLabel::getfunctionCommand;
+    dict["getinsert"]        = &PonscripterLabel::getinsertCommand;
+    dict["getlog"]           = &PonscripterLabel::getlogCommand;
+    dict["getmousepos"]      = &PonscripterLabel::getmouseposCommand;
+    dict["getmp3vol"]        = &PonscripterLabel::getmp3volCommand;
+    dict["getpage"]          = &PonscripterLabel::getpageCommand;
+    dict["getpageup"]        = &PonscripterLabel::getpageupCommand;
+    dict["getreg"]           = &PonscripterLabel::getregCommand;
+    dict["getret"]           = &PonscripterLabel::getretCommand;
+    dict["getscreenshot"]    = &PonscripterLabel::getscreenshotCommand;
+    dict["getsevol"]         = &PonscripterLabel::getsevolCommand;
+    dict["getspmode"]        = &PonscripterLabel::getspmodeCommand;
+    dict["getspsize"]        = &PonscripterLabel::getspsizeCommand;
+    dict["gettab"]           = &PonscripterLabel::gettabCommand;
+    dict["gettag"]           = &PonscripterLabel::gettagCommand;
+    dict["gettext"]          = &PonscripterLabel::gettextCommand;
+    dict["gettimer"]         = &PonscripterLabel::gettimerCommand;
+    dict["getversion"]       = &PonscripterLabel::getversionCommand;
+    dict["getvoicevol"]      = &PonscripterLabel::getvoicevolCommand;
+    dict["getzxc"]           = &PonscripterLabel::getzxcCommand;
+    dict["h_breakstr"]       = &PonscripterLabel::haeleth_char_setCommand;
+    dict["h_centreline"]     = &PonscripterLabel::haeleth_centre_lineCommand;
+    dict["h_fontstyle"]      = &PonscripterLabel::haeleth_font_styleCommand;
+    dict["h_indentstr"]      = &PonscripterLabel::haeleth_char_setCommand;
+    dict["h_ligate"]         = &PonscripterLabel::haeleth_ligate_controlCommand;
+    dict["h_mapfont"]        = &PonscripterLabel::haeleth_map_fontCommand;
+    dict["h_rendering"]      = &PonscripterLabel::haeleth_hinting_modeCommand;
+    dict["h_textextent"]     = &PonscripterLabel::haeleth_text_extentCommand;
+    dict["humanorder"]       = &PonscripterLabel::humanorderCommand;
+    dict["indent"]           = &PonscripterLabel::indentCommand;
+    dict["input"]            = &PonscripterLabel::inputCommand;
+    dict["isdown"]           = &PonscripterLabel::isdownCommand;
+    dict["isfull"]           = &PonscripterLabel::isfullCommand;
+    dict["ispage"]           = &PonscripterLabel::ispageCommand;
+    dict["isskip"]           = &PonscripterLabel::isskipCommand;
+    dict["jumpb"]            = &PonscripterLabel::jumpbCommand;
+    dict["jumpf"]            = &PonscripterLabel::jumpfCommand;
+    dict["ld"]               = &PonscripterLabel::ldCommand;
+    dict["loadgame"]         = &PonscripterLabel::loadgameCommand;
+    dict["locate"]           = &PonscripterLabel::locateCommand;
+    dict["logsp"]            = &PonscripterLabel::logspCommand;
+    dict["logsp2"]           = &PonscripterLabel::logspCommand;
+    dict["lookbackbutton"]   = &PonscripterLabel::lookbackbuttonCommand;
+    dict["lookbackflush"]    = &PonscripterLabel::lookbackflushCommand;
+    dict["loopbgm"]          = &PonscripterLabel::loopbgmCommand;
+    dict["loopbgmstop"]      = &PonscripterLabel::loopbgmstopCommand;
+    dict["lr_trap"]          = &PonscripterLabel::trapCommand;
+    dict["lsp"]              = &PonscripterLabel::lspCommand;
+    dict["lsph"]             = &PonscripterLabel::lspCommand;
+    dict["menu_automode"]    = &PonscripterLabel::menu_automodeCommand;
+    dict["menu_full"]        = &PonscripterLabel::menu_fullCommand;
+    dict["menu_window"]      = &PonscripterLabel::menu_windowCommand;
+    dict["monocro"]          = &PonscripterLabel::monocroCommand;
+    dict["movemousecursor"]  = &PonscripterLabel::movemousecursorCommand;
+    dict["mp3"]              = &PonscripterLabel::mp3Command;
+    dict["mp3fadeout"]       = &PonscripterLabel::mp3fadeoutCommand;
+    dict["mp3loop"]          = &PonscripterLabel::mp3Command;
+    dict["mp3save"]          = &PonscripterLabel::mp3Command;
+    dict["mp3stop"]          = &PonscripterLabel::playstopCommand;
+    dict["mp3vol"]           = &PonscripterLabel::mp3volCommand;
+    dict["mpegplay"]         = &PonscripterLabel::mpegplayCommand;
+    dict["msp"]              = &PonscripterLabel::mspCommand;
+    dict["nega"]             = &PonscripterLabel::negaCommand;
+    dict["ofscopy"]          = &PonscripterLabel::ofscopyCommand;
+    dict["ofscpy"]           = &PonscripterLabel::ofscopyCommand;
+    dict["play"]             = &PonscripterLabel::playCommand;
+    dict["playonce"]         = &PonscripterLabel::playCommand;
+    dict["playstop"]         = &PonscripterLabel::playstopCommand;
+    dict["print"]            = &PonscripterLabel::printCommand;
+    dict["prnum"]            = &PonscripterLabel::prnumCommand;
+    dict["prnumclear"]       = &PonscripterLabel::prnumclearCommand;
+    dict["puttext"]          = &PonscripterLabel::puttextCommand;
+    dict["quake"]            = &PonscripterLabel::quakeCommand;
+    dict["quakex"]           = &PonscripterLabel::quakeCommand;
+    dict["quakey"]           = &PonscripterLabel::quakeCommand;
+    dict["repaint"]          = &PonscripterLabel::repaintCommand;
+    dict["reset"]            = &PonscripterLabel::resetCommand;
+    dict["resettimer"]       = &PonscripterLabel::resettimerCommand;
+    dict["rmode"]            = &PonscripterLabel::rmodeCommand;
+    dict["rnd"]              = &PonscripterLabel::rndCommand;
+    dict["rnd2"]             = &PonscripterLabel::rndCommand;
+    dict["savefileexist"]    = &PonscripterLabel::savefileexistCommand;
+    dict["savegame"]         = &PonscripterLabel::savegameCommand;
+    dict["saveoff"]          = &PonscripterLabel::saveoffCommand;
+    dict["saveon"]           = &PonscripterLabel::saveonCommand;
+    dict["savescreenshot"]   = &PonscripterLabel::savescreenshotCommand;
+    dict["savescreenshot2"]  = &PonscripterLabel::savescreenshotCommand;
+    dict["savetime"]         = &PonscripterLabel::savetimeCommand;
+    dict["select"]           = &PonscripterLabel::selectCommand;
+    dict["selectbtnwait"]    = &PonscripterLabel::btnwaitCommand;
+    dict["selgosub"]         = &PonscripterLabel::selectCommand;
+    dict["selnum"]           = &PonscripterLabel::selectCommand;
+    dict["setcursor"]        = &PonscripterLabel::setcursorCommand;
+    dict["setwindow"]        = &PonscripterLabel::setwindowCommand;
+    dict["setwindow2"]       = &PonscripterLabel::setwindow2Command;
+    dict["setwindow3"]       = &PonscripterLabel::setwindow3Command;
+    dict["sevol"]            = &PonscripterLabel::sevolCommand;
+    dict["skipoff"]          = &PonscripterLabel::skipoffCommand;
+    dict["sp_rgb_gradation"] = &PonscripterLabel::sp_rgb_gradationCommand;
+    dict["spbtn"]            = &PonscripterLabel::spbtnCommand;
+    dict["spclclk"]          = &PonscripterLabel::spclclkCommand;
+    dict["split"]            = &PonscripterLabel::splitCommand;
+    dict["splitstring"]      = &PonscripterLabel::splitCommand;
+    dict["spreload"]         = &PonscripterLabel::spreloadCommand;
+    dict["spstr"]            = &PonscripterLabel::spstrCommand;
+    dict["stop"]             = &PonscripterLabel::stopCommand;
+    dict["strsp"]            = &PonscripterLabel::strspCommand;
+    dict["systemcall"]       = &PonscripterLabel::systemcallCommand;
+    dict["tablegoto"]        = &PonscripterLabel::tablegotoCommand;
+    dict["tal"]              = &PonscripterLabel::talCommand;
+    dict["tateyoko"]         = &PonscripterLabel::tateyokoCommand;
+    dict["texec"]            = &PonscripterLabel::texecCommand;
+    dict["textbtnwait"]      = &PonscripterLabel::btnwaitCommand;
+    dict["textclear"]        = &PonscripterLabel::textclearCommand;
+    dict["texthide"]         = &PonscripterLabel::texthideCommand;
+    dict["textoff"]          = &PonscripterLabel::textoffCommand;
+    dict["texton"]           = &PonscripterLabel::textonCommand;
+    dict["textshow"]         = &PonscripterLabel::textshowCommand;
+    dict["textspeed"]        = &PonscripterLabel::textspeedCommand;
+    dict["trap"]             = &PonscripterLabel::trapCommand;
+    dict["voicevol"]         = &PonscripterLabel::voicevolCommand;
+    dict["vsp"]              = &PonscripterLabel::vspCommand;
+    dict["wait"]             = &PonscripterLabel::waitCommand;
+    dict["waittimer"]        = &PonscripterLabel::waittimerCommand;
+    dict["wave"]             = &PonscripterLabel::waveCommand;
+    dict["waveloop"]         = &PonscripterLabel::waveCommand;
+    dict["wavestop"]         = &PonscripterLabel::wavestopCommand;
+}
 
 static void SDL_Quit_Wrapper()
 {
@@ -1109,17 +1115,13 @@ bool PonscripterLabel::check_orphan_control()
 
 int PonscripterLabel::parseLine()
 {
-    int ret, lut_counter = 0;
+    int ret = 0;
     string cmd = script_h.getStringBuffer();
     if (cmd[0] == '_') cmd.shift();
 
     if (!script_h.isText()) {
-        while (func_lut[lut_counter].method) {
-            if (cmd == func_lut[lut_counter].command) {
-                return (this->*func_lut[lut_counter].method)();
-            }
-            lut_counter++;
-        }
+	PonscrFun f = func_lut.get(cmd);
+	if (f) return (this->*f)();
 
         if (cmd[0] == 0x0a)
             return RET_CONTINUE;

@@ -183,7 +183,7 @@ int PonscripterLabel::haeleth_hinting_modeCommand()
  * Ligature definitions are LIFO, so e.g. you must define "ff" before
  * "ffi", or the latter will never be seen.
  */
-int PonscripterLabel::haeleth_ligature_controlCommand()
+int PonscripterLabel::haeleth_ligate_controlCommand()
 {
     if (script_h.compareString("none")) {
         script_h.readLabel();
