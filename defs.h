@@ -8,8 +8,10 @@
 
 #ifdef __GNU_C__
 #include <ext/hash_map>
+#include <ext/hash_set>
 #else
 #include <map>
+#include <set>
 #endif
 
 template <typename KT, typename VT>
@@ -18,6 +20,15 @@ struct dictionary {
     typedef __gnu_cxx::hash_map<KT, VT> t;
 #else
     typedef std::map<KT, VT> t;
+#endif
+};
+
+template <typename T>
+struct set {
+#ifdef __GNU_C__
+    typedef __gnu_cxx::hash_set<T> t;
+#else
+    typedef std::set<T> t;
 #endif
 };
 

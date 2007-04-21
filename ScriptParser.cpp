@@ -38,7 +38,7 @@
 
 #define MAX_TEXT_BUFFER 17
 
-typedef int (ScriptParser::*ParserFun)();
+typedef int (ScriptParser::*ParserFun)(const string&);
 static class func_lut_t {
     typedef dictionary<string, ParserFun>::t dic_t;
     dic_t dict;
@@ -183,14 +183,7 @@ ScriptParser::~ScriptParser()
 
 void ScriptParser::reset()
 {
-    UserFuncLUT* func = root_user_func.next;
-    while (func) {
-        UserFuncLUT* tmp = func;
-        func = func->next;
-        delete tmp;
-    }
-    root_user_func.next = NULL;
-    last_user_func = &root_user_func;
+    user_func_lut.clear();
 
     // reset misc variables
     nsa_path.clear();
@@ -386,25 +379,20 @@ int ScriptParser::parseLine()
     if (debug_level > 0) printf("ScriptParser::Parseline %s\n", cmd.c_str());
 
     if (cmd[0] == ';' || cmd[0] == '*' || cmd[0] == ':') return RET_CONTINUE;
-    else if (script_h.isText()) return RET_NOMATCH;
+
+    if (script_h.isText()) return RET_NOMATCH;
 
     if (cmd[0] != '_') {
-        UserFuncLUT* uf = root_user_func.next;
-        while (uf) {
-            if (cmd == uf->command) {
-                gosubReal(cmd, script_h.getNext());
-                return RET_CONTINUE;
-            }
-
-            uf = uf->next;
-        }
+	if (user_func_lut.find(cmd) != user_func_lut.end()) {
+	    gosubReal(cmd, script_h.getNext());
+	    return RET_CONTINUE;
+	}
     }
     else {
 	cmd.shift();
     }
-
     ParserFun f = func_lut.get(cmd);
-    return f ? (this->*f)() : RET_NOMATCH;
+    return f ? (this->*f)(cmd) : RET_NOMATCH;
 }
 
 
