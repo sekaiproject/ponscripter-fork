@@ -68,6 +68,8 @@ public:
         };
         ArrayVariable& operator=(const ArrayVariable& av)
         {
+	    if (&av == this) return *this;
+
             no = av.no;
             num_dim = av.num_dim;
 
@@ -162,11 +164,13 @@ public:
     void setInt(VariableInfo* var_info, int val, int offset = 0);
     void setNumVariable(int no, int val);
     void pushVariable();
-    int  getIntVariable(VariableInfo* var_info = NULL);
+    int getIntVariable(VariableInfo* var_info = NULL);
 
-    int  getStringFromInteger(char* buffer, int no, int num_column,
-			      bool is_zero_inserted = false);
-
+    int getStringFromInteger(char* buffer, int no, int num_column,
+			     bool is_zero_inserted = false);
+    string stringFromInteger(int no, int num_column,
+			     bool is_zero_inserted = false);
+    
     int  readScriptSub(FILE* fp, char** buf, int encrypt_mode);
     int  readScript(const char* path);
     int  labelScript();
@@ -211,10 +215,9 @@ public:
         bool num_limit_flag;
         int num_limit_upper;
         int num_limit_lower;
-        char* str;
+        string str;
 
         VariableData() {
-            str = NULL;
             reset(true);
         };
         void reset(bool limit_reset_flag)
@@ -223,10 +226,7 @@ public:
             if (limit_reset_flag)
                 num_limit_flag = false;
 
-            if (str) {
-                delete[] str;
-                str = NULL;
-            }
+            if (str) str.clear();
         };
     }* variable_data;
 

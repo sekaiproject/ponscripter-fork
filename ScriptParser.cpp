@@ -546,16 +546,13 @@ int ScriptParser::readInt()
     return i;
 }
 
-
-void ScriptParser::writeStr(char* s, bool output_flag)
+void ScriptParser::writeStr(const string& s, bool output_flag)
 {
-    if (s && s[0]) {
-        if (output_flag)
-            memcpy(file_io_buf + file_io_buf_ptr,
-                s,
-                strlen(s));
+    if (s) {
+	if (output_flag)
+	    memcpy(file_io_buf + file_io_buf_ptr, s.c_str(), s.size());
 
-        file_io_buf_ptr += strlen(s);
+	file_io_buf_ptr += s.size();
     }
 
     writeChar(0, output_flag);
@@ -570,7 +567,7 @@ void ScriptParser::readStr(char** s)
         if (file_io_buf[file_io_buf_ptr + counter++] == 0) break;
     }
 
-    if (*s) delete[] * s;
+    if (*s) delete[] *s;
 
     *s = NULL;
 
@@ -580,6 +577,15 @@ void ScriptParser::readStr(char** s)
     }
 
     file_io_buf_ptr += counter;
+}
+
+string ScriptParser::readStr()
+{
+    const size_t start = file_io_buf_ptr;
+    while (file_io_buf_ptr < file_io_buf_len) {
+	if (file_io_buf[file_io_buf_ptr++] == 0) break;
+    }
+    return string((char*)file_io_buf + start, file_io_buf_ptr - start);
 }
 
 
@@ -596,7 +602,7 @@ void ScriptParser::readVariables(int from, int to)
 {
     for (int i = from; i < to; i++) {
         script_h.variable_data[i].num = readInt();
-        readStr(&script_h.variable_data[i].str);
+        script_h.variable_data[i].str = readStr();
     }
 }
 

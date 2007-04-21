@@ -499,7 +499,7 @@ int ScriptParser::movCommand(const string& cmd)
     else if (script_h.current_variable.type == ScriptHandler::VAR_STR) {
         script_h.pushVariable();
         const char* buf = script_h.readStr();
-        setStr(&script_h.variable_data[script_h.pushed_variable.var_no].str, buf);
+        script_h.variable_data[script_h.pushed_variable.var_no].str = buf;
     }
     else errorAndExit(cmd + ": no variable");
 
@@ -555,18 +555,15 @@ int ScriptParser::midCommand(const string& cmd)
     unsigned int len = script_h.readInt();
 
     ScriptHandler::VariableData &vd = script_h.variable_data[no];
-    if (vd.str) delete[] vd.str;
 
     if (start >= strlen(save_buf)) {
-        vd.str = NULL;
+        vd.str.clear();
     }
     else {
         if (start + len > strlen(save_buf))
             len = strlen(save_buf) - start;
 
-        vd.str = new char[len + 1];
-        memcpy(vd.str, save_buf + start, len);
-        vd.str[len] = '\0';
+	vd.str.assign(save_buf + start, len);
     }
 
     return RET_CONTINUE;
@@ -750,7 +747,7 @@ int ScriptParser::itoaCommand(const string& cmd)
     else
         sprintf(val_str, "%d", val);
 
-    setStr(&script_h.variable_data[no].str, val_str);
+    script_h.variable_data[no].str = val_str;
 
     return RET_CONTINUE;
 }
@@ -954,8 +951,8 @@ int ScriptParser::getparamCommand(const string& cmd)
             script_h.setInt(&script_h.pushed_variable, script_h.readInt());
         }
         else if (script_h.pushed_variable.type & ScriptHandler::VAR_STR) {
-            const char* buf = script_h.readStr();
-            setStr(&script_h.variable_data[script_h.pushed_variable.var_no].str, buf);
+            script_h.variable_data[script_h.pushed_variable.var_no].str =
+		script_h.readStr();
         }
 
         end_status = script_h.getEndStatus();
@@ -1317,22 +1314,9 @@ int ScriptParser::addCommand(const string& cmd)
         script_h.setInt(&script_h.pushed_variable, val + script_h.readInt());
     }
     else if (script_h.current_variable.type == ScriptHandler::VAR_STR) {
-        int no = script_h.current_variable.var_no;
-
-        const char* buf = script_h.readStr();
-        ScriptHandler::VariableData &vd = script_h.variable_data[no];
-        char* tmp_buffer = vd.str;
-
-        if (tmp_buffer) {
-            vd.str = new char[strlen(tmp_buffer) + strlen(buf) + 1];
-            strcpy(vd.str, tmp_buffer);
-            strcat(vd.str, buf);
-            delete[] tmp_buffer;
-        }
-        else {
-            vd.str = new char[strlen(buf) + 1];
-            strcpy(vd.str, buf);
-        }
+	script_h.pushVariable();
+        script_h.variable_data[script_h.pushed_variable.var_no].str +=
+	    script_h.readStr();
     }
     else errorAndExit("add: no variable.");
 

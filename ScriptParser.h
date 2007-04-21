@@ -379,8 +379,9 @@ protected:
     char readChar();
     void writeInt(int i, bool output_flag);
     int readInt();
-    void writeStr(char* s, bool output_flag);
+    void writeStr(const string& s, bool output_flag);
     void readStr(char** s);
+    string readStr();
     void writeVariables(int from, int to, bool output_flag);
     void readVariables(int from, int to);
     void writeArrayVariable(bool output_flag);

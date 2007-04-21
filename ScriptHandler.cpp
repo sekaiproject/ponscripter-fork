@@ -604,25 +604,14 @@ void ScriptHandler::loadKidokuData()
 
 void ScriptHandler::addIntVariable(char** buf)
 {
-    char num_buf[20];
-    int  no = parseInt(buf);
-
-    int len = getStringFromInteger(num_buf, no, -1);
-    for (int i = 0; i < len; i++)
-        addStringBuffer(num_buf[i]);
+    string_buffer += stringFromInteger(parseInt(buf), -1);
 }
 
 
 void ScriptHandler::addStrVariable(char** buf)
 {
     (*buf)++;
-    int no = parseInt(buf);
-    VariableData &vd = variable_data[no];
-    if (vd.str) {
-        for (unsigned int i = 0; i < strlen(vd.str); i++) {
-            addStringBuffer(vd.str[i]);
-        }
-    }
+    string_buffer += variable_data[parseInt(buf)].str;
 }
 
 
@@ -782,7 +771,8 @@ void ScriptHandler::setNumVariable(int no, int val)
 }
 
 
-int ScriptHandler::getStringFromInteger(char* buffer, int no, int num_column, bool is_zero_inserted)
+int ScriptHandler::getStringFromInteger(char* buffer, int no, int num_column,
+					bool is_zero_inserted)
 {
     int i, num_space = 0, num_minus = 0;
     if (no < 0) {
@@ -818,6 +808,14 @@ int ScriptHandler::getStringFromInteger(char* buffer, int no, int num_column, bo
     sprintf(buffer, format, no);
 
     return num_column;
+}
+
+string ScriptHandler::stringFromInteger(int no, int num_column,
+					bool is_zero_inserted)
+{
+    char buffer[1024];
+    getStringFromInteger(buffer, no, num_column, is_zero_inserted);
+    return string(buffer);
 }
 
 

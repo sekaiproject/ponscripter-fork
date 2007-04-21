@@ -344,7 +344,8 @@ void PonscripterLabel::parseTaggedString(AnimationInfo* anim)
         else if (buffer[0] == 'm') {
             anim->trans_mode = AnimationInfo::TRANS_MASK;
             char* start = ++buffer;
-            while (buffer[0] != ';' && buffer[0] != 0x0a && buffer[0] != '\0') buffer++;
+            while (buffer[0] != ';' && buffer[0] != 0x0a && buffer[0])
+		buffer++;
             if (buffer[0] == ';')
                 setStr(&anim->mask_file_name, start, buffer - start);
         }
@@ -360,7 +361,8 @@ void PonscripterLabel::parseTaggedString(AnimationInfo* anim)
         }
 
         if (anim->trans_mode != AnimationInfo::TRANS_STRING)
-            while (buffer[0] != '/' && buffer[0] != ';' && buffer[0] != '\0') buffer++;
+            while (buffer[0] != '/' && buffer[0] != ';' && buffer[0])
+		buffer++;
     }
 
     if (buffer[0] == '/') {

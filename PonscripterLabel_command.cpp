@@ -489,7 +489,8 @@ int PonscripterLabel::splitCommand(const string& cmd)
             script_h.setInt(&script_h.current_variable, atoi(token));
         }
         else if (script_h.current_variable.type & ScriptHandler::VAR_STR) {
-            setStr(&script_h.variable_data[script_h.current_variable.var_no].str, token);
+            script_h.variable_data[script_h.current_variable.var_no].str =
+		token;
         }
 
         save_buf += c;
@@ -1690,11 +1691,10 @@ int PonscripterLabel::inputCommand(const string& cmd)
     int no = script_h.current_variable.var_no;
 
     script_h.readStr(); // description
-    const char* buf = script_h.readStr(); // default value
-    setStr(&script_h.variable_data[no].str, buf);
+    script_h.variable_data[no].str = script_h.readStr();
 
     printf("*** inputCommand(): $%d is set to the default value: %s\n",
-        no, buf);
+	   no, script_h.variable_data[no].str.c_str());
     script_h.readInt(); // maxlen
     script_h.readInt(); // widechar flag
     if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
@@ -1796,7 +1796,7 @@ int PonscripterLabel::gettextCommand(const string& cmd)
 
     buf[j] = '\0';
 
-    setStr(&script_h.variable_data[no].str, buf);
+    script_h.variable_data[no].str = buf;
     delete[] buf;
 
     return RET_CONTINUE;
@@ -1834,7 +1834,7 @@ int PonscripterLabel::gettagCommand(const string& cmd)
         }
         else if (script_h.pushed_variable.type & ScriptHandler::VAR_STR) {
             if (end_flag)
-                setStr(&script_h.variable_data[script_h.pushed_variable.var_no].str, NULL);
+                script_h.variable_data[script_h.pushed_variable.var_no].str.clear();
             else {
                 const char* buf_start = buf;
                 while (*buf != '/'
@@ -1842,7 +1842,7 @@ int PonscripterLabel::gettagCommand(const string& cmd)
                        && *buf != ']') {
                     buf += CharacterBytes(buf);
                 }
-                setStr(&script_h.variable_data[script_h.pushed_variable.var_no].str, buf_start, buf - buf_start);
+                script_h.variable_data[script_h.pushed_variable.var_no].str.assign(buf_start, buf - buf_start);
             }
         }
 
@@ -1963,7 +1963,7 @@ int PonscripterLabel::getretCommand(const string& cmd)
     }
     else if (script_h.current_variable.type == ScriptHandler::VAR_STR) {
         int no = script_h.current_variable.var_no;
-        setStr(&script_h.variable_data[no].str, getret_str);
+        script_h.variable_data[no].str = getret_str;
     }
     else errorAndExit("getret: no variable.");
 
@@ -2018,10 +2018,9 @@ int PonscripterLabel::getregCommand(const string& cmd)
 
                     script_h.setCurrent(script_h.getNext() + 1);
 
-                    buf = script_h.readStr();
-                    setStr(&script_h.variable_data[no].str, buf);
+                    script_h.variable_data[no].str = script_h.readStr();
                     script_h.popCurrent();
-                    printf("  $%d = %s\n", no, script_h.variable_data[no].str);
+                    printf("  $%d = %s\n", no, script_h.variable_data[no].str.c_str());
                     found_flag = true;
                     break;
                 }
@@ -2071,9 +2070,10 @@ int PonscripterLabel::getlogCommand(const string& cmd)
     }
 
     if (page_no > 0)
-        setStr(&script_h.variable_data[script_h.pushed_variable.var_no].str, NULL);
+        script_h.variable_data[script_h.pushed_variable.var_no].str.clear();
     else
-        setStr(&script_h.variable_data[script_h.pushed_variable.var_no].str, t_buf->contents.c_str(), t_buf->contents.size());
+        script_h.variable_data[script_h.pushed_variable.var_no].str =
+	    t_buf->contents;
 
     return RET_CONTINUE;
 }
@@ -2142,7 +2142,7 @@ int PonscripterLabel::getcselstrCommand(const string& cmd)
     }
     if (!link) errorAndExit("getcselstr: no select link");
 
-    setStr(&script_h.variable_data[script_h.pushed_variable.var_no].str, link->text);
+    script_h.variable_data[script_h.pushed_variable.var_no].str = link->text;
 
     return RET_CONTINUE;
 }
