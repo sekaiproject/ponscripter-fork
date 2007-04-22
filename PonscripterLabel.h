@@ -621,25 +621,16 @@ private:
 	SELECT_NUM_MODE   = 2,
 	SELECT_CSEL_MODE  = 3
     };
-    struct SelectLink {
-        SelectLink* next;
-        char* text;
-        char* label;
-
-        SelectLink() {
-            next = 0;
-            text = label = 0;
-        };
-        ~SelectLink() {
-            if (text) delete[] text;
-
-            if (label) delete[] label;
-        };
-    } root_select_link, * shelter_select_link;
+    struct SelectElt {
+	typedef std::vector<SelectElt> vector;
+	typedef vector::iterator iterator;
+	string text, label;
+	SelectElt(const string& t, const string& l) : text(t), label(l) {}
+    };
+    SelectElt::vector select_links, shelter_select_links;
     NestInfo select_label_info;
     int shortcut_mouse_line;
 
-    void deleteSelectLink();
     ButtonLink* getSelectableSentence(const string& buffer, FontInfo* info,
 				      bool flush_flag = true,
 				      bool nofile_flag = false);

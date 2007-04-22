@@ -786,7 +786,7 @@ void PonscripterLabel::resetSub()
 
     deleteNestInfo();
     deleteButtonLink();
-    deleteSelectLink();
+    select_links.clear();
 
     stopCommand("stop");
     loopbgmstopCommand("loopbgmstop");
@@ -1293,21 +1293,6 @@ void PonscripterLabel::refreshMouseOverButton()
     current_button_link = root_button_link.next;
     SDL_GetMouseState(&mx, &my);
     mouseOverCheck(mx, my);
-}
-
-
-/* ---------------------------------------- */
-/* Delete select link */
-void PonscripterLabel::deleteSelectLink()
-{
-    SelectLink* link, * last_select_link = root_select_link.next;
-
-    while (last_select_link) {
-        link = last_select_link;
-        last_select_link = last_select_link->next;
-        delete link;
-    }
-    root_select_link.next = 0;
 }
 
 

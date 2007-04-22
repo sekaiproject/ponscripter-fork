@@ -40,9 +40,9 @@ void PonscripterLabel::enterSystemCall()
 {
     shelter_button_link   = root_button_link.next;
     root_button_link.next = NULL;
-    shelter_select_link   = root_select_link.next;
-    root_select_link.next = NULL;
-    shelter_event_mode    = event_mode;
+    shelter_select_links.swap(select_links);
+    select_links.clear();
+    shelter_event_mode = event_mode;
     shelter_mouse_state.x = last_mouse_state.x;
     shelter_mouse_state.y = last_mouse_state.y;
     event_mode = IDLE_EVENT_MODE;
@@ -68,7 +68,8 @@ void PonscripterLabel::leaveSystemCall(bool restore_flag)
         current_text_buffer = cached_text_buffer;
         restoreTextBuffer();
         root_button_link.next = shelter_button_link;
-        root_select_link.next = shelter_select_link;
+	select_links.swap(shelter_select_links);
+	shelter_select_links.clear();
 
         event_mode = shelter_event_mode;
         draw_cursor_flag = shelter_draw_cursor_flag;

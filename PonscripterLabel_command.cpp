@@ -680,7 +680,6 @@ int PonscripterLabel::selectCommand(const string& cmd)
     if (ret != RET_NOMATCH) return ret;
 
     int select_mode = SELECT_GOTO_MODE;
-    SelectLink* last_select_link;
 
     if (cmd == "selnum")
         select_mode = SELECT_NUM_MODE;
@@ -696,8 +695,10 @@ int PonscripterLabel::selectCommand(const string& cmd)
         script_h.pushVariable();
     }
 
+    // If waiting for a selection to be made...
     if (event_mode & WAIT_BUTTON_MODE) {
-        if (current_button_state.button <= 0) return RET_WAIT | RET_REREAD;
+	const int button = current_button_state.button - 1;
+        if (button < 0) return RET_WAIT | RET_REREAD;
 
 	playSound(selectvoice_file_name[SELECTVOICE_SELECT],
 		  SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
@@ -706,33 +707,29 @@ int PonscripterLabel::selectCommand(const string& cmd)
 
         deleteButtonLink();
 
-        int counter = 1;
-        last_select_link = root_select_link.next;
-        while (last_select_link) {
-            if (current_button_state.button == counter++) break;
-
-            last_select_link = last_select_link->next;
-        }
-
         if (select_mode == SELECT_GOTO_MODE) {
-            setCurrentLabel(last_select_link->label);
+            setCurrentLabel(select_links[button].label);
         }
         else if (select_mode == SELECT_GOSUB_MODE) {
-            gosubReal(last_select_link->label, select_label_info.next_script);
+            gosubReal(select_links[button].label,
+		      select_label_info.next_script);
         }
         else { // selnum
-            script_h.setInt(&script_h.pushed_variable, current_button_state.button - 1);
-            current_label_info = script_h.getLabelByAddress(select_label_info.next_script);
-            current_line = script_h.getLineByAddress(select_label_info.next_script);
+            script_h.setInt(&script_h.pushed_variable, button);
+            current_label_info =
+		script_h.getLabelByAddress(select_label_info.next_script);
+            current_line =
+		script_h.getLineByAddress(select_label_info.next_script);
             script_h.setCurrent(select_label_info.next_script);
         }
 
-        deleteSelectLink();
+        select_links.clear();
 
         newPage(true);
 
         return RET_CONTINUE;
     }
+    // Otherwise, if this is initialising a select point...
     else {
         bool comma_flag = true;
         if (select_mode == SELECT_CSEL_MODE) {
@@ -747,35 +744,24 @@ int PonscripterLabel::selectCommand(const string& cmd)
 	playSound(selectvoice_file_name[SELECTVOICE_OPEN],
 		  SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
 
-        last_select_link = &root_select_link;
+        select_links.clear();
 
         while (1) {
             if (script_h.getNext()[0] != 0x0a && comma_flag == true) {
-                const char* buf = script_h.readStr();
-                comma_flag = (script_h.getEndStatus() & ScriptHandler::END_COMMA);
+                string text = script_h.readStr();
+                comma_flag = script_h.getEndStatus() & ScriptHandler::END_COMMA;
                 if (select_mode != SELECT_NUM_MODE && !comma_flag)
 		    errorAndExit(cmd + ": comma is needed here.");
 
-                // Text part
-                SelectLink* slink = new SelectLink();
-                setStr(&slink->text, buf);
-                //printf("Select text %s\n", slink->text);
+		string label;
+                if (select_mode != SELECT_NUM_MODE)
+                    label = script_h.readStr() + 1;
 
-                // Label part
-                if (select_mode != SELECT_NUM_MODE) {
-                    script_h.readStr();
-                    setStr(&slink->label, script_h.getStringBuffer().c_str() + 1);
-                    //printf("Select label %s\n", slink->label );
-                }
-
-                last_select_link->next = slink;
-                last_select_link = last_select_link->next;
-
-                comma_flag = (script_h.getEndStatus() & ScriptHandler::END_COMMA);
-                //printf("2 comma %d %c %x\n", comma_flag, script_h.getCurrent()[0], script_h.getCurrent()[0]);
+		select_links.push_back(SelectElt(text, label));
+		
+                comma_flag = script_h.getEndStatus() & ScriptHandler::END_COMMA;
             }
             else if (script_h.getNext()[0] == 0x0a) {
-                //printf("comma %d\n", comma_flag);
                 char* buf = script_h.getNext() + 1; // consume eol
                 while (*buf == ' ' || *buf == '\t') buf++;
 
@@ -798,33 +784,29 @@ int PonscripterLabel::selectCommand(const string& cmd)
 
                 if (!comma_flag && !comma2_flag) {
                     select_label_info.next_script = buf;
-                    //printf("select: stop at the end of line\n");
                     break;
                 }
 
-                //printf("continue\n");
                 comma_flag = true;
             }
             else { // if select ends at the middle of the line
                 select_label_info.next_script = script_h.getNext();
-                //printf("select: stop at the middle of the line\n");
                 break;
             }
         }
 
         if (select_mode != SELECT_CSEL_MODE) {
-            last_select_link = root_select_link.next;
             int counter = 1;
-            while (last_select_link) {
-                if (*last_select_link->text) {
-                    ButtonLink* button = getSelectableSentence(last_select_link->text, &sentence_font);
-                    root_button_link.insert(button);
-                    button->no = counter;
-                }
-
-                counter++;
-                last_select_link = last_select_link->next;
-            }
+	    for (SelectElt::iterator it = select_links.begin();
+		 it != select_links.end(); ++it) {
+		if (it->text) {
+		    ButtonLink* b = getSelectableSentence(it->text,
+							  &sentence_font);
+		    b->no = counter;
+		    root_button_link.insert(b);
+		}
+		++counter;
+	    }
         }
 
         if (select_mode == SELECT_CSEL_MODE) {
@@ -1542,7 +1524,7 @@ int PonscripterLabel::loadgameCommand(const string& cmd)
         skip_flag = false;
         automode_flag = false;
         deleteButtonLink();
-        deleteSelectLink();
+        select_links.clear();
         key_pressed_flag = false;
         text_on_flag  = false;
         indent_offset = 0;
@@ -2126,17 +2108,11 @@ int PonscripterLabel::getcselstrCommand(const string& cmd)
     script_h.pushVariable();
 
     int csel_no = script_h.readInt();
+    if (csel_no >= (int)select_links.size())
+	errorAndExit("getcselstr: no select link");
 
-    int counter = 0;
-    SelectLink* link = root_select_link.next;
-    while (link) {
-        if (csel_no == counter++) break;
-
-        link = link->next;
-    }
-    if (!link) errorAndExit("getcselstr: no select link");
-
-    script_h.variable_data[script_h.pushed_variable.var_no].str = link->text;
+    script_h.variable_data[script_h.pushed_variable.var_no].str =
+	select_links[csel_no].text;
 
     return RET_CONTINUE;
 }
@@ -2144,16 +2120,8 @@ int PonscripterLabel::getcselstrCommand(const string& cmd)
 
 int PonscripterLabel::getcselnumCommand(const string& cmd)
 {
-    int count = 0;
-
-    SelectLink* link = root_select_link.next;
-    while (link) {
-        count++;
-        link = link->next;
-    }
     script_h.readInt();
-    script_h.setInt(&script_h.current_variable, count);
-
+    script_h.setInt(&script_h.current_variable, (int)select_links.size());
     return RET_CONTINUE;
 }
 
@@ -2641,19 +2609,11 @@ int PonscripterLabel::cspCommand(const string& cmd)
 int PonscripterLabel::cselgotoCommand(const string& cmd)
 {
     int csel_no = script_h.readInt();
+    if (csel_no >= (int)select_links.size())
+	errorAndExit("cselgoto: no select link");
 
-    int counter = 0;
-    SelectLink* link = root_select_link.next;
-    while (link) {
-        if (csel_no == counter++) break;
-
-        link = link->next;
-    }
-    if (!link) errorAndExit("cselgoto: no select link");
-
-    setCurrentLabel(link->label);
-
-    deleteSelectLink();
+    setCurrentLabel(select_links[csel_no].label);
+    select_links.clear();
     newPage(true);
 
     return RET_CONTINUE;
@@ -2669,19 +2629,13 @@ int PonscripterLabel::cselbtnCommand(const string& cmd)
     csel_info.top_x = script_h.readInt();
     csel_info.top_y = script_h.readInt();
 
-    int counter = 0;
-    SelectLink* link = root_select_link.next;
-    while (link) {
-        if (csel_no == counter++) break;
+    if (csel_no >= (int)select_links.size()) return RET_CONTINUE;
+    const string& text = select_links[csel_no].text;
+    if (!text) return RET_CONTINUE;
 
-        link = link->next;
-    }
-    if (link == NULL || link->text == NULL || *link->text == '\0')
-        return RET_CONTINUE;
-
-    csel_info.setLineArea(int (ceil(csel_info.StringAdvance(link->text))));
+    csel_info.setLineArea(int(ceil(csel_info.StringAdvance(text))));
     csel_info.clear();
-    ButtonLink* button = getSelectableSentence(link->text, &csel_info);
+    ButtonLink* button = getSelectableSentence(text, &csel_info);
     root_button_link.insert(button);
     button->no = button_no;
     button->sprite_no = csel_no;
