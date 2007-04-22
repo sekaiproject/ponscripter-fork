@@ -433,8 +433,6 @@ PonscripterLabel::PonscripterLabel()
     fullscreen_mode = false;
     window_mode     = false;
     skip_to_wait    = 0;
-    indent_chars    = 0;
-    break_chars     = 0;
     glyph_surface   = 0;
 }
 
@@ -696,18 +694,6 @@ int PonscripterLabel::init()
 
     loadEnvData();
 
-    // Initialize character sets
-    DefaultLigatures(1);
-    const int ic = 9;
-    wchar defindent[ic] = { 0x0028, 0x2014, 0x2018, 0x201c, 0x300c,
-                                     0x300e, 0xff08, 0xff5e, 0xff62 };
-    indent_chars = new wchar[ic];
-    for (i = 0; i < ic; ++i) indent_chars[i] = defindent[i];
-    const int bc = 4;
-    wchar defbreak[bc] = { 0x0020, 0x002d, 0x2013, 0x2014 };
-    break_chars = new wchar[bc];
-    for (i = 0; i < bc; ++i) break_chars[i] = defbreak[i];
-
     return 0;
 }
 
@@ -820,12 +806,23 @@ void PonscripterLabel::resetSub()
     for (i = 0; i < 4; i++) lookback_info[i].reset();
     sentence_font_info.reset();
 
-    if (indent_chars) {
-        delete[] indent_chars; indent_chars = 0;
-    }
-    if (break_chars) {
-        delete[] break_chars; break_chars = 0;
-    }
+    // Initialize character sets
+    DefaultLigatures(1);
+    indent_chars.clear();
+    indent_chars.insert(0x0028);
+    indent_chars.insert(0x2014);
+    indent_chars.insert(0x2018);
+    indent_chars.insert(0x201c);
+    indent_chars.insert(0x300c);
+    indent_chars.insert(0x300e);
+    indent_chars.insert(0xff08);
+    indent_chars.insert(0xff5e);
+    indent_chars.insert(0xff62);
+    break_chars.clear();
+    break_chars.insert(0x0020);
+    break_chars.insert(0x002d);
+    break_chars.insert(0x2013);
+    break_chars.insert(0x2014);
 
     dirty_rect.fill(screen_width, screen_height);
 }
@@ -835,12 +832,12 @@ void PonscripterLabel::resetSentenceFont()
 {
     FontInfo::default_encoding = Default;
     sentence_font.reset();
-    sentence_font.top_x     = 21;
-    sentence_font.top_y     = 16;
-    sentence_font.area_x    = screen_width - 21;
-    sentence_font.area_y    = screen_height - 16;
-    sentence_font.pitch_x   = 0;
-    sentence_font.pitch_y   = 0;
+    sentence_font.top_x = 21;
+    sentence_font.top_y = 16;
+    sentence_font.area_x = screen_width - 21;
+    sentence_font.area_y = screen_height - 16;
+    sentence_font.pitch_x = 0;
+    sentence_font.pitch_y = 0;
     sentence_font.wait_time = 20;
     sentence_font.window_color.set(0x99);
     sentence_font_info.pos.x = 0;
@@ -1063,31 +1060,6 @@ void PonscripterLabel::executeLabel()
 
     fprintf(stderr, " ***** End *****\n");
     endCommand("end");
-}
-
-
-bool PonscripterLabel::is_break_char(const unsigned short c) const
-{
-    if (break_chars) {
-        const unsigned short* istr = break_chars;
-        do {
-            if (c == *istr) return true;
-        } while (*(++istr));
-        return false;
-    }
-    return c == ' ';
-}
-
-
-bool PonscripterLabel::is_indent_char(const unsigned short c) const
-{
-    if (indent_chars) {
-        const unsigned short* istr = indent_chars;
-        do {
-            if (c == *istr) return true;
-        } while (*(++istr));
-    }
-    return false;
 }
 
 

@@ -589,10 +589,12 @@ private:
     int  textCommand();
     int  processText();
 
-    wchar* indent_chars;
-    wchar* break_chars;
-    bool is_indent_char(const wchar c) const;
-    bool is_break_char(const wchar c) const;
+    std::set<wchar> indent_chars;
+    std::set<wchar> break_chars;
+    bool is_indent_char(const wchar c) const
+	{ return indent_chars.find(c) != indent_chars.end(); }
+    bool is_break_char(const wchar c) const
+	{ return break_chars.find(c) != break_chars.end(); }
     bool check_orphan_control();
 
     /* ---------------------------------------- */

@@ -78,24 +78,17 @@ int PonscripterLabel::haeleth_centre_lineCommand(const string& cmd)
  */
 int PonscripterLabel::haeleth_char_setCommand(const string& cmd)
 {
-    unsigned short*& char_set = cmd == "h_indentstr"
+    std::set<wchar>& char_set = cmd == "h_indentstr"
 	                      ? indent_chars
 	                      : break_chars;
-    if (char_set) {
-        delete[] char_set;
-	char_set = 0;
-    }
+    char_set.clear();
 
-    const char* buf = script_h.readStr();
-    if (*buf == '^') ++buf;
-
-    char_set = new unsigned short[UTF8Length(buf) + 1];
-    int idx = 0;
-    while (*buf) {
-        char_set[idx++] = UnicodeOfUTF8(buf);
-        buf += CharacterBytes(buf);
+    string buf = script_h.readStr();
+    string::witerator it = buf.wbegin();
+    if (*it == '^') ++it;
+    while (it != buf.wend()) {
+	char_set.insert(*it++);
     }
-    char_set[idx] = 0;
     return RET_CONTINUE;
 }
 
