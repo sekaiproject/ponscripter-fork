@@ -44,7 +44,7 @@ int PonscripterLabel::loadSaveFile2(int file_version)
     sentence_font.color.g = readInt();
     sentence_font.color.b = readInt();
     cursor_info[0].remove();
-    readStr(&cursor_info[0].image_name);
+    cursor_info[0].image_name = readStr();
     if (cursor_info[0].image_name) {
         parseTaggedString(&cursor_info[0]);
         setupAnimationInfo(&cursor_info[0]);
@@ -53,7 +53,7 @@ int PonscripterLabel::loadSaveFile2(int file_version)
     }
 
     cursor_info[1].remove();
-    readStr(&cursor_info[1].image_name);
+    cursor_info[1].image_name = readStr();
     if (cursor_info[1].image_name) {
         parseTaggedString(&cursor_info[1]);
         setupAnimationInfo(&cursor_info[1]);
@@ -63,7 +63,7 @@ int PonscripterLabel::loadSaveFile2(int file_version)
 
     window_effect.effect   = readInt();
     window_effect.duration = readInt();
-    readStr(&window_effect.anim.image_name); // probably
+    window_effect.anim.image_name = readStr(); // probably
 
     sentence_font.clear();
     sentence_font.top_x  = readInt();
@@ -86,7 +86,7 @@ int PonscripterLabel::loadSaveFile2(int file_version)
     sentence_font_info.pos.y = readInt() * screen_ratio1 / screen_ratio2;
     sentence_font_info.pos.w = (readInt() + 1 - sentence_font_info.pos.x * screen_ratio1 / screen_ratio2) * screen_ratio1 / screen_ratio2;
     sentence_font_info.pos.h = (readInt() + 1 - sentence_font_info.pos.y * screen_ratio1 / screen_ratio2) * screen_ratio1 / screen_ratio2;
-    readStr(&sentence_font_info.image_name);
+    sentence_font_info.image_name = readStr();
     if (!sentence_font.is_transparent && sentence_font_info.image_name) {
         parseTaggedString(&sentence_font_info);
         setupAnimationInfo(&sentence_font_info);
@@ -105,12 +105,12 @@ int PonscripterLabel::loadSaveFile2(int file_version)
 
     // load background surface
     bg_info.remove();
-    readStr(&bg_info.file_name);
+    bg_info.file_name = readStr();
     createBackground();
 
     for (i = 0; i < 3; i++) {
         tachi_info[i].remove();
-        readStr(&tachi_info[i].image_name);
+        tachi_info[i].image_name = readStr();
         if (tachi_info[i].image_name) {
             parseTaggedString(&tachi_info[i]);
             setupAnimationInfo(&tachi_info[i]);
@@ -135,7 +135,7 @@ int PonscripterLabel::loadSaveFile2(int file_version)
     
     for (i = 0; i < MAX_SPRITE_NUM; i++) {
         sprite_info[i].remove();
-        readStr(&sprite_info[i].image_name);
+        sprite_info[i].image_name = readStr();
         if (sprite_info[i].image_name) {
             parseTaggedString(&sprite_info[i]);
             setupAnimationInfo(&sprite_info[i]);
@@ -310,10 +310,8 @@ int PonscripterLabel::loadSaveFile2(int file_version)
 
             readChar(); // 0x00
 
-            char num_buf[7];
-            script_h.getStringFromInteger(num_buf, prnum_info[i]->param, 3);
-            setStr(&prnum_info[i]->file_name, num_buf);
-
+            prnum_info[i]->file_name =
+		script_h.stringFromInteger(prnum_info[i]->param, 3);
             setupAnimationInfo(prnum_info[i]);
         }
         else {
@@ -329,8 +327,8 @@ int PonscripterLabel::loadSaveFile2(int file_version)
     readInt(); // 0
     readInt(); // 1
     btndef_info.remove();
-    readStr(&btndef_info.image_name);
-    if (btndef_info.image_name && btndef_info.image_name[0] != '\0') {
+    btndef_info.image_name = readStr();
+    if (btndef_info.image_name) {
         parseTaggedString(&btndef_info);
         setupAnimationInfo(&btndef_info);
         SDL_SetAlpha(btndef_info.image_surface, DEFAULT_BLIT_FLAG, SDL_ALPHA_OPAQUE);
@@ -371,7 +369,7 @@ int PonscripterLabel::loadSaveFile2(int file_version)
         
         for (i = 0; i < MAX_SPRITE2_NUM; ++i) {
             sprite2_info[i].remove();
-            readStr(&sprite2_info[i].image_name);
+            sprite2_info[i].image_name = readStr();
             if (sprite2_info[i].image_name) {
                 parseTaggedString(&sprite2_info[i]);
                 setupAnimationInfo(&sprite2_info[i]);

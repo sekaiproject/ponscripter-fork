@@ -184,36 +184,7 @@ void PonscripterLabel::setupAnimationInfo(AnimationInfo* anim, FontInfo* info)
         if (info) f_info = *info;
 
         // handle private-use encodings
-        {
-            string dest;
-            const char* buf = anim->file_name;
-            char ch = *buf;
-            if (ch == '^') {
-                dest.push_back(ch);
-                ch = *++buf;
-            }
-
-            while (ch) {
-                if (ch == '~' && (ch = *++buf) != '~') {
-                    while (ch != '~') {
-                        int l;
-                        dest += TranslateTag(buf, l);
-                        buf += l;
-                        ch = *buf;
-                    }
-                    ch = *++buf;
-                    continue;
-                }
-
-		// The reason we convert to and from UTF8 is that
-		// UnicodeOfUTF8 also converts ligatures.
-                const unsigned short uc = UnicodeOfUTF8(buf);
-                buf += CharacterBytes(buf);
-                dest += UTF8OfUnicode(uc);
-                ch = *buf;
-            }
-            setStr(&anim->file_name, dest.c_str());
-        }
+	anim->file_name = anim->file_name.parseTags();
 
         if (anim->font_size_x >= 0) { // in case of Sprite, not rclick menu
             f_info.top_x = anim->pos.x * screen_ratio2 / screen_ratio1;
@@ -275,12 +246,12 @@ void PonscripterLabel::setupAnimationInfo(AnimationInfo* anim, FontInfo* info)
 
 void PonscripterLabel::parseTaggedString(AnimationInfo* anim)
 {
-    if (anim->image_name == NULL) return;
+    if (!anim->image_name) return;
 
     anim->removeTag();
 
     int i;
-    char* buffer = anim->image_name;
+    const char* buffer = anim->image_name.c_str();
     anim->num_of_cells = 1;
     anim->trans_mode = trans_mode;
 
@@ -312,7 +283,7 @@ void PonscripterLabel::parseTaggedString(AnimationInfo* anim)
                 buffer++;
                 script_h.getNext();
 
-                script_h.pushCurrent(buffer);
+                script_h.pushCurrent((char*) buffer); // FIXME: unsafe
                 anim->font_size_x = script_h.readInt();
                 anim->font_size_y = script_h.readInt();
                 anim->font_pitch  = script_h.readInt();
@@ -343,11 +314,11 @@ void PonscripterLabel::parseTaggedString(AnimationInfo* anim)
         }
         else if (buffer[0] == 'm') {
             anim->trans_mode = AnimationInfo::TRANS_MASK;
-            char* start = ++buffer;
+            const char* start = ++buffer;
             while (buffer[0] != ';' && buffer[0] != 0x0a && buffer[0])
 		buffer++;
             if (buffer[0] == ';')
-                setStr(&anim->mask_file_name, start, buffer - start);
+                anim->mask_file_name.assign(start, buffer - start);
         }
         else if (buffer[0] == '#') {
             anim->trans_mode = AnimationInfo::TRANS_DIRECT;
@@ -402,12 +373,12 @@ void PonscripterLabel::parseTaggedString(AnimationInfo* anim)
     if (buffer[0] == ';') buffer++;
 
     if (anim->trans_mode == AnimationInfo::TRANS_STRING && buffer[0] == '$') {
-        script_h.pushCurrent(buffer);
-        setStr(&anim->file_name, script_h.readStr());
+        script_h.pushCurrent((char*) buffer); // FIXME: unsafe
+        anim->file_name = script_h.readStr();
         script_h.popCurrent();
     }
     else {
-        setStr(&anim->file_name, buffer);
+        anim->file_name = buffer;
     }
 }
 

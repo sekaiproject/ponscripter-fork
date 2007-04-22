@@ -220,6 +220,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["rmode"]            = &PonscripterLabel::rmodeCommand;
     dict["rnd"]              = &PonscripterLabel::rndCommand;
     dict["rnd2"]             = &PonscripterLabel::rndCommand;
+    dict["say"]              = &PonscripterLabel::haeleth_sayCommand;
     dict["savefileexist"]    = &PonscripterLabel::savefileexistCommand;
     dict["savegame"]         = &PonscripterLabel::savegameCommand;
     dict["saveoff"]          = &PonscripterLabel::saveoffCommand;
@@ -817,7 +818,7 @@ void PonscripterLabel::resetSub()
     // reset AnimationInfo
     btndef_info.reset();
     bg_info.reset();
-    setStr(&bg_info.file_name, "black");
+    bg_info.file_name = "black";
     createBackground();
     for (i = 0; i < 3; i++) tachi_info[i].reset();
     for (i = 0; i < MAX_SPRITE_NUM; i++) sprite_info[i].reset();
@@ -1245,9 +1246,9 @@ int PonscripterLabel::parseLine()
 }
 
 
-SDL_Surface* PonscripterLabel::loadImage(char* file_name, bool* has_alpha)
+SDL_Surface* PonscripterLabel::loadImage(const char* file_name, bool* has_alpha)
 {
-    if (!file_name) return 0;
+    if (!file_name || !file_name[0]) return 0;
     unsigned long length = ScriptHandler::cBR->getFileLength(file_name);
     if (length == 0) {
         if (strcmp(file_name, DEFAULT_LOOKBACK_NAME0) != 0 &&
@@ -1446,7 +1447,7 @@ PonscripterLabel::getSelectableSentence(const string& buffer, FontInfo* info,
     anim->color_list[0] = nofile_flag ? info->nofile_color : info->off_color;
     anim->color_list[1] = info->on_color;
 
-    setStr(&anim->file_name, buffer.c_str());
+    anim->file_name = buffer;
     anim->pos.x   = Sint16(floor(info->GetX() * screen_ratio1 / screen_ratio2));
     anim->pos.y   = info->GetY() * screen_ratio1 / screen_ratio2;
     anim->visible = true;
@@ -1539,7 +1540,7 @@ void PonscripterLabel::loadCursor(int no, const char* str, int x, int y,
     setupAnimationInfo(&cursor_info[no]);
     if (filelog_flag)
         script_h.findAndAddLog(script_h.log_info[ScriptHandler::FILE_LOG],
-			       cursor_info[no].file_name, true);
+			       cursor_info[no].file_name.c_str(), true);
     cursor_info[no].abs_flag = abs_flag;
     if (cursor_info[no].image_surface)
         cursor_info[no].visible = true;
@@ -1551,7 +1552,7 @@ void PonscripterLabel::loadCursor(int no, const char* str, int x, int y,
 void PonscripterLabel::saveAll()
 {
     saveEnvData();
-    saveGlovalData();
+    saveGlobalData();
     if (filelog_flag) writeLog(script_h.log_info[ScriptHandler::FILE_LOG]);
     if (labellog_flag) writeLog(script_h.log_info[ScriptHandler::LABEL_LOG]);
     if (kidokuskip_flag) script_h.saveKidokuData();

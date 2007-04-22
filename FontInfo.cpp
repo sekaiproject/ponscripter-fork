@@ -215,11 +215,11 @@ bool FontInfo::processCode(const char* text)
     if (*text >= 0x10 && *text < 0x20) {
         switch (*text) {
         case 0x10: style  = Default; return true;
-        case 0x11: style &= ~Italic;  return true;
+        case 0x11: style &= ~Italic; return true;
         case 0x12: style ^= Italic;  return true;
-        case 0x13: style &= ~Bold;    return true;
+        case 0x13: style &= ~Bold;   return true;
         case 0x14: style ^= Bold;    return true;
-        case 0x15: style &= ~Sans;    return true;
+        case 0x15: style &= ~Sans;   return true;
         case 0x16: style ^= Sans;    return true;
         case 0x17: font_size_mod = get_int(text); return true;
         case 0x18: font_size_mod = size() + get_int(text) - 8192; return true;

@@ -218,3 +218,25 @@ int PonscripterLabel::haeleth_ligate_controlCommand(const string& cmd)
 
     return RET_CONTINUE;
 }
+
+int PonscripterLabel::haeleth_sayCommand(const string& cmd)
+{
+    printf("Tracing: ");
+    while (1) {
+	script_h.readVariable();
+	ScriptHandler::VariableData& vd =
+	    script_h.variable_data[script_h.current_variable.var_no];
+	if (script_h.current_variable.type == ScriptHandler::VAR_INT) {
+	    printf("%d", vd.num);
+	}
+	else if (script_h.current_variable.type == ScriptHandler::VAR_STR) {
+	    printf("%s", vd.str.c_str());
+	}
+	else printf("?");
+	if (script_h.getEndStatus() & ScriptHandler::END_COMMA)
+	    printf(", ");
+	else break;   
+    }
+    printf("\n");
+    return RET_CONTINUE;
+}

@@ -66,7 +66,7 @@ public:
     int parseLine();
 
     FILE* fopen(const char* path, const char* mode, const bool save = false);
-    void saveGlovalData();
+    void saveGlobalData();
 
     /* Command */
     int zenkakkoCommand(const string& cmd);
@@ -366,6 +366,8 @@ protected:
     int getSystemCallNo(const char* buffer);
     unsigned char convHexToDec(char ch);
     rgb_t readColour(const char* buf);
+    rgb_t readColour(const string& buf)
+	{ return readColour(buf.c_str()); }
 
     void errorAndExit(const char* str, const char* reason = NULL);
     void errorAndExit(const string& str, const char* reason = NULL)

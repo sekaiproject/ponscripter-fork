@@ -130,6 +130,7 @@ public:
     int haeleth_map_fontCommand(const string& cmd);
     int haeleth_hinting_modeCommand(const string& cmd);
     int haeleth_ligate_controlCommand(const string& cmd);
+    int haeleth_sayCommand(const string& cmd);
 
     // regular NScripter stuff
     int wavestopCommand(const string& cmd);
@@ -563,14 +564,22 @@ private:
     SDL_Surface* renderGlyph(Font* font, Uint16 text, int size,
 			     float x_fractional_part);
     void drawGlyph(SDL_Surface* dst_surface, FontInfo* info, SDL_Color &color,
-	     unsigned short unicode, float x, int y, bool shadow_flag,
-	     AnimationInfo* cache_info, SDL_Rect* clip, SDL_Rect &dst_rect);
+		   wchar unicode, float x, int y, bool shadow_flag,
+		   AnimationInfo* cache_info, SDL_Rect* clip,
+		   SDL_Rect &dst_rect);
     void drawChar(const char* text, FontInfo* info, bool flush_flag,
-	     bool lookback_flag, SDL_Surface* surface,
-	     AnimationInfo* cache_info, SDL_Rect* clip = 0);
+		  bool lookback_flag, SDL_Surface* surface,
+		  AnimationInfo* cache_info, SDL_Rect* clip = 0);
     void drawString(const char* str, rgb_t color, FontInfo* info,
-	     bool flush_flag, SDL_Surface* surface, SDL_Rect* rect = 0,
-	     AnimationInfo* cache_info = 0);
+		    bool flush_flag, SDL_Surface* surface, SDL_Rect* rect = 0,
+		    AnimationInfo* cache_info = 0);
+
+    void drawString(const string& str, rgb_t color, FontInfo* info,
+		    bool flush_flag, SDL_Surface* surface, SDL_Rect* rect = 0,
+		    AnimationInfo* cache_info = 0)
+	{ /* 取り敢えず */ drawString(str.c_str(), color, info, flush_flag,
+				      surface, rect, cache_info); }
+    
     void restoreTextBuffer();
     int  enterTextDisplayMode(bool text_flag = true);
     int  leaveTextDisplayMode();
@@ -721,7 +730,9 @@ private:
 	       bool clear_dirty_flag = true, bool direct_flag = false);
     void flushDirect(SDL_Rect &rect, int refresh_mode);
     void executeLabel();
-    SDL_Surface* loadImage(char* file_name, bool* has_alpha = NULL);
+    SDL_Surface* loadImage(const char* file_name, bool* has_alpha = NULL);
+    SDL_Surface* loadImage(const string& file_name, bool* has_alpha = NULL)
+	{ return loadImage(file_name.c_str(), has_alpha); }
     int parseLine();
 
     void mouseOverCheck(int x, int y);

@@ -47,14 +47,11 @@
 
 AnimationInfo::AnimationInfo()
 {
-    image_name    = NULL;
     image_surface = NULL;
     alpha_buf = NULL;
 
     duration_list = NULL;
     color_list = NULL;
-    file_name  = NULL;
-    mask_file_name = NULL;
 
     trans_mode = TRANS_TOPLEFT;
 
@@ -85,22 +82,6 @@ void AnimationInfo::reset()
 }
 
 
-void AnimationInfo::deleteImageName()
-{
-    if (image_name) delete[] image_name;
-
-    image_name = NULL;
-}
-
-
-void AnimationInfo::setImageName(const char* name)
-{
-    deleteImageName();
-    image_name = new char[strlen(name) + 1];
-    strcpy(image_name, name);
-}
-
-
 void AnimationInfo::deleteSurface()
 {
     if (image_surface) SDL_FreeSurface(image_surface);
@@ -114,7 +95,7 @@ void AnimationInfo::deleteSurface()
 
 void AnimationInfo::remove()
 {
-    deleteImageName();
+    image_name.clear();
     deleteSurface();
     removeTag();
 }
@@ -132,15 +113,8 @@ void AnimationInfo::removeTag()
         color_list = NULL;
     }
 
-    if (file_name) {
-        delete[] file_name;
-        file_name = NULL;
-    }
-
-    if (mask_file_name) {
-        delete[] mask_file_name;
-        mask_file_name = NULL;
-    }
+    file_name.clear();
+    mask_file_name.clear();    
 
     current_cell     = 0;
     num_of_cells     = 0;

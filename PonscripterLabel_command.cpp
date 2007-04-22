@@ -295,7 +295,7 @@ int PonscripterLabel::strspCommand(const string& cmd)
     int sprite_no = script_h.readInt();
     AnimationInfo* ai = &sprite_info[sprite_no];
     ai->removeTag();
-    setStr(&ai->file_name, script_h.readStr());
+    ai->file_name = script_h.readStr();
 
     FontInfo fi;
     fi.is_newline_accepted = true;
@@ -1119,9 +1119,8 @@ int PonscripterLabel::prnumCommand(const string& cmd)
 
     prnum_info[no]->color_list[0] = readColour(script_h.readStr());
 
-    char num_buf[7];
-    script_h.getStringFromInteger(num_buf, prnum_info[no]->param, 3);
-    setStr(&prnum_info[no]->file_name, num_buf);
+    prnum_info[no]->file_name =
+	script_h.stringFromInteger(prnum_info[no]->param, 3);
 
     setupAnimationInfo(prnum_info[no]);
     dirty_rect.add(prnum_info[no]->pos);
@@ -1453,8 +1452,7 @@ int PonscripterLabel::lookbackflushCommand(const string& cmd)
 int PonscripterLabel::lookbackbuttonCommand(const string& cmd)
 {
     for (int i = 0; i < 4; i++) {
-        const char* buf = script_h.readStr();
-        setStr(&lookback_info[i].image_name, buf);
+        lookback_info[i].image_name = script_h.readStr();
         parseTaggedString(&lookback_info[i]);
         setupAnimationInfo(&lookback_info[i]);
     }
@@ -1471,7 +1469,7 @@ int PonscripterLabel::logspCommand(const string& cmd)
     if (si.visible) dirty_rect.add(si.pos);
 
     si.remove();
-    setStr(&si.file_name, script_h.readStr());
+    si.file_name = script_h.readStr();
 
     si.pos.x = script_h.readInt();
     si.pos.y = script_h.readInt();
@@ -2171,25 +2169,25 @@ int PonscripterLabel::gameCommand(const string& cmd)
 
     /* ---------------------------------------- */
     if (!lookback_info[0].image_surface) {
-        setStr(&lookback_info[0].image_name, DEFAULT_LOOKBACK_NAME0);
+        lookback_info[0].image_name = DEFAULT_LOOKBACK_NAME0;
         parseTaggedString(&lookback_info[0]);
         setupAnimationInfo(&lookback_info[0]);
     }
 
     if (!lookback_info[1].image_surface) {
-        setStr(&lookback_info[1].image_name, DEFAULT_LOOKBACK_NAME1);
+        lookback_info[1].image_name = DEFAULT_LOOKBACK_NAME1;
         parseTaggedString(&lookback_info[1]);
         setupAnimationInfo(&lookback_info[1]);
     }
 
     if (!lookback_info[2].image_surface) {
-        setStr(&lookback_info[2].image_name, DEFAULT_LOOKBACK_NAME2);
+        lookback_info[2].image_name = DEFAULT_LOOKBACK_NAME2;
         parseTaggedString(&lookback_info[2]);
         setupAnimationInfo(&lookback_info[2]);
     }
 
     if (!lookback_info[3].image_surface) {
-        setStr(&lookback_info[3].image_name, DEFAULT_LOOKBACK_NAME3);
+        lookback_info[3].image_name = DEFAULT_LOOKBACK_NAME3;
         parseTaggedString(&lookback_info[3]);
         setupAnimationInfo(&lookback_info[3]);
     }
@@ -3140,7 +3138,7 @@ int PonscripterLabel::bgCommand(const string& cmd)
     }
     else {
         buf = script_h.readStr();
-        setStr(&bg_info.file_name, buf);
+        bg_info.file_name = buf;
     }
 
     if (event_mode & EFFECT_EVENT_MODE) {
@@ -3151,7 +3149,7 @@ int PonscripterLabel::bgCommand(const string& cmd)
             tachi_info[i].remove();
 
         bg_info.remove();
-        setStr(&bg_info.file_name, buf);
+        bg_info.file_name = buf;
 
         createBackground();
         dirty_rect.fill(screen_width, screen_height);

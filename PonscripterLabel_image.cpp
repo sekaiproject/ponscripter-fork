@@ -393,10 +393,10 @@ void PonscripterLabel::createBackground()
 {
     bg_effect_image = COLOR_EFFECT_IMAGE;
 
-    if (!strcmp(bg_info.file_name, "white")) {
+    if (bg_info.file_name == "white") {
         bg_info.color.set(0xff);
     }
-    else if (!strcmp(bg_info.file_name, "black")) {
+    else if (bg_info.file_name == "black") {
         bg_info.color.set(0x00);
     }
     else {
@@ -405,7 +405,7 @@ void PonscripterLabel::createBackground()
         }
         else {
             bg_info.color.set(0x00);
-            setStr(&bg_info.image_name, bg_info.file_name);
+            bg_info.image_name = bg_info.file_name;
             parseTaggedString(&bg_info);
             bg_info.trans_mode = AnimationInfo::TRANS_COPY;
             setupAnimationInfo(&bg_info);

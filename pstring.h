@@ -92,16 +92,20 @@ public:
 	{ if (s) c.append(s); return *this; }
     string& append(const char* s, size_type n)
 	{ if (s) c.append(s, n); return *this; }
+    string& append(wchar e)
+	{ return append(UTF8OfUnicode(e)); }
     string& append(size_type n, char e)
 	{ c.append(n, e); return *this; }
     template <class T> string& append(T first, T last)
 	{ c.append(first, last); return *this; }
 
     void push_back(char e) { c.push_back(e); }
+    void push_back(wchar e) { append(e); }
 
     string& operator+=(const string& s) { return append(s); }
     string& operator+=(const char* s)   { return append(s); }
     string& operator+=(char e)          { push_back(e); return *this; }
+    string& operator+=(wchar e)         { return append(e); }
 
     iterator erase(iterator p)
 	{ return c.erase(p); }
@@ -245,6 +249,7 @@ public:
     size_type wsize() { return UTF8Length(c_str()); }
     
     class witerator {
+	friend class string;
 	const char *min, *max, *pos;
     public:
 	witerator() : min(0), max(0), pos(0) {}
@@ -288,7 +293,32 @@ public:
     };
 
     witerator wbegin() { return witerator(*this, c_str()); }
-    witerator wend() { return witerator(); }    
+    witerator wend() { return witerator(); }
+
+    string parseTags() {
+	string rv;
+	witerator it = wbegin();
+	if (*it == '^') {
+	    rv += '^';
+	    ++it;
+	}
+	while (it.pos) {
+	    const wchar c = *it;
+	    if (c == '~' && *++it != '~') {
+		while (*it != '~') {
+		    int l;
+		    rv += TranslateTag(it.pos, l);
+		    it.pos += l;
+		}
+		++it;
+	    }
+	    else {
+		rv += c;
+		++it;
+	    }
+	}
+	return rv;
+    }
 };
 
 inline string operator+(const string& s1, const string& s2)

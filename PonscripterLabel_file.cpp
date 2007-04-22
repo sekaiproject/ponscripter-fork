@@ -292,7 +292,7 @@ int PonscripterLabel::loadSaveFile(int no)
     sentence_font.window_color.g = readInt();
     sentence_font.window_color.b = readInt();
     
-    readStr(&sentence_font_info.image_name);
+    sentence_font_info.image_name = readStr();
 
     sentence_font_info.pos.x = readInt() * screen_ratio1 / screen_ratio2;
     sentence_font_info.pos.y = readInt() * screen_ratio1 / screen_ratio2;
@@ -393,7 +393,7 @@ int PonscripterLabel::loadSaveFile(int no)
     bg_info.color.g = (unsigned char) readChar();
     bg_info.color.b = (unsigned char) readChar();
     bg_info.num_of_cells = 1;
-    readStr(&bg_info.file_name);
+    bg_info.file_name = readStr();
     setupAnimationInfo(&bg_info);
     bg_effect_image = (EFFECT_IMAGE) readChar();
 
@@ -415,7 +415,7 @@ int PonscripterLabel::loadSaveFile(int no)
     /* ---------------------------------------- */
     /* Load Tachi image and Sprite */
     for (i = 0; i < 3; i++) {
-        readStr(&tachi_info[i].image_name);
+        tachi_info[i].image_name = readStr();
         if (tachi_info[i].image_name) {
             parseTaggedString(&tachi_info[i]);
             setupAnimationInfo(&tachi_info[i]);
@@ -431,7 +431,7 @@ int PonscripterLabel::loadSaveFile(int no)
         sprite_info[i].pos.x = readInt() * screen_ratio1 / screen_ratio2;
         sprite_info[i].pos.y = readInt() * screen_ratio1 / screen_ratio2;
         sprite_info[i].trans = readInt();
-        readStr(&sprite_info[i].image_name);
+        sprite_info[i].image_name = readStr();
         if (sprite_info[i].image_name) {
             parseTaggedString(&sprite_info[i]);
             setupAnimationInfo(&sprite_info[i]);

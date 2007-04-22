@@ -48,30 +48,30 @@ public:
 
     /* Variables from TaggedInfo */
     int      trans_mode;
-    rgb_t   direct_color;
+    rgb_t    direct_color;
     int      palette_number;
-    rgb_t   color;
+    rgb_t    color;
     SDL_Rect pos; // pos and size of the current cell
 
-    int     num_of_cells;
-    int     current_cell;
-    int     direction;
-    int*    duration_list;
+    int    num_of_cells;
+    int    current_cell;
+    int    direction;
+    int*   duration_list;
     rgb_t* color_list;
-    int     loop_mode;
-    bool    is_animatable;
-    bool    is_single_line;
-    bool    is_tight_region; // valid under TRANS_STRING
-    bool    is_centered_text;
+    int    loop_mode;
+    bool   is_animatable;
+    bool   is_single_line;
+    bool   is_tight_region; // valid under TRANS_STRING
+    bool   is_centered_text;
 
-    char* file_name;
-    char* mask_file_name;
+    string file_name;
+    string mask_file_name;
 
     /* Variables from AnimationInfo */
-    bool  visible;
-    bool  abs_flag;
-    int   trans;
-    char* image_name;
+    bool   visible;
+    bool   abs_flag;
+    int    trans;
+    string image_name;
     SDL_Surface*   image_surface;
     unsigned char* alpha_buf;
 
@@ -91,8 +91,8 @@ public:
     ~AnimationInfo();
     void reset();
 
-    void deleteImageName();
-    void setImageName(const char* name);
+    void setImageName(const char* name) { image_name = name; }
+    void setImageName(const string& name) { image_name = name; }    
     void deleteSurface();
     void remove();
     void removeTag();

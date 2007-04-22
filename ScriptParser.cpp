@@ -429,7 +429,7 @@ int ScriptParser::getSystemCallNo(const char* buffer)
 }
 
 
-void ScriptParser::saveGlovalData()
+void ScriptParser::saveGlobalData()
 {
     if (!globalon_flag) return;
 
@@ -581,11 +581,9 @@ void ScriptParser::readStr(char** s)
 
 string ScriptParser::readStr()
 {
-    const size_t start = file_io_buf_ptr;
-    while (file_io_buf_ptr < file_io_buf_len) {
-	if (file_io_buf[file_io_buf_ptr++] == 0) break;
-    }
-    return string((char*)file_io_buf + start, file_io_buf_ptr - start);
+    string rv((char*)file_io_buf + file_io_buf_ptr);
+    file_io_buf_ptr += rv.size() + 1;
+    return rv;
 }
 
 
@@ -787,9 +785,9 @@ void ScriptParser::readToken()
 
         // ugly work around
 	string& s = script_h.getStringBuffer();
-	if (s && s.back() == 0x0a) {
+	if (s && s.back() == '\n') {
 	    s.back() = ch;
-	    s.push_back(0x0a);
+	    s.push_back('\n');
 	}
 	else {
 	    s.push_back(ch);
