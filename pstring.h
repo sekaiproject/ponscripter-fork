@@ -1,16 +1,24 @@
-// std::string is silly.  It dies if initialised with NULL, and has no
-// truth value.
-
-// Wrapping it like this is also silly, but hey.
+// -*- c++ -*-
+// Wrapper for std::string that implements saner semantics and adds
+// a few handy extensions.
 
 // This wrapper treats NULL as an empty string (except in comparisons,
-// where NULL < "").  In bool contexts, strings are true if non-empty.
+// where NULL < ""), instead of dying horribly whenever it sees one like
+// std::string does.
+
+// In bool contexts, strings are true if non-empty.
+
+// Extensions are a Perl-like shift/unshift/push/pop set, a vector-like
+// back(), and a set of UTF-8-aware iterators.
 
 #ifndef PSTRING_H
 #define PSTRING_H
 
 #include <stdio.h>
 #include <string>
+
+class string;
+#include "utf8_util.h"
 
 class string {
 public:
@@ -222,6 +230,7 @@ public:
 	{ return s ? c.compare(pos, n, s, len) : 1; }
 
     // Extensions
+
     operator bool() const { return !empty(); }
     void push_uchar(unsigned char e) { c.push_back(char(e)); }
     char& back() { return c[c.size() - 1]; }
@@ -231,6 +240,55 @@ public:
     string& push(char e) { c.push_back(e); return *this; }
     char shift() { char e = c[0]; c.erase(0, 1); return e; }
     string& unshift(char e) { c.insert(0, 1, e); return *this; }
+
+    // Unicode handling
+    size_type wsize() { return UTF8Length(c_str()); }
+    
+    class witerator {
+	const char *min, *max, *pos;
+    public:
+	witerator() : min(0), max(0), pos(0) {}
+	witerator(const string& o, const char* p)
+	    : min(o.c_str()), max(min + o.size()), pos(p) {}
+	witerator(const witerator& i) : min(i.min), max(i.max), pos(i.pos) {}
+	witerator& operator=(const witerator& i)
+	    { pos = i.pos; min = i.min; max = i.max; return *this; }
+	bool operator==(const witerator& i) const
+	    { return pos == i.pos; }
+	bool operator!=(const witerator& i) const
+	    { return pos != i.pos; }
+	bool operator<=(const witerator& i) const
+	    { return !i.pos ? true : (!pos ? false : pos <= i.pos); }
+	bool operator<(const witerator& i) const
+	    { return !i.pos ? pos != 0 : (!pos ? false : pos < i.pos); }
+	bool operator>=(const witerator& i) const
+	    { return !pos ? true : (!i.pos ? false : pos >= i.pos); }
+	bool operator>(const witerator& i) const
+	    { return !i.pos ? false : (!pos ? true : pos > i.pos); }
+	wchar operator*() const
+	    { return UnicodeOfUTF8(pos); }
+	witerator& operator++()
+	    { pos += CharacterBytes(pos); if (pos > max) pos = 0; return *this;}
+	witerator operator++(int)
+	    { witerator rv(*this); operator++(); return rv; }
+	witerator& operator--()
+	    { pos = PreviousCharacter(pos); return *this; }
+	witerator operator--(int)
+	    { witerator rv(*this); operator--(); return rv; }
+	witerator& operator+=(size_type n)
+	    { while (n--) operator++(); return *this; }
+	witerator& operator-=(size_type n)
+	    { while (n--) operator--(); return *this; }
+	witerator operator+(size_type n)
+	    { witerator rv(*this); while (n--) ++rv; return rv; }
+	witerator operator-(size_type n)
+	    { witerator rv(*this); while (n--) --rv; return rv; }
+	long operator-(const witerator& o)
+	    { return pos - o.pos; }
+    };
+
+    witerator wbegin() { return witerator(*this, c_str()); }
+    witerator wend() { return witerator(); }    
 };
 
 inline string operator+(const string& s1, const string& s2)

@@ -24,6 +24,8 @@
 #ifndef __UTF8_UTIL__
 #define __UTF8_UTIL__
 
+typedef unsigned short wchar;
+
 #include "stdio.h"
 #include "pstring.h"
 
@@ -35,12 +37,12 @@ const int Sans    = 4;
 
 char CharacterBytes(const char* string);
 
-unsigned short UnicodeOfUTF8(const char* string);
+wchar UnicodeOfUTF8(const char* string);
 
-int UTF8OfUnicode(const unsigned short ch, char* out);
-string UTF8OfUnicode(const unsigned short ch);
+int UTF8OfUnicode(const wchar ch, char* out);
+string UTF8OfUnicode(const wchar ch);
 
-const char* PreviousCharacter(const char* string);
+const char* PreviousCharacter(const char* string, const char* min = 0);
 
 unsigned long int UTF8Length(const char* string);
 
@@ -48,7 +50,7 @@ void SetEncoding(int& encoding, const char flag);
 
 string TranslateTag(const char* flag, int& in_len);
 
-void AddLigature(const char* in, unsigned short out);
+void AddLigature(const char* in, wchar out);
 void DeleteLigature(const char* in);
 void DefaultLigatures(int which);
 void ClearLigatures();

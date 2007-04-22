@@ -21,7 +21,7 @@
  *  02111-1307 USA
  */
 
-#include "utf8_util.h"
+#include "pstring.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -29,7 +29,7 @@
 static struct ligature {
     char bytes;
     char* in;
-    unsigned short out;
+    wchar out;
     ligature* next;
 }* ligs[0x80];
 
@@ -48,7 +48,7 @@ GetLigatureRef(const char* string)
 
 
 void
-AddLigature(const char* in, unsigned short out)
+AddLigature(const char* in, wchar out)
 {
     const int c = *(unsigned char*) in;
     if (ligs[c]) {
@@ -167,6 +167,7 @@ DumpLigatures()
 char
 CharacterBytes(const char* string)
 {
+    if (!string) return 0;
     const unsigned char* t = (const unsigned char*) string;
     const unsigned char  c = t[0];
     if (c < 0x80) {
@@ -195,9 +196,10 @@ CharacterBytes(const char* string)
 }
 
 
-unsigned short
+wchar
 UnicodeOfUTF8(const char* string)
 {
+    if (!string) return 0;
     const unsigned char* t = (const unsigned char*) string;
     const unsigned char  c = t[0];
     if (c < 0x80) {
@@ -230,10 +232,13 @@ UnicodeOfUTF8(const char* string)
 
 
 const char*
-PreviousCharacter(const char* string)
+PreviousCharacter(const char* string, const char* min)
 {
+    if (string <= min + 1 || !string) return 0;
     unsigned char c;
-    do { c = *(unsigned char*) (--string) & 0xc0; } while (c == 0x80);
+    do {
+	c = *(unsigned char*)(--string) & 0xc0;
+    } while (c == 0x80 && string > min);
     return string;
 }
 
@@ -251,7 +256,7 @@ UTF8Length(const char* string)
 
 
 int
-UTF8OfUnicode(const unsigned short ch, char* out)
+UTF8OfUnicode(const wchar ch, char* out)
 {
     unsigned char* b = (unsigned char*) out;
     if (ch <= 0x80) {
@@ -275,7 +280,7 @@ UTF8OfUnicode(const unsigned short ch, char* out)
 }
 
 string
-UTF8OfUnicode(const unsigned short ch)
+UTF8OfUnicode(const wchar ch)
 {
     string rv;
     if (ch <= 0x80) {
