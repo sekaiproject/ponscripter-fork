@@ -1282,10 +1282,7 @@ void PonscripterLabel::deleteButtonLink()
     }
     root_button_link.next = 0;
 
-    if (exbtn_d_button_link.exbtn_ctl) {
-	delete[] exbtn_d_button_link.exbtn_ctl;
-	exbtn_d_button_link.exbtn_ctl = 0;
-    }
+    exbtn_d_button_link.exbtn_ctl.clear();
 }
 
 
@@ -1429,10 +1426,11 @@ PonscripterLabel::getSelectableSentence(const string& buffer, FontInfo* info,
 
 
 void
-PonscripterLabel::decodeExbtnControl(const char* ctl_str,
+PonscripterLabel::decodeExbtnControl(const string& ctl_string,
 				     SDL_Rect* check_src_rect,
 				     SDL_Rect* check_dst_rect)
 {
+    const char* ctl_str = ctl_string.c_str();
     char sound_name[256];
     int  i, sprite_no, sprite_no2, cell_no;
 
@@ -1462,8 +1460,8 @@ PonscripterLabel::decodeExbtnControl(const char* ctl_str,
         else if (com == 'S' || com == 's') {
             sprite_no = getNumberFromBuffer(&ctl_str);
             if (sprite_no < 0) sprite_no = 0;
-            else if (sprite_no >=
-                     ONS_MIX_CHANNELS) sprite_no = ONS_MIX_CHANNELS - 1;
+            else if (sprite_no >= ONS_MIX_CHANNELS)
+		sprite_no = ONS_MIX_CHANNELS - 1;
             if (*ctl_str != ',') continue;
             ctl_str++;
             if (*ctl_str != '(') continue;

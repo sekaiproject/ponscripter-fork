@@ -431,17 +431,18 @@ private:
       last_mouse_state, shelter_mouse_state;
 
     struct ButtonLink {
-        typedef enum { NORMAL_BUTTON     = 0,
-                       SPRITE_BUTTON     = 1,
-                       EX_SPRITE_BUTTON  = 2,
-                       LOOKBACK_BUTTON   = 3,
-                       TMP_SPRITE_BUTTON = 4 } BUTTON_TYPE;
-
+        enum BUTTON_TYPE {
+	    NORMAL_BUTTON     = 0,
+	    SPRITE_BUTTON     = 1,
+	    EX_SPRITE_BUTTON  = 2,
+	    LOOKBACK_BUTTON   = 3,
+	    TMP_SPRITE_BUTTON = 4
+	};
         ButtonLink* next;
         BUTTON_TYPE button_type;
         int no;
         int sprite_no;
-        char* exbtn_ctl;
+        string exbtn_ctl;
         SDL_Rect select_rect;
         SDL_Rect image_rect;
         AnimationInfo* anim[2];
@@ -450,7 +451,6 @@ private:
         ButtonLink() {
             button_type = NORMAL_BUTTON;
             next      = 0;
-	    exbtn_ctl = 0;
 	    anim[0]   = anim[1] = 0;
 	    show_flag = 0;
         };
@@ -460,7 +460,6 @@ private:
 		&& anim[0]) {
 		delete anim[0];
 	    }
-            if (exbtn_ctl) delete[] exbtn_ctl;
         };
         void insert(ButtonLink* button)
         {
@@ -504,7 +503,8 @@ private:
     void refreshSprite(int sprite_no, bool active_flag, int cell_no,
 		       SDL_Rect* check_src_rect, SDL_Rect* check_dst_rect);
 
-    void decodeExbtnControl(const char* ctl_str, SDL_Rect* check_src_rect = 0,
+    void decodeExbtnControl(const string& ctl_string,
+			    SDL_Rect* check_src_rect = 0,
 			    SDL_Rect* check_dst_rect = 0);
 
     void disableGetButtonFlag();
@@ -529,7 +529,8 @@ private:
 
     /* ---------------------------------------- */
     /* Parameter related variables */
-    AnimationInfo* bar_info[MAX_PARAM_NUM], * prnum_info[MAX_PARAM_NUM];
+    AnimationInfo* bar_info[MAX_PARAM_NUM];
+    AnimationInfo* prnum_info[MAX_PARAM_NUM];
 
     /* ---------------------------------------- */
     /* Cursor related variables */

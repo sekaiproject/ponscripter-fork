@@ -2307,7 +2307,6 @@ int PonscripterLabel::exbtnCommand(const string& cmd)
 
     if (cmd == "exbtn_d") {
         button = &exbtn_d_button_link;
-        if (button->exbtn_ctl) delete[] button->exbtn_ctl;
     }
     else {
         bool cellcheck_flag = cmd == "cellcheckexbtn";
@@ -2325,13 +2324,10 @@ int PonscripterLabel::exbtnCommand(const string& cmd)
         root_button_link.insert(button);
     }
 
-    const char* buf = script_h.readStr();
-
     button->button_type = ButtonLink::EX_SPRITE_BUTTON;
     button->sprite_no = sprite_no;
     button->no = no;
-    button->exbtn_ctl = new char[strlen(buf) + 1];
-    strcpy(button->exbtn_ctl, buf);
+    button->exbtn_ctl = script_h.readStr();
 
     if (sprite_no >= 0
         && (sprite_info[sprite_no].image_surface
@@ -2829,10 +2825,7 @@ int PonscripterLabel::btnwaitCommand(const string& cmd)
 
         if (current_button_state.button >= 1 && del_flag) {
             deleteButtonLink();
-            if (exbtn_d_button_link.exbtn_ctl) {
-                delete[] exbtn_d_button_link.exbtn_ctl;
-                exbtn_d_button_link.exbtn_ctl = NULL;
-            }
+	    exbtn_d_button_link.exbtn_ctl.clear();
         }
 
         event_mode = IDLE_EVENT_MODE;
