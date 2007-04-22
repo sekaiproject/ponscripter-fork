@@ -346,15 +346,15 @@ private:
 
     // ----------------------------------------
     // start-up options
-    bool  cdaudio_flag;
-    char* registry_file;
-    char* dll_file;
-    char* getret_str;
-    int   getret_int;
-    bool  enable_wheeldown_advance_flag;
-    bool  disable_rescale_flag;
-    bool  edit_flag;
-    char* key_exe_file;
+    bool   cdaudio_flag;
+    string registry_file;
+    string dll_file;
+    string getret_str;
+    int    getret_int;
+    bool   enable_wheeldown_advance_flag;
+    bool   disable_rescale_flag;
+    bool   edit_flag;
+    string key_exe_file;
 
     // ----------------------------------------
     // Global definitions
@@ -369,7 +369,7 @@ private:
     int  yesno_caller;
     int  yesno_selected_file_no;
 
-    bool   monocro_flag;
+    bool  monocro_flag;
     rgb_t monocro_color;
     rgb_t monocro_color_lut[256];
     int nega_mode;
@@ -379,13 +379,13 @@ private:
            TRAP_RIGHT_CLICK = 2,
            TRAP_NEXT_SELECT = 4,
            TRAP_STOP = 8 };
-    int   trap_mode;
-    char* trap_dist;
-    char* wm_title_string;
-    char* wm_icon_string;
-    char  wm_edit_string[256];
-    bool  fullscreen_mode;
-    bool  window_mode;
+    int    trap_mode;
+    string trap_dist;
+    string wm_title_string;
+    string wm_icon_string;
+    char   wm_edit_string[256];
+    bool   fullscreen_mode;
+    bool   window_mode;
 
     bool btntime2_flag;
     long btntime_value;
@@ -589,10 +589,10 @@ private:
     int  textCommand();
     int  processText();
 
-    unsigned short* indent_chars;
-    unsigned short* break_chars;
-    bool is_indent_char(const unsigned short c) const;
-    bool is_break_char(const unsigned short c) const;
+    wchar* indent_chars;
+    wchar* break_chars;
+    bool is_indent_char(const wchar c) const;
+    bool is_break_char(const wchar c) const;
     bool check_orphan_control();
 
     /* ---------------------------------------- */

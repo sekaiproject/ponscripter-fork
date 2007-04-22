@@ -379,11 +379,9 @@ void PonscripterLabel::initSDL()
         exit(-1);
     }
 
-    wm_title_string = new char[strlen(DEFAULT_WM_TITLE) + 1];
-    memcpy(wm_title_string, DEFAULT_WM_TITLE, strlen(DEFAULT_WM_TITLE) + 1);
-    wm_icon_string = new char[strlen(DEFAULT_WM_ICON) + 1];
-    memcpy(wm_icon_string, DEFAULT_WM_TITLE, strlen(DEFAULT_WM_ICON) + 1);
-    SDL_WM_SetCaption(wm_title_string, wm_icon_string);
+    wm_title_string = DEFAULT_WM_TITLE;
+    wm_icon_string = DEFAULT_WM_ICON;
+    SDL_WM_SetCaption(wm_title_string.c_str(), wm_icon_string.c_str());
 
     openAudio();
 }
@@ -422,28 +420,22 @@ void PonscripterLabel::openAudio()
 
 
 PonscripterLabel::PonscripterLabel()
+    : registry_file(REGISTRY_FILE),
+      dll_file(DLL_FILE),
+      music_cmd(getenv("PLAYER_CMD")),
+      midi_cmd(getenv("MUSIC_CMD"))
 {
     cdrom_drive_number = 0;
     cdaudio_flag  = false;
-    registry_file = 0;
-    setStr(&registry_file, REGISTRY_FILE);
-    dll_file = 0;
-    setStr(&dll_file, DLL_FILE);
-    getret_str = 0;
     enable_wheeldown_advance_flag = false;
     disable_rescale_flag = false;
     edit_flag       = false;
-    key_exe_file    = 0;
     fullscreen_mode = false;
     window_mode     = false;
     skip_to_wait    = 0;
     indent_chars    = 0;
     break_chars     = 0;
     glyph_surface   = 0;
-
-    // External Players
-    music_cmd = getenv("PLAYER_CMD");
-    midi_cmd  = getenv("MUSIC_CMD");
 }
 
 
@@ -468,13 +460,13 @@ void PonscripterLabel::setCDNumber(int cdrom_drive_number)
 
 void PonscripterLabel::setRegistryFile(const char* filename)
 {
-    setStr(&registry_file, filename);
+    registry_file = filename;
 }
 
 
 void PonscripterLabel::setDLLFile(const char* filename)
 {
-    setStr(&dll_file, filename);
+    dll_file = filename;
 }
 
 
@@ -530,7 +522,7 @@ void PonscripterLabel::enableEdit()
 
 void PonscripterLabel::setKeyEXE(const char* filename)
 {
-    setStr(&key_exe_file, filename);
+    key_exe_file = filename;
 }
 
 
@@ -693,7 +685,7 @@ int PonscripterLabel::init()
 
     internal_timer = SDL_GetTicks();
 
-    trap_dist = 0;
+    trap_dist.clear();
     resize_buffer = new unsigned char[16];
     resize_buffer_size = 16;
 
@@ -707,13 +699,13 @@ int PonscripterLabel::init()
     // Initialize character sets
     DefaultLigatures(1);
     const int ic = 9;
-    unsigned short defindent[ic] = { 0x0028, 0x2014, 0x2018, 0x201c, 0x300c,
+    wchar defindent[ic] = { 0x0028, 0x2014, 0x2018, 0x201c, 0x300c,
                                      0x300e, 0xff08, 0xff5e, 0xff62 };
-    indent_chars = new unsigned short[ic];
+    indent_chars = new wchar[ic];
     for (i = 0; i < ic; ++i) indent_chars[i] = defindent[i];
     const int bc = 4;
-    unsigned short defbreak[bc] = { 0x0020, 0x002d, 0x2013, 0x2014 };
-    break_chars = new unsigned short[bc];
+    wchar defbreak[bc] = { 0x0020, 0x002d, 0x2013, 0x2014 };
+    break_chars = new wchar[bc];
     for (i = 0; i < bc; ++i) break_chars[i] = defbreak[i];
 
     return 0;
@@ -758,7 +750,7 @@ void PonscripterLabel::reset()
 
     resetSentenceFont();
 
-    setStr(&getret_str, 0);
+    getret_str.clear();
     getret_int = 0;
 
     // ----------------------------------------
@@ -795,7 +787,7 @@ void PonscripterLabel::resetSub()
     nega_mode = 0;
     clickstr_state = CLICK_NONE;
     trap_mode = TRAP_NONE;
-    setStr(&trap_dist, 0);
+    trap_dist.clear();
 
     saveon_flag = true;
     internal_saveon_flag = true;

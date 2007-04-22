@@ -854,13 +854,13 @@ FILE* ScriptParser::fopen(const char* path, const char* mode, const bool save)
 }
 
 
-void ScriptParser::createKeyTable(const char* key_exe)
+void ScriptParser::createKeyTable(const string& key_exe)
 {
     if (!key_exe) return;
 
-    FILE* fp = ::fopen(key_exe, "rb");
+    FILE* fp = ::fopen(key_exe.c_str(), "rb");
     if (fp == NULL) {
-        fprintf(stderr, "createKeyTable: can't open EXE file %s\n", key_exe);
+        fprintf(stderr, "createKeyTable: can't open EXE file %s\n", key_exe.c_str());
         return;
     }
 

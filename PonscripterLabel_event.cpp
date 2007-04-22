@@ -607,7 +607,7 @@ void PonscripterLabel::variableEditMode(SDL_KeyboardEvent* event)
             variable_edit_mode = NOT_EDIT_MODE;
             SDL_WM_SetCaption(DEFAULT_WM_TITLE, DEFAULT_WM_ICON);
             SDL_Delay(100);
-            SDL_WM_SetCaption(wm_title_string, wm_icon_string);
+            SDL_WM_SetCaption(wm_title_string.c_str(), wm_icon_string.c_str());
             return;
         }
 
@@ -651,7 +651,7 @@ void PonscripterLabel::variableEditMode(SDL_KeyboardEvent* event)
 		variable_edit_num);
     }
 
-    SDL_WM_SetCaption(wm_edit_string, wm_icon_string);
+    SDL_WM_SetCaption(wm_edit_string, wm_icon_string.c_str());
 }
 
 
@@ -753,7 +753,7 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
             variable_edit_sign = 1;
             variable_edit_num  = 0;
             sprintf(wm_edit_string, "%s%s", EDIT_MODE_PREFIX, EDIT_SELECT_STRING);
-            SDL_WM_SetCaption(wm_edit_string, wm_icon_string);
+            SDL_WM_SetCaption(wm_edit_string, wm_icon_string.c_str());
         }
     }
 

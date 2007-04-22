@@ -111,7 +111,7 @@ void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
 #else
     filename = "save" + str(no) + ".dat";        
     FILE* fp;
-    if ((fp = fopen(filename.c_str(), "rb")) == NULL) {
+    if ((fp = fopen(filename, "rb")) == NULL) {
         save_file_info.valid = false;
         return;
     }

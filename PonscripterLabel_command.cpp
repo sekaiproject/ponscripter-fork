@@ -130,12 +130,13 @@ int PonscripterLabel::trapCommand(const string& cmd)
         return RET_CONTINUE;
     }
 
-    const char* buf = script_h.readStr();
+    string buf = script_h.readStr();
     if (buf[0] == '*') {
-        setStr(&trap_dist, buf + 1);
+	buf.shift();
+        trap_dist = buf;
     }
     else {
-        printf("trapCommand: [%s] is not supported\n", buf);
+        printf("trapCommand: [%s] is not supported\n", buf.c_str());
     }
 
     return RET_CONTINUE;
@@ -1983,7 +1984,7 @@ int PonscripterLabel::getregCommand(const string& cmd)
 
     FILE* fp;
     if ((fp = fopen(registry_file, "r")) == NULL) {
-        fprintf(stderr, "Cannot open file [%s]\n", registry_file);
+        fprintf(stderr, "Cannot open file [%s]\n", registry_file.c_str());
         return RET_CONTINUE;
     }
 
@@ -2242,11 +2243,11 @@ int PonscripterLabel::exec_dllCommand(const string& cmd)
     }
     dll_name[c] = '\0';
 
-    printf("  reading %s for %s\n", dll_file, dll_name);
+    printf("  reading %s for %s\n", dll_file.c_str(), dll_name);
 
     FILE* fp;
     if ((fp = fopen(dll_file, "r")) == NULL) {
-        fprintf(stderr, "Cannot open file [%s]\n", dll_file);
+        fprintf(stderr, "Cannot open file [%s]\n", dll_file.c_str());
         return RET_CONTINUE;
     }
 
@@ -2271,8 +2272,8 @@ int PonscripterLabel::exec_dllCommand(const string& cmd)
                         unsigned int c2 = ++c;
                         while (dll_buf2[c2] != '"' && dll_buf2[c2] != '\0') c2++;
                         dll_buf2[c2] = '\0';
-                        setStr(&getret_str, &dll_buf2[c]);
-                        printf("  getret_str = %s\n", getret_str);
+                        getret_str = dll_buf2 + c;
+                        printf("  getret_str = %s\n", getret_str.c_str());
                     }
                     else if (!strncmp(&dll_buf2[c], "ret", 3)) {
                         c += 3;
@@ -2291,7 +2292,7 @@ int PonscripterLabel::exec_dllCommand(const string& cmd)
         }
     }
 
-    if (!found_flag) fprintf(stderr, "  The DLL is not found in %s.\n", dll_file);
+    if (!found_flag) fprintf(stderr, "  The DLL is not found in %s.\n", dll_file.c_str());
 
     fclose(fp);
 
