@@ -299,8 +299,8 @@ protected:
 
     /* ---------------------------------------- */
     /* Text related variables */
-    char* default_env_font;
-    int   default_text_speed[3];
+    string default_env_font;
+    int default_text_speed[3];
     struct TextBuffer {
         struct TextBuffer* next, * previous;
         string contents;
@@ -313,7 +313,7 @@ protected:
 
         void clear() { contents.clear(); }
         bool empty() { return contents.empty(); }
-    }*  text_buffer, * start_text_buffer, * current_text_buffer; // ring buffer
+    } *text_buffer, *start_text_buffer, *current_text_buffer; // ring buffer
     int max_text_buffer;
     int clickstr_line;
     int clickstr_state;

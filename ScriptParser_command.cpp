@@ -1147,7 +1147,7 @@ int ScriptParser::defaultfontCommand(const string& cmd)
     if (current_mode != DEFINE_MODE)
 	errorAndExit("defaultfont: not in the define section");
 
-    setStr(&default_env_font, script_h.readStr());
+    default_env_font = script_h.readStr();
 
     return RET_CONTINUE;
 }

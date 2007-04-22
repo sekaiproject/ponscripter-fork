@@ -338,8 +338,8 @@ set_int(char val, const char* src, int& in_len, int mulby = 1, int offset = 0)
     }
     i = i * mulby + offset;
     const char c1 = i & 0x7f, c2 = (i >> 7) & 0x7f;
-    rv.push_back(c1 ? c1 : -1);
-    rv.push_back(c2 ? c2 : -1);
+    rv.push(c1 ? c1 : -1);
+    rv.push(c2 ? c2 : -1);
     return rv;
 }
 

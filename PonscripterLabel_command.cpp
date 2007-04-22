@@ -40,7 +40,7 @@ int PonscripterLabel::waveCommand(const string& cmd)
 {
     wavestopCommand("wavestop");
 
-    setStr(&wave_file_name, script_h.readStr());
+    wave_file_name = script_h.readStr();
     playSound(wave_file_name, SOUND_WAVE | SOUND_OGG, cmd == "waveloop",
 	      MIX_WAVE_CHANNEL);
 
@@ -56,7 +56,7 @@ int PonscripterLabel::wavestopCommand(const string& cmd)
         wave_sample[MIX_WAVE_CHANNEL] = NULL;
     }
 
-    setStr(&wave_file_name, NULL);
+    wave_file_name.clear();
 
     return RET_CONTINUE;
 }
@@ -1172,10 +1172,10 @@ int PonscripterLabel::playCommand(const string& cmd)
     else { // play MIDI
         stopBGM(false);
 
-        setStr(&midi_file_name, buf);
+        midi_file_name = buf;
         midi_play_loop_flag = loop_flag;
         if (playSound(midi_file_name, SOUND_MIDI, midi_play_loop_flag) != SOUND_MIDI) {
-            fprintf(stderr, "can't play MIDI file %s\n", midi_file_name);
+            fprintf(stderr, "can't play MIDI file %s\n", midi_file_name.c_str());
         }
     }
 
@@ -1276,13 +1276,10 @@ int PonscripterLabel::mp3Command(const string& cmd)
     stopBGM(false);
     music_play_loop_flag = loop_flag;
 
-    const char* buf = script_h.readStr();
-    if (buf[0] != '\0') {
-        setStr(&music_file_name, buf);
-        playSound(music_file_name,
-            SOUND_WAVE | SOUND_OGG_STREAMING | SOUND_MP3 | SOUND_MIDI,
-            music_play_loop_flag, MIX_BGM_CHANNEL);
-    }
+    music_file_name = script_h.readStr();
+    playSound(music_file_name,
+	      SOUND_WAVE | SOUND_OGG_STREAMING | SOUND_MP3 | SOUND_MIDI,
+	      music_play_loop_flag, MIX_BGM_CHANNEL);
 
     return RET_CONTINUE;
 }
@@ -1412,7 +1409,7 @@ int PonscripterLabel::loopbgmstopCommand(const string& cmd)
         wave_sample[MIX_LOOPBGM_CHANNEL1] = NULL;
     }
 
-    setStr(&loop_bgm_name[0], NULL);
+    loop_bgm_name[0].clear();
 
     return RET_CONTINUE;
 }
@@ -1420,10 +1417,8 @@ int PonscripterLabel::loopbgmstopCommand(const string& cmd)
 
 int PonscripterLabel::loopbgmCommand(const string& cmd)
 {
-    const char* buf = script_h.readStr();
-    setStr(&loop_bgm_name[0], buf);
-    buf = script_h.readStr();
-    setStr(&loop_bgm_name[1], buf);
+    loop_bgm_name[0] = script_h.readStr();
+    loop_bgm_name[1] = script_h.readStr();    
 
     playSound(loop_bgm_name[1],
         SOUND_PRELOAD | SOUND_WAVE | SOUND_OGG, false, MIX_LOOPBGM_CHANNEL1);

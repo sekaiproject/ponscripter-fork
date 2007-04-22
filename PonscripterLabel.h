@@ -653,47 +653,41 @@ private:
         SOUND_MIDI    = 32,
         SOUND_OTHER   = 64
     };
-    int   cdrom_drive_number;
-    char* default_cdrom_drive;
-    bool  cdaudio_on_flag; // false if mute
-    bool  volume_on_flag; // false if mute
+    int cdrom_drive_number;
+    string default_cdrom_drive;
+    bool cdaudio_on_flag; // false if mute
+    bool volume_on_flag; // false if mute
     SDL_AudioSpec audio_format;
     bool audio_open_flag;
 
-    bool  wave_play_loop_flag;
-    char* wave_file_name;
+    bool   wave_play_loop_flag;
+    string wave_file_name;
 
-    bool  midi_play_loop_flag;
-    char* midi_file_name;
+    bool   midi_play_loop_flag;
+    string midi_file_name;
     Mix_Music* midi_info;
 
     SDL_CD* cdrom_info;
-    int   current_cd_track;
-    bool  cd_play_loop_flag;
-    bool  music_play_loop_flag;
-    bool  mp3save_flag;
-    char* music_file_name;
+    int    current_cd_track;
+    bool   cd_play_loop_flag;
+    bool   music_play_loop_flag;
+    bool   mp3save_flag;
+    string music_file_name;
     unsigned char* mp3_buffer;
     SMPEG*  mp3_sample;
     Uint32  mp3fadeout_start;
     Uint32  mp3fadeout_duration;
     OVInfo* music_ovi;
     Mix_Music* music_info;
-    char* loop_bgm_name[2];
+    string loop_bgm_name[2];
 
     Mix_Chunk* wave_sample[ONS_MIX_CHANNELS + ONS_MIX_EXTRA_CHANNELS];
 
-    char* music_cmd;
-    char* midi_cmd;
+    string music_cmd;
+    string midi_cmd;
 
-    int playSound(const char* filename, int format, bool loop_flag,
-		  int channel = 0);
     int playSound(const string& filename, int format, bool loop_flag,
-		  int channel = 0)
-    {
-	if (filename.empty()) return SOUND_NONE;
-	return playSound(filename.c_str(), format, loop_flag, channel);
-    }
+		  int channel = 0);
     
     void playCDAudio();
     int playWave(Mix_Chunk* chunk, int format, bool loop_flag, int channel);

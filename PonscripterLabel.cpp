@@ -672,17 +672,17 @@ int PonscripterLabel::init()
         }
     }
 
-    wave_file_name = 0;
-    midi_file_name = 0;
+    wave_file_name.clear();
+    midi_file_name.clear();
     midi_info  = 0;
     mp3_sample = 0;
-    music_file_name = 0;
+    music_file_name.clear();
     mp3_buffer = 0;
     music_info = 0;
     music_ovi  = 0;
 
-    loop_bgm_name[0] = 0;
-    loop_bgm_name[1] = 0;
+    loop_bgm_name[0].clear();
+    loop_bgm_name[1].clear();
 
     int i;
     for (i = 0; i < ONS_MIX_CHANNELS + ONS_MIX_EXTRA_CHANNELS;
@@ -812,7 +812,7 @@ void PonscripterLabel::resetSub()
 
     stopCommand("stop");
     loopbgmstopCommand("loopbgmstop");
-    setStr(&loop_bgm_name[1], 0);
+    loop_bgm_name[1].clear();
 
     // ----------------------------------------
     // reset AnimationInfo
@@ -1564,9 +1564,8 @@ void PonscripterLabel::loadEnvData()
     volume_on_flag = true;
     text_speed_no  = 1;
     draw_one_page_flag = false;
-    default_env_font    = 0;
-    cdaudio_on_flag     = true;
-    default_cdrom_drive = 0;
+    cdaudio_on_flag = true;
+    default_cdrom_drive.clear();
     kidokumode_flag = true;
 
     if (loadFileIOBuf("envdata") == 0) {
@@ -1577,12 +1576,12 @@ void PonscripterLabel::loadEnvData()
         text_speed_no = readInt();
         if (readInt() == 1)
 	    draw_one_page_flag = true;
-        readStr(&default_env_font);
-        if (default_env_font == 0)
-            setStr(&default_env_font, DEFAULT_ENV_FONT);
+        default_env_font = readStr();
+        if (!default_env_font)
+	    default_env_font = DEFAULT_ENV_FONT;
         if (readInt() == 0)
 	    cdaudio_on_flag = false;
-        readStr(&default_cdrom_drive);
+        default_cdrom_drive = readStr();
         voice_volume = DEFAULT_VOLUME - readInt();
         se_volume    = DEFAULT_VOLUME - readInt();
         music_volume = DEFAULT_VOLUME - readInt();
@@ -1590,7 +1589,7 @@ void PonscripterLabel::loadEnvData()
 	    kidokumode_flag = false;
     }
     else {
-        setStr(&default_env_font, DEFAULT_ENV_FONT);
+        default_env_font = DEFAULT_ENV_FONT;
         voice_volume = se_volume = music_volume = DEFAULT_VOLUME;
     }
 }

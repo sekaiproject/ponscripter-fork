@@ -446,13 +446,13 @@ int PonscripterLabel::loadSaveFile(int no)
     current_cd_track = (Sint8) readChar();
     bool play_once_flag = (readChar() == 1) ? true : false;
     if (current_cd_track == -2) {
-        readStr(&midi_file_name);
+        midi_file_name = readStr();
         midi_play_loop_flag = !play_once_flag;
-        setStr(&music_file_name, NULL);
+        music_file_name.clear();
         music_play_loop_flag = false;
     }
     else {
-        readStr(&music_file_name);
+        music_file_name = readStr();
         if (music_file_name) {
             music_play_loop_flag = !play_once_flag;
             cd_play_loop_flag = false;
@@ -462,7 +462,7 @@ int PonscripterLabel::loadSaveFile(int no)
             cd_play_loop_flag = !play_once_flag;
         }
 
-        setStr(&midi_file_name, NULL);
+        midi_file_name.clear();
         midi_play_loop_flag = false;
     }
 

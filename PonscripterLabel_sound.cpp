@@ -124,16 +124,16 @@ extern long decodeOggVorbis(OVInfo* ovi, unsigned char* buf_dst, long len, bool 
 }
 
 
-int PonscripterLabel::playSound(const char* filename, int format,
+int PonscripterLabel::playSound(const string& filename, int format,
 				bool loop_flag, int channel)
 {
-    if (!audio_open_flag) return SOUND_NONE;
+    if (!filename || !audio_open_flag) return SOUND_NONE;
 
-    long length = ScriptHandler::cBR->getFileLength(filename);
+    long length = ScriptHandler::cBR->getFileLength(filename.c_str());
     if (length == 0) return SOUND_NONE;
 
     unsigned char* buffer = new unsigned char[length];
-    ScriptHandler::cBR->getFile(filename, buffer);
+    ScriptHandler::cBR->getFile(filename.c_str(), buffer);
 
     if (format & (SOUND_OGG | SOUND_OGG_STREAMING)) {
         int ret = playOGG(format, buffer, length, loop_flag, channel);
@@ -305,7 +305,7 @@ int PonscripterLabel::playExternalMusic(bool loop_flag)
 
 #endif
 
-    Mix_SetMusicCMD(music_cmd);
+    Mix_SetMusicCMD(music_cmd.c_str());
 
     string music_filename = archive_path + TMP_MUSIC_FILE;
     if ((music_info = Mix_LoadMUS(music_filename.c_str())) == NULL) {
@@ -322,7 +322,7 @@ int PonscripterLabel::playExternalMusic(bool loop_flag)
 
 int PonscripterLabel::playMIDI(bool loop_flag)
 {
-    Mix_SetMusicCMD(midi_cmd);
+    Mix_SetMusicCMD(midi_cmd.c_str());
 
     string midi_filename = archive_path + TMP_MIDI_FILE;
     if ((midi_info = Mix_LoadMUS(midi_filename.c_str())) == NULL) return -1;
@@ -506,7 +506,7 @@ void PonscripterLabel::stopBGM(bool continue_flag)
     }
 
     if (!continue_flag) {
-        setStr(&music_file_name, NULL);
+        music_file_name.clear();
         music_play_loop_flag = false;
     }
 
@@ -526,7 +526,7 @@ void PonscripterLabel::stopBGM(bool continue_flag)
     }
 
     if (!continue_flag) {
-        setStr(&midi_file_name, NULL);
+        midi_file_name.clear();
         midi_play_loop_flag = false;
     }
 

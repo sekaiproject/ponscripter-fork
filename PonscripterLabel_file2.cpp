@@ -209,8 +209,8 @@ int PonscripterLabel::loadSaveFile2(int file_version)
     stopCommand("stop");
     loopbgmstopCommand("loopbgmstop");
 
-    readStr(&midi_file_name); // MIDI file
-    readStr(&wave_file_name); // wave, waveloop
+    midi_file_name = readStr(); // MIDI file
+    wave_file_name = readStr(); // wave, waveloop
     i = readInt();
     if (i >= 0) current_cd_track = i;
 
@@ -243,12 +243,10 @@ int PonscripterLabel::loadSaveFile2(int file_version)
     if (readInt() == 1) mp3save_flag = true;
     else mp3save_flag = false;
 
-    readStr(&music_file_name);
-    if (music_file_name) {
-        playSound(music_file_name,
-            SOUND_WAVE | SOUND_OGG_STREAMING | SOUND_MP3 | SOUND_MIDI,
-            music_play_loop_flag, MIX_BGM_CHANNEL);
-    }
+    music_file_name = readStr();
+    playSound(music_file_name,
+	      SOUND_WAVE | SOUND_OGG_STREAMING | SOUND_MP3 | SOUND_MIDI,
+	      music_play_loop_flag, MIX_BGM_CHANNEL);
 
     erase_text_window_mode = readInt();
     readInt(); // 1
@@ -343,25 +341,22 @@ int PonscripterLabel::loadSaveFile2(int file_version)
     readChar(); // 0
     readChar(); // 0
     readChar(); // 0
-    readStr(&loop_bgm_name[0]);
-    readStr(&loop_bgm_name[1]);
+    loop_bgm_name[0] = readStr();
+    loop_bgm_name[1] = readStr();
     if (loop_bgm_name[0]) {
-        if (loop_bgm_name[1])
-            playSound(loop_bgm_name[1],
-                SOUND_PRELOAD | SOUND_WAVE | SOUND_OGG, false, MIX_LOOPBGM_CHANNEL1);
+	playSound(loop_bgm_name[1], SOUND_PRELOAD | SOUND_WAVE | SOUND_OGG,
+		  false, MIX_LOOPBGM_CHANNEL1);
 
-        playSound(loop_bgm_name[0],
-            SOUND_WAVE | SOUND_OGG, false, MIX_LOOPBGM_CHANNEL0);
+        playSound(loop_bgm_name[0], SOUND_WAVE | SOUND_OGG,
+		  false, MIX_LOOPBGM_CHANNEL0);
     }
 
     if (file_version >= 201) {
 	// Ruby support has been stripped out.
-        char* ignored = NULL;
         readInt();
         readInt();
         readInt();
-        readStr(&ignored);
-        if (ignored) delete[] ignored;
+        readStr();
     }
 
     if (file_version >= 204){

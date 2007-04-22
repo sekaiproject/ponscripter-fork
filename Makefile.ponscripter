@@ -70,7 +70,7 @@ FontInfo$(OBJSUFFIX): FontInfo.h utf8_util.h resources.h font.h
 DirtyRect$(OBJSUFFIX) : DirtyRect.h
 MadWrapper$(OBJSUFFIX): MadWrapper.h
 AVIWrapper$(OBJSUFFIX): AVIWrapper.h
-utf8_util$(OBJSUFFIX): utf8_util.h
+utf8_util$(OBJSUFFIX): defs.h pstring.h utf8_util.h
 
 ifndef NO_DEFAULT_ICON
 RESOURCES ?= default.png =icon.png
