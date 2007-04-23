@@ -430,7 +430,10 @@ private:
     } current_button_state, volatile_button_state,
       last_mouse_state, shelter_mouse_state;
 
-    struct ButtonLink {
+    struct ButtonElt {
+	typedef std::map<int, ButtonElt> collection;
+	typedef collection::iterator iterator;
+	
         enum BUTTON_TYPE {
 	    NORMAL_BUTTON     = 0,
 	    SPRITE_BUTTON     = 1,
@@ -438,9 +441,7 @@ private:
 	    LOOKBACK_BUTTON   = 3,
 	    TMP_SPRITE_BUTTON = 4
 	};
-        ButtonLink* next;
         BUTTON_TYPE button_type;
-        int no;
         int sprite_no;
         string exbtn_ctl;
         SDL_Rect select_rect;
@@ -448,43 +449,44 @@ private:
         AnimationInfo* anim[2];
         int show_flag; // 0: show nothing, 1: show anim[0], 2: show anim[1]
 
-        ButtonLink() {
+	bool isSprite() { return button_type == SPRITE_BUTTON
+		              || button_type == EX_SPRITE_BUTTON; }
+	bool isTmpSprite() { return button_type == TMP_SPRITE_BUTTON; }
+	
+        ButtonElt() {
             button_type = NORMAL_BUTTON;
-            next      = 0;
-	    anim[0]   = anim[1] = 0;
+	    anim[0] = anim[1] = 0;
 	    show_flag = 0;
-        };
-        ~ButtonLink() {
-            if ((button_type == NORMAL_BUTTON ||
-		 button_type == TMP_SPRITE_BUTTON)
-		&& anim[0]) {
+        }
+        void destroy() {
+            if ((button_type == NORMAL_BUTTON || isTmpSprite()) && anim[0]) {
 		delete anim[0];
+		anim[0] = 0;
 	    }
-        };
-        void insert(ButtonLink* button)
-        {
-            button->next = this->next;
-            this->next = button;
-        };
-        void removeSprite(int no)
-        {
-            ButtonLink* p = this;
-            while (p->next) {
-                if (p->next->sprite_no == no
-                    && (p->next->sprite_no == SPRITE_BUTTON
-                        || p->next->sprite_no == EX_SPRITE_BUTTON)) {
-                    ButtonLink* p2 = p->next;
-                    p->next = p->next->next;
-                    delete p2;
-                }
-                else {
-                    p = p->next;
-                }
-            }
-        };
-    } root_button_link, *current_button_link, *shelter_button_link,
-      exbtn_d_button_link;
+        }
+    };
+    ButtonElt::collection buttons, shelter_buttons;
+    ButtonElt exbtn_d_button;
 
+    void buttonsRemoveSprite(int no) {
+	ButtonElt::iterator it = buttons.begin();
+	while (it != buttons.end())
+	    if (it->second.sprite_no == no && it->second.isSprite()) {
+		it->second.destroy();
+		buttons.erase(it++);
+	    }
+	    else
+		++it;
+    }
+    
+    void deleteButtons() {
+	for (ButtonElt::iterator it = buttons.begin(); it != buttons.end();
+	     ++it)
+	    it->second.destroy();
+	buttons.clear();
+	exbtn_d_button.exbtn_ctl.clear();
+    }
+    
     int current_over_button;
 
     bool getzxc_flag;
@@ -498,7 +500,6 @@ private:
     bool spclclk_flag;
 
     void resetSentenceFont();
-    void deleteButtonLink();
     void refreshMouseOverButton();
     void refreshSprite(int sprite_no, bool active_flag, int cell_no,
 		       SDL_Rect* check_src_rect, SDL_Rect* check_dst_rect);
@@ -629,11 +630,11 @@ private:
     };
     SelectElt::vector select_links, shelter_select_links;
     NestInfo select_label_info;
-    int shortcut_mouse_line;
+    ButtonElt::iterator shortcut_mouse_line;
 
-    ButtonLink* getSelectableSentence(const string& buffer, FontInfo* info,
-				      bool flush_flag = true,
-				      bool nofile_flag = false);
+    ButtonElt getSelectableSentence(const string& buffer, FontInfo* info,
+				    bool flush_flag = true,
+				    bool nofile_flag = false);
 
     /* ---------------------------------------- */
     /* Sound related variables */

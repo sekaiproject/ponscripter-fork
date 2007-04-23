@@ -38,8 +38,8 @@ static const char* short_month[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
 
 void PonscripterLabel::enterSystemCall()
 {
-    shelter_button_link   = root_button_link.next;
-    root_button_link.next = NULL;
+    shelter_buttons.swap(buttons);
+    buttons.clear();
     shelter_select_links.swap(select_links);
     select_links.clear();
     shelter_event_mode = event_mode;
@@ -67,7 +67,8 @@ void PonscripterLabel::leaveSystemCall(bool restore_flag)
     if (restore_flag) {
         current_text_buffer = cached_text_buffer;
         restoreTextBuffer();
-        root_button_link.next = shelter_button_link;
+	buttons.swap(shelter_buttons);
+	shelter_buttons.clear();
 	select_links.swap(shelter_select_links);
 	shelter_select_links.clear();
 
@@ -145,7 +146,7 @@ void PonscripterLabel::executeSystemMenu()
 
         event_mode = IDLE_EVENT_MODE;
 
-        deleteButtonLink();
+        deleteButtons();
 
         if (current_button_state.button == -1) {
 	    playSound(menuselectvoice_file_name[MENUSELECTVOICE_CANCEL],
@@ -190,10 +191,8 @@ void PonscripterLabel::executeSystemMenu()
         while (link) {
             const float sw = float (screen_width * screen_ratio2) / float (screen_ratio1);
             menu_font.SetXY((sw - menu_font.StringAdvance(link->label)) / 2);
-            ButtonLink* button = getSelectableSentence(link->label, &menu_font, false);
-            root_button_link.insert(button);
-            button->no = counter++;
-
+	    buttons[counter++] = getSelectableSentence(link->label, &menu_font,
+						       false);
             link = link->next;
             flush(refreshMode());
         }
@@ -332,9 +331,7 @@ void PonscripterLabel::createSaveLoadMenu(bool is_save)
 			- menu_font.area_y) / 2;
     string& menu_name = is_save ? save_menu_name : load_menu_name;
     menu_font.SetXY((lw - menu_font.StringAdvance(menu_name)) / 2, 0);
-    ButtonLink* ooga = getSelectableSentence(menu_name, &menu_font, false);
-    root_button_link.insert(ooga);
-    ooga->no = 0;
+    buttons[0] = getSelectableSentence(menu_name, &menu_font, false); // TODO: check that this isn't selectable!
 
     menu_font.newLine();
 
@@ -361,10 +358,7 @@ void PonscripterLabel::createSaveLoadMenu(bool is_save)
             disable = !is_save;
         }
 
-        ButtonLink* button = getSelectableSentence(buf, &menu_font, false,
-						   disable);
-        root_button_link.insert(button);
-        button->no = i;
+	buttons[i] = getSelectableSentence(buf, &menu_font, false, disable);
         flush(refreshMode());
     }
 
@@ -391,14 +385,14 @@ void PonscripterLabel::executeSystemLoad()
                 return;
             }
 
-            deleteButtonLink();
+            deleteButtons();
             yesno_selected_file_no = current_button_state.button;
             yesno_caller = SYSTEM_LOAD;
             system_menu_mode = SYSTEM_YESNO;
             advancePhase();
         }
         else {
-            deleteButtonLink();
+            deleteButtons();
             leaveSystemCall();
         }
     }
@@ -417,7 +411,7 @@ void PonscripterLabel::executeSystemSave()
 
         event_mode = IDLE_EVENT_MODE;
 
-        deleteButtonLink();
+        deleteButtons();
 
         if (current_button_state.button > 0) {
             yesno_selected_file_no = current_button_state.button;
@@ -446,7 +440,7 @@ void PonscripterLabel::executeSystemYesNo()
 
         event_mode = IDLE_EVENT_MODE;
 
-        deleteButtonLink();
+        deleteButtons();
 
         if (current_button_state.button == 1) { // yes is selected
 	    playSound(menuselectvoice_file_name[MENUSELECTVOICE_YES],
@@ -525,9 +519,7 @@ void PonscripterLabel::executeSystemYesNo()
         menu_font.top_y  = (screen_height * screen_ratio2 / screen_ratio1 - menu_font.area_y) / 2;
         menu_font.SetXY(0, 0);
 
-        ButtonLink* ooga = getSelectableSentence(name, &menu_font, false);
-        root_button_link.insert(ooga);
-        ooga->no = 0;
+	buttons[0] = getSelectableSentence(name, &menu_font, false); // TODO: check that this is not selectable!
 
         flush(refreshMode());
 
@@ -535,16 +527,14 @@ void PonscripterLabel::executeSystemYesNo()
               no_len  = menu_font.StringAdvance(MESSAGE_NO);
 
         strcpy(name, MESSAGE_YES);
-        menu_font.SetXY(float (menu_font.area_x) / 4 - yes_len / 2, menu_font.line_top(2));
-        ButtonLink* button = getSelectableSentence(name, &menu_font, false);
-        root_button_link.insert(button);
-        button->no = 1;
+        menu_font.SetXY(float (menu_font.area_x) / 4 - yes_len / 2,
+			menu_font.line_top(2));
+	buttons[1] = getSelectableSentence(name, &menu_font, false);
 
         strcpy(name, MESSAGE_NO);
-        menu_font.SetXY(float (menu_font.area_x) * 3 / 4 - no_len / 2, menu_font.line_top(2));
-        button = getSelectableSentence(name, &menu_font, false);
-        root_button_link.insert(button);
-        button->no = 2;
+        menu_font.SetXY(float (menu_font.area_x) * 3 / 4 - no_len / 2,
+			menu_font.line_top(2));
+        buttons[2] = getSelectableSentence(name, &menu_font, false);
 
         flush(refreshMode());
 
@@ -556,33 +546,33 @@ void PonscripterLabel::executeSystemYesNo()
 
 void PonscripterLabel::setupLookbackButton()
 {
-    deleteButtonLink();
+    deleteButtons();
 
     /* ---------------------------------------- */
     /* Previous button check */
     if (current_text_buffer->previous
         && current_text_buffer != start_text_buffer) {
-        ButtonLink* button = new ButtonLink();
-        root_button_link.insert(button);
+	ButtonElt* button = &buttons[1];
 
-        button->no = 1;
         button->select_rect.x = sentence_font_info.pos.x;
         button->select_rect.y = sentence_font_info.pos.y;
         button->select_rect.w = sentence_font_info.pos.w;
         button->select_rect.h = sentence_font_info.pos.h / 3;
 
         if (lookback_sp[0] >= 0) {
-            button->button_type = ButtonLink::SPRITE_BUTTON;
+            button->button_type = ButtonElt::SPRITE_BUTTON;
             button->sprite_no = lookback_sp[0];
             sprite_info[button->sprite_no].visible = true;
             button->image_rect = sprite_info[button->sprite_no].pos;
         }
         else {
-            button->button_type = ButtonLink::LOOKBACK_BUTTON;
+            button->button_type = ButtonElt::LOOKBACK_BUTTON;
             button->show_flag = 2;
             button->anim[0] = &lookback_info[0];
             button->anim[1] = &lookback_info[1];
-            button->image_rect.x   = sentence_font_info.pos.x + sentence_font_info.pos.w - button->anim[0]->pos.w;
+            button->image_rect.x = sentence_font_info.pos.x
+		                 + sentence_font_info.pos.w
+		                 - button->anim[0]->pos.w;
             button->image_rect.y   = sentence_font_info.pos.y;
             button->image_rect.w   = button->anim[0]->pos.w;
             button->image_rect.h   = button->anim[0]->pos.h;
@@ -597,30 +587,33 @@ void PonscripterLabel::setupLookbackButton()
     /* ---------------------------------------- */
     /* Next button check */
     if (current_text_buffer->next != cached_text_buffer) {
-        ButtonLink* button = new ButtonLink();
-        root_button_link.insert(button);
+	ButtonElt* button = &buttons[2];
 
-        button->no = 2;
         button->select_rect.x = sentence_font_info.pos.x;
-        button->select_rect.y = sentence_font_info.pos.y + sentence_font_info.pos.h * 2 / 3;
+        button->select_rect.y = sentence_font_info.pos.y
+	                      + sentence_font_info.pos.h * 2 / 3;
         button->select_rect.w = sentence_font_info.pos.w;
         button->select_rect.h = sentence_font_info.pos.h / 3;
 
         if (lookback_sp[1] >= 0) {
-            button->button_type = ButtonLink::SPRITE_BUTTON;
+            button->button_type = ButtonElt::SPRITE_BUTTON;
             button->sprite_no = lookback_sp[1];
             sprite_info[button->sprite_no].visible = true;
             button->image_rect = sprite_info[button->sprite_no].pos;
         }
         else {
-            button->button_type = ButtonLink::LOOKBACK_BUTTON;
+            button->button_type = ButtonElt::LOOKBACK_BUTTON;
             button->show_flag = 2;
             button->anim[0] = &lookback_info[2];
             button->anim[1] = &lookback_info[3];
-            button->image_rect.x   = sentence_font_info.pos.x + sentence_font_info.pos.w - button->anim[0]->pos.w;
-            button->image_rect.y   = sentence_font_info.pos.y + sentence_font_info.pos.h - button->anim[0]->pos.h;
-            button->image_rect.w   = button->anim[0]->pos.w;
-            button->image_rect.h   = button->anim[0]->pos.h;
+            button->image_rect.x = sentence_font_info.pos.x
+		                 + sentence_font_info.pos.w
+		                 - button->anim[0]->pos.w;
+            button->image_rect.y = sentence_font_info.pos.y
+ 		                 + sentence_font_info.pos.h
+	 	                 - button->anim[0]->pos.h;
+            button->image_rect.w = button->anim[0]->pos.w;
+            button->image_rect.h = button->anim[0]->pos.h;
             button->anim[0]->pos.x = button->anim[1]->pos.x = button->image_rect.x;
             button->anim[0]->pos.y = button->anim[1]->pos.y = button->image_rect.y;
         }
@@ -645,7 +638,7 @@ void PonscripterLabel::executeSystemLookback()
                 && current_text_buffer->next == cached_text_buffer)
             || current_button_state.button <= -4) {
             event_mode = IDLE_EVENT_MODE;
-            deleteButtonLink();
+            deleteButtons();
             if (lookback_sp[0] >= 0)
                 sprite_info[lookback_sp[0]].visible = false;
 

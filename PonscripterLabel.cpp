@@ -785,7 +785,7 @@ void PonscripterLabel::resetSub()
     resetSentenceFont();
 
     deleteNestInfo();
-    deleteButtonLink();
+    deleteButtons();
     select_links.clear();
 
     stopCommand("stop");
@@ -899,7 +899,7 @@ void PonscripterLabel::flushDirect(SDL_Rect &rect, int refresh_mode)
 
 void PonscripterLabel::mouseOverCheck(int x, int y)
 {
-    int c = 0;
+    size_t c = 0;
 
     last_mouse_state.x = x;
     last_mouse_state.y = y;
@@ -907,84 +907,77 @@ void PonscripterLabel::mouseOverCheck(int x, int y)
     /* ---------------------------------------- */
     /* Check button */
     int button = 0;
-    ButtonLink* p_button_link = root_button_link.next;
-    while (p_button_link) {
-        if (x >= p_button_link->select_rect.x
-	 && x < p_button_link->select_rect.x + p_button_link->select_rect.w
-         && y >= p_button_link->select_rect.y
-	 && y < p_button_link->select_rect.y + p_button_link->select_rect.h)
-	{
-            button = p_button_link->no;
-            break;
-        }
-        p_button_link = p_button_link->next;
-        c++;
+
+    for (ButtonElt::iterator it = buttons.begin(); it != buttons.end();
+	 ++it, ++c) {
+	const SDL_Rect& r = it->second.select_rect;
+	if (x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h) {
+	    button = it->first;
+	    break;
+	}
     }
 
     if (current_over_button != button) {
+	ButtonElt& curr_btn = buttons[current_over_button];
+	    
         DirtyRect dirty = dirty_rect;
         dirty_rect.clear();
 
         SDL_Rect check_src_rect = { 0, 0, 0, 0 };
         SDL_Rect check_dst_rect = { 0, 0, 0, 0 };
         if (current_over_button != 0) {
-            current_button_link->show_flag = 0;
-            check_src_rect = current_button_link->image_rect;
-	    const int cbt = current_button_link->button_type;
-            if (cbt == ButtonLink::SPRITE_BUTTON ||
-		cbt == ButtonLink::EX_SPRITE_BUTTON)
-	    {
-                sprite_info[current_button_link->sprite_no].visible = true;
-                sprite_info[current_button_link->sprite_no].setCell(0);
+            curr_btn.show_flag = 0;
+            check_src_rect = curr_btn.image_rect;
+            if (curr_btn.isSprite()) {
+                sprite_info[curr_btn.sprite_no].visible = true;
+                sprite_info[curr_btn.sprite_no].setCell(0);
             }
-            else if (cbt == ButtonLink::TMP_SPRITE_BUTTON) {
-                current_button_link->show_flag = 1;
-                current_button_link->anim[0]->visible = true;
-                current_button_link->anim[0]->setCell(0);
+            else if (curr_btn.isTmpSprite()) {
+                curr_btn.show_flag = 1;
+                curr_btn.anim[0]->visible = true;
+                curr_btn.anim[0]->setCell(0);
             }
-            else if (current_button_link->anim[1] != 0) {
-                current_button_link->show_flag = 2;
+            else if (curr_btn.anim[1]) {
+                curr_btn.show_flag = 2;
             }
-            dirty_rect.add(current_button_link->image_rect);
+            dirty_rect.add(curr_btn.image_rect);
         }
 
-        if (exbtn_d_button_link.exbtn_ctl) {
-            decodeExbtnControl(exbtn_d_button_link.exbtn_ctl, &check_src_rect,
-			       &check_dst_rect);
+        if (exbtn_d_button.exbtn_ctl) {
+            decodeExbtnControl(exbtn_d_button.exbtn_ctl,
+			       &check_src_rect, &check_dst_rect);
         }
 
-        if (p_button_link) {
-            if (system_menu_mode != SYSTEM_NULL) {
+        if (c < buttons.size()) {
+            if (system_menu_mode != SYSTEM_NULL)
                 playSound(menuselectvoice_file_name[MENUSELECTVOICE_OVER],
 			  SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
-            }
-            else {
+            else
 		playSound(selectvoice_file_name[SELECTVOICE_OVER],
 			  SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
-            }
-            check_dst_rect = p_button_link->image_rect;
-	    const int pbt = p_button_link->button_type;
-            if (pbt == ButtonLink::SPRITE_BUTTON ||
-                pbt == ButtonLink::EX_SPRITE_BUTTON) {
-                sprite_info[p_button_link->sprite_no].setCell(1);
-                sprite_info[p_button_link->sprite_no].visible = true;
-                if (pbt == ButtonLink::EX_SPRITE_BUTTON) {
-                    decodeExbtnControl(p_button_link->exbtn_ctl,
+
+	    ButtonElt& new_btn = buttons[button];
+	    
+            check_dst_rect = new_btn.image_rect;
+            if (new_btn.isSprite()) {
+                sprite_info[new_btn.sprite_no].setCell(1);
+                sprite_info[new_btn.sprite_no].visible = true;
+                if (new_btn.button_type == ButtonElt::EX_SPRITE_BUTTON) {
+                    decodeExbtnControl(new_btn.exbtn_ctl,
 				       &check_src_rect, &check_dst_rect);
                 }
             }
-            else if (pbt == ButtonLink::TMP_SPRITE_BUTTON) {
-                p_button_link->show_flag = 1;
-                p_button_link->anim[0]->visible = true;
-                p_button_link->anim[0]->setCell(1);
+            else if (new_btn.isTmpSprite()) {
+                new_btn.show_flag = 1;
+                new_btn.anim[0]->visible = true;
+                new_btn.anim[0]->setCell(1);
             }
-            else if (pbt == ButtonLink::NORMAL_BUTTON ||
-                     pbt == ButtonLink::LOOKBACK_BUTTON) {
-                p_button_link->show_flag = 1;
+            else if (new_btn.button_type == ButtonElt::NORMAL_BUTTON ||
+                     new_btn.button_type == ButtonElt::LOOKBACK_BUTTON) {
+                new_btn.show_flag = 1;
             }
-            dirty_rect.add(p_button_link->image_rect);
-            current_button_link = p_button_link;
-            shortcut_mouse_line = c;
+            dirty_rect.add(new_btn.image_rect);
+            shortcut_mouse_line = buttons.find(button);
         }
 
         flush(refreshMode());
@@ -1271,26 +1264,10 @@ SDL_Surface* PonscripterLabel::loadImage(const char* file_name, bool* has_alpha)
 
 
 /* ---------------------------------------- */
-void PonscripterLabel::deleteButtonLink()
-{
-    ButtonLink* b1 = root_button_link.next;
-
-    while (b1) {
-        ButtonLink* b2 = b1;
-        b1 = b1->next;
-        delete b2;
-    }
-    root_button_link.next = 0;
-
-    exbtn_d_button_link.exbtn_ctl.clear();
-}
-
-
 void PonscripterLabel::refreshMouseOverButton()
 {
     int mx, my;
     current_over_button = 0;
-    current_button_link = root_button_link.next;
     SDL_GetMouseState(&mx, &my);
     mouseOverCheck(mx, my);
 }
@@ -1371,19 +1348,19 @@ void PonscripterLabel::newPage(bool next_flag)
 }
 
 
-PonscripterLabel::ButtonLink*
+PonscripterLabel::ButtonElt
 PonscripterLabel::getSelectableSentence(const string& buffer, FontInfo* info,
 					bool flush_flag, bool nofile_flag)
 {
+    ButtonElt rv;
     float current_x;
     current_x = info->GetXOffset();
 
-    ButtonLink* button_link = new ButtonLink();
-    button_link->button_type = ButtonLink::TMP_SPRITE_BUTTON;
-    button_link->show_flag = 1;
+    rv.button_type = ButtonElt::TMP_SPRITE_BUTTON;
+    rv.show_flag = 1;
 
     AnimationInfo* anim = new AnimationInfo();
-    button_link->anim[0] = anim;
+    rv.anim[0] = anim;
 
     anim->trans_mode = AnimationInfo::TRANS_STRING;
     anim->is_single_line = false;
@@ -1399,14 +1376,14 @@ PonscripterLabel::getSelectableSentence(const string& buffer, FontInfo* info,
     anim->visible = true;
 
     setupAnimationInfo(anim, info);
-    button_link->select_rect = button_link->image_rect = anim->pos;
+    rv.select_rect = rv.image_rect = anim->pos;
 
     info->newLine();
     info->SetXY(current_x);
 
-    dirty_rect.add(button_link->image_rect);
+    dirty_rect.add(rv.image_rect);
 
-    return button_link;
+    return rv;
 }
 
 

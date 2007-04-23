@@ -104,7 +104,7 @@ Font* FontsStruct::font(int style)
         font_[style] = new Font(mapping[style].c_str(), metnam);
     }
     else if ((len = ScriptHandler::cBR->getFileLength(mapping[style].c_str()))) {
-        Uint8* data = new Uint8[len], * mdat = NULL;
+        Uint8 *data = new Uint8[len], *mdat = NULL;
         ScriptHandler::cBR->getFile(mapping[style].c_str(), data);
         size_t mlen = 0;
         if (metrics[style] && (mlen = ScriptHandler::cBR->getFileLength(metrics[style].c_str()))) {
@@ -193,9 +193,8 @@ float FontInfo::GlyphAdvance(unsigned short unicode, unsigned short next)
     float adv = font()->advance(unicode);
 #ifdef KERNING
     if (next) adv += font()->kerning(unicode, next);
-
 #endif
-    return adv + float (pitch_x);
+    return adv + float(pitch_x);
 }
 
 

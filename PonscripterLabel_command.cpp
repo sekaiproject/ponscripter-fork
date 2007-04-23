@@ -528,18 +528,17 @@ int PonscripterLabel::spbtnCommand(const string& cmd)
         if (sprite_info[sprite_no].num_of_cells == 0) return RET_CONTINUE;
     }
 
-    ButtonLink* button = new ButtonLink();
-    root_button_link.insert(button);
-
-    button->button_type = ButtonLink::SPRITE_BUTTON;
-    button->sprite_no = sprite_no;
-    button->no = no;
+    ButtonElt button;
+    button.button_type = ButtonElt::SPRITE_BUTTON;
+    button.sprite_no = sprite_no;
 
     if (sprite_info[sprite_no].image_surface
         || sprite_info[sprite_no].trans_mode == AnimationInfo::TRANS_STRING) {
-        button->image_rect = button->select_rect = sprite_info[sprite_no].pos;
+        button.image_rect = button.select_rect = sprite_info[sprite_no].pos;
         sprite_info[sprite_no].visible = true;
     }
+
+    buttons[no] = button;
 
     return RET_CONTINUE;
 }
@@ -560,9 +559,11 @@ int PonscripterLabel::sevolCommand(const string& cmd)
     for (int i = 1; i < ONS_MIX_CHANNELS; i++)
         if (wave_sample[i]) Mix_Volume(i, se_volume * 128 / 100);
 
-    if (wave_sample[MIX_LOOPBGM_CHANNEL0]) Mix_Volume(MIX_LOOPBGM_CHANNEL0, se_volume * 128 / 100);
+    if (wave_sample[MIX_LOOPBGM_CHANNEL0])
+	Mix_Volume(MIX_LOOPBGM_CHANNEL0, se_volume * 128 / 100);
 
-    if (wave_sample[MIX_LOOPBGM_CHANNEL1]) Mix_Volume(MIX_LOOPBGM_CHANNEL1, se_volume * 128 / 100);
+    if (wave_sample[MIX_LOOPBGM_CHANNEL1])
+	Mix_Volume(MIX_LOOPBGM_CHANNEL1, se_volume * 128 / 100);
 
     return RET_CONTINUE;
 }
@@ -705,7 +706,7 @@ int PonscripterLabel::selectCommand(const string& cmd)
 
         event_mode = IDLE_EVENT_MODE;
 
-        deleteButtonLink();
+        deleteButtons();
 
         if (select_mode == SELECT_GOTO_MODE) {
             setCurrentLabel(select_links[button].label);
@@ -736,7 +737,7 @@ int PonscripterLabel::selectCommand(const string& cmd)
             saveoffCommand("saveoff");
         }
 
-        shortcut_mouse_line = -1;
+        shortcut_mouse_line = buttons.end();
 
         float old_x = sentence_font.GetXOffset();
         int   old_y = sentence_font.GetYOffset();
@@ -799,12 +800,9 @@ int PonscripterLabel::selectCommand(const string& cmd)
             int counter = 1;
 	    for (SelectElt::iterator it = select_links.begin();
 		 it != select_links.end(); ++it) {
-		if (it->text) {
-		    ButtonLink* b = getSelectableSentence(it->text,
-							  &sentence_font);
-		    b->no = counter;
-		    root_button_link.insert(b);
-		}
+		if (it->text)
+		    buttons[counter] = getSelectableSentence(it->text,
+							     &sentence_font);
 		++counter;
 	    }
         }
@@ -1523,12 +1521,12 @@ int PonscripterLabel::loadgameCommand(const string& cmd)
         internal_saveon_flag = true;
         skip_flag = false;
         automode_flag = false;
-        deleteButtonLink();
+        deleteButtons();
         select_links.clear();
         key_pressed_flag = false;
         text_on_flag  = false;
         indent_offset = 0;
-        line_enter_status    = 0;
+        line_enter_status = 0;
         string_buffer_offset = 0;
 
         refreshMouseOverButton();
@@ -2271,35 +2269,27 @@ int PonscripterLabel::exec_dllCommand(const string& cmd)
 int PonscripterLabel::exbtnCommand(const string& cmd)
 {
     int sprite_no = -1, no = 0;
-    ButtonLink* button;
+    ButtonElt* button = &exbtn_d_button;
 
-    if (cmd == "exbtn_d") {
-        button = &exbtn_d_button_link;
-    }
-    else {
+    if (cmd != "exbtn_d") {
         bool cellcheck_flag = cmd == "cellcheckexbtn";
-
         sprite_no = script_h.readInt();
         no = script_h.readInt();
-
         if (cellcheck_flag && (sprite_info[sprite_no].num_of_cells < 2)
             || !cellcheck_flag && (sprite_info[sprite_no].num_of_cells == 0)) {
             script_h.readStr();
             return RET_CONTINUE;
         }
-
-        button = new ButtonLink();
-        root_button_link.insert(button);
+	button = &buttons[no];
     }
 
-    button->button_type = ButtonLink::EX_SPRITE_BUTTON;
+    button->button_type = ButtonElt::EX_SPRITE_BUTTON;
     button->sprite_no = sprite_no;
-    button->no = no;
     button->exbtn_ctl = script_h.readStr();
 
     if (sprite_no >= 0
-        && (sprite_info[sprite_no].image_surface
-            || sprite_info[sprite_no].trans_mode == AnimationInfo::TRANS_STRING)) {
+        && (sprite_info[sprite_no].image_surface ||
+            sprite_info[sprite_no].trans_mode == AnimationInfo::TRANS_STRING)) {
         button->image_rect = button->select_rect = sprite_info[sprite_no].pos;
         sprite_info[sprite_no].visible = true;
     }
@@ -2591,14 +2581,14 @@ int PonscripterLabel::cspCommand(const string& cmd)
                 sprite_info[i].pos.y = -1000 * screen_ratio1 / screen_ratio2;
             }
 
-            root_button_link.removeSprite(i);
+            buttonsRemoveSprite(i);
             sprite_info[i].remove();
         }
     else if (no >= 0 && no < MAX_SPRITE_NUM) {
         if (sprite_info[no].visible)
             dirty_rect.add(sprite_info[no].pos);
 
-        root_button_link.removeSprite(no);
+        buttonsRemoveSprite(no);
         sprite_info[no].remove();
     }
 
@@ -2635,10 +2625,8 @@ int PonscripterLabel::cselbtnCommand(const string& cmd)
 
     csel_info.setLineArea(int(ceil(csel_info.StringAdvance(text))));
     csel_info.clear();
-    ButtonLink* button = getSelectableSentence(text, &csel_info);
-    root_button_link.insert(button);
-    button->no = button_no;
-    button->sprite_no = csel_no;
+    buttons[button_no] = getSelectableSentence(text, &csel_info);
+    buttons[button_no].sprite_no = csel_no;
 
     return RET_CONTINUE;
 }
@@ -2777,45 +2765,35 @@ int PonscripterLabel::btnwaitCommand(const string& cmd)
 
         script_h.setInt(&script_h.current_variable, current_button_state.button);
 
-        if (current_button_state.button >= 1 && del_flag) {
-            deleteButtonLink();
-	    exbtn_d_button_link.exbtn_ctl.clear();
-        }
+        if (current_button_state.button >= 1 && del_flag)
+            deleteButtons();
 
         event_mode = IDLE_EVENT_MODE;
         disableGetButtonFlag();
 
-        ButtonLink* p_button_link = root_button_link.next;
-        while (p_button_link) {
-            p_button_link->show_flag = 0;
-            p_button_link = p_button_link->next;
-        }
+	for (ButtonElt::iterator it = buttons.begin(); it != buttons.end();
+	     ++it)
+	    it->second.show_flag = 0;
 
         return RET_CONTINUE;
     }
     else {
-        shortcut_mouse_line = 0;
+        shortcut_mouse_line = buttons.begin();
         skip_flag = false;
 
-        if (exbtn_d_button_link.exbtn_ctl) {
+        if (exbtn_d_button.exbtn_ctl) {
             SDL_Rect check_src_rect = { 0, 0, screen_width, screen_height };
-            decodeExbtnControl(exbtn_d_button_link.exbtn_ctl, &check_src_rect);
+            decodeExbtnControl(exbtn_d_button.exbtn_ctl, &check_src_rect);
         }
 
-        ButtonLink* p_button_link = root_button_link.next;
-        while (p_button_link) {
-            p_button_link->show_flag = 0;
-            if (p_button_link->button_type == ButtonLink::SPRITE_BUTTON
-                || p_button_link->button_type == ButtonLink::EX_SPRITE_BUTTON) { }
-            else if (p_button_link->button_type == ButtonLink::TMP_SPRITE_BUTTON) {
-                p_button_link->show_flag = 1;
-            }
-            else if (p_button_link->anim[1] != NULL) {
-                p_button_link->show_flag = 2;
-            }
-
-            p_button_link = p_button_link->next;
-        }
+	for (ButtonElt::iterator it = buttons.begin(); it != buttons.end();
+	     ++it) {
+	    it->second.show_flag = 0;
+	    if (it->second.isTmpSprite())
+		it->second.show_flag = 1;
+	    else if (it->second.anim[1] && !it->second.isSprite())
+		it->second.show_flag = 2;
+	}
 
         flush(refreshMode());
 
@@ -2877,20 +2855,23 @@ int PonscripterLabel::btndefCommand(const string& cmd)
         script_h.readLabel();
     }
     else {
-        const char* buf = script_h.readStr();
+        string buf = script_h.readStr();
 
         btndef_info.remove();
 
-        if (buf[0] != '\0') {
+        if (buf) {
             btndef_info.setImageName(buf);
             parseTaggedString(&btndef_info);
             btndef_info.trans_mode = AnimationInfo::TRANS_COPY;
             setupAnimationInfo(&btndef_info);
-            SDL_SetAlpha(btndef_info.image_surface, DEFAULT_BLIT_FLAG, SDL_ALPHA_OPAQUE);
+            SDL_SetAlpha(btndef_info.image_surface, DEFAULT_BLIT_FLAG,
+			 SDL_ALPHA_OPAQUE);
         }
     }
 
-    deleteButtonLink();
+//printf("deleteButtons()... ");fflush(stdout);
+    deleteButtons();
+//printf("OK\n");
 
     disableGetButtonFlag();
 
@@ -2902,14 +2883,15 @@ int PonscripterLabel::btnCommand(const string& cmd)
 {
     SDL_Rect src_rect;
 
-    ButtonLink* button = new ButtonLink();
+    const int no = script_h.readInt();
 
-    button->no = script_h.readInt();
+    ButtonElt* button = &buttons[no];
+    
     button->image_rect.x = script_h.readInt() * screen_ratio1 / screen_ratio2;
     button->image_rect.y = script_h.readInt() * screen_ratio1 / screen_ratio2;
     button->image_rect.w = script_h.readInt() * screen_ratio1 / screen_ratio2;
     button->image_rect.h = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    button->select_rect  = button->image_rect;
+    button->select_rect = button->image_rect;
 
     src_rect.x = script_h.readInt() * screen_ratio1 / screen_ratio2;
     src_rect.y = script_h.readInt() * screen_ratio1 / screen_ratio2;
@@ -2933,8 +2915,6 @@ int PonscripterLabel::btnCommand(const string& cmd)
     button->anim[0]->pos.y = button->image_rect.y;
     button->anim[0]->allocImage(button->image_rect.w, button->image_rect.h);
     button->anim[0]->copySurface(btndef_info.image_surface, &src_rect);
-
-    root_button_link.insert(button);
 
     return RET_CONTINUE;
 }

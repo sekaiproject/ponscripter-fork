@@ -657,26 +657,33 @@ void PonscripterLabel::variableEditMode(SDL_KeyboardEvent* event)
 
 void PonscripterLabel::shiftCursorOnButton(int diff)
 {
-    int num = 0;
-    ButtonLink* button = root_button_link.next;
-    while (button) { button = button->next; ++num; }
-
-    shortcut_mouse_line += diff;
-    if (shortcut_mouse_line < 0) shortcut_mouse_line = num - 1;
-    else if (shortcut_mouse_line >= num) shortcut_mouse_line = 0;
-    
-    button = root_button_link.next;
-    for (int i = 0; i < shortcut_mouse_line; ++i) button = button->next;
-
-    if (button) {
-        int x = button->select_rect.x;
-        int y = button->select_rect.y;
-        if (x < 0) x = 0;
-        else if (x >= screen_width) x = screen_width - 1;
-        if (y < 0) y = 0;
-        else if (y >= screen_height) y = screen_height - 1;
-        SDL_WarpMouse(x, y);
+    if (buttons.size() < 2)
+	shortcut_mouse_line = buttons.begin();
+    else if (diff > 0) {
+	while (diff--) {
+	    do {
+		if (shortcut_mouse_line == buttons.begin())
+		    shortcut_mouse_line = buttons.end();
+		--shortcut_mouse_line;
+	    } while (shortcut_mouse_line->first == 0);
+	}
     }
+    else {
+	while (diff++) {
+	    do {
+		++shortcut_mouse_line;
+		if (shortcut_mouse_line == buttons.end())
+		    shortcut_mouse_line = buttons.begin();
+	    } while (shortcut_mouse_line->first == 0);
+	}
+    }
+    ButtonElt& e = shortcut_mouse_line->second;
+    
+    int x = e.select_rect.x + e.select_rect.w / 2;
+    int y = e.select_rect.y + e.select_rect.h / 2;
+    if (x < 0) x = 0; else if (x >= screen_width) x = screen_width - 1;
+    if (y < 0) y = 0; else if (y >= screen_height) y = screen_height - 1;
+    SDL_WarpMouse(x, y);
 }
 
 

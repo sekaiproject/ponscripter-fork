@@ -362,10 +362,10 @@ PonscripterLabel::refreshSurface(SDL_Surface* surface, SDL_Rect* clip_src,
             drawTaggedSurface(surface, &cursor_info[CURSOR_NEWPAGE_NO], clip);
     }
 
-    ButtonLink* bl = &root_button_link;
-    while ((bl = bl->next))
-        if (bl->show_flag > 0)
-            drawTaggedSurface(surface, bl->anim[bl->show_flag - 1], clip);
+    for (ButtonElt::iterator it = buttons.begin(); it != buttons.end(); ++it)
+	if (it->second.show_flag > 0)
+	    drawTaggedSurface(surface,
+			      it->second.anim[it->second.show_flag - 1], clip);
 }
 
 
