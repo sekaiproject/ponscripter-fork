@@ -26,9 +26,6 @@
 #ifndef __SCRIPT_PARSER_H__
 #define __SCRIPT_PARSER_H__
 
-// change this to identify char*s that should be strings
-#define SET_STR setStr
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -233,7 +230,6 @@ protected:
     int    underline_value;
 
     void deleteNestInfo();
-    void SET_STR(char** dst, const char* src, int num = -1);
 
     void gosubReal(const string& label, char* next_script);
     void setCurrentLabel(const string& label);
