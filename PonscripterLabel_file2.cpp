@@ -154,36 +154,28 @@ int PonscripterLabel::loadSaveFile2(int file_version)
 
     // nested info
     int num_nest = readInt();
-    last_nest_info = &root_nest_info;
     if (num_nest > 0) {
         file_io_buf_ptr += (num_nest - 1) * 4;
         while (num_nest > 0) {
-            NestInfo* info = new NestInfo();
-            if (last_nest_info == &root_nest_info) last_nest_info = info;
-
+            NestInfo info;
             i = readInt();
             if (i > 0) {
-                info->nest_mode   = NestInfo::LABEL;
-                info->next_script = script_h.getAddress(i);
+                info.nest_mode   = NestInfo::LABEL;
+                info.next_script = script_h.getAddress(i);
                 file_io_buf_ptr -= 8;
                 num_nest--;
             }
             else {
-                info->nest_mode   = NestInfo::FOR;
-                info->next_script = script_h.getAddress(-i);
+                info.nest_mode   = NestInfo::FOR;
+                info.next_script = script_h.getAddress(-i);
                 file_io_buf_ptr -= 16;
-                info->var_no = readInt();
-                info->to   = readInt();
-                info->step = readInt();
+                info.var_no = readInt();
+                info.to   = readInt();
+                info.step = readInt();
                 file_io_buf_ptr -= 16;
                 num_nest -= 4;
             }
-
-            info->next = root_nest_info.next;
-            if (root_nest_info.next) root_nest_info.next->previous = info;
-
-            root_nest_info.next = info;
-            info->previous = &root_nest_info;
+	    nest_infos.insert(nest_infos.begin(), info);
         }
         num_nest = readInt();
         file_io_buf_ptr += num_nest * 4;
@@ -502,17 +494,16 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
     writeVariables(0, script_h.global_variable_border, output_flag);
 
     // nested info
-    int num_nest   = 0;
-    NestInfo* info = root_nest_info.next;
-    while (info) {
-        if (info->nest_mode == NestInfo::LABEL) num_nest++;
+    int num_nest = 0;
+    NestInfo::iterator info = nest_infos.begin();
+    while (info != nest_infos.end()) {
+	if (info->nest_mode == NestInfo::LABEL) num_nest++;
         else if (info->nest_mode == NestInfo::FOR) num_nest += 4;
-
-        info = info->next;
+	++info;
     }
     writeInt(num_nest, output_flag);
-    info = root_nest_info.next;
-    while (info) {
+    info = nest_infos.begin();
+    while (info != nest_infos.end()) {
         if (info->nest_mode == NestInfo::LABEL) {
             writeInt(script_h.getOffset(info->next_script), output_flag);
         }
@@ -522,8 +513,7 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
             writeInt(info->step, output_flag);
             writeInt(-script_h.getOffset(info->next_script), output_flag);
         }
-
-        info = info->next;
+        ++info;
     }
 
     writeInt((monocro_flag) ? 1 : 0, output_flag);

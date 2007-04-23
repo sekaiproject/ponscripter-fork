@@ -734,19 +734,6 @@ void ScriptParser::errorAndExit(const char* str, const char* reason)
 }
 
 
-void ScriptParser::deleteNestInfo()
-{
-    NestInfo* info = root_nest_info.next;
-    while (info) {
-        NestInfo* tmp = info;
-        info = info->next;
-        delete tmp;
-    }
-    root_nest_info.next = NULL;
-    last_nest_info = &root_nest_info;
-}
-
-
 void ScriptParser::setCurrentLabel(const string& label)
 {
     current_label_info = script_h.lookupLabel(label);

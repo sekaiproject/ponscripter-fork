@@ -347,22 +347,21 @@ int ScriptParser::rmenuCommand(const string& cmd)
 
 int ScriptParser::returnCommand(const string& cmd)
 {
-    if (!last_nest_info->previous ||
-	last_nest_info->nest_mode != NestInfo::LABEL)
+    if (nest_infos.empty() || nest_infos.back().nest_mode != NestInfo::LABEL)
         errorAndExit("return: not in gosub");
 
-    current_label_info = script_h.getLabelByAddress(last_nest_info->next_script);
-    current_line = script_h.getLineByAddress(last_nest_info->next_script);
+    current_label_info =
+	script_h.getLabelByAddress(nest_infos.back().next_script);
+    current_line =
+	script_h.getLineByAddress(nest_infos.back().next_script);
 
     char *buf = script_h.getNext();
     if (buf[0] == 0x0a || buf[0] == ':' || buf[0] == ';')
-	script_h.setCurrent(last_nest_info->next_script);
+	script_h.setCurrent(nest_infos.back().next_script);
     else
 	setCurrentLabel(script_h.readStr() + 1);
 
-    last_nest_info = last_nest_info->previous;
-    delete last_nest_info->next;
-    last_nest_info->next = NULL;
+    nest_infos.pop_back();
 
     return RET_CONTINUE;
 }
@@ -426,31 +425,30 @@ int ScriptParser::nsaCommand(const string& cmd)
 
 int ScriptParser::nextCommand(const string& cmd)
 {
-    if (!last_nest_info->previous || last_nest_info->nest_mode != NestInfo::FOR)
+    if (nest_infos.empty() || nest_infos.back().nest_mode != NestInfo::FOR)
         errorAndExit("next: not in for loop\n");
 
     int val;
     if (!break_flag) {
-        val = script_h.variable_data[last_nest_info->var_no].num;
-        script_h.setNumVariable(last_nest_info->var_no,
-				val + last_nest_info->step);
+        val = script_h.variable_data[nest_infos.back().var_no].num;
+        script_h.setNumVariable(nest_infos.back().var_no,
+				val + nest_infos.back().step);
     }
 
-    val = script_h.variable_data[last_nest_info->var_no].num;
+    val = script_h.variable_data[nest_infos.back().var_no].num;
 
     if (break_flag
-        || last_nest_info->step > 0 && val > last_nest_info->to
-        || last_nest_info->step < 0 && val < last_nest_info->to) {
+        || nest_infos.back().step > 0 && val > nest_infos.back().to
+        || nest_infos.back().step < 0 && val < nest_infos.back().to) {
         break_flag = false;
-        last_nest_info = last_nest_info->previous;
-
-        delete last_nest_info->next;
-        last_nest_info->next = NULL;
+	nest_infos.pop_back();
     }
     else {
-        script_h.setCurrent(last_nest_info->next_script);
-        current_label_info = script_h.getLabelByAddress(last_nest_info->next_script);
-        current_line = script_h.getLineByAddress(last_nest_info->next_script);
+        script_h.setCurrent(nest_infos.back().next_script);
+        current_label_info =
+	    script_h.getLabelByAddress(nest_infos.back().next_script);
+        current_line =
+	    script_h.getLineByAddress(nest_infos.back().next_script);
     }
 
     return RET_CONTINUE;
@@ -900,12 +898,7 @@ int ScriptParser::gotoCommand(const string& cmd)
 
 void ScriptParser::gosubReal(const string& label, char* next_script)
 {
-    last_nest_info->next = new NestInfo();
-    last_nest_info->next->previous = last_nest_info;
-
-    last_nest_info = last_nest_info->next;
-    last_nest_info->next_script = next_script;
-
+    nest_infos.push_back(NestInfo(next_script));
     setCurrentLabel(label);
 }
 
@@ -932,15 +925,15 @@ int ScriptParser::globalonCommand(const string& cmd)
 
 int ScriptParser::getparamCommand(const string& cmd)
 {
-    if (!last_nest_info->previous || last_nest_info->nest_mode != NestInfo::LABEL)
-        errorAndExit("getpapam: not in a subroutine");
+    if (nest_infos.empty() || nest_infos.back().nest_mode != NestInfo::LABEL)
+        errorAndExit("getparam: not in a subroutine");
 
     int end_status;
     do {
         script_h.readVariable();
         script_h.pushVariable();
 
-        script_h.pushCurrent(last_nest_info->next_script);
+        script_h.pushCurrent(nest_infos.back().next_script);
 
         if (script_h.pushed_variable.type & ScriptHandler::VAR_PTR) {
             script_h.readVariable();
@@ -957,7 +950,7 @@ int ScriptParser::getparamCommand(const string& cmd)
 
         end_status = script_h.getEndStatus();
 
-        last_nest_info->next_script = script_h.getNext();
+        nest_infos.back().next_script = script_h.getNext();
         script_h.popCurrent();
     }
     while (end_status & ScriptHandler::END_COMMA);
@@ -968,20 +961,16 @@ int ScriptParser::getparamCommand(const string& cmd)
 
 int ScriptParser::forCommand(const string& cmd)
 {
-    last_nest_info->next = new NestInfo();
-    last_nest_info->next->previous = last_nest_info;
-
-    last_nest_info = last_nest_info->next;
-    last_nest_info->nest_mode = NestInfo::FOR;
+    NestInfo ni;
+    ni.nest_mode = NestInfo::FOR;
 
     script_h.readVariable();
     if (script_h.current_variable.type != ScriptHandler::VAR_INT)
         errorAndExit("for: no integer variable.");
 
-    last_nest_info->var_no = script_h.current_variable.var_no;
-    if (last_nest_info->var_no < 0 ||
-        last_nest_info->var_no >= VARIABLE_RANGE)
-        last_nest_info->var_no = VARIABLE_RANGE;
+    ni.var_no = script_h.current_variable.var_no;
+    if (ni.var_no < 0 || ni.var_no >= VARIABLE_RANGE)
+        ni.var_no = VARIABLE_RANGE;
 
     script_h.pushVariable();
 
@@ -997,23 +986,24 @@ int ScriptParser::forCommand(const string& cmd)
 
     script_h.readLabel();
 
-    last_nest_info->to = script_h.readInt();
+    ni.to = script_h.readInt();
 
     if (script_h.compareString("step")) {
         script_h.readLabel();
-        last_nest_info->step = script_h.readInt();
+        ni.step = script_h.readInt();
     }
     else {
-        last_nest_info->step = 1;
+        ni.step = 1;
     }
 
-    break_flag = last_nest_info->step > 0 && from > last_nest_info->to ||
-		 last_nest_info->step < 0 && from < last_nest_info->to;
+    break_flag = ni.step > 0 && from > ni.to ||
+		 ni.step < 0 && from < ni.to;
     
     /* ---------------------------------------- */
     /* Step forward callee's label info */
-    last_nest_info->next_script = script_h.getNext();
+    ni.next_script = script_h.getNext();
 
+    nest_infos.push_back(ni);
     return RET_CONTINUE;
 }
 
@@ -1238,15 +1228,12 @@ int ScriptParser::clickstrCommand(const string& cmd)
 
 int ScriptParser::breakCommand(const string& cmd)
 {
-    if (!last_nest_info->previous || last_nest_info->nest_mode != NestInfo::FOR)
+    if (nest_infos.empty() || nest_infos.back().nest_mode != NestInfo::FOR)
         errorAndExit("break: not in for loop\n");
 
     char* buf = script_h.getNext();
     if (buf[0] == '*') {
-        last_nest_info = last_nest_info->previous;
-        delete last_nest_info->next;
-        last_nest_info->next = NULL;
-
+        nest_infos.pop_back();
         setCurrentLabel(script_h.readStr() + 1);
     }
     else {

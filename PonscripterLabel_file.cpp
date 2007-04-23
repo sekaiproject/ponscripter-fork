@@ -343,10 +343,7 @@ int PonscripterLabel::loadSaveFile(int no)
 
         if (readChar() == 0) break;
 
-        last_nest_info->next = new NestInfo();
-        last_nest_info->next->previous = last_nest_info;
-        last_nest_info = last_nest_info->next;
-        last_nest_info->next_script = script_h.getCurrent() + offset;
+	nest_infos.push_back(NestInfo(script_h.getCurrent() + offset));
     }
     script_h.setCurrent(script_h.getCurrent() + offset);
 

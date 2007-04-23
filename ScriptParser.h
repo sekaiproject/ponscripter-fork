@@ -157,18 +157,18 @@ protected:
     set<string>::t user_func_lut;
 
     struct NestInfo {
-        enum { LABEL = 0,
-               FOR   = 1 };
-        struct NestInfo* previous, * next;
-        int nest_mode;
+	typedef std::vector<NestInfo> vector;
+	typedef vector::iterator iterator;
+	
+        enum { LABEL = 0, FOR = 1 } nest_mode;
         char* next_script; // used in gosub and for
         int var_no, to, step; // used in for
 
-        NestInfo() {
-            previous  = next = NULL;
-            nest_mode = LABEL;
-        };
-    } last_tilde;
+        NestInfo(char* ns = 0) : nest_mode(LABEL), next_script(ns) {}
+    };
+    NestInfo last_tilde; // CHECK: should this be NestInfo::iterator?
+    NestInfo::vector nest_infos;
+    void deleteNestInfo() { nest_infos.clear(); }
 
     enum { SYSTEM_NULL        = 0,
            SYSTEM_SKIP        = 1,
@@ -217,7 +217,6 @@ protected:
 
     int string_buffer_offset;
 
-    NestInfo root_nest_info, * last_nest_info;
     ScriptHandler::LabelInfo current_label_info;
     int current_line;
 
@@ -228,8 +227,6 @@ protected:
     int    screen_bpp;
     string version_str;
     int    underline_value;
-
-    void deleteNestInfo();
 
     void gosubReal(const string& label, char* next_script);
     void setCurrentLabel(const string& label);

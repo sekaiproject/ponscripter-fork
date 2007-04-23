@@ -1779,11 +1779,11 @@ int PonscripterLabel::gettextCommand(const string& cmd)
 
 int PonscripterLabel::gettagCommand(const string& cmd)
 {
-    if (!last_nest_info->previous || last_nest_info->nest_mode != NestInfo::LABEL)
-        errorAndExit("gettag: not in a subroutine, i.e. pretextgosub");
+    if (nest_infos.empty() || nest_infos.back().nest_mode != NestInfo::LABEL)
+        errorAndExit("gettag: not in a subroutine, e.g. pretextgosub");
 
     bool end_flag = false;
-    char* buf = last_nest_info->next_script;
+    char* buf = nest_infos.back().next_script;
     while (*buf == ' ' || *buf == '\t') buf++;
     if (zenkakko_flag && UnicodeOfUTF8(buf) == 0x3010 /*y */)
         buf += CharacterBytes(buf);
@@ -1831,7 +1831,7 @@ int PonscripterLabel::gettagCommand(const string& cmd)
     else if (*buf == ']') buf++;
 
     while (*buf == ' ' || *buf == '\t') buf++;
-    last_nest_info->next_script = buf;
+    nest_infos.back().next_script = buf;
 
     return RET_CONTINUE;
 }
