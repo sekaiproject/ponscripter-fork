@@ -1044,24 +1044,19 @@ int ScriptParser::effectblankCommand(const string& cmd)
 
 int ScriptParser::effectCommand(const string& cmd)
 {
-    EffectLink* elink;
-
     if (cmd == "windoweffect") {
-        elink = &window_effect;
-    }
-    else {
-        if (current_mode != DEFINE_MODE) errorAndExit("effect: not in the define section");
-
-        elink = new EffectLink();
-        elink->no = script_h.readInt();
-        if (elink->no < 2 || elink->no > 255) errorAndExit("Effect No. is out of range");
-
-        last_effect_link->next = elink;
-        last_effect_link = last_effect_link->next;
+        readEffect(window_effect);
+	return RET_CONTINUE;
     }
 
-    readEffect(elink);
+    if (current_mode != DEFINE_MODE) errorAndExit("effect: not in the define section");
 
+    Effect e;
+    e.no = script_h.readInt();
+    if (e.no < 2 || e.no > 255) errorAndExit("Effect No. is out of range");
+    readEffect(e);
+    effects.push_back(e);
+    
     return RET_CONTINUE;
 }
 

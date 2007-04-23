@@ -29,9 +29,9 @@
 #define EFFECT_STRIPE_CURTAIN_WIDTH (24 * screen_ratio1 / screen_ratio2)
 #define EFFECT_QUAKE_AMP (12 * screen_ratio1 / screen_ratio2)
 
-int PonscripterLabel::setEffect(EffectLink* effect)
+int PonscripterLabel::setEffect(const Effect& effect)
 {
-    if (effect->effect == 0) return RET_CONTINUE;
+    if (effect.effect == 0) return RET_CONTINUE;
 
     effect_counter = 0;
     event_mode = EFFECT_EVENT_MODE;
@@ -41,11 +41,11 @@ int PonscripterLabel::setEffect(EffectLink* effect)
 }
 
 
-int PonscripterLabel::doEffect(EffectLink* effect, AnimationInfo* anim,
+int PonscripterLabel::doEffect(Effect& effect, AnimationInfo* anim,
 			       int effect_image, bool clear_dirty_region)
 {
-    int prevduration = effect->duration;
-    if (ctrl_pressed_status || skip_to_wait) effect->duration = 1;
+    int prevduration = effect.duration;
+    if (ctrl_pressed_status || skip_to_wait) effect.duration = 1;
 
     effect_start_time = SDL_GetTicks();
     if (effect_counter == 0) effect_start_time_old = effect_start_time - 1;
@@ -53,7 +53,7 @@ int PonscripterLabel::doEffect(EffectLink* effect, AnimationInfo* anim,
     effect_timer_resolution = effect_start_time - effect_start_time_old;
     effect_start_time_old = effect_start_time;
 
-    int effect_no = effect->effect;
+    int effect_no = effect.effect;
     if (effect_cut_flag && skip_flag) effect_no = 1;
 
     if (effect_counter == 0) {
@@ -99,9 +99,9 @@ int PonscripterLabel::doEffect(EffectLink* effect, AnimationInfo* anim,
 
         /* Load mask image */
         if (effect_no == 15 || effect_no == 18) {
-            if (!effect->anim.image_surface) {
-                parseTaggedString(&effect->anim);
-                setupAnimationInfo(&effect->anim);
+            if (!effect.anim.image_surface) {
+                parseTaggedString(&effect.anim);
+                setupAnimationInfo(&effect.anim);
             }
         }
 
@@ -127,7 +127,7 @@ int PonscripterLabel::doEffect(EffectLink* effect, AnimationInfo* anim,
         break;
 
     case 2: // Left shutter
-        width = EFFECT_STRIPE_WIDTH * effect_counter / effect->duration;
+        width = EFFECT_STRIPE_WIDTH * effect_counter / effect.duration;
         for (i = 0; i < screen_width / EFFECT_STRIPE_WIDTH; i++) {
             src_rect.x = i * EFFECT_STRIPE_WIDTH;
             src_rect.y = 0;
@@ -139,7 +139,7 @@ int PonscripterLabel::doEffect(EffectLink* effect, AnimationInfo* anim,
         break;
 
     case 3: // Right shutter
-        width = EFFECT_STRIPE_WIDTH * effect_counter / effect->duration;
+        width = EFFECT_STRIPE_WIDTH * effect_counter / effect.duration;
         for (i = 1; i <= screen_width / EFFECT_STRIPE_WIDTH; i++) {
             src_rect.x = i * EFFECT_STRIPE_WIDTH - width - 1;
             src_rect.y = 0;
@@ -151,7 +151,7 @@ int PonscripterLabel::doEffect(EffectLink* effect, AnimationInfo* anim,
         break;
 
     case 4: // Top shutter
-        height = EFFECT_STRIPE_WIDTH * effect_counter / effect->duration;
+        height = EFFECT_STRIPE_WIDTH * effect_counter / effect.duration;
         for (i = 0; i < screen_height / EFFECT_STRIPE_WIDTH; i++) {
             src_rect.x = 0;
             src_rect.y = i * EFFECT_STRIPE_WIDTH;
@@ -163,7 +163,7 @@ int PonscripterLabel::doEffect(EffectLink* effect, AnimationInfo* anim,
         break;
 
     case 5: // Bottom shutter
-        height = EFFECT_STRIPE_WIDTH * effect_counter / effect->duration;
+        height = EFFECT_STRIPE_WIDTH * effect_counter / effect.duration;
         for (i = 1; i <= screen_height / EFFECT_STRIPE_WIDTH; i++) {
             src_rect.x = 0;
             src_rect.y = i * EFFECT_STRIPE_WIDTH - height - 1;
@@ -175,7 +175,7 @@ int PonscripterLabel::doEffect(EffectLink* effect, AnimationInfo* anim,
         break;
 
     case 6: // Left curtain
-        width = EFFECT_STRIPE_CURTAIN_WIDTH * effect_counter * 2 / effect->duration;
+        width = EFFECT_STRIPE_CURTAIN_WIDTH * effect_counter * 2 / effect.duration;
         for (i = 0; i <= screen_width / EFFECT_STRIPE_CURTAIN_WIDTH; i++) {
             width2 = width - EFFECT_STRIPE_CURTAIN_WIDTH * EFFECT_STRIPE_CURTAIN_WIDTH * i / screen_width;
             if (width2 >= 0) {
@@ -190,7 +190,7 @@ int PonscripterLabel::doEffect(EffectLink* effect, AnimationInfo* anim,
         break;
 
     case 7: // Right curtain
-        width = EFFECT_STRIPE_CURTAIN_WIDTH * effect_counter * 2 / effect->duration;
+        width = EFFECT_STRIPE_CURTAIN_WIDTH * effect_counter * 2 / effect.duration;
         for (i = 0; i <= screen_width / EFFECT_STRIPE_CURTAIN_WIDTH; i++) {
             width2 = width - EFFECT_STRIPE_CURTAIN_WIDTH * EFFECT_STRIPE_CURTAIN_WIDTH * i / screen_width;
             if (width2 >= 0) {
@@ -207,7 +207,7 @@ int PonscripterLabel::doEffect(EffectLink* effect, AnimationInfo* anim,
         break;
 
     case 8: // Top curtain
-        height = EFFECT_STRIPE_CURTAIN_WIDTH * effect_counter * 2 / effect->duration;
+        height = EFFECT_STRIPE_CURTAIN_WIDTH * effect_counter * 2 / effect.duration;
         for (i = 0; i <= screen_height / EFFECT_STRIPE_CURTAIN_WIDTH; i++) {
             height2 = height - EFFECT_STRIPE_CURTAIN_WIDTH * EFFECT_STRIPE_CURTAIN_WIDTH * i / screen_height;
             if (height2 >= 0) {
@@ -222,7 +222,7 @@ int PonscripterLabel::doEffect(EffectLink* effect, AnimationInfo* anim,
         break;
 
     case 9: // Bottom curtain
-        height = EFFECT_STRIPE_CURTAIN_WIDTH * effect_counter * 2 / effect->duration;
+        height = EFFECT_STRIPE_CURTAIN_WIDTH * effect_counter * 2 / effect.duration;
         for (i = 0; i <= screen_height / EFFECT_STRIPE_CURTAIN_WIDTH; i++) {
             height2 = height - EFFECT_STRIPE_CURTAIN_WIDTH * EFFECT_STRIPE_CURTAIN_WIDTH * i / screen_height;
             if (height2 >= 0) {
@@ -240,12 +240,12 @@ int PonscripterLabel::doEffect(EffectLink* effect, AnimationInfo* anim,
         printf("effect No. %d is not implemented. Crossfade is substituted for that.\n", effect_no);
 
     case 10: // Cross fade
-        height = 256 * effect_counter / effect->duration;
+        height = 256 * effect_counter / effect.duration;
         alphaBlend(NULL, ALPHA_BLEND_CONST, height, &dirty_rect.bounding_box);
         break;
 
     case 11: // Left scroll
-        width = screen_width * effect_counter / effect->duration;
+        width = screen_width * effect_counter / effect.duration;
         src_rect.x = 0;
         dst_rect.x = width;
         src_rect.y = dst_rect.y = 0;
@@ -262,7 +262,7 @@ int PonscripterLabel::doEffect(EffectLink* effect, AnimationInfo* anim,
         break;
 
     case 12: // Right scroll
-        width = screen_width * effect_counter / effect->duration;
+        width = screen_width * effect_counter / effect.duration;
         src_rect.x = width;
         dst_rect.x = 0;
         src_rect.y = dst_rect.y = 0;
@@ -279,7 +279,7 @@ int PonscripterLabel::doEffect(EffectLink* effect, AnimationInfo* anim,
         break;
 
     case 13: // Top scroll
-        width = screen_height * effect_counter / effect->duration;
+        width = screen_height * effect_counter / effect.duration;
         src_rect.x = dst_rect.x = 0;
         src_rect.y = 0;
         dst_rect.y = width;
@@ -296,7 +296,7 @@ int PonscripterLabel::doEffect(EffectLink* effect, AnimationInfo* anim,
         break;
 
     case 14: // Bottom scroll
-        width = screen_height * effect_counter / effect->duration;
+        width = screen_height * effect_counter / effect.duration;
         src_rect.x = dst_rect.x = 0;
         src_rect.y = width;
         dst_rect.y = 0;
@@ -313,57 +313,57 @@ int PonscripterLabel::doEffect(EffectLink* effect, AnimationInfo* anim,
         break;
 
     case 15: // Fade with mask
-        alphaBlend(effect->anim.image_surface, ALPHA_BLEND_FADE_MASK, 256 * effect_counter / effect->duration, &dirty_rect.bounding_box);
+        alphaBlend(effect.anim.image_surface, ALPHA_BLEND_FADE_MASK, 256 * effect_counter / effect.duration, &dirty_rect.bounding_box);
         break;
 
     case 16: // Mosaic out
-        generateMosaic(effect_src_surface, 5 - 6 * effect_counter / effect->duration);
+        generateMosaic(effect_src_surface, 5 - 6 * effect_counter / effect.duration);
         break;
 
     case 17: // Mosaic in
-        generateMosaic(effect_dst_surface, 6 * effect_counter / effect->duration);
+        generateMosaic(effect_dst_surface, 6 * effect_counter / effect.duration);
         break;
 
     case 18: // Cross fade with mask
-        alphaBlend(effect->anim.image_surface, ALPHA_BLEND_CROSSFADE_MASK, 256 * effect_counter * 2 / effect->duration, &dirty_rect.bounding_box);
+        alphaBlend(effect.anim.image_surface, ALPHA_BLEND_CROSSFADE_MASK, 256 * effect_counter * 2 / effect.duration, &dirty_rect.bounding_box);
         break;
 
     case (CUSTOM_EFFECT_NO + 0): // quakey
-        if (effect_timer_resolution > effect->duration / 4 / effect->no)
-            effect_timer_resolution = effect->duration / 4 / effect->no;
+        if (effect_timer_resolution > effect.duration / 4 / effect.no)
+            effect_timer_resolution = effect.duration / 4 / effect.no;
 
         dst_rect.x = 0;
-        dst_rect.y = (Sint16) (sin(M_PI * 2.0 * effect->no * effect_counter / effect->duration) *
-                               EFFECT_QUAKE_AMP * effect->no * (effect->duration - effect_counter) / effect->duration);
+        dst_rect.y = (Sint16) (sin(M_PI * 2.0 * effect.no * effect_counter / effect.duration) *
+                               EFFECT_QUAKE_AMP * effect.no * (effect.duration - effect_counter) / effect.duration);
         SDL_FillRect(accumulation_surface, NULL, SDL_MapRGBA(accumulation_surface->format, 0, 0, 0, 0xff));
         drawEffect(&dst_rect, &src_rect, effect_dst_surface);
         break;
 
     case (CUSTOM_EFFECT_NO + 1): // quakex
-        if (effect_timer_resolution > effect->duration / 4 / effect->no)
-            effect_timer_resolution = effect->duration / 4 / effect->no;
+        if (effect_timer_resolution > effect.duration / 4 / effect.no)
+            effect_timer_resolution = effect.duration / 4 / effect.no;
 
-        dst_rect.x = (Sint16) (sin(M_PI * 2.0 * effect->no * effect_counter / effect->duration) *
-                               EFFECT_QUAKE_AMP * effect->no * (effect->duration - effect_counter) / effect->duration);
+        dst_rect.x = (Sint16) (sin(M_PI * 2.0 * effect.no * effect_counter / effect.duration) *
+                               EFFECT_QUAKE_AMP * effect.no * (effect.duration - effect_counter) / effect.duration);
         dst_rect.y = 0;
         drawEffect(&dst_rect, &src_rect, effect_dst_surface);
         break;
 
     case (CUSTOM_EFFECT_NO + 2): // quake
-        dst_rect.x = effect->no * ((int) (3.0 * rand() / (RAND_MAX + 1.0)) - 1) * 2;
-        dst_rect.y = effect->no * ((int) (3.0 * rand() / (RAND_MAX + 1.0)) - 1) * 2;
+        dst_rect.x = effect.no * ((int) (3.0 * rand() / (RAND_MAX + 1.0)) - 1) * 2;
+        dst_rect.y = effect.no * ((int) (3.0 * rand() / (RAND_MAX + 1.0)) - 1) * 2;
         SDL_FillRect(accumulation_surface, NULL, SDL_MapRGBA(accumulation_surface->format, 0, 0, 0, 0xff));
         drawEffect(&dst_rect, &src_rect, effect_dst_surface);
         break;
     }
 
-    //printf("effect conut %d / dur %d\n", effect_counter, effect->duration);
+    //printf("effect conut %d / dur %d\n", effect_counter, effect.duration);
 
     effect_counter += effect_timer_resolution;
-    if (effect_counter < effect->duration && effect_no != 1) {
+    if (effect_counter < effect.duration && effect_no != 1) {
         if (effect_no)
 	    flush(REFRESH_NONE_MODE, NULL, false);
-	effect->duration = prevduration;
+	effect.duration = prevduration;
         return RET_WAIT | RET_REREAD;
     }
     else {
@@ -375,7 +375,7 @@ int PonscripterLabel::doEffect(EffectLink* effect, AnimationInfo* anim,
         if (effect_no == 1)
 	    effect_counter = 0;
 
-        effect->duration = prevduration;
+        effect.duration = prevduration;
         event_mode = IDLE_EVENT_MODE;
 
         return RET_CONTINUE;

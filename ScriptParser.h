@@ -234,27 +234,23 @@ protected:
 
     /* ---------------------------------------- */
     /* Effect related variables */
-    struct EffectLink {
-        struct EffectLink* next;
+    struct Effect {
+        typedef std::vector<Effect> vector;
+	typedef vector::iterator iterator;
         int no;
         int effect;
         int duration;
         AnimationInfo anim;
 
-        EffectLink() {
-            next     = NULL;
-            effect   = 10;
-            duration = 0;
-        };
-    };
-
-    EffectLink root_effect_link, * last_effect_link, window_effect, tmp_effect;
+        Effect() : effect(10), duration(0) {}
+    } window_effect, tmp_effect;
+    Effect::vector effects;
 
     int  effect_blank;
     bool effect_cut_flag;
 
-    int readEffect(EffectLink* effect);
-    EffectLink* parseEffect(bool init_flag);
+    int readEffect(Effect& effect);
+    Effect& parseEffect(bool init_flag);
 
     /* ---------------------------------------- */
     /* Lookback related variables */

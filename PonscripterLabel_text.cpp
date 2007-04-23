@@ -220,7 +220,7 @@ int PonscripterLabel::enterTextDisplayMode(bool text_flag)
 
     if (!(display_mode & TEXT_DISPLAY_MODE)) {
         if (event_mode & EFFECT_EVENT_MODE) {
-            if (doEffect(&window_effect, NULL, DIRECT_EFFECT_IMAGE, false) ==
+            if (doEffect(window_effect, NULL, DIRECT_EFFECT_IMAGE, false) ==
 		RET_CONTINUE)
 	    {
                 display_mode = TEXT_DISPLAY_MODE;
@@ -237,7 +237,7 @@ int PonscripterLabel::enterTextDisplayMode(bool text_flag)
             dirty_rect.clear();
             dirty_rect.add(sentence_font_info.pos);
 
-            return setEffect(&window_effect);
+            return setEffect(window_effect);
         }
     }
 
@@ -250,7 +250,7 @@ int PonscripterLabel::leaveTextDisplayMode()
     if (display_mode & TEXT_DISPLAY_MODE
         && erase_text_window_mode != 0) {
         if (event_mode & EFFECT_EVENT_MODE) {
-            if (doEffect(&window_effect, NULL, DIRECT_EFFECT_IMAGE, false) ==
+            if (doEffect(window_effect, NULL, DIRECT_EFFECT_IMAGE, false) ==
 		RET_CONTINUE)
 	    {
                 display_mode = NORMAL_DISPLAY_MODE;
@@ -265,7 +265,7 @@ int PonscripterLabel::leaveTextDisplayMode()
             SDL_BlitSurface(accumulation_surface, NULL,
 			    accumulation_comp_surface, NULL);
             dirty_rect.add(sentence_font_info.pos);
-            return setEffect(&window_effect);
+            return setEffect(window_effect);
         }
     }
 

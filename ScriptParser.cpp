@@ -280,19 +280,8 @@ void ScriptParser::reset()
 
     window_effect.effect   = 1;
     window_effect.duration = 0;
-    root_effect_link.no = 0;
-    root_effect_link.effect   = 0;
-    root_effect_link.duration = 0;
-
-    EffectLink* link = root_effect_link.next;
-    while (link) {
-        EffectLink* tmp = link;
-        link = link->next;
-        delete tmp;
-    }
-    last_effect_link = &root_effect_link;
-    last_effect_link->next = NULL;
-
+    effects.clear();
+    
     readLog(script_h.log_info[ScriptHandler::LABEL_LOG]);
 
     current_mode = DEFINE_MODE;
@@ -763,53 +752,44 @@ void ScriptParser::readToken()
 }
 
 
-int ScriptParser::readEffect(EffectLink* effect)
+int ScriptParser::readEffect(Effect& effect)
 {
     int num = 1;
 
-    effect->effect = script_h.readInt();
+    effect.effect = script_h.readInt();
     if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
-        num++;
-        effect->duration = script_h.readInt();
+        ++num;
+        effect.duration = script_h.readInt();
         if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
-            num++;
-            const char* buf = script_h.readStr();
-            effect->anim.setImageName(buf);
+            ++num;
+            effect.anim.setImageName(script_h.readStr());
         }
         else
-            effect->anim.remove();
+            effect.anim.remove();
     }
-    else if (effect->effect < 0 || effect->effect > 255) {
-        fprintf(stderr, "Effect %d is out of range and is switched to 0.\n", effect->effect);
-        effect->effect = 0; // to suppress error
+    else if (effect.effect < 0 || effect.effect > 255) {
+        fprintf(stderr, "Effect %d is out of range and is switched to 0.\n", effect.effect);
+        effect.effect = 0; // to suppress error
     }
-
-    //printf("readEffect %d: %d %d %s\n", num, effect->effect, effect->duration, effect->anim.image_name );
     return num;
 }
 
 
-ScriptParser::EffectLink* ScriptParser::parseEffect(bool init_flag)
+ScriptParser::Effect& ScriptParser::parseEffect(bool init_flag)
 {
     if (init_flag) tmp_effect.anim.remove();
     
-    int num = readEffect(&tmp_effect);
+    int num = readEffect(tmp_effect);
 
-    if (num > 1) return &tmp_effect;
+    if (num > 1) return tmp_effect;
 
-    if (tmp_effect.effect == 0 || tmp_effect.effect == 1) return &tmp_effect;
+    if (tmp_effect.effect == 0 || tmp_effect.effect == 1) return tmp_effect;
 
-    EffectLink* link = &root_effect_link;
-    while (link) {
-        if (link->no == tmp_effect.effect) return link;
-
-        link = link->next;
-    }
+    for (Effect::iterator it = effects.begin(); it != effects.end(); ++it)
+        if (it->no == tmp_effect.effect) return *it;
 
     fprintf(stderr, "Effect No. %d is not found.\n", tmp_effect.effect);
     exit(-1);
-
-    return NULL;
 }
 
 

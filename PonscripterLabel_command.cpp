@@ -1015,13 +1015,13 @@ int PonscripterLabel::quakeCommand(const string& cmd)
     }
 
     if (event_mode & EFFECT_EVENT_MODE) {
-        return doEffect(&tmp_effect, NULL, DIRECT_EFFECT_IMAGE);
+        return doEffect(tmp_effect, NULL, DIRECT_EFFECT_IMAGE);
     }
     else {
         dirty_rect.fill(screen_width, screen_height);
         SDL_BlitSurface(accumulation_surface, NULL, effect_dst_surface, NULL);
 
-        return setEffect(&tmp_effect); // 2 is dummy value
+        return setEffect(tmp_effect); // 2 is dummy value
     }
 }
 

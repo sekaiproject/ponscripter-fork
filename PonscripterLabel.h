@@ -607,8 +607,8 @@ private:
     int effect_start_time;
     int effect_start_time_old;
 
-    int  setEffect(EffectLink* effect);
-    int  doEffect(EffectLink* effect, AnimationInfo* anim, int effect_image,
+    int setEffect(const Effect& effect);
+    int doEffect(Effect& effect, AnimationInfo* anim, int effect_image,
 		  bool clear_dirty_region = true);
     void drawEffect(SDL_Rect* dst_rect, SDL_Rect* src_rect,
 		    SDL_Surface* surface);
