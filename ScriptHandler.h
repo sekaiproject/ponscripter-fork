@@ -182,8 +182,10 @@ public:
     ArrayVariable* getRootArrayVariable();
     void loadArrayVariable(FILE* fp);
 
-    void addNumAlias(const string& str, int no);
-    void addStrAlias(const string& str1, const string& str2);
+    void addNumAlias(const string& str, int no)
+	{ num_aliases[str] = no; }
+    void addStrAlias(const string& str1, const string& str2)
+	{ str_aliases[str1] = str2; }
 
     enum { LABEL_LOG = 0,
            FILE_LOG  = 1 };
@@ -253,24 +255,6 @@ private:
            OP_MOD   = 6    // 110
     };
 
-    struct Alias {
-        Alias* next;
-        string alias;
-        int num;
-        string str;
-
-        Alias() {
-            next = NULL;
-        };
-        Alias(const string& name, int num) : alias(name) {
-            next = NULL;
-            this->num = num;
-        };
-        Alias(const string& name, const string& s) : alias(name), str(s) {
-            next = NULL;
-        };
-    };
-
     LabelInfo::iterator findLabel(string label);
 
     char* checkComma(char* buf);
@@ -283,8 +267,10 @@ private:
 
     /* ---------------------------------------- */
     /* Variable */
-    Alias root_num_alias, * last_num_alias;
-    Alias root_str_alias, * last_str_alias;
+    typedef dictionary<string, int>::t    numalias_t;
+    typedef dictionary<string, string>::t stralias_t;
+    numalias_t num_aliases;
+    stralias_t str_aliases;
 
     ArrayVariable* root_array_variable, * current_array_variable;
 

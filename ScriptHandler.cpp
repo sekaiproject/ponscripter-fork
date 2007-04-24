@@ -87,28 +87,9 @@ void ScriptHandler::reset()
     resetLog(log_info[LABEL_LOG]);
     resetLog(log_info[FILE_LOG]);
 
-    // reset number alias
-    Alias* alias;
-    alias = root_num_alias.next;
-    while (alias) {
-        Alias* tmp = alias;
-        alias = alias->next;
-        delete tmp;
-    }
-    ;
-    last_num_alias = &root_num_alias;
-    last_num_alias->next = NULL;
-
-    // reset string alias
-    alias = root_str_alias.next;
-    while (alias) {
-        Alias* tmp = alias;
-        alias = alias->next;
-        delete tmp;
-    }
-    ;
-    last_str_alias = &root_str_alias;
-    last_str_alias->next = NULL;
+    // reset aliases
+    num_aliases.clear();
+    str_aliases.clear();
 
     // reset misc. variables
     end_status = END_NONE;
@@ -1123,21 +1104,6 @@ ScriptHandler::ArrayVariable* ScriptHandler::getRootArrayVariable()
 }
 
 
-void ScriptHandler::addNumAlias(const string& str, int no)
-{
-    Alias* p_num_alias = new Alias(str.c_str(), no);
-    last_num_alias->next = p_num_alias;
-    last_num_alias = last_num_alias->next;
-}
-
-
-void ScriptHandler::addStrAlias(const string& str1, const string& str2)
-{
-    Alias* p_str_alias = new Alias(str1.c_str(), str2.c_str());
-    last_str_alias->next = p_str_alias;
-    last_str_alias = last_str_alias->next;
-}
-
 
 void ScriptHandler::errorAndExit(const char* str)
 {
@@ -1304,20 +1270,12 @@ void ScriptHandler::parseStr(char** buf)
             return;
         }
 
-        Alias* p_str_alias = root_str_alias.next;
-
-        while (p_str_alias) {
-            if (p_str_alias->alias == alias_buf) {
-                str_string_buffer = p_str_alias->str;
-                break;
-            }
-            p_str_alias = p_str_alias->next;
-        }
-        if (!p_str_alias) {
+	stralias_t::iterator a = str_aliases.find(alias_buf);
+	if (a == str_aliases.end()) {
             printf("can't find str alias for %s...\n", alias_buf.c_str());
             exit(-1);
-        }
-
+	}
+	str_string_buffer = a->second;
         current_variable.type |= VAR_CONST;
     }
 }
@@ -1394,22 +1352,17 @@ int ScriptHandler::parseInt(char** buf)
         /* ---------------------------------------- */
         /* Solve num aliases */
         if (num_alias_flag) {
-            Alias* p_num_alias = root_num_alias.next;
 
-            while (p_num_alias) {
-                if (p_num_alias->alias == alias_buf) {
-                    alias_no = p_num_alias->num;
-                    break;
-                }
-
-                p_num_alias = p_num_alias->next;
-            }
-            if (!p_num_alias) {
+	    numalias_t::iterator a = num_aliases.find(alias_buf);
+	    if (a == num_aliases.end()) {
                 printf("can't find num alias for %s... assume 0.\n", alias_buf.c_str());
                 current_variable.type = VAR_NONE;
                 *buf = buf_start;
                 return 0;
-            }
+	    }
+	    else {
+		alias_no = a->second;
+	    }
         }
 
         current_variable.type = VAR_INT | VAR_CONST;
