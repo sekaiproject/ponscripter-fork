@@ -175,11 +175,10 @@ int ScriptParser::straliasCommand(const string& cmd)
     if (current_mode != DEFINE_MODE)
 	errorAndExit("stralias: not in the define section");
 
-    script_h.readLabel();
-    const char* save_buf = script_h.saveStringBuffer();
-    const char* buf = script_h.readStr();
+    string label = script_h.readLabel();
+    string value = script_h.readStr();
 
-    script_h.addStrAlias(save_buf, buf);
+    script_h.addStrAlias(label, value);
 
     return RET_CONTINUE;
 }
@@ -383,11 +382,9 @@ int ScriptParser::numaliasCommand(const string& cmd)
     if (current_mode != DEFINE_MODE)
 	errorAndExit("numalias: numalias: not in the define section");
 
-    script_h.readLabel();
-    const char* save_buf = script_h.saveStringBuffer();
-
+    string label = script_h.readLabel();
     int no = script_h.readInt();
-    script_h.addNumAlias(save_buf, no);
+    script_h.addNumAlias(label, no);
 
     return RET_CONTINUE;
 }
@@ -547,21 +544,20 @@ int ScriptParser::midCommand(const string& cmd)
 
     int no = script_h.current_variable.var_no;
 
-    script_h.readStr();
-    const char*  save_buf = script_h.saveStringBuffer();
+    string src = script_h.readStr();
     unsigned int start = script_h.readInt();
     unsigned int len = script_h.readInt();
 
     ScriptHandler::VariableData &vd = script_h.variable_data[no];
 
-    if (start >= strlen(save_buf)) {
+    if (start >= src.size()) {
         vd.str.clear();
     }
     else {
-        if (start + len > strlen(save_buf))
-            len = strlen(save_buf) - start;
+        if (start + len > src.size())
+            len = src.size() - start;
 
-	vd.str.assign(save_buf + start, len);
+	vd.str = src.substr(start, len);
     }
 
     return RET_CONTINUE;
@@ -831,8 +827,7 @@ int ScriptParser::ifCommand(const string& cmd)
             }
             else {
                 script_h.setCurrent(script_h.getCurrent());
-                buf = script_h.readStr();
-                const char* save_buf = script_h.saveStringBuffer();
+		string save_buf = script_h.readStr();
 
                 op_buf = script_h.getNext();
 
@@ -849,7 +844,7 @@ int ScriptParser::ifCommand(const string& cmd)
 
                 buf = script_h.readStr();
 
-                int val = strcmp(save_buf, buf);
+                int val = save_buf.compare(buf);
                 if (op_buf[0] == '>' && op_buf[1] == '=') f = (val >= 0);
                 else if (op_buf[0] == '<' && op_buf[1] == '=') f = (val <= 0);
                 else if (op_buf[0] == '=' && op_buf[1] == '=') f = (val == 0);
@@ -1210,12 +1205,10 @@ int ScriptParser::clickvoiceCommand(const string& cmd)
 
 int ScriptParser::clickstrCommand(const string& cmd)
 {
-    script_h.readStr();
-    const char* buf = script_h.saveStringBuffer();
-
+    string buf = script_h.readStr();
     clickstr_line = script_h.readInt();
 
-    script_h.setClickstr(buf);
+    script_h.setClickstr(buf.c_str());
 
     return RET_CONTINUE;
 }

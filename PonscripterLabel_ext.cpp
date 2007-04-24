@@ -198,8 +198,7 @@ int PonscripterLabel::haeleth_ligate_controlCommand(const string& cmd)
         DefaultLigatures(4);
     }
     else {
-        script_h.readStr();
-        const char* in = script_h.saveStringBuffer();
+        string in = script_h.readStr();
         if (script_h.compareString("remove")) {
             script_h.readLabel();
             DeleteLigature(in);

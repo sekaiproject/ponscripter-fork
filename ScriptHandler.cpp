@@ -408,12 +408,12 @@ void ScriptHandler::skipToken()
 }
 
 
-// string access function
-const char* ScriptHandler::saveStringBuffer()
-{
-    saved_string_buffer = string_buffer;
-    return saved_string_buffer.c_str();
-}
+//// string access function
+//const char* ScriptHandler::saveStringBuffer()
+//{
+//    saved_string_buffer = string_buffer;
+//    return saved_string_buffer.c_str();
+//}
 
 
 // script address direct manipulation function
@@ -1123,17 +1123,17 @@ ScriptHandler::ArrayVariable* ScriptHandler::getRootArrayVariable()
 }
 
 
-void ScriptHandler::addNumAlias(const char* str, int no)
+void ScriptHandler::addNumAlias(const string& str, int no)
 {
-    Alias* p_num_alias = new Alias(str, no);
+    Alias* p_num_alias = new Alias(str.c_str(), no);
     last_num_alias->next = p_num_alias;
     last_num_alias = last_num_alias->next;
 }
 
 
-void ScriptHandler::addStrAlias(const char* str1, const char* str2)
+void ScriptHandler::addStrAlias(const string& str1, const string& str2)
 {
-    Alias* p_str_alias = new Alias(str1, str2);
+    Alias* p_str_alias = new Alias(str1.c_str(), str2.c_str());
     last_str_alias->next = p_str_alias;
     last_str_alias = last_str_alias->next;
 }
@@ -1224,7 +1224,8 @@ void ScriptHandler::parseStr(char** buf)
         current_variable.type |= VAR_CONST;
     }
     else if (**buf == '^') {
-        str_string_buffer.assign(1, *(*buf)++);
+        str_string_buffer.clear();
+	(*buf)++;
 
         char ch = **buf;
         while (ch != '^' && ch != 0x0a && ch != '\0') {

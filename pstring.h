@@ -9,13 +9,14 @@
 // In bool contexts, strings are true if non-empty.
 
 // Extensions are a Perl-like shift/unshift/push/pop set, a vector-like
-// back(), and a set of UTF-8-aware iterators.
+// back(), a "split" function, and a set of UTF-8-aware iterators.
 
 #ifndef PSTRING_H
 #define PSTRING_H
 
 #include <stdio.h>
 #include <string>
+#include <vector>
 
 class string;
 #include "utf8_util.h"
@@ -295,7 +296,20 @@ public:
     witerator wbegin() { return witerator(*this, c_str()); }
     witerator wend() { return witerator(); }
 
-    string parseTags() {
+    std::vector<string> split(const string& delimiter)
+    {
+	std::vector<string> rv;
+	size_type spos = 0, epos;
+	while ((epos = find(delimiter, spos)) != npos) {
+	    rv.push_back(substr(spos, epos - spos));
+	    spos = epos + delimiter.size();
+	}
+	rv.push_back(substr(spos, size() - spos));
+	return rv;
+    }
+    
+    string parseTags()
+    {
 	string rv;
 	witerator it = wbegin();
 	if (*it == '^') {
@@ -303,8 +317,7 @@ public:
 	    ++it;
 	}
 	while (it.pos) {
-	    const wchar c = *it;
-	    if (c == '~' && *++it != '~') {
+	    if (*it == '~' && *++it != '~') {
 		while (*it != '~') {
 		    int l;
 		    rv += TranslateTag(it.pos, l);
@@ -313,8 +326,7 @@ public:
 		++it;
 	    }
 	    else {
-		rv += c;
-		++it;
+		rv += *it++;
 	    }
 	}
 	return rv;

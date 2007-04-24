@@ -472,32 +472,25 @@ int PonscripterLabel::spreloadCommand(const string& cmd)
 
 int PonscripterLabel::splitCommand(const string& cmd)
 {
-    script_h.readStr();
-    const char* save_buf = script_h.saveStringBuffer();
-
-    char delimiter = script_h.readStr()[0];
-
-    char token[256];
+    string buf = script_h.readStr();
+    string delimiter = script_h.readStr();
+    delimiter.erase(CharacterBytes(delimiter.c_str()));
+    std::vector<string> parts = buf.split(delimiter);
+    printf("Splitting %s on %s: %lu parts\n", buf.c_str(), delimiter.c_str(), parts.size());
+    std::vector<string>::const_iterator it = parts.begin();
     while (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
-        unsigned int c = 0;
-        while (save_buf[c] != delimiter && save_buf[c] != '\0') c++;
-        memcpy(token, save_buf, c);
-        token[c] = '\0';
-
-        script_h.readVariable();
-        if (script_h.current_variable.type & ScriptHandler::VAR_INT
-            || script_h.current_variable.type & ScriptHandler::VAR_ARRAY) {
-            script_h.setInt(&script_h.current_variable, atoi(token));
+	script_h.readVariable();
+        if (script_h.current_variable.type & ScriptHandler::VAR_INT ||
+            script_h.current_variable.type & ScriptHandler::VAR_ARRAY) {
+	    int val = it == parts.end() ? 0 : atoi(it->c_str());
+            script_h.setInt(&script_h.current_variable, val);
         }
         else if (script_h.current_variable.type & ScriptHandler::VAR_STR) {
             script_h.variable_data[script_h.current_variable.var_no].str =
-		token;
+		it == parts.end() ? "" : *it;
         }
-
-        save_buf += c;
-        if (save_buf[0] != '\0') save_buf++;
+	++it;
     }
-
     return RET_CONTINUE;
 }
 

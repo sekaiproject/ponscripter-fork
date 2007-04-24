@@ -50,8 +50,8 @@ void SetEncoding(int& encoding, const char flag);
 
 string TranslateTag(const char* flag, int& in_len);
 
-void AddLigature(const char* in, wchar out);
-void DeleteLigature(const char* in);
+void AddLigature(const string& in, wchar out);
+void DeleteLigature(const string& in);
 void DefaultLigatures(int which);
 void ClearLigatures();
 void DumpLigatures();

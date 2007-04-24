@@ -54,7 +54,7 @@ public:
     };
 
     struct ArrayVariable {
-        struct ArrayVariable* next;
+        ArrayVariable* next;
         int no;
         int num_dim;
         int dim[20];
@@ -122,7 +122,7 @@ public:
 
     // function for string access
     inline string& getStringBuffer() { return string_buffer; }
-    const char* saveStringBuffer();
+    //const char* saveStringBuffer();
     void addStringBuffer(char ch) { string_buffer += ch; }
 
     // function for direct manipulation of script address
@@ -182,8 +182,8 @@ public:
     ArrayVariable* getRootArrayVariable();
     void loadArrayVariable(FILE* fp);
 
-    void addNumAlias(const char* str, int no);
-    void addStrAlias(const char* str1, const char* str2);
+    void addNumAlias(const string& str, int no);
+    void addStrAlias(const string& str1, const string& str2);
 
     enum { LABEL_LOG = 0,
            FILE_LOG  = 1 };

@@ -25,88 +25,64 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <map>
 
-static struct ligature {
-    char bytes;
-    char* in;
+struct ligature {
+    typedef std::vector<ligature> vec;
+    typedef vec::iterator iterator;
+    typedef std::map<char, vec> map;
+    string in;
     wchar out;
-    ligature* next;
-}* ligs[0x80];
+    ligature(string i, wchar o) : in(i), out(o) {}
 
-ligature*
-GetLigatureRef(const char* string)
+    static const ligature undef;
+};
+static ligature::map ligs;
+const ligature ligature::undef("", 0);
+
+const ligature&
+GetLigatureRef(const string& string)
 {
-    ligature* lig;
-    if ((lig = ligs[*(unsigned char*) string])) {
-        do {
-            if (strncmp(string, lig->in, lig->bytes) == 0) return lig;
-        } while ((lig = lig->next));
+    ligature::vec& v = ligs[string[0]];
+    for (ligature::iterator it = v.begin(); it != v.end(); ++it) {
+	if (string.compare(0, it->in.size(), it->in) == 0) return *it;
     }
-
-    return 0;
+    return ligature::undef;
 }
 
 
 void
-AddLigature(const char* in, wchar out)
+AddLigature(const string& in, wchar out)
 {
-    const int c = *(unsigned char*) in;
-    if (ligs[c]) {
-        ligature* lig = ligs[c];
-        do {
-            if (strcmp(in, lig->in) == 0) {
-                lig->out = out;
-                return;
-            }
-        } while ((lig = lig->next));
+    ligature::vec& v = ligs[in[0]];
+    for (ligature::iterator it = v.begin(); it != v.end(); ++it) {
+	if (it->in == in) {
+	    it->out = out;
+	    return;
+	}
     }
-
-    ligature* nl = new ligature;
-    nl->bytes = strlen(in);
-    nl->in = new char[nl->bytes];
-    strcpy(nl->in, in);
-    nl->out  = out;
-    nl->next = ligs[c];
-    ligs[c]  = nl;
+    v.push_back(ligature(in, out));
 }
 
 
 void
 ClearLigatures()
 {
-    for (int i = 0; i < 0x80; ++i) {
-        while (ligs[i]) {
-            ligature* lig = ligs[i];
-            delete[] lig->in;
-            ligs[i] = lig->next;
-            delete lig;
-        }
-    }
+    ligs.clear();
 }
 
 
 void
-DeleteLigature(const char* in)
+DeleteLigature(const string& in)
 {
-    const int c = *(unsigned char*) in;
-    if (ligs[c]) {
-        ligature* lig = ligs[c];
-        if (strcmp(lig->in, in) == 0) {
-            delete[] lig->in;
-            ligs[c] = lig->next;
-            delete lig;
-        }
-        else while (lig->next) {
-                if (strcmp(lig->next->in, in) == 0) {
-                    ligature* del = lig->next;
-                    lig->next = del->next;
-                    delete[] del->in;
-                    delete del;
-                    return;
-                }
-
-                lig = lig->next;
-            }
+    ligature::map::iterator lit = ligs.find(in[0]);
+    if (lit == ligs.end()) return;
+    ligature::vec& v = lit->second;
+    for (ligature::iterator it = v.begin(); it != v.end(); ++it) {
+	if (it->in == in) {
+	    v.erase(it);
+	    return;
+	}
     }
 }
 
@@ -151,15 +127,11 @@ DumpLigatures()
 {
     printf("------------------------------------------------------------"
            "-------------------\nDumping ligatures...\n");
-    for (int i = 0; i < 0x80; ++i) {
-        ligature* lig = ligs[i];
-        if (lig) {
-            printf("Ligatures of '%c':\n", i);
-            while (lig) {
-                printf("  %s -> U+%04x\n", lig->in, lig->out);
-                lig = lig->next;
-            }
-        }
+    for (ligature::map::iterator it = ligs.begin(); it != ligs.end(); ++it) {
+	printf("Ligatures of '%c':\n", it->first);
+	for (ligature::iterator li = it->second.begin();
+	     li != it->second.end(); ++li)
+	    printf("  %s -> U+%04x\n", li->in.c_str(), li->out);
     }
 }
 
@@ -179,8 +151,8 @@ CharacterBytes(const char* string)
         // extended codes
         if (c == '|') return t[1] == '|' ? 2 : 1 + CharacterBytes(string + 1);
 
-        ligature* lig = GetLigatureRef(string);
-        return lig ? lig->bytes : 1;
+        const ligature& lig = GetLigatureRef(string);
+        return lig.out ? lig.in.size() : 1;
     }
     else {
         if ((c & 0xc0) == 0x80)
@@ -205,8 +177,8 @@ UnicodeOfUTF8(const char* string)
     if (c < 0x80) {
         if (c == '|') return (t[1] == '|') ? '|' : UnicodeOfUTF8(string + 1);
 
-        ligature* lig = GetLigatureRef(string);
-        return lig ? lig->out : c;
+        const ligature& lig = GetLigatureRef(string);
+        return lig.out ? lig.out : c;
     }
     else {
         if ((c & 0xc0) == 0x80)
