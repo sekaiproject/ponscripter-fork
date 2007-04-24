@@ -281,8 +281,8 @@ void ScriptParser::reset()
     window_effect.effect   = 1;
     window_effect.duration = 0;
     effects.clear();
-    
-    readLog(script_h.log_info[ScriptHandler::LABEL_LOG]);
+
+    script_h.label_log.read(script_h);
 
     current_mode = DEFINE_MODE;
 }
@@ -642,66 +642,6 @@ void ScriptParser::readArrayVariable()
         }
 
         av = av->next;
-    }
-}
-
-
-void ScriptParser::writeLog(ScriptHandler::LogInfo &info)
-{
-    file_io_buf_ptr = 0;
-    bool output_flag = false;
-    for (int n = 0; n < 2; n++) {
-        int  i, j;
-        char buf[10];
-
-        sprintf(buf, "%d", info.num_logs);
-        for (i = 0; i < (int) strlen(buf); i++) writeChar(buf[i], output_flag);
-
-        writeChar(0x0a, output_flag);
-
-        ScriptHandler::LogLink* cur = info.root_log.next;
-        for (i = 0; i < info.num_logs; i++) {
-            writeChar('"', output_flag);
-            for (j = 0; j < (int) strlen(cur->name); j++)
-                writeChar(cur->name[j] ^ 0x84, output_flag);
-
-            writeChar('"', output_flag);
-            cur = cur->next;
-        }
-
-        if (n == 1) break;
-
-        allocFileIOBuf();
-        output_flag = true;
-    }
-
-    if (saveFileIOBuf(info.filename)) {
-        fprintf(stderr, "can't write %s\n", info.filename);
-        exit(-1);
-    }
-}
-
-
-void ScriptParser::readLog(ScriptHandler::LogInfo &info)
-{
-    script_h.resetLog(info);
-
-    if (loadFileIOBuf(info.filename) == 0) {
-        int  i, j, ch, count = 0;
-        char buf[100];
-
-        while ((ch = readChar()) != 0x0a) {
-            count = count * 10 + ch - '0';
-        }
-
-        for (i = 0; i < count; i++) {
-            readChar();
-            j = 0;
-            while ((ch = readChar()) != '"') buf[j++] = ch ^ 0x84;
-            buf[j] = '\0';
-
-            script_h.findAndAddLog(info, buf, true);
-        }
     }
 }
 

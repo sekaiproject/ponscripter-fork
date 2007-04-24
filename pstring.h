@@ -8,8 +8,9 @@
 
 // In bool contexts, strings are true if non-empty.
 
-// Extensions are a Perl-like shift/unshift/push/pop set, a vector-like
-// back(), a "split" function, and a set of UTF-8-aware iterators.
+// Extensions are a Perl-like shift/unshift/push/pop set, a
+// vector-like back(), split/uppercase/replace functions, a set of
+// UTF-8-aware iterators...
 
 #ifndef PSTRING_H
 #define PSTRING_H
@@ -296,6 +297,8 @@ public:
     witerator wbegin() { return witerator(*this, c_str()); }
     witerator wend() { return witerator(); }
 
+    // Miscellanea
+    
     std::vector<string> split(const string& delimiter)
     {
 	std::vector<string> rv;
@@ -306,6 +309,18 @@ public:
 	}
 	rv.push_back(substr(spos, size() - spos));
 	return rv;
+    }
+
+    void uppercase()
+    {
+	for (std::string::iterator it = c.begin(); it != c.end(); ++it)
+	    if (*it >= 'a' && *it <= 'z') *it -= 32;
+    }
+
+    void replace(char what, char with)
+    {
+	for (std::string::iterator it = c.begin(); it != c.end(); ++it)
+	    if (*it == what) *it = with;
     }
     
     string parseTags()

@@ -628,10 +628,10 @@ int ScriptParser::lookbackspCommand(const string& cmd)
         lookback_sp[i] = script_h.readInt();
 
     if (filelog_flag) {
-        script_h.findAndAddLog(script_h.log_info[ScriptHandler::FILE_LOG], DEFAULT_LOOKBACK_NAME0, true);
-        script_h.findAndAddLog(script_h.log_info[ScriptHandler::FILE_LOG], DEFAULT_LOOKBACK_NAME1, true);
-        script_h.findAndAddLog(script_h.log_info[ScriptHandler::FILE_LOG], DEFAULT_LOOKBACK_NAME2, true);
-        script_h.findAndAddLog(script_h.log_info[ScriptHandler::FILE_LOG], DEFAULT_LOOKBACK_NAME3, true);
+	script_h.file_log.add(DEFAULT_LOOKBACK_NAME0);
+	script_h.file_log.add(DEFAULT_LOOKBACK_NAME1);
+	script_h.file_log.add(DEFAULT_LOOKBACK_NAME2);
+	script_h.file_log.add(DEFAULT_LOOKBACK_NAME3);
     }
 
     return RET_CONTINUE;
@@ -784,13 +784,13 @@ int ScriptParser::ifCommand(const string& cmd)
             script_h.readLabel();
 	    buf = script_h.readStr();
 
-            f = (script_h.findAndAddLog(script_h.log_info[ScriptHandler::FILE_LOG], buf, false) != NULL);
+	    f = script_h.file_log.find(buf);
         }
         else if (script_h.compareString("lchk")) {
             script_h.readLabel();
 	    buf = script_h.readStr();
 
-            f = (script_h.findAndAddLog(script_h.log_info[ScriptHandler::LABEL_LOG], buf + 1, false) != NULL);
+            f = script_h.label_log.find(buf);
         }
         else {
             int no = script_h.readInt();
@@ -1009,7 +1009,7 @@ int ScriptParser::filelogCommand(const string& cmd)
 	errorAndExit("filelog: not in the define section");
 
     filelog_flag = true;
-    readLog(script_h.log_info[ScriptHandler::FILE_LOG]);
+    script_h.file_log.read(script_h);
 
     return RET_CONTINUE;
 }

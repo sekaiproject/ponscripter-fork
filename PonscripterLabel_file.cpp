@@ -47,13 +47,6 @@ extern "C" void c2pstrcpy(Str255 dst, const char* src);
 
 #define READ_LENGTH 4096
 
-inline string str(int i)
-{
-    char buf[1024];
-    sprintf(buf, "%d", i);
-    return string(buf);
-}
-
 void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
 {
     string filename;

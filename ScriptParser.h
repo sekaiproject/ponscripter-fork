@@ -379,8 +379,6 @@ protected:
     void readVariables(int from, int to);
     void writeArrayVariable(bool output_flag);
     void readArrayVariable();
-    void writeLog(ScriptHandler::LogInfo &info);
-    void readLog(ScriptHandler::LogInfo &info);
 
     /* ---------------------------------------- */
     /* System customize related variables */

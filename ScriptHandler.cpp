@@ -40,8 +40,8 @@ ScriptHandler::ScriptHandler()
 {
     script_buffer = NULL;
     kidoku_buffer = NULL;
-    log_info[LABEL_LOG].filename = "NScrllog.dat";
-    log_info[FILE_LOG].filename  = "NScrflog.dat";
+    label_log.filename = "NScrllog.dat";
+    file_log.filename  = "NScrflog.dat";
     clickstr_list = NULL;
 
     string_buffer       = new char[STRING_BUFFER_LENGTH];
@@ -84,8 +84,8 @@ void ScriptHandler::reset()
     root_array_variable = current_array_variable = NULL;
 
     // reset log info
-    resetLog(log_info[LABEL_LOG]);
-    resetLog(log_info[FILE_LOG]);
+    label_log.clear();
+    file_log.clear();
 
     // reset aliases
     num_aliases.clear();
@@ -1037,7 +1037,7 @@ int ScriptHandler::labelScript()
 ScriptHandler::LabelInfo ScriptHandler::lookupLabel(const string& label)
 {
     LabelInfo::iterator i = findLabel(label);
-    findAndAddLog(log_info[LABEL_LOG], i->name.c_str(), true);
+    label_log.add(label);
     return *i;
 }
 
@@ -1046,55 +1046,10 @@ ScriptHandler::LabelInfo ScriptHandler::lookupLabelNext(const string& label)
 {
     LabelInfo::iterator i = findLabel(label);
     if (++i != label_info.end()) {
-	findAndAddLog(log_info[LABEL_LOG], i->name.c_str(), true);
+	label_log.add(label);
         return *i;
     }
     return LabelInfo();
-}
-
-
-ScriptHandler::LogLink*
-ScriptHandler::findAndAddLog(LogInfo &info, const char* name, bool add_flag)
-{
-    char capital_name[256];
-    for (unsigned int i = 0; i < strlen(name) + 1; i++) {
-        capital_name[i] = name[i];
-        if ('a' <= capital_name[i] && capital_name[i] <= 'z')
-	    capital_name[i] += 'A' - 'a';
-        else if (capital_name[i] == '/') capital_name[i] = '\\';
-    }
-
-    LogLink* cur = info.root_log.next;
-    while (cur) {
-        if (!strcmp(cur->name, capital_name)) break;
-
-        cur = cur->next;
-    }
-    if (!add_flag || cur) return cur;
-
-    LogLink* link = new LogLink();
-    link->name = new char[strlen(capital_name) + 1];
-    strcpy(link->name, capital_name);
-    info.current_log->next = link;
-    info.current_log = info.current_log->next;
-    info.num_logs++;
-
-    return link;
-}
-
-
-void ScriptHandler::resetLog(LogInfo &info)
-{
-    LogLink* link = info.root_log.next;
-    while (link) {
-        LogLink* tmp = link;
-        link = link->next;
-        delete tmp;
-    }
-
-    info.root_log.next = NULL;
-    info.current_log = &info.root_log;
-    info.num_logs = 0;
 }
 
 
@@ -1156,7 +1111,8 @@ void ScriptHandler::parseStr(char** buf)
 
         (*buf)++;
 
-        if (findAndAddLog(log_info[FILE_LOG], str_string_buffer.c_str(), false)) {
+	// What the heck does this do?!
+        if (file_log.find(str_string_buffer)) {
             parseStr(buf);
 	    string tmp_buf = str_string_buffer; // FIXME: hideous ugliness
             parseStr(buf);
@@ -1526,12 +1482,14 @@ int* ScriptHandler::getArrayPtr(int no, ArrayVariable &array, int offset)
 
     int dim = 0, i;
     for (i = 0; i < av->num_dim; i++) {
-        if (av->dim[i] <= array.dim[i]) errorAndExit("dim[i] <= array.dim[i].");
+        if (av->dim[i] <= array.dim[i])
+	    errorAndExit("dim[i] <= array.dim[i].");
 
         dim = dim * av->dim[i] + array.dim[i];
     }
 
-    if (av->dim[i - 1] <= array.dim[i - 1] + offset) errorAndExit("dim[i-1] <= array.dim[i-1] + offset.");
+    if (av->dim[i - 1] <= array.dim[i - 1] + offset)
+	errorAndExit("dim[i-1] <= array.dim[i-1] + offset.");
 
     return &av->data[dim + offset];
 }
@@ -1565,4 +1523,75 @@ void ScriptHandler::declareDim()
     memset(current_array_variable->data, 0, sizeof(int) * dim);
 
     next_script = buf;
+}
+
+bool ScriptHandler::LogInfo::find(string what)
+{
+    if (what[0] == '*') what.shift();
+    what.uppercase();
+    what.replace('/', '\\');
+    return logged.find(what) != logged.end();
+}
+
+void ScriptHandler::LogInfo::add(string what)
+{
+    if (what[0] == '*') what.shift();
+    what.uppercase();
+    what.replace('/', '\\');    
+    if (logged.find(what) == logged.end()) {
+	logged.insert(what);
+	ordered.push_back(&(*logged.find(what)));
+    }
+}
+
+void ScriptHandler::LogInfo::write(ScriptHandler& h)
+{
+    string buf = str(ordered.size()) + '\n';
+    for (ordered_t::const_iterator it = ordered.begin();
+	 it != ordered.end(); ++it) {
+	buf += '"';
+	for (string::const_iterator si = (*it)->begin(); si != (*it)->end();
+	     ++si)
+	    buf += char(*si ^ 0x84);
+	buf += '"';
+    }
+    FILE* f = h.fopen(filename.c_str(), "wb", true);
+    if (f) {
+	fwrite(buf.data(), 1, buf.size(), f);
+	fclose(f);
+    }
+    else {
+        fprintf(stderr, "can't write %s\n", filename.c_str());
+        exit(-1);
+    }
+}
+
+void ScriptHandler::LogInfo::read(ScriptHandler& h)
+{
+    clear();
+    FILE* f = h.fopen(filename.c_str(), "rb", true);
+    size_t len = 1, ret = 0;
+    char* buf = 0;
+    if (f) {
+	fseek(f, 0, SEEK_END);
+	len = ftell(f);
+	buf = new char[len];
+	fseek(f, 0, SEEK_SET);
+	ret = fread(buf, 1, len, f);
+	fclose(f);
+    }
+    if (ret == len) {
+	int count = 0;
+	char *it = buf;
+	while (*it != '\n') count = count * 10 + *it++ - '0';
+	++it; // \n
+	while (count--) {
+	    string item;
+	    ++it; // "
+	    while (*it != '"') item += char(*it++ ^ 0x84);
+	    ++it; // "
+	    add(item);
+	}
+    }
+    if (buf) delete[] buf;
 }

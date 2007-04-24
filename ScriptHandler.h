@@ -182,33 +182,25 @@ public:
     ArrayVariable* getRootArrayVariable();
     void loadArrayVariable(FILE* fp);
 
-    void addNumAlias(const string& str, int no)
-	{ num_aliases[str] = no; }
-    void addStrAlias(const string& str1, const string& str2)
-	{ str_aliases[str1] = str2; }
+    void addNumAlias(const string& str, int val)
+	{ num_aliases[str] = val; }
+    void addStrAlias(const string& str, const string& val)
+	{ str_aliases[str] = val; }
 
-    enum { LABEL_LOG = 0,
-           FILE_LOG  = 1 };
-    struct LogLink {
-        LogLink* next;
-        char* name;
 
-        LogLink() {
-            next = NULL;
-            name = NULL;
-        };
-        ~LogLink() {
-            if (name) delete[] name;
-        };
-    };
-    struct LogInfo {
-        LogLink root_log;
-        LogLink* current_log;
-        int num_logs;
-        char* filename;
-    } log_info[2];
-    LogLink* findAndAddLog(LogInfo &info, const char* name, bool add_flag);
-    void resetLog(LogInfo &info);
+    class LogInfo {
+	typedef set<string>::t logged_t;
+	logged_t logged;
+	typedef std::vector<const string*> ordered_t;
+	ordered_t ordered;
+    public:
+	string filename;
+	bool find(string what);
+	void add(string what);
+	void clear() { ordered.clear(); logged.clear(); }
+	void write(ScriptHandler& h);
+	void read(ScriptHandler& h);
+    } label_log, file_log;
 
     /* ---------------------------------------- */
     /* Variable */

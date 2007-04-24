@@ -1216,9 +1216,8 @@ SDL_Surface* PonscripterLabel::loadImage(const char* file_name, bool* has_alpha)
             fprintf(stderr, " *** can't find file [%s] ***\n", file_name);
         return 0;
     }
-    if (filelog_flag)
-        script_h.findAndAddLog(script_h.log_info[ScriptHandler::FILE_LOG],
-			       file_name, true);
+    if (filelog_flag) script_h.file_log.add(file_name);
+
     unsigned char* buffer = new unsigned char[length];
     int location;
     ScriptHandler::cBR->getFile(file_name, buffer, &location);
@@ -1462,9 +1461,7 @@ void PonscripterLabel::loadCursor(int no, const char* str, int x, int y,
 
     parseTaggedString(&cursor_info[no]);
     setupAnimationInfo(&cursor_info[no]);
-    if (filelog_flag)
-        script_h.findAndAddLog(script_h.log_info[ScriptHandler::FILE_LOG],
-			       cursor_info[no].file_name.c_str(), true);
+    if (filelog_flag) script_h.file_log.add(cursor_info[no].file_name);
     cursor_info[no].abs_flag = abs_flag;
     if (cursor_info[no].image_surface)
         cursor_info[no].visible = true;
@@ -1477,8 +1474,8 @@ void PonscripterLabel::saveAll()
 {
     saveEnvData();
     saveGlobalData();
-    if (filelog_flag) writeLog(script_h.log_info[ScriptHandler::FILE_LOG]);
-    if (labellog_flag) writeLog(script_h.log_info[ScriptHandler::LABEL_LOG]);
+    if (filelog_flag) script_h.file_log.write(script_h);
+    if (labellog_flag) script_h.label_log.write(script_h);
     if (kidokuskip_flag) script_h.saveKidokuData();
 }
 

@@ -32,8 +32,23 @@ struct set {
 #endif
 };
 
-template <typename T> inline T pred(T t) { return --t; }
-template <typename T> inline T succ(T t) { return ++t; }
+template<typename T> inline T pred(T t) { return --t; }
+template<typename T> inline T succ(T t) { return ++t; }
+
+inline string str(int i)
+{
+    char buf[1024];
+    sprintf(buf, "%d", i);
+    return string(buf);
+}
+
+inline string str(size_t i)
+{
+    char buf[1024];
+    sprintf(buf, "%lu", i);
+    return string(buf);
+}
+
 
 struct __attribute__((__packed__))
 rgb_t {
