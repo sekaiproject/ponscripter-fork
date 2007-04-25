@@ -120,12 +120,12 @@ void PonscripterLabel::drawChar(const char* text, FontInfo* info, bool flush_fla
         drawGlyph(surface, info, color, unicode, x, y, false, cache_info,
 		  clip, dst_rect);
 
+	info->addShadeArea(dst_rect, shade_distance);
         if (surface == accumulation_surface && !flush_flag
             && (!clip || AnimationInfo::doClipping(&dst_rect, clip) == 0)) {
             dirty_rect.add(dst_rect);
         }
         else if (flush_flag) {
-            info->addShadeArea(dst_rect, shade_distance);
             flushDirect(dst_rect, REFRESH_NONE_MODE);
         }
 

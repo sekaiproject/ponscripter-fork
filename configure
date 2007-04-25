@@ -219,6 +219,7 @@ else
     $echo_n "Checking C compiler... ${nobr}"
     case "$($CC --version 2>/dev/null | head -1)" in
     gcc*) echo gcc ;;
+    *apple*gcc*) echo gcc ;;
     *)  echo "error"
         cat <<-_ERR
 
@@ -237,6 +238,7 @@ then
     $echo_n "Checking C++ compiler... ${nobr}"
     case "$($CXX --version 2>/dev/null | head -1)" in
     g++*) echo g++ ;;
+    *apple*g++*) echo g++ ;;
     *)  echo "error"
         cat <<-_ERR
 

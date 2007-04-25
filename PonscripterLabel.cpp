@@ -557,6 +557,9 @@ int PonscripterLabel::init()
     if (script_h.save_path.empty()) {
         // Per-platform configuration for saved games.
         string gameid = script_h.game_identifier;
+	if (!gameid) {
+	    gameid = "Ponscripter-" + str(script_h.getScriptBufferLength(), 16);
+	}
 #ifdef WIN32
         // On Windows, store in [Profiles]/All Users/Application Data.
         // TODO: optionally permit saves to be per-user rather than shared?
@@ -614,13 +617,6 @@ int PonscripterLabel::init()
         // any better ideas.
         script_h.save_path = archive_path;
 #endif
-    }
-    if (script_h.game_identifier.empty()) {
-        fprintf(stderr,
-            "This game is not intended to be played with Ponscripter.\n"
-            "Please play it with NScripter instead, or with a properly "
-	    "compatible clone\nsuch as ONScripter.\n");
-        exit(-1);
     }
 
     initSDL();
@@ -875,7 +871,7 @@ flush(int refresh_mode, SDL_Rect* rect, bool clear_dirty_flag,
 }
 
 
-void PonscripterLabel::flushDirect(SDL_Rect &rect, int refresh_mode)
+void PonscripterLabel::flushDirect(SDL_Rect &rect, int refresh_mode, bool updaterect)
 {
     refreshSurface(accumulation_surface, &rect, refresh_mode);
 
@@ -893,7 +889,7 @@ void PonscripterLabel::flushDirect(SDL_Rect &rect, int refresh_mode)
     }
     
     SDL_BlitSurface(accumulation_surface, &rect, screen_surface, &rect);
-    SDL_UpdateRect(screen_surface, rect.x, rect.y, rect.w, rect.h);
+    if (updaterect) SDL_UpdateRect(screen_surface, rect.x, rect.y, rect.w, rect.h);
 }
 
 

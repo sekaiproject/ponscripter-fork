@@ -616,7 +616,7 @@ int PonscripterLabel::setwindow3Command(const string& cmd)
     line_enter_status = 0;
     display_mode = NORMAL_DISPLAY_MODE;
     flush(refreshMode(), &sentence_font_info.pos);
-
+    
     return RET_CONTINUE;
 }
 
@@ -1538,8 +1538,11 @@ int PonscripterLabel::loadgameCommand(const string& cmd)
 
 int PonscripterLabel::ldCommand(const string& cmd)
 {
+    // TEST rca spriteanim patch
+#ifdef NO_RCA_CHANGES
     int ret = leaveTextDisplayMode();
     if (ret != RET_NOMATCH) return ret;
+#endif
 
     char loc = script_h.readLabel()[0];
     int no = -1;
@@ -2642,8 +2645,11 @@ int PonscripterLabel::clickCommand(const string& cmd)
 
 int PonscripterLabel::clCommand(const string& cmd)
 {
+    // TEST rca spriteanim patch
+#ifdef NO_RCA_CHANGES
     int ret = leaveTextDisplayMode();
     if (ret != RET_NOMATCH) return ret;
+#endif
 
     char loc = script_h.readLabel()[0];
 

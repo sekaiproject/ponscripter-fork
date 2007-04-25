@@ -35,17 +35,17 @@ struct set {
 template<typename T> inline T pred(T t) { return --t; }
 template<typename T> inline T succ(T t) { return ++t; }
 
-inline string str(int i)
+inline string str(int i, int radix = 10)
 {
     char buf[1024];
-    sprintf(buf, "%d", i);
+    sprintf(buf, radix == 16 ? "%x" : "%d", i);
     return string(buf);
 }
 
-inline string str(size_t i)
+inline string str(size_t i, int radix = 10)
 {
     char buf[1024];
-    sprintf(buf, "%lu", i);
+    sprintf(buf, radix == 16 ? "%lx" : "%lu", i);
     return string(buf);
 }
 

@@ -122,7 +122,6 @@ public:
 
     // function for string access
     inline string& getStringBuffer() { return string_buffer; }
-    //const char* saveStringBuffer();
     void addStringBuffer(char ch) { string_buffer += ch; }
 
     // function for direct manipulation of script address
@@ -132,6 +131,8 @@ public:
     void pushCurrent(char* pos);
     void popCurrent();
 
+    int getScriptBufferLength() const { return script_buffer_length; }
+    
     int  getOffset(char* pos);
     char* getAddress(int offset);
     int  getLineByAddress(char* address);

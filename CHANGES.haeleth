@@ -1,9 +1,28 @@
+2007-04-25
+
+  Merge in an adapted version of the `drawfix' patch to speed up
+  screen updates in windowed mode, plus a number of other patches:
+
+  Reduce flicker when sprites are changed (Roine Gustafsson)
+
+  Fix gcc detection on OS X (Roine)
+
+  Support multiple games without game IDs at the same time (Roine)
+
+  Fix incorrect clipping of text shadow (Roine)
+
+
+2007-04-15
+
+  Merge in useful fixes from onscripter-20070206.
+
+
 2007-01
 
   Redesign build system to support automatic platform/dependency detection and 
   to allow bundling of dependencies.  This makes it plausible to distribute 
   the Linux version as source code, since a straight configure-make cycle 
-  should finally "just work".  (TODO: backport to ONScripter!)
+  should finally "just work".
 
   Reimplement menu handling initially stripped out during proportionalisation. 
   Right-click menus now function as in ONScripter.  Built-in save/load menus
