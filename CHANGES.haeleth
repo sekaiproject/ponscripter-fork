@@ -12,6 +12,12 @@
   Fix incorrect clipping of text shadow (Roine)
 
 
+2007-04
+
+  Major cleanup of source code, including conversion of many aspects
+  to use C++ idioms and STL containers.
+
+
 2007-04-15
 
   Merge in useful fixes from onscripter-20070206.
