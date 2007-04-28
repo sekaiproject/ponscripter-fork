@@ -23,7 +23,6 @@
  */
 
 #include "PonscripterLabel.h"
-#include "utf8_util.h"
 
 /* h_textextent <ivar>,<string>,[size_x],[size_y],[pitch_x]
  *
@@ -35,7 +34,7 @@ int PonscripterLabel::haeleth_text_extentCommand(const string& cmd)
     script_h.readInt();
     script_h.pushVariable();
     string buf = script_h.readStr();
-    if (buf[0] == '^') buf.shift();
+    if (buf[0] == encoding->TextMarker()) buf.shift();
 
     FontInfo f = sentence_font;
     if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
@@ -61,7 +60,7 @@ int PonscripterLabel::haeleth_text_extentCommand(const string& cmd)
 int PonscripterLabel::haeleth_centre_lineCommand(const string& cmd)
 {
     string buf = script_h.readStr();
-    if (buf[0] == '^') buf.shift();
+    if (buf[0] == encoding->TextMarker()) buf.shift();
 
     sentence_font.SetXY(float (screen_width) / 2.0 -
 			sentence_font.StringAdvance(buf) / 2.0 -
@@ -85,7 +84,7 @@ int PonscripterLabel::haeleth_char_setCommand(const string& cmd)
 
     string buf = script_h.readStr();
     string::witerator it = buf.wbegin();
-    if (*it == '^') ++it;
+    if (*it == encoding->TextMarker()) ++it;
     while (it != buf.wend()) {
 	char_set.insert(*it++);
     }
@@ -102,16 +101,16 @@ int PonscripterLabel::haeleth_char_setCommand(const string& cmd)
 int PonscripterLabel::haeleth_font_styleCommand(const string& cmd)
 {
     const char* buf = script_h.readStr();
-    if (*buf == '^') ++buf;
+    if (*buf == encoding->TextMarker()) ++buf;
 
     FontInfo::default_encoding = 0;
-    while (*buf && *buf != '^' && *buf != '"') {
+    while (*buf && *buf != encoding->TextMarker() && *buf != '"') {
         if (*buf == 'c') {
             ++buf;
             if (*buf >= '0' && *buf <= '7')
                 FontInfo::default_encoding = *buf++ - '0';
         }
-        else SetEncoding(FontInfo::default_encoding, *buf++);
+        else encoding->SetStyle(FontInfo::default_encoding, *buf++);
     }
     sentence_font.style = FontInfo::default_encoding;
     return RET_CONTINUE;

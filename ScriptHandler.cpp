@@ -25,7 +25,6 @@
 
 #include "ScriptHandler.h"
 #include "FontInfo.h"
-#include "utf8_util.h"
 #include <ctype.h>
 
 #define TMP_SCRIPT_BUF_LEN 4096
@@ -107,14 +106,6 @@ void ScriptHandler::reset()
 }
 
 
-FILE* ScriptHandler::fopen(const char* path, const char* mode, const bool save)
-{
-    string file_name = save ? save_path : archive_path;
-    file_name += path;
-    return ::fopen(file_name.c_str(), mode);
-}
-
-
 void ScriptHandler::setKeyTable(const unsigned char* key_table)
 {
     int i;
@@ -161,7 +152,7 @@ const char* ScriptHandler::readToken()
         bool loop_flag = true;
         bool ignore_click_flag = false;
         do {
-            char bytes = CharacterBytes(buf);
+            char bytes = encoding->CharacterBytes(buf);
             if (bytes > 1) {
                 if (textgosub_flag && !ignore_click_flag &&
 		    checkClickstr(buf) > 0) loop_flag = false;
@@ -189,19 +180,19 @@ const char* ScriptHandler::readToken()
                 }
 
                 if (ch >= '0' && ch <= '9' &&
-		    (*buf == ' ' || *buf == '\t' || *buf == '^') &&
+		    (*buf == ' ' || *buf == '\t' || *buf == encoding->TextMarker()) &&
 		    string_buffer.size() % 2)
 		    string_buffer += ' ';
 
                 ch = *buf;
-                if (ch == 0x0a || ch == '\0' || !loop_flag || ch == '^')
+                if (ch == 0x0a || ch == '\0' || !loop_flag || ch == encoding->TextMarker())
 		    break;
 
                 SKIP_SPACE(buf);
                 ch = *buf;
             }
         }
-        while (ch != 0x0a && ch != '\0' && loop_flag && ch != '^') /*nop*/;
+        while (ch != 0x0a && ch != '\0' && loop_flag && ch != encoding->TextMarker()) /*nop*/;
         if (loop_flag && ch == 0x0a && !(textgosub_flag && linepage_flag)) {
             string_buffer += ch;
             markAsKidoku(buf++);
@@ -209,19 +200,19 @@ const char* ScriptHandler::readToken()
 
         text_flag = true;
     }
-    else if (ch == '^') {
+    else if (ch == encoding->TextMarker()) {
         ch = *++buf;
-        while (ch != '^' && ch != 0x0a && ch != '\0') {
+        while (ch != encoding->TextMarker() && ch != 0x0a && ch != '\0') {
             if ((ch == '\\' || ch == '@') && (buf[1] == 0x0a || buf[1] == 0)) {
                 string_buffer += *buf++;
                 ch = *buf;
                 break;
             }
 
-            if (ch == '~' && (ch = *++buf) != '~') {
+            if (encoding->UseTags() && ch == '~' && (ch = *++buf) != '~') {
                 while (ch != '~') {
                     int l;
-		    string_buffer += TranslateTag(buf, l);
+		    string_buffer += encoding->TranslateTag(buf, l);
                     buf += l;
                     ch = *buf;
                 }
@@ -229,12 +220,12 @@ const char* ScriptHandler::readToken()
                 continue;
             }
 
-            const unsigned short uc = UnicodeOfUTF8(buf);
-            buf += CharacterBytes(buf);
-            string_buffer += UTF8OfUnicode(uc);
+            const wchar uc = encoding->Decode(buf);
+            buf += encoding->CharacterBytes(buf);
+            string_buffer += encoding->Encode(uc);
             ch = *buf;
         }
-        if (ch == '^') ++buf;
+        if (ch == encoding->TextMarker()) ++buf;
 
         if (ch == 0x0a && !(textgosub_flag && linepage_flag)) {
             string_buffer += ch;
@@ -377,7 +368,7 @@ void ScriptHandler::skipToken()
 
         if (*buf == '"') quat_flag = !quat_flag;
 
-        const char bytes = CharacterBytes(buf);
+        const char bytes = encoding->CharacterBytes(buf);
         if (bytes > 1 && !quat_flag) text_flag = true;
 
         buf += bytes;
@@ -557,8 +548,8 @@ void ScriptHandler::setKidokuskip(bool kidokuskip_flag)
 void ScriptHandler::saveKidokuData()
 {
     FILE* fp;
-
-    if ((fp = fopen("kidoku.dat", "wb", true)) == NULL) {
+    string fnam = save_path + "kidoku.dat";
+    if ((fp = fopen(fnam.c_str(), "wb")) == NULL) {
         fprintf(stderr, "can't write kidoku.dat\n");
         return;
     }
@@ -571,12 +562,12 @@ void ScriptHandler::saveKidokuData()
 void ScriptHandler::loadKidokuData()
 {
     FILE* fp;
-
+    string fnam = save_path + "kidoku.dat";
     setKidokuskip(true);
     kidoku_buffer = new char[script_buffer_length / 8 + 1];
     memset(kidoku_buffer, 0, script_buffer_length / 8 + 1);
 
-    if ((fp = fopen("kidoku.dat", "rb", true)) != NULL) {
+    if ((fp = fopen(fnam.c_str(), "rb")) != NULL) {
         fread(kidoku_buffer, 1, script_buffer_length / 8, fp);
         fclose(fp);
     }
@@ -621,7 +612,7 @@ int ScriptHandler::checkClickstr(const char* buf, bool recursive_flag)
     //bool double_byte_check = true;
     char* click_buf = clickstr_list;
     while (click_buf[0]) {
-        if (click_buf[0] == '^') {
+        if (click_buf[0] == encoding->TextMarker()) {
             click_buf++;
             //double_byte_check = false;
             continue;
@@ -641,7 +632,7 @@ int ScriptHandler::checkClickstr(const char* buf, bool recursive_flag)
         //	}
         //	click_buf++;
         //}
-        char bytes = CharacterBytes(click_buf);
+        char bytes = encoding->CharacterBytes(click_buf);
         bool match = true;
         for (int i = 0; i < bytes; ++i) match &= click_buf[i] == buf[i];
 
@@ -861,31 +852,43 @@ int ScriptHandler::readScriptSub(FILE* fp, char** buf, int encrypt_mode)
 }
 
 
+enum encodings { UTF8, CP932 };
+static struct filetypes_t {
+    char* filename;
+    int encryption;
+    encodings encoding;
+} filetypes[] = {
+    { "0.txt",        0, CP932 }, { "0.utf",        0, UTF8 },
+    { "00.txt",       0, CP932 }, { "00.utf",       0, UTF8 },
+    { "nscr_sec.dat", 2, CP932 }, { "pscr_sec.dat", 2, UTF8 },
+    { "nscript.___",  3, CP932 }, { "pscript.___",  3, UTF8 },
+    { "nscript.dat",  1, CP932 }, { "pscript.dat",  1, UTF8 },
+    { 0, 0, UTF8 }
+};
+
 int ScriptHandler::readScript(const char* path)
 {
     archive_path = path;
 
     FILE* fp = NULL;
     char  filename[10];
-    int   i, encrypt_mode = 0;
-    if ((fp = fopen("0.txt", "rb")) != NULL) {
-        encrypt_mode = 0;
-    }
-    else if ((fp = fopen("00.txt", "rb")) != NULL) {
-        encrypt_mode = 0;
-    }
-    else if ((fp = fopen("nscr_sec.dat", "rb")) != NULL) {
-        encrypt_mode = 2;
-    }
-    else if ((fp = fopen("nscript.___", "rb")) != NULL) {
-        encrypt_mode = 3;
-    }
-    else if ((fp = fopen("nscript.dat", "rb")) != NULL) {
-        encrypt_mode = 1;
+    int i, encrypt_mode;
+    encodings enc;
+
+    for (filetypes_t* ft = filetypes; ft->filename; ++ft) {
+	if ((fp = fopen(ft->filename, "rb")) != NULL) {
+	    encrypt_mode = ft->encryption;
+	    enc = ft->encoding;
+	    if (enc == UTF8)
+		encoding = new UTF8Encoding;
+	    else
+		encoding = new CP932Encoding;
+	    break;
+	}
     }
 
     if (fp == NULL) {
-        fprintf(stderr, "can't open any of 0.txt, 00.txt, nscript.dat and nscript.___\n");
+        fprintf(stderr, "can't open any of 0.txt, 0.utf, 00.txt, 00.utf, nscript.dat, pscript.dat, nscript.___, or pscript.___\n");
         return -1;
     }
 
@@ -895,9 +898,9 @@ int ScriptHandler::readScript(const char* path)
     if (encrypt_mode == 0) {
         fclose(fp);
         for (i = 1; i < 100; i++) {
-            sprintf(filename, "%d.txt", i);
+            sprintf(filename, enc == UTF8 ? "%d.utf" : "%d.txt", i);
             if ((fp = fopen(filename, "rb")) == NULL) {
-                sprintf(filename, "%02d.txt", i);
+                sprintf(filename, enc == UTF8 ? "%02d.utf" : "%02d.txt", i);
                 fp = fopen(filename, "rb");
             }
 
@@ -924,9 +927,9 @@ int ScriptHandler::readScript(const char* path)
     }
     else {
         for (i = 0; i < 100; i++) {
-            sprintf(filename, "%d.txt", i);
+            sprintf(filename, enc == UTF8 ? "%d.utf" : "%d.txt", i);
             if ((fp = fopen(filename, "rb")) == NULL) {
-                sprintf(filename, "%02d.txt", i);
+                sprintf(filename, enc == UTF8 ? "%02d.utf" : "%02d.txt", i);
                 fp = fopen(filename, "rb");
             }
 
@@ -962,7 +965,8 @@ int ScriptHandler::readScript(const char* path)
             buf += 5;
             global_variable_border = 0;
             while (*buf >= '0' && *buf <= '9')
-                global_variable_border = global_variable_border * 10 + *buf++ - '0';
+                global_variable_border = global_variable_border * 10
+		                       + *buf++ - '0';
         }
         else {
             break;
@@ -1145,16 +1149,16 @@ void ScriptHandler::parseStr(char** buf)
 
         current_variable.type |= VAR_CONST;
     }
-    else if (**buf == '^') {
+    else if (**buf == encoding->TextMarker()) {
         str_string_buffer.clear();
 	(*buf)++;
 
         char ch = **buf;
-        while (ch != '^' && ch != 0x0a && ch != '\0') {
-            if (ch == '~' && (ch = *++ (*buf)) != '~') {
+        while (ch != encoding->TextMarker() && ch != 0x0a && ch != '\0') {
+	    if (encoding->UseTags() && ch == '~' && (ch = *++ (*buf)) != '~') {
                 while (ch != '~') {
                     int l;
-                    str_string_buffer += TranslateTag(*buf, l);
+                    str_string_buffer += encoding->TranslateTag(*buf, l);
                     *buf += l;
                     ch = **buf;
                 }
@@ -1162,13 +1166,13 @@ void ScriptHandler::parseStr(char** buf)
                 continue;
             }
 
-            const unsigned short uc = UnicodeOfUTF8(*buf);
-            *buf += CharacterBytes(*buf);
-            str_string_buffer += UTF8OfUnicode(uc);
+            const wchar uc = encoding->Decode(*buf);
+            *buf += encoding->CharacterBytes(*buf);
+            str_string_buffer += encoding->Encode(uc);
             ch = **buf;
         }
 
-        if (**buf == '^') (*buf)++;
+        if (**buf == encoding->TextMarker()) (*buf)++;
 
         current_variable.type |= VAR_CONST;
         end_status |= END_1BYTE_CHAR;
@@ -1555,7 +1559,8 @@ void ScriptHandler::LogInfo::write(ScriptHandler& h)
 	    buf += char(*si ^ 0x84);
 	buf += '"';
     }
-    FILE* f = h.fopen(filename.c_str(), "wb", true);
+    string fnam = h.save_path + filename;
+    FILE* f = fopen(fnam.c_str(), "wb");
     if (f) {
 	fwrite(buf.data(), 1, buf.size(), f);
 	fclose(f);
@@ -1569,7 +1574,8 @@ void ScriptHandler::LogInfo::write(ScriptHandler& h)
 void ScriptHandler::LogInfo::read(ScriptHandler& h)
 {
     clear();
-    FILE* f = h.fopen(filename.c_str(), "rb", true);
+    string fnam = h.save_path + filename;
+    FILE* f = fopen(fnam.c_str(), "rb");
     size_t len = 1, ret = 0;
     char* buf = 0;
     if (f) {

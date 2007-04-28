@@ -25,7 +25,6 @@
 
 #include "PonscripterLabel.h"
 #include "resources.h"
-#include "utf8_util.h"
 #include <ctype.h>
 
 #ifdef MACOSX
@@ -546,7 +545,9 @@ int PonscripterLabel::init()
         archive_path = "";
 #endif
     }
-
+    // Set cwd to archive path
+    chdir(archive_path.c_str());
+    
     if (key_exe_file) {
         createKeyTable(key_exe_file);
         script_h.setKeyTable(key_table);
@@ -1058,9 +1059,9 @@ bool PonscripterLabel::check_orphan_control()
     // in the text.  This is used to prevent short words being
     // stranded at the end of a line.
     if (string_buffer_offset < 5) return false;
-    const unsigned short p =
-        UnicodeOfUTF8(PreviousCharacter(script_h.getStringBuffer().c_str() +
-					string_buffer_offset));
+    const char* c = script_h.getStringBuffer().c_str();
+    const wchar p =
+	encoding->Decode(encoding->Previous(c + string_buffer_offset, c));
     return p == '.' || p == 0xff0e || p == ',' || p == 0xff0c
         || p == ':' || p == 0xff1a || p == ';' || p == 0xff1b
         || p == '!' || p == 0xff01 || p == '?' || p == 0xff1f;
@@ -1098,9 +1099,9 @@ int PonscripterLabel::parseLine()
 
 //--------INDENT ROUTINE--------------------------------------------------------
     if (sentence_font.GetXOffset() == 0 && sentence_font.GetYOffset() == 0) {
-        const unsigned short
-	    first_ch = UnicodeOfUTF8(script_h.getStringBuffer().c_str() +
-				     string_buffer_offset);
+        const wchar first_ch =
+	    encoding->Decode(script_h.getStringBuffer().c_str() +
+			     string_buffer_offset);
         if (is_indent_char(first_ch))
             sentence_font.SetIndent(first_ch);
         else
@@ -1111,18 +1112,19 @@ int PonscripterLabel::parseLine()
     ret = textCommand();
 
 //--------LINE BREAKING ROUTINE-------------------------------------------------
-    const unsigned short first_ch = UnicodeOfUTF8(script_h.getStringBuffer().c_str() +
-                                        string_buffer_offset);
+    const wchar first_ch =
+	encoding->Decode(script_h.getStringBuffer().c_str() +
+			 string_buffer_offset);
     if (is_break_char(first_ch) && !new_line_skip_flag) {
         const char* it = script_h.getStringBuffer().c_str() + string_buffer_offset
-	    + CharacterBytes(script_h.getStringBuffer().c_str() +
-                       string_buffer_offset);
-        float len = sentence_font.GlyphAdvance(first_ch, UnicodeOfUTF8(it));
+	    + encoding->CharacterBytes(script_h.getStringBuffer().c_str() +
+				       string_buffer_offset);
+        float len = sentence_font.GlyphAdvance(first_ch, encoding->Decode(it));
         while (1) {
             // For each character (not char!) before a break is found,
             // get unicode.
-            unsigned short ch = UnicodeOfUTF8(it);
-            it += CharacterBytes(it);
+            wchar ch = encoding->Decode(it);
+            it += encoding->CharacterBytes(it);
 
             // Check for token breaks.
             if (!ch || ch == '\n' || ch == '@' || ch == '\\'
@@ -1152,7 +1154,7 @@ int PonscripterLabel::parseLine()
             }
 
             // No inline command?  Use the glyph metrics, then!
-            len += sentence_font.GlyphAdvance(ch, UnicodeOfUTF8(it));
+            len += sentence_font.GlyphAdvance(ch, encoding->Decode(it));
         }
         if (check_orphan_control()) {
             // If this is the start of a sentence, or follows some

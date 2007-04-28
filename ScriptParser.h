@@ -62,9 +62,6 @@ public:
     int open();
     int parseLine();
 
-    FILE* fopen(const char* path, const char* mode, const bool save = false);
-    FILE* fopen(const string& path, const char* mode, const bool save = false)
-	{ return fopen(path.c_str(), mode, save); }
     void saveGlobalData();
 
     /* Command */

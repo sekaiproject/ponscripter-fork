@@ -20,9 +20,9 @@ GUI_OBJS = PonscripterLabel$(OBJSUFFIX)					\
 	PonscripterLabel_image$(OBJSUFFIX)				\
 	PonscripterLabel_ext$(OBJSUFFIX) AnimationInfo$(OBJSUFFIX)	\
 	FontInfo$(OBJSUFFIX) DirtyRect$(OBJSUFFIX)			\
-	resize_image$(OBJSUFFIX) utf8_util$(OBJSUFFIX)			\
+	resize_image$(OBJSUFFIX) encoding$(OBJSUFFIX)			\
 	font$(OBJSUFFIX) $(if $(NO_RESOURCES), ,resources$(OBJSUFFIX))  \
-	pstring$(OBJSUFFIX)
+	pstring$(OBJSUFFIX) cp932_encoding$(OBJSUFFIX)
 DECODER_OBJS = DirectReader$(OBJSUFFIX) SarReader$(OBJSUFFIX)	\
 	NsaReader$(OBJSUFFIX)
 PONSCR_OBJS = Ponscripter$(OBJSUFFIX) $(DECODER_OBJS)		\
@@ -48,14 +48,14 @@ pdistclean: clean $(DISTCLEAN_TARGETS)
 SarReader$(OBJSUFFIX):    BaseReader.h SarReader.h 
 NsaReader$(OBJSUFFIX):    BaseReader.h SarReader.h NsaReader.h 
 DirectReader$(OBJSUFFIX): BaseReader.h DirectReader.h
-ScriptHandler$(OBJSUFFIX): ScriptHandler.h utf8_util.h
+ScriptHandler$(OBJSUFFIX): ScriptHandler.h encoding.h
 ScriptParser$(OBJSUFFIX): $(PARSER_HEADER)
 ScriptParser_command$(OBJSUFFIX): $(PARSER_HEADER)
 Ponscripter$(OBJSUFFIX): $(PONSCR_HEADER) version.h
-PonscripterLabel$(OBJSUFFIX): $(PONSCR_HEADER) utf8_util.h
-PonscripterLabel_command$(OBJSUFFIX): $(PONSCR_HEADER) version.h utf8_util.h
-PonscripterLabel_ext$(OBJSUFFIX): $(PONSCR_HEADER) utf8_util.h
-PonscripterLabel_text$(OBJSUFFIX): $(PONSCR_HEADER) utf8_util.h font.h
+PonscripterLabel$(OBJSUFFIX): $(PONSCR_HEADER) encoding.h
+PonscripterLabel_command$(OBJSUFFIX): $(PONSCR_HEADER) version.h encoding.h
+PonscripterLabel_ext$(OBJSUFFIX): $(PONSCR_HEADER) encoding.h
+PonscripterLabel_text$(OBJSUFFIX): $(PONSCR_HEADER) encoding.h font.h
 PonscripterLabel_effect$(OBJSUFFIX): $(PONSCR_HEADER)
 PonscripterLabel_event$(OBJSUFFIX): $(PONSCR_HEADER)
 PonscripterLabel_rmenu$(OBJSUFFIX): $(PONSCR_HEADER)
@@ -66,11 +66,12 @@ PonscripterLabel_file2$(OBJSUFFIX): $(PONSCR_HEADER)
 PonscripterLabel_image$(OBJSUFFIX): $(PONSCR_HEADER) resize_image.h
 AnimationInfo$(OBJSUFFIX): AnimationInfo.h
 resources$(OBJSUFFIX): resources.h
-FontInfo$(OBJSUFFIX): FontInfo.h utf8_util.h resources.h font.h
+FontInfo$(OBJSUFFIX): FontInfo.h encoding.h resources.h font.h
 DirtyRect$(OBJSUFFIX) : DirtyRect.h
 MadWrapper$(OBJSUFFIX): MadWrapper.h
 AVIWrapper$(OBJSUFFIX): AVIWrapper.h
-utf8_util$(OBJSUFFIX): defs.h pstring.h utf8_util.h
+encoding$(OBJSUFFIX): defs.h pstring.h encoding.h
+cp932_encoding$(OBJSUFFIX): pstring.h encoding.h cp932_tables.h
 
 ifndef NO_DEFAULT_ICON
 RESOURCES ?= default.png =icon.png

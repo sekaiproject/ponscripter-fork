@@ -24,7 +24,6 @@
  */
 
 #include "PonscripterLabel.h"
-#include "utf8_util.h"
 
 int PonscripterLabel::proceedAnimation()
 {
@@ -237,6 +236,7 @@ void PonscripterLabel::setupAnimationInfo(AnimationInfo* anim, FontInfo* info)
                   *surface_m = anim->trans_mode == AnimationInfo::TRANS_MASK
 	                     ? loadImage(anim->mask_file_name)
 	                     : NULL;
+	
         anim->setupImage(surface, surface_m, has_alpha);
         if (surface)   SDL_FreeSurface(surface);
         if (surface_m) SDL_FreeSurface(surface_m);

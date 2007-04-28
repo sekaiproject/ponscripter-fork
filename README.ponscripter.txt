@@ -6,6 +6,20 @@ In no particular order, I'm afraid.
 
 
 /---------------------------------------------------------------------
+|  Filenames
+
+NScripter script files and Ponscripter script files have different
+names, as follows:
+
+  *.txt        -> *.utf
+  nscript.*    -> pscript.*
+  nscr_sec.dat -> pscr_sec.dat
+
+Ponscripter can still play NScripter games, though is not as
+compatible as ONScripter in this regard.
+
+
+/---------------------------------------------------------------------
 |  Directives
 
 NScripter files can optionally begin with a resolution directive,

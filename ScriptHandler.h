@@ -108,7 +108,6 @@ public:
     ~ScriptHandler();
 
     void reset();
-    FILE* fopen(const char* path, const char* mode, const bool save = false);
     void setKeyTable(const unsigned char* key_table);
 
     // basic parser function

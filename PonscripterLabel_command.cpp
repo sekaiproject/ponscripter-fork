@@ -25,7 +25,6 @@
 
 #include "PonscripterLabel.h"
 #include "version.h"
-#include "utf8_util.h"
 
 #if defined (MACOSX) && (SDL_COMPILEDVERSION >= 1208)
 #include <CoreFoundation/CoreFoundation.h>
@@ -474,7 +473,7 @@ int PonscripterLabel::splitCommand(const string& cmd)
 {
     string buf = script_h.readStr();
     string delimiter = script_h.readStr();
-    delimiter.erase(CharacterBytes(delimiter.c_str()));
+    delimiter.erase(encoding->CharacterBytes(delimiter.c_str()));
     std::vector<string> parts = buf.split(delimiter);
     printf("Splitting %s on %s: %lu parts\n", buf.c_str(), delimiter.c_str(), parts.size());
     std::vector<string>::const_iterator it = parts.begin();
@@ -1781,8 +1780,8 @@ int PonscripterLabel::gettagCommand(const string& cmd)
     bool end_flag = false;
     char* buf = nest_infos.back().next_script;
     while (*buf == ' ' || *buf == '\t') buf++;
-    if (zenkakko_flag && UnicodeOfUTF8(buf) == 0x3010 /*y */)
-        buf += CharacterBytes(buf);
+    if (zenkakko_flag && encoding->Decode(buf) == 0x3010 /*y */)
+        buf += encoding->CharacterBytes(buf);
     else if (*buf == '[')
         buf++;
     else
@@ -1808,9 +1807,9 @@ int PonscripterLabel::gettagCommand(const string& cmd)
             else {
                 const char* buf_start = buf;
                 while (*buf != '/'
-                       && (!zenkakko_flag || UnicodeOfUTF8(buf) != 0x3011 /* z*/)
+                       && (!zenkakko_flag || encoding->Decode(buf) != 0x3011 /* z*/)
                        && *buf != ']') {
-                    buf += CharacterBytes(buf);
+                    buf += encoding->CharacterBytes(buf);
                 }
                 script_h.variable_data[script_h.pushed_variable.var_no].str.assign(buf_start, buf - buf_start);
             }
@@ -1823,7 +1822,8 @@ int PonscripterLabel::gettagCommand(const string& cmd)
     }
     while (end_status & ScriptHandler::END_COMMA);
 
-    if (zenkakko_flag && UnicodeOfUTF8(buf) == 0x3010 /*y */) buf += CharacterBytes(buf);
+    if (zenkakko_flag && encoding->Decode(buf) == 0x3010 /*y */)
+	buf += encoding->CharacterBytes(buf);
     else if (*buf == ']') buf++;
 
     while (*buf == ' ' || *buf == '\t') buf++;
@@ -1959,7 +1959,7 @@ int PonscripterLabel::getregCommand(const string& cmd)
     printf("  reading Registry file for [%s] %s\n", path, key);
 
     FILE* fp;
-    if ((fp = fopen(registry_file, "r")) == NULL) {
+    if ((fp = fopen(registry_file.c_str(), "r")) == NULL) {
         fprintf(stderr, "Cannot open file [%s]\n", registry_file.c_str());
         return RET_CONTINUE;
     }
@@ -2208,7 +2208,7 @@ int PonscripterLabel::exec_dllCommand(const string& cmd)
     printf("  reading %s for %s\n", dll_file.c_str(), dll_name);
 
     FILE* fp;
-    if ((fp = fopen(dll_file, "r")) == NULL) {
+    if ((fp = fopen(dll_file.c_str(), "r")) == NULL) {
         fprintf(stderr, "Cannot open file [%s]\n", dll_file.c_str());
         return RET_CONTINUE;
     }
@@ -2863,8 +2863,12 @@ int PonscripterLabel::btndefCommand(const string& cmd)
             parseTaggedString(&btndef_info);
             btndef_info.trans_mode = AnimationInfo::TRANS_COPY;
             setupAnimationInfo(&btndef_info);
-            SDL_SetAlpha(btndef_info.image_surface, DEFAULT_BLIT_FLAG,
-			 SDL_ALPHA_OPAQUE);
+	    if (btndef_info.image_surface)
+		SDL_SetAlpha(btndef_info.image_surface, DEFAULT_BLIT_FLAG,
+			     SDL_ALPHA_OPAQUE);
+	    else
+		fprintf(stderr, "Could not create button: %s not found\n",
+			buf.c_str());
         }
     }
 

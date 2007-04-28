@@ -24,7 +24,6 @@
  */
 
 #include "PonscripterLabel.h"
-#include "utf8_util.h"
 
 SDL_Surface*
 PonscripterLabel::renderGlyph(Font* font, Uint16 text, int size,
@@ -93,13 +92,13 @@ PonscripterLabel::drawGlyph(SDL_Surface* dst_surface, FontInfo* info,
 
 void PonscripterLabel::drawChar(const char* text, FontInfo* info, bool flush_flag, bool lookback_flag, SDL_Surface* surface, AnimationInfo* cache_info, SDL_Rect* clip)
 {
-    int bytes = CharacterBytes(text);
+    int bytes = encoding->CharacterBytes(text);
 
     if (!info->processCode(text)) {
         // info->doSize() called in GlyphAdvance
 
-        unsigned short unicode = UnicodeOfUTF8(text);
-        float adv = info->GlyphAdvance(unicode, UnicodeOfUTF8(text + bytes));
+        wchar unicode = encoding->Decode(text);
+        float adv = info->GlyphAdvance(unicode, encoding->Decode(text + bytes));
 
         if (info->isNoRoomFor(adv)) info->newLine();
 
@@ -157,7 +156,7 @@ PonscripterLabel::drawString(const char* str, rgb_t color, FontInfo* info,
     while (*str) {
         while (*str == ' ' && skip_whitespace_flag) str++;
 
-        if (*str == '^') {
+        if (*str == encoding->TextMarker()) {
             str++;
             skip_whitespace_flag = false;
             continue;
@@ -169,7 +168,7 @@ PonscripterLabel::drawString(const char* str, rgb_t color, FontInfo* info,
         }
         else {
             drawChar(str, info, false, false, surface, cache_info);
-            str += CharacterBytes(str);
+            str += encoding->CharacterBytes(str);
         }
     }
     info->color = org_color;
@@ -196,7 +195,7 @@ void PonscripterLabel::restoreTextBuffer()
     const char* buffer = current_text_buffer->contents.c_str();
     int buffer_count = current_text_buffer->contents.size();
 
-    const unsigned short first_ch = UnicodeOfUTF8(buffer);
+    const wchar first_ch = encoding->Decode(buffer);
     if (is_indent_char(first_ch)) f_info.SetIndent(first_ch);
 
     for (int i = 0; i < buffer_count; ++i) {
@@ -205,7 +204,7 @@ void PonscripterLabel::restoreTextBuffer()
         }
         else {
             drawChar(buffer + i, &f_info, false, false, NULL, &text_info);
-            i += CharacterBytes(buffer + i) - 1;
+            i += encoding->CharacterBytes(buffer + i) - 1;
         }
     }
 }
@@ -373,7 +372,7 @@ int PonscripterLabel::textCommand()
         && (line_enter_status == 0
             || (line_enter_status == 1
                 && (script_h.getStringBuffer()[string_buffer_offset] == '['
-                    || zenkakko_flag && UnicodeOfUTF8(script_h.getStringBuffer().c_str() + string_buffer_offset) == 0x3010 /*y */)))) {
+                    || zenkakko_flag && encoding->Decode(script_h.getStringBuffer().c_str() + string_buffer_offset) == 0x3010 /*y */)))) {
         gosubReal(pretextgosub_label, script_h.getCurrent());
         line_enter_status = 1;
         return RET_CONTINUE;
@@ -423,8 +422,9 @@ int PonscripterLabel::processText()
             }
         }
         else
-            string_buffer_offset += CharacterBytes(script_h.getStringBuffer().c_str() + string_buffer_offset);
-
+            string_buffer_offset +=
+		encoding->CharacterBytes(script_h.getStringBuffer().c_str() +
+					 string_buffer_offset);
         event_mode = IDLE_EVENT_MODE;
     }
 

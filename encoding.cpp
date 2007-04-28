@@ -1,7 +1,7 @@
 /* -*- C++ -*-
  *
- *  utf8_util.cpp -- utility functions for handling Unicode text and
- *                   ligatures in Ponscripter
+ *  encoding.cpp -- ligature handling, general encoding and UTF8
+ *                  implementation
  *
  *  Copyright (c) 2007 Peter Jolly
  *
@@ -26,6 +26,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <map>
+
+Encoding* encoding = 0; // initialised in ScriptHandler::readScript
 
 struct ligature {
     typedef std::vector<ligature> vec;
@@ -64,7 +66,6 @@ AddLigature(const string& in, wchar out)
     v.push_back(ligature(in, out));
 }
 
-
 void
 ClearLigatures()
 {
@@ -85,7 +86,6 @@ DeleteLigature(const string& in)
 	}
     }
 }
-
 
 void
 DefaultLigatures(int which)
@@ -122,22 +122,8 @@ DefaultLigatures(int which)
 }
 
 
-void
-DumpLigatures()
-{
-    printf("------------------------------------------------------------"
-           "-------------------\nDumping ligatures...\n");
-    for (ligature::map::iterator it = ligs.begin(); it != ligs.end(); ++it) {
-	printf("Ligatures of '%c':\n", it->first);
-	for (ligature::iterator li = it->second.begin();
-	     li != it->second.end(); ++li)
-	    printf("  %s -> U+%04x\n", li->in.c_str(), li->out);
-    }
-}
-
-
-char
-CharacterBytes(const char* string)
+int
+UTF8Encoding::CharacterBytes(const char* string)
 {
     if (!string) return 0;
     const unsigned char* t = (const unsigned char*) string;
@@ -169,13 +155,13 @@ CharacterBytes(const char* string)
 
 
 wchar
-UnicodeOfUTF8(const char* string)
+UTF8Encoding::Decode(const char* string)
 {
     if (!string) return 0;
     const unsigned char* t = (const unsigned char*) string;
     const unsigned char  c = t[0];
     if (c < 0x80) {
-        if (c == '|') return (t[1] == '|') ? '|' : UnicodeOfUTF8(string + 1);
+        if (c == '|') return (t[1] == '|') ? '|' : Decode(string + 1);
 
         const ligature& lig = GetLigatureRef(string);
         return lig.out ? lig.out : c;
@@ -189,7 +175,7 @@ UnicodeOfUTF8(const char* string)
             return (c - 0xc0) << 6 | t[1] & 0x7f;
         else if (c < 0xf0) {
             if (c == 0xe2 && t[1] == 0x80 && t[2] == 0x8c)
-                return UnicodeOfUTF8(string + 3);
+                return Decode(string + 3);
 
             // ZWNJ
             return ((c - 0xe0) << 6 | t[1] & 0x7f) << 6 | t[2] & 0x7f;
@@ -204,19 +190,19 @@ UnicodeOfUTF8(const char* string)
 
 
 const char*
-PreviousCharacter(const char* string, const char* min)
+UTF8Encoding::Previous(const char* currpos, const char* strstart)
 {
-    if (string <= min + 1 || !string) return 0;
+    if (currpos <= strstart + 1 || !currpos) return strstart;
     unsigned char c;
     do {
-	c = *(unsigned char*)(--string) & 0xc0;
-    } while (c == 0x80 && string > min);
-    return string;
+	c = *(unsigned char*)(--currpos) & 0xc0;
+    } while (c == 0x80 && currpos > strstart);
+    return currpos;
 }
 
 
 unsigned long int
-UTF8Length(const char* string)
+Encoding::CharacterCount(const char* string)
 {
     unsigned long int rv = 0;
     while (*string) {
@@ -228,7 +214,7 @@ UTF8Length(const char* string)
 
 
 int
-UTF8OfUnicode(const wchar ch, char* out)
+UTF8Encoding::Encode(wchar ch, char* out)
 {
     unsigned char* b = (unsigned char*) out;
     if (ch <= 0x80) {
@@ -252,7 +238,7 @@ UTF8OfUnicode(const wchar ch, char* out)
 }
 
 string
-UTF8OfUnicode(const wchar ch)
+UTF8Encoding::Encode(wchar ch)
 {
     string rv;
     if (ch <= 0x80) {
@@ -272,17 +258,17 @@ UTF8OfUnicode(const wchar ch)
 
 
 void
-SetEncoding(int& encoding, const char flag)
+Encoding::SetStyle(int& style, const char flag)
 {
     switch (flag) {
     case ' ': return;
-    case 'd': encoding  = Default; return;
-    case 'r': encoding &= ~Italic; return;
-    case 'i': encoding ^= Italic;  return;
-    case 't': encoding &= ~Bold;   return;
-    case 'b': encoding ^= Bold;    return;
-    case 'f': encoding &= ~Sans;   return;
-    case 's': encoding ^= Sans;    return;
+    case 'd': style  = Default; return;
+    case 'r': style &= ~Italic; return;
+    case 'i': style ^= Italic;  return;
+    case 't': style &= ~Bold;   return;
+    case 'b': style ^= Bold;    return;
+    case 'f': style &= ~Sans;   return;
+    case 's': style ^= Sans;    return;
     case '+': case '-':   case '*': case '/':
     case 'x': case 'y': case 'n': case 'u':
         fprintf(stderr, "Warning: tag ~%c~ cannot be used in this context\n",
@@ -317,7 +303,7 @@ set_int(char val, const char* src, int& in_len, int mulby = 1, int offset = 0)
 
 
 string
-TranslateTag(const char* flag, int& in_len)
+Encoding::TranslateTag(const char* flag, int& in_len)
 {
     in_len = 1;
     switch (*flag) {

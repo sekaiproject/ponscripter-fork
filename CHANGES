@@ -1,5 +1,8 @@
 2007-04-28
 
+  Reintroduce some support for NScripter games (see
+  README.ponscripter.txt)
+
   Fix bug in selectcolor implementation that was causing select
   colours to be lost whenever the interpreter was reset.
 
@@ -31,50 +34,56 @@
 
 2007-01
 
-  Redesign build system to support automatic platform/dependency detection and 
-  to allow bundling of dependencies.  This makes it plausible to distribute 
-  the Linux version as source code, since a straight configure-make cycle 
-  should finally "just work".
+  Redesign build system to support automatic platform/dependency
+  detection and to allow bundling of dependencies.  This makes it
+  plausible to distribute the Linux version as source code, since a
+  straight configure-make cycle should finally "just work".
 
-  Reimplement menu handling initially stripped out during proportionalisation. 
-  Right-click menus now function as in ONScripter.  Built-in save/load menus
-  take advantage of proportional text to display in automatically-formatted
-  columns.
+  Reimplement menu handling initially stripped out during
+  proportionalisation.  Right-click menus now function as in
+  ONScripter.  Built-in save/load menus take advantage of proportional
+  text to display in automatically-formatted columns.
 
 2006-11-30
 
-  Increase flexibility of file embedding.  Font files can now be embedded in the
-  executable: embedded fonts will be used only if the file is not found in the
-  data directory or in the game archive.  Icon embedding is now optional; the
-  embedded icon, if present, will be used only if "icon.png" is not found in
-  the working directory.  The new system could easily be expanded to allow other
-  files to be embedded, including game data.
+  Increase flexibility of file embedding.  Font files can now be
+  embedded in the executable: embedded fonts will be used only if the
+  file is not found in the data directory or in the game archive.
+  Icon embedding is now optional; the embedded icon, if present, will
+  be used only if "icon.png" is not found in the working directory.
+  The new system could easily be expanded to allow other files to be
+  embedded, including game data.
   
 2006-11-22
 
-  Implement default data/save separation for Windows and Linux too. This should 
-  enhance Vista compatibility considerably, and make it possible to package 
-  Linux versions in a way that respects the FHS.
+  Implement default data/save separation for Windows and Linux
+  too. This should enhance Vista compatibility considerably, and make
+  it possible to package Linux versions in a way that respects the
+  FHS.
 
 2006-11-21
 
   Implement ligature customisation.
   
-  Integers can now be expressed in hexadecimal with an 0x prefix, as in C.
+  Integers can now be expressed in hexadecimal with an 0x prefix, as
+  in C.
 
 2006-09-24
 
-  Replace SDL_ttf with a simpler, saner C++ interface (the implementation still
-  being largely drawn from SDL_ttf, of course).
+  Replace SDL_ttf with a simpler, saner C++ interface (the
+  implementation still being largely drawn from SDL_ttf, of course).
 
-  Convert horizontal font positioning to use floating-point rather than integer 
-  offsets.  Begin attempts at subpixel positioning (still buggy).
+  Convert horizontal font positioning to use floating-point rather
+  than integer offsets.  Begin attempts at subpixel positioning (still
+  buggy).
   
-  In the process, glyph caching has been removed.  ONScripter uses _two_ glyph 
-  caches (!) -- one in SDL_ttf, which apparently only works on ASCII characters 
-  anyway, and one in ONScripterLabel. However, the speed of text rendering does 
-  not seem to be affected at all by removing caching, suggesting that it's a 
-  premature optimisation.  The code is simplified considerably by its removal.
+  In the process, glyph caching has been removed.  ONScripter uses
+  _two_ glyph caches (!) -- one in SDL_ttf, which apparently only
+  works on ASCII characters anyway, and one in
+  ONScripterLabel. However, the speed of text rendering does not seem
+  to be affected at all by removing caching, suggesting that it's a
+  premature optimisation.  The code is simplified considerably by its
+  removal.
 
 2006-09-18
 
@@ -86,8 +95,8 @@
   
 2006-09-08
 
-  Default icon embedded in interpreter.  (This is game-specific; users are
-  expected to use custom builds with these replaced.)
+  Default icon embedded in interpreter.  (This is game-specific; users
+  are expected to use custom builds with these replaced.)
 
 2006-09-06
 
@@ -99,11 +108,11 @@
 
 2006-09-05 (as ONScripter)
 
-  Make archive path and save path separately configurable.  Game data no longer 
-  has to be stored in a writable directory.
+  Make archive path and save path separately configurable.  Game data
+  no longer has to be stored in a writable directory.
   
-  OS X: make default archive path be the Resources folder of the application 
-  bundle, and default save path be a new subfolder of the user's 
-  Library/Preferences.  The name of the subfolder is derived from a new "game 
-  identifier" that should be specified at the top of 0.txt with a ";gameid 
-  Whatever" line immediately after the modeline.
+  OS X: make default archive path be the Resources folder of the
+  application bundle, and default save path be a new subfolder of the
+  user's Library/Preferences.  The name of the subfolder is derived
+  from a new "game identifier" that should be specified at the top of
+  0.txt with a ";gameid Whatever" line immediately after the modeline.

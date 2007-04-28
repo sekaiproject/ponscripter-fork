@@ -46,14 +46,14 @@ public:
 
     rgb_t color;
     rgb_t on_color, off_color, nofile_color;
-    int    top_x, top_y; // Top left origin
-    int    area_x, area_y; // Size of the text windows
-    int    pitch_x, pitch_y; // additional spacing
-    int    wait_time;
-    bool   is_bold;
-    bool   is_shadow;
-    bool   is_transparent;
-    bool   is_newline_accepted;
+    int   top_x, top_y; // Top left origin
+    int   area_x, area_y; // Size of the text windows
+    int   pitch_x, pitch_y; // additional spacing
+    int   wait_time;
+    bool  is_bold;
+    bool  is_shadow;
+    bool  is_transparent;
+    bool  is_newline_accepted;
     rgb_t window_color;
 
     int size() { return font_size_mod ? font_size_mod : font_size; }
@@ -71,11 +71,9 @@ public:
         return (line_space() + pitch_y) * line_number;
     }
 
-
     void SetIndent(const unsigned short indent_char) {
         indent = GlyphAdvance(indent_char, 0);
     }
-
 
     void ClearIndent() { indent = 0; }
 

@@ -20,7 +20,7 @@
 #include <vector>
 
 class string;
-#include "utf8_util.h"
+#include "encoding.h"
 
 class string {
 public:
@@ -95,7 +95,7 @@ public:
     string& append(const char* s, size_type n)
 	{ if (s) c.append(s, n); return *this; }
     string& append(wchar e)
-	{ return append(UTF8OfUnicode(e)); }
+	{ return append(encoding->Encode(e)); }
     string& append(size_type n, char e)
 	{ c.append(n, e); return *this; }
     template <class T> string& append(T first, T last)
@@ -122,7 +122,7 @@ public:
     void resize(size_type n, char e = 0) { c.resize(n, e); }
 
     string& assign(const string& s)
-	{ c.assign(s.c); return *this; }
+	{ if (&s != this) c.assign(s.c); return *this; }
     string& assign(const string& s, size_type pos, size_type n)
 	{ c.assign(s.c, pos, n); return *this; }
     string& assign(const char* s, size_type n)
@@ -248,7 +248,7 @@ public:
     string& unshift(char e) { c.insert(0, 1, e); return *this; }
 
     // Unicode handling
-    size_type wsize() { return UTF8Length(c_str()); }
+    size_type wsize() { return encoding->CharacterCount(c_str()); }
     
     class witerator {
 	friend class string;
@@ -273,13 +273,14 @@ public:
 	bool operator>(const witerator& i) const
 	    { return !i.pos ? false : (!pos ? true : pos > i.pos); }
 	wchar operator*() const
-	    { return UnicodeOfUTF8(pos); }
+	    { return encoding->Decode(pos); }
 	witerator& operator++()
-	    { pos += CharacterBytes(pos); if (pos > max) pos = 0; return *this;}
+	    { pos += encoding->CharacterBytes(pos); if (pos > max) pos = 0;
+	      return *this;}
 	witerator operator++(int)
 	    { witerator rv(*this); operator++(); return rv; }
 	witerator& operator--()
-	    { pos = PreviousCharacter(pos); return *this; }
+	    { pos = encoding->Previous(pos, min); return *this; }
 	witerator operator--(int)
 	    { witerator rv(*this); operator--(); return rv; }
 	witerator& operator+=(size_type n)
@@ -327,15 +328,12 @@ public:
     {
 	string rv;
 	witerator it = wbegin();
-	if (*it == '^') {
-	    rv += '^';
-	    ++it;
-	}
+	if (*it == encoding->TextMarker()) rv += *it++;
 	while (it.pos) {
-	    if (*it == '~' && *++it != '~') {
+	    if (encoding->UseTags() && *it == '~' && *++it != '~') {
 		while (*it != '~') {
 		    int l;
-		    rv += TranslateTag(it.pos, l);
+		    rv += encoding->TranslateTag(it.pos, l);
 		    it.pos += l;
 		}
 		++it;

@@ -27,7 +27,7 @@
  */
 
 #include "FontInfo.h"
-#include "utf8_util.h"
+#include "encoding.h"
 #include "BaseReader.h"
 #include "ScriptHandler.h"
 #include "resources.h"
@@ -40,7 +40,6 @@ int FontInfo::default_encoding = 0;
 
 static class FontsStruct {
     friend void MapFont(int, const char*);
-
     friend void MapMetrics(int, const char*);
 
     static const int count = 8;
@@ -52,11 +51,9 @@ public:
 
     FontsStruct()
     {
-        char fn[32];
         for (int i = 0; i < count; ++i) {
             font_[i] = NULL;
-            sprintf(fn, "face%d.ttf", i);
-            mapping[i] = fn;
+            mapping[i] = "face" + str(i) + ".ttf";
         }
     }
 
@@ -89,7 +86,7 @@ Font* FontsStruct::font(int style)
     if (font_[style]) return font_[style];
 
     size_t len;
-    FILE*  fp = fopen(mapping[style].c_str(), "rb");
+    FILE* fp = fopen(mapping[style].c_str(), "rb");
     if (fp) {
         fclose(fp);
         const char* metnam = NULL;
@@ -115,11 +112,18 @@ Font* FontsStruct::font(int style)
         font_[style] = new Font(data, len, mdat, mlen);
     }
     else {
-        const InternalResource* fres, * mres = NULL;
+        const InternalResource *fres, *mres = NULL;
         fres = getResource(mapping[style].c_str());
         if (metrics[style]) mres = getResource(metrics[style].c_str());
 
         if (fres) font_[style] = new Font(fres, mres);
+    }
+
+    // Fall back on default.ttf if no font was specified and
+    // face$STYLE.ttf was not found.
+    if (!font_[style] && (fp = fopen("default.ttf", "rb"))) {
+	fclose(fp);
+	font_[style] = new Font("default.ttf", NULL);
     }
 
     if (font_[style]) {
@@ -240,13 +244,13 @@ bool FontInfo::processCode(const char* text)
 float FontInfo::StringAdvance(const char* string)
 {
     doSize();
-    unsigned short unicode, next;
+    wchar unicode, next;
     float orig_x   = pos_x;
     int   orig_mod = font_size_mod, orig_style = style, orig_y = pos_y;
-    unicode = UnicodeOfUTF8(string);
+    unicode = encoding->Decode(string);
     while (*string) {
-        int cb = CharacterBytes(string);
-        next = UnicodeOfUTF8(string + cb);
+        int cb = encoding->CharacterBytes(string);
+        next = encoding->Decode(string + cb);
 	if (!processCode(string))
 	    pos_x += GlyphAdvance(unicode, next);
 

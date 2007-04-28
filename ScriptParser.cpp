@@ -458,7 +458,8 @@ void ScriptParser::allocFileIOBuf()
 int ScriptParser::saveFileIOBuf(const char* filename, int offset)
 {
     FILE* fp;
-    if ((fp = fopen(filename, "wb", true)) == NULL) return -1;
+    string fnam = script_h.save_path + filename;
+    if ((fp = fopen(fnam.c_str(), "wb")) == NULL) return -1;
 
     size_t ret = fwrite(file_io_buf + offset, 1, file_io_buf_ptr - offset, fp);
     fclose(fp);
@@ -472,7 +473,8 @@ int ScriptParser::saveFileIOBuf(const char* filename, int offset)
 int ScriptParser::loadFileIOBuf(const char* filename)
 {
     FILE* fp;
-    if ((fp = fopen(filename, "rb", true)) == NULL)
+    string fnam = script_h.save_path + filename;
+    if ((fp = fopen(fnam.c_str(), "rb")) == NULL)
         return -1;
 
     fseek(fp, 0, SEEK_END);
@@ -730,14 +732,6 @@ ScriptParser::Effect& ScriptParser::parseEffect(bool init_flag)
 
     fprintf(stderr, "Effect No. %d is not found.\n", tmp_effect.effect);
     exit(-1);
-}
-
-
-FILE* ScriptParser::fopen(const char* path, const char* mode, const bool save)
-{
-    string filename = save ? script_h.save_path : archive_path;
-    filename += path;
-    return ::fopen(filename.c_str(), mode);
 }
 
 
