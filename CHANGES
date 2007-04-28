@@ -1,3 +1,9 @@
+2007-04-28
+
+  Fix bug in selectcolor implementation that was causing select
+  colours to be lost whenever the interpreter was reset.
+
+
 2007-04-25
 
   Merge in an adapted version of the `drawfix' patch to speed up
