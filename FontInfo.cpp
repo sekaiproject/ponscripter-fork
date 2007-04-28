@@ -140,6 +140,9 @@ Font* FontInfo::font()
 
 FontInfo::FontInfo()
 {
+    on_color.set(0xff);
+    off_color.set(0xaa);
+    nofile_color.set(0x55, 0x55, 0x99);
     reset();
 }
 
@@ -147,14 +150,8 @@ FontInfo::FontInfo()
 void FontInfo::reset()
 {
     clear();
-
     font_size = 26;
-
     color.set(0xff);
-    on_color.set(0xff);
-    off_color.set(0xaa);
-    nofile_color.set(0x55, 0x55, 0x99);
-
     is_bold   = true;
     is_shadow = true;
     is_transparent = true;
