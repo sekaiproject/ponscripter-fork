@@ -295,6 +295,10 @@ bool FontInfo::isNoRoomFor(float margin)
     return pos_x + margin > area_x;
 }
 
+bool FontInfo::isNoRoomForLines(int margin)
+{
+    return pos_y + (line_space() + pitch_y) * margin > area_y;
+}
 
 bool FontInfo::isLineEmpty()
 {

@@ -1,7 +1,12 @@
 2007-04-28
 
-  Reintroduce some support for NScripter games (see
-  README.ponscripter.txt)
+  Ponscripter games now use slightly different script filenames.
+  Limited support for NScripter scripts added; output is by no means
+  identical with ONScripter, and many things will not work, but some
+  NScripter games are now playable with proportional text (even
+  proportional Japanese text!) without any porting.
+
+  Reimplement the clickstr function.
 
   Fix bug in selectcolor implementation that was causing select
   colours to be lost whenever the interpreter was reset.
@@ -21,7 +26,7 @@
   Fix incorrect clipping of text shadow (Roine)
 
 
-2007-04
+2007-04 (passim)
 
   Major cleanup of source code, including conversion of many aspects
   to use C++ idioms and STL containers.

@@ -41,7 +41,7 @@ ScriptHandler::ScriptHandler()
     kidoku_buffer = NULL;
     label_log.filename = "NScrllog.dat";
     file_log.filename  = "NScrflog.dat";
-    clickstr_list = NULL;
+    clickstr_list.clear();
 
     string_buffer       = new char[STRING_BUFFER_LENGTH];
     str_string_buffer   = new char[STRING_BUFFER_LENGTH];
@@ -97,10 +97,7 @@ void ScriptHandler::reset()
     linepage_flag  = false;
     textgosub_flag = false;
     skip_enabled = false;
-    if (clickstr_list) {
-        delete[] clickstr_list;
-        clickstr_list = NULL;
-    }
+    clickstr_list.clear();
 
     FontInfo::default_encoding = 0;
 }
@@ -154,8 +151,8 @@ const char* ScriptHandler::readToken()
         do {
             char bytes = encoding->CharacterBytes(buf);
             if (bytes > 1) {
-                if (textgosub_flag && !ignore_click_flag &&
-		    checkClickstr(buf) > 0) loop_flag = false;
+                if (textgosub_flag && !ignore_click_flag && checkClickstr(buf))
+		    loop_flag = false;
 		string_buffer.append(buf, bytes);
 		buf += bytes;
                 SKIP_SPACE(buf);
@@ -170,7 +167,7 @@ const char* ScriptHandler::readToken()
                 }
                 else {
                     if (textgosub_flag && !ignore_click_flag &&
-			checkClickstr(buf) == 1)
+			checkClickstr(buf))
                         loop_flag = false;
 
                     string_buffer += ch;
@@ -593,56 +590,25 @@ void ScriptHandler::enableTextgosub(bool val)
 }
 
 
-void ScriptHandler::setClickstr(const char* list)
+void ScriptHandler::setClickstr(string values)
 {
-    if (clickstr_list) delete[] clickstr_list;
-
-    clickstr_list = new char[strlen(list) + 2];
-    memcpy(clickstr_list, list, strlen(list) + 1);
-    clickstr_list[strlen(list) + 1] = '\0';
+    clickstr_list.clear();
+    string::witerator it = values.wbegin();
+    if (*it == encoding->TextMarker()) ++it;
+    while (it != values.wend())
+	clickstr_list.insert(*it++);
 }
 
 
 int ScriptHandler::checkClickstr(const char* buf, bool recursive_flag)
 {
     if (buf[0] == '@' || buf[0] == '\\') return 1;
-
-    if (clickstr_list == NULL) return 0;
-
-    //bool double_byte_check = true;
-    char* click_buf = clickstr_list;
-    while (click_buf[0]) {
-        if (click_buf[0] == encoding->TextMarker()) {
-            click_buf++;
-            //double_byte_check = false;
-            continue;
-        }
-
-        //if (double_byte_check){
-        //	if ( click_buf[0] == buf[0] && click_buf[1] == buf[1] ){
-        //		if (!recursive_flag && checkClickstr(buf+2, true) > 0) return 0;
-        //		return 2;
-        //	}
-        //	click_buf += 2;
-        //}
-        //else{
-        //	if ( click_buf[0] == buf[0] ){
-        //		if (!recursive_flag && checkClickstr(buf+1, true) > 0) return 0;
-        //		return 1;
-        //	}
-        //	click_buf++;
-        //}
-        char bytes = encoding->CharacterBytes(click_buf);
-        bool match = true;
-        for (int i = 0; i < bytes; ++i) match &= click_buf[i] == buf[i];
-
-        if (match) {
-            if (!recursive_flag && checkClickstr(buf + bytes, true) > 0) return 0;
-
-            return bytes;
-        }
+    wchar c = encoding->Decode(buf);
+    int bytes = encoding->CharacterBytes(buf);
+    if (clickstr_list.find(c) != clickstr_list.end()) {
+	if (!recursive_flag && checkClickstr(buf + bytes, true)) return 0;
+	return bytes;
     }
-
     return 0;
 }
 

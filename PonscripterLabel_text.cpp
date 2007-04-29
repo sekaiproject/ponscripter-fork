@@ -297,22 +297,32 @@ void PonscripterLabel::doClickEnd()
 }
 
 
-int PonscripterLabel::clickWait()
+int PonscripterLabel::clickWait(bool display_char)
 {
+    const char* c = script_h.getStringBuffer().c_str() + string_buffer_offset;
+
     skip_to_wait = 0;
 
     if ((skip_flag || draw_one_page_flag || ctrl_pressed_status) &&
 	!textgosub_label) {
         clickstr_state = CLICK_NONE;
-        flush(refreshMode());
-        string_buffer_offset++;
+	if (display_char) {
+	    drawChar(c, &sentence_font, false, true, accumulation_surface,
+		     &text_info);
+	}
+	else flush(refreshMode());
+	string_buffer_offset += encoding->CharacterBytes(c);
         num_chars_in_sentence = 0;
-
         return RET_CONTINUE | RET_NOREAD;
     }
     else {
         clickstr_state   = CLICK_WAIT;
         key_pressed_flag = false;
+	if (display_char) {
+	    drawChar(c, &sentence_font, false, true, accumulation_surface,
+		     &text_info);
+	    ++num_chars_in_sentence;
+	}
         if (textgosub_label) {
             saveoffCommand("saveoff");
 
@@ -334,12 +344,22 @@ int PonscripterLabel::clickWait()
 }
 
 
-int PonscripterLabel::clickNewPage()
+int PonscripterLabel::clickNewPage(bool display_char)
 {
+    const char* c = script_h.getStringBuffer().c_str() + string_buffer_offset;
+
     skip_to_wait = 0;
 
     clickstr_state = CLICK_NEWPAGE;
-    if (skip_flag || draw_one_page_flag || ctrl_pressed_status) flush(refreshMode());
+
+    if (display_char) {
+        drawChar(c, &sentence_font, true, true, accumulation_surface,
+		 &text_info);
+        ++num_chars_in_sentence;
+    }
+    
+    if (skip_flag || draw_one_page_flag || ctrl_pressed_status)
+	flush(refreshMode());
 
     if ((skip_flag || ctrl_pressed_status) && !textgosub_label) {
         event_mode = WAIT_SLEEP_MODE;
@@ -396,16 +416,12 @@ int PonscripterLabel::processText()
     if (event_mode & (WAIT_INPUT_MODE | WAIT_SLEEP_MODE)) {
         draw_cursor_flag = false;
         if (clickstr_state == CLICK_WAIT) {
-            if (script_h.checkClickstr(script_h.getStringBuffer().c_str() + string_buffer_offset) != 1) string_buffer_offset++;
-
-            string_buffer_offset++;
+	    string_buffer_offset += encoding->CharacterBytes(script_h.getStringBuffer().c_str() + string_buffer_offset);
             clickstr_state = CLICK_NONE;
         }
         else if (clickstr_state == CLICK_NEWPAGE) {
             event_mode = IDLE_EVENT_MODE;
-            if (script_h.checkClickstr(script_h.getStringBuffer().c_str() + string_buffer_offset) != 1) string_buffer_offset++;
-
-            string_buffer_offset++;
+	    string_buffer_offset += encoding->CharacterBytes(script_h.getStringBuffer().c_str() + string_buffer_offset);
             newPage(true);
             clickstr_state = CLICK_NONE;
             return RET_CONTINUE | RET_NOREAD;
@@ -444,10 +460,10 @@ int PonscripterLabel::processText()
     char ch = script_h.getStringBuffer()[string_buffer_offset];
 
     if (ch == '@') { // wait for click
-        return clickWait();
+        return clickWait(false);
     }
     else if (ch == '\\') { // new page
-        return clickNewPage();
+        return clickNewPage(false);
     }
     else if (ch == '_') { // Ignore following forced return
         clickstr_state = CLICK_IGNORE;
@@ -537,7 +553,19 @@ int PonscripterLabel::processText()
     else {
         notacommand:
 
-        clickstr_state = CLICK_NONE;
+	if (clickstr_state == CLICK_IGNORE) {
+	    clickstr_state = CLICK_NONE;
+	}
+	else {
+	    const char* c = script_h.getStringBuffer().c_str() +
+		            string_buffer_offset;
+	    if (script_h.checkClickstr(c)) {
+		if (sentence_font.isNoRoomForLines(clickstr_line))
+		    return clickNewPage(true);
+		else
+		    return clickWait(true);
+	    }
+	}
 
         bool flush_flag = !(skip_flag || draw_one_page_flag ||
 			    ctrl_pressed_status);

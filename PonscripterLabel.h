@@ -586,8 +586,8 @@ private:
     int  enterTextDisplayMode(bool text_flag = true);
     int  leaveTextDisplayMode();
     void doClickEnd();
-    int  clickWait();
-    int  clickNewPage();
+    int  clickWait(bool display_char);
+    int  clickNewPage(bool display_char);
     int  textCommand();
     int  processText();
 

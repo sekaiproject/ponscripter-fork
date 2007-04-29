@@ -97,6 +97,7 @@ public:
     }
 
     bool isNoRoomFor(float margin = 0.0);
+    bool isNoRoomForLines(int margin);
     bool isLineEmpty();
     bool processCode(const char* text);
     void advanceBy(float offset);

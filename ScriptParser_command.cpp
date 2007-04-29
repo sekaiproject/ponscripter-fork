@@ -1191,11 +1191,8 @@ int ScriptParser::clickvoiceCommand(const string& cmd)
 
 int ScriptParser::clickstrCommand(const string& cmd)
 {
-    string buf = script_h.readStr();
+    script_h.setClickstr(script_h.readStr());
     clickstr_line = script_h.readInt();
-
-    script_h.setClickstr(buf.c_str());
-
     return RET_CONTINUE;
 }
 

@@ -160,7 +160,7 @@ public:
     void declareDim();
 
     void enableTextgosub(bool val);
-    void setClickstr(const char* list);
+    void setClickstr(string values);
     int  checkClickstr(const char* buf, bool recursive_flag = false);
 
     void setInt(VariableInfo* var_info, int val, int offset = 0);
@@ -286,7 +286,7 @@ private:
     int   end_status;
     bool  linepage_flag;
     bool  textgosub_flag;
-    char* clickstr_list;
+    std::set<wchar> clickstr_list;
 
     char* current_script;
     char* next_script;

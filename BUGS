@@ -2,6 +2,11 @@ NB. These are all described in terms of Narcissu 2, and may not apply
 to other titles.
 
 
+NSCRIPTER COMPATIBILITY MODE
+
+* Built-in save/load menus are broken when encoding is Shift_JIS
+
+
 ENVIRONMENT
 
 * Title bar sometimes "stops working" when Beryl is active (title,
@@ -12,10 +17,8 @@ ENVIRONMENT
 
 AESTHETIC
 
-* "Product" menu is only blue if you haven't used the "return to
-  title" option from the right-click menu (i.e. reset?)
-
 * "... ..." needs kerning
+
 
 FEATURES
 

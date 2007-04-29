@@ -494,12 +494,6 @@ Largely meaningless in Western text. Both can be simulated in small
 quantities if required by judicious use of h_textextent and font
 size/position tags.
 
-  Clickstr
-  
-Never well supported in English, the clickstr function has been
-removed completely.  You will have to make all click pauses explicit
-with \.
-
   Glyph caching
 
 You may theoretically notice slightly poorer performance rendering
