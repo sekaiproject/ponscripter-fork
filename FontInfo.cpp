@@ -292,7 +292,7 @@ void FontInfo::setLineArea(int num)
 
 bool FontInfo::isNoRoomFor(float margin)
 {
-    return pos_x + margin >= area_x;
+    return pos_x + margin > area_x;
 }
 
 
