@@ -51,7 +51,8 @@ void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
 {
     string filename;
 
-    script_h.getStringFromInteger(save_file_info.sjis_no, no, (num_save_file >= 10) ? 2 : 1);
+    string s = script_h.stringFromInteger(no, num_save_file >= 10 ? 2 : 1);
+    strcpy(save_file_info.sjis_no, s.c_str());
 #if defined (LINUX) || defined (MACOSX)
     filename = script_h.save_path + "save" + str(no) + ".dat";
     struct stat buf;
@@ -63,7 +64,7 @@ void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
 
     tm = localtime(&buf.st_mtime);
 
-    save_file_info.month = tm->tm_mon + 1;
+    save_file_info.month  = tm->tm_mon + 1;
     save_file_info.day    = tm->tm_mday;
     save_file_info.hour   = tm->tm_hour;
     save_file_info.minute = tm->tm_min;
@@ -85,7 +86,7 @@ void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
     FileTimeToSystemTime(&ltm, &stm);
     CloseHandle(handle);
 
-    save_file_info.month = stm.wMonth;
+    save_file_info.month  = stm.wMonth;
     save_file_info.day    = stm.wDay;
     save_file_info.hour   = stm.wHour;
     save_file_info.minute = stm.wMinute;
@@ -97,7 +98,7 @@ void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
         return;
     }
 
-    save_file_info.month = buf.st_mtime.month;
+    save_file_info.month  = buf.st_mtime.month;
     save_file_info.day    = buf.st_mtime.day;
     save_file_info.hour   = buf.st_mtime.hour;
     save_file_info.minute = buf.st_mtime.minute;
@@ -110,16 +111,20 @@ void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
     }
     fclose(fp);
 
-    save_file_info.month = 1;
+    save_file_info.month  = 1;
     save_file_info.day    = 1;
     save_file_info.hour   = 0;
     save_file_info.minute = 0;
 #endif
     save_file_info.valid = true;
-    script_h.getStringFromInteger(save_file_info.sjis_month, save_file_info.month, 2);
-    script_h.getStringFromInteger(save_file_info.sjis_day, save_file_info.day, 2);
-    script_h.getStringFromInteger(save_file_info.sjis_hour, save_file_info.hour, 2);
-    script_h.getStringFromInteger(save_file_info.sjis_minute, save_file_info.minute, 2, true);
+    s = script_h.stringFromInteger(save_file_info.month, 2);
+    strcpy(save_file_info.sjis_month, s.c_str());
+    s = script_h.stringFromInteger(save_file_info.day, 2);
+    strcpy(save_file_info.sjis_day, s.c_str());
+    s = script_h.stringFromInteger(save_file_info.hour, 2);
+    strcpy(save_file_info.sjis_hour, s.c_str());
+    s = script_h.stringFromInteger(save_file_info.minute, 2, true);
+    strcpy(save_file_info.sjis_minute, s.c_str());
 }
 
 

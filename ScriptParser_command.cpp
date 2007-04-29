@@ -718,26 +718,16 @@ int ScriptParser::kidokumodeCommand(const string& cmd)
 
 int ScriptParser::itoaCommand(const string& cmd)
 {
-    bool itoa2_flag = false;
-
-    if (cmd == "itoa2")
-        itoa2_flag = true;
-
     script_h.readVariable();
     if (script_h.current_variable.type != ScriptHandler::VAR_STR)
         errorAndExit(cmd + ": no string variable.");
 
     int no = script_h.current_variable.var_no;
-
-    int val = script_h.readInt();
-
-    char val_str[20];
-    if (itoa2_flag)
-        script_h.getStringFromInteger(val_str, val, -1);
-    else
-        sprintf(val_str, "%d", val);
-
-    script_h.variable_data[no].str = val_str;
+    script_h.variable_data[no].str = str(script_h.readInt());
+    if (cmd == "itoa2") {
+	printf("itoa2: zenkaku conversion not implemented (returning hankaku moji)\n");
+	// TODO: zenkaku-fy string
+    }
 
     return RET_CONTINUE;
 }

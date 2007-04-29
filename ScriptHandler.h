@@ -168,8 +168,6 @@ public:
     void pushVariable();
     int getIntVariable(VariableInfo* var_info = NULL);
 
-    int getStringFromInteger(char* buffer, int no, int num_column,
-			     bool is_zero_inserted = false);
     string stringFromInteger(int no, int num_column,
 			     bool is_zero_inserted = false);
     

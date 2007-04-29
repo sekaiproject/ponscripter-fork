@@ -743,51 +743,13 @@ void ScriptHandler::setNumVariable(int no, int val)
 }
 
 
-int ScriptHandler::getStringFromInteger(char* buffer, int no, int num_column,
-					bool is_zero_inserted)
-{
-    int i, num_space = 0, num_minus = 0;
-    if (no < 0) {
-        num_minus = 1;
-        no = -no;
-    }
-
-    int num_digit = 1, no2 = no;
-    while (no2 >= 10) {
-        no2 /= 10;
-        num_digit++;
-    }
-
-    if (num_column < 0) num_column = num_digit + num_minus;
-
-    if (num_digit + num_minus <= num_column)
-        num_space = num_column - (num_digit + num_minus);
-    else {
-        for (i = 0; i < num_digit + num_minus - num_column; i++)
-            no /= 10;
-
-        num_digit -= num_digit + num_minus - num_column;
-    }
-
-    if (num_minus == 1) no = -no;
-
-    char format[6];
-    if (is_zero_inserted)
-        sprintf(format, "%%0%dd", num_column);
-    else
-        sprintf(format, "%%%dd", num_column);
-
-    sprintf(buffer, format, no);
-
-    return num_column;
-}
-
 string ScriptHandler::stringFromInteger(int no, int num_column,
 					bool is_zero_inserted)
 {
-    char buffer[1024];
-    getStringFromInteger(buffer, no, num_column, is_zero_inserted);
-    return string(buffer);
+    string n = nstr(no, num_column, is_zero_inserted);
+    if ((int)n.size() > num_column) n.resize(num_column);
+    if (n == "-" || n == "") n = "0";
+    return n;
 }
 
 

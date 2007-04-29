@@ -35,18 +35,30 @@ struct set {
 template<typename T> inline T pred(T t) { return --t; }
 template<typename T> inline T succ(T t) { return ++t; }
 
-inline string str(int i, int radix = 10)
+inline string nstr(int i, int len, bool zero = false, int radix = 10)
 {
     char buf[1024];
-    sprintf(buf, radix == 16 ? "%x" : "%d", i);
+    sprintf(buf, radix == 16 ? (zero ? "%0*x" : "%*x")
+	                     : (zero ? "%0*d" : "%*d"), len, i);
+    return string(buf);
+}
+
+inline string str(int i, int radix = 10)
+{
+    return nstr(i, 1, false, radix);
+}
+
+inline string nstr(size_t i, int len, bool zero = false, int radix = 10)
+{
+    char buf[1024];
+    sprintf(buf, radix == 16 ? (zero ? "%0*lx" : "%*lx")
+	                     : (zero ? "%0*lu" : "%*lu"), len, i);
     return string(buf);
 }
 
 inline string str(size_t i, int radix = 10)
 {
-    char buf[1024];
-    sprintf(buf, radix == 16 ? "%lx" : "%lu", i);
-    return string(buf);
+    return nstr(i, 1, false, radix);
 }
 
 

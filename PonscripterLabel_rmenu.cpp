@@ -267,7 +267,8 @@ void PonscripterLabel::createSaveLoadMenu(bool is_save)
     text_info.fill(0, 0, 0, 0);
 
     // Set up formatting details for saved games.
-    const float sw = float (screen_width * screen_ratio2) / float (screen_ratio1);
+    const float sw = float (screen_width * screen_ratio2)
+	           / float (screen_ratio1);
     const int buf_sz = 1024;
     char  buf[buf_sz], no_save_line[buf_sz];
     float lw, entry_offs_x, entry_date_x, entry_time_x;

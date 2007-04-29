@@ -555,7 +555,7 @@ int PonscripterLabel::init()
 
     if (open()) return -1;
 
-    if (script_h.save_path.empty()) {
+    if (!script_h.save_path) {
         // Per-platform configuration for saved games.
         string gameid = script_h.game_identifier;
 	if (!gameid) {
@@ -579,7 +579,7 @@ int PonscripterLabel::init()
             }
             FreeLibrary(shdll);
         }
-        if (script_h.save_path == 0) {
+        if (!script_h.save_path) {
             // Error; assume ancient Windows. In this case it's safe
             // to use the archive path.
             script_h.save_path = archive_path;
@@ -592,9 +592,9 @@ int PonscripterLabel::init()
 		     &home);
         char hpath[32768];
         FSRefMakePath(&home, (UInt8*) hpath, 32768);
-        script_h.save_path = new char[strlen(hpath) + strlen(gameid) + 8];
-        sprintf(script_h.save_path, "%s/%s Data/", hpath, gameid);
-        mkdir(script_h.save_path, 0755);
+        script_h.save_path = hpath;
+	script_h.save_path += "/" + gameid + " Data/";
+        mkdir(script_h.save_path.c_str(), 0755);
 #elif defined LINUX
         // On Linux (and other POSIX-a-likes), place in ~/.gameid
         passwd* pwd = getpwuid(getuid());
@@ -605,7 +605,7 @@ int PonscripterLabel::init()
 		errno != EEXIST)
                 script_h.save_path.clear();
         }
-        if (script_h.save_path.empty()) {
+        if (!script_h.save_path) {
             // Error; either getpwuid failed, or we couldn't create a
             // save directory.  Either way, issue a warning and then
             // fall back on default ONScripter behaviour.
