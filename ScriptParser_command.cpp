@@ -326,17 +326,13 @@ int ScriptParser::roffCommand(const string& cmd)
 
 int ScriptParser::rmenuCommand(const string& cmd)
 {
-    deleteRMenuLink();
+    rmenu.clear();
+    rmenu_link_width = 0;
 
-    RMenuLink* link = &root_rmenu_link;
     bool comma_flag = true;
     while (comma_flag) {
-        link->next = new RMenuLink();
-        link->next->label = script_h.readStr();
-        link->next->system_call_no = getSystemCallNo(script_h.readLabel());
-        link = link->next;
-        rmenu_link_num++;
-
+	string s = script_h.readStr();
+	rmenu.push_back(RMenuElt(s, getSystemCallNo(script_h.readLabel())));
         comma_flag = script_h.getEndStatus() & ScriptHandler::END_COMMA;
     }
 

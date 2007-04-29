@@ -270,8 +270,8 @@ void ScriptParser::reset()
     menu_font.pitch_x = 0;
     menu_font.pitch_y = 0;
     menu_font.window_color.set(0xcc);
-
-    deleteRMenuLink();
+    rmenu.clear();
+    rmenu_link_width = 0;
 
     /* ---------------------------------------- */
     /* Effect related variables */
@@ -382,21 +382,6 @@ int ScriptParser::parseLine()
     }
     ParserFun f = func_lut.get(cmd);
     return f ? (this->*f)(cmd) : RET_NOMATCH;
-}
-
-
-void ScriptParser::deleteRMenuLink()
-{
-    RMenuLink* link = root_rmenu_link.next;
-    while (link) {
-        RMenuLink* tmp = link;
-        link = link->next;
-        delete tmp;
-    }
-    root_rmenu_link.next = NULL;
-
-    rmenu_link_num   = 0;
-    rmenu_link_width = 0;
 }
 
 

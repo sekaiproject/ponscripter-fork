@@ -290,15 +290,9 @@ protected:
     string default_env_font;
     int default_text_speed[3];
     struct TextBuffer {
-        struct TextBuffer* next, * previous;
+        TextBuffer *next, *previous;
         string contents;
-        int addBuffer(char ch)
-        {
-            contents += ch;
-            return 0;
-        }
-
-
+        int addBuffer(char ch) { contents += ch; return 0; }
         void clear() { contents.clear(); }
         bool empty() { return contents.empty(); }
     } *text_buffer, *start_text_buffer, *current_text_buffer; // ring buffer
@@ -342,15 +336,16 @@ protected:
 
     /* ---------------------------------------- */
     /* RMenu related variables */
-    struct RMenuLink {
-        RMenuLink* next;
+    struct RMenuElt {
+	typedef std::vector<RMenuElt> vec;
+	typedef vec::iterator iterator;
         string label;
         int system_call_no;
-        RMenuLink() : next(0) {}
-    } root_rmenu_link;
-    unsigned int rmenu_link_num, rmenu_link_width;
+	RMenuElt(string& l, int s) : label(l), system_call_no(s) {}
+    };
+    RMenuElt::vec rmenu;
+    unsigned int rmenu_link_width;
 
-    void deleteRMenuLink();
     int getSystemCallNo(const char* buffer);
     unsigned char convHexToDec(char ch);
     rgb_t readColour(const char* buf);

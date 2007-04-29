@@ -430,7 +430,7 @@ void PonscripterLabel::mousePressEvent(SDL_MouseButtonEvent* event)
         current_button_state.button  = -1;
         volatile_button_state.button = -1;
         if (event_mode & WAIT_TEXT_MODE) {
-            if (root_rmenu_link.next)
+            if (!rmenu.empty())
                 system_menu_mode = SYSTEM_MENU;
             else
                 system_menu_mode = SYSTEM_WINDOWERASE;
@@ -824,7 +824,7 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
         if (!useescspc_flag && event->keysym.sym == SDLK_ESCAPE) {
             current_button_state.button = -1;
             if (rmode_flag && event_mode & WAIT_TEXT_MODE) {
-                if (root_rmenu_link.next)
+                if (!rmenu.empty())
                     system_menu_mode = SYSTEM_MENU;
                 else
                     system_menu_mode = SYSTEM_WINDOWERASE;

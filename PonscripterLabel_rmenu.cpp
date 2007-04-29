@@ -137,7 +137,6 @@ void PonscripterLabel::executeSystemCall()
 
 void PonscripterLabel::executeSystemMenu()
 {
-    RMenuLink* link;
     int counter = 1;
 
     current_font = &menu_font;
@@ -159,14 +158,11 @@ void PonscripterLabel::executeSystemMenu()
 	playSound(menuselectvoice_file_name[MENUSELECTVOICE_CLICK],
 		  SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
 
-        link = root_rmenu_link.next;
-        while (link) {
-            if (current_button_state.button == counter++) {
-                system_menu_mode = link->system_call_no;
+	for (RMenuElt::iterator it = rmenu.begin(); it != rmenu.end(); ++it) {
+	    if (current_button_state.button == counter++) {
+                system_menu_mode = it->system_call_no;
                 break;
             }
-
-            link = link->next;
         }
 
         advancePhase();
@@ -182,18 +178,17 @@ void PonscripterLabel::executeSystemMenu()
         flush(refreshMode());
 
         menu_font.area_x = screen_width * screen_ratio2 / screen_ratio1;
-        menu_font.area_y = menu_font.line_top(rmenu_link_num);
+        menu_font.area_y = menu_font.line_top(rmenu.size());
         menu_font.top_x  = 0;
         menu_font.top_y  = (screen_height * screen_ratio2 / screen_ratio1 - menu_font.area_y) / 2;
         menu_font.SetXY(0, 0);
 
-        link = root_rmenu_link.next;
-        while (link) {
-            const float sw = float (screen_width * screen_ratio2) / float (screen_ratio1);
-            menu_font.SetXY((sw - menu_font.StringAdvance(link->label)) / 2);
-	    buttons[counter++] = getSelectableSentence(link->label, &menu_font,
+	for (RMenuElt::iterator it = rmenu.begin(); it != rmenu.end(); ++it) {
+            const float sw = float (screen_width * screen_ratio2)
+		           / float (screen_ratio1);
+            menu_font.SetXY((sw - menu_font.StringAdvance(it->label)) / 2);
+	    buttons[counter++] = getSelectableSentence(it->label, &menu_font,
 						       false);
-            link = link->next;
             flush(refreshMode());
         }
 
