@@ -496,13 +496,13 @@ void PonscripterLabel::executeSystemYesNo()
             SaveFileInfo save_file_info;
             searchSaveFile(save_file_info, yesno_selected_file_no);
             sprintf(name, MESSAGE_SAVE_CONFIRM, save_item_name.c_str(),
-		    save_file_info.sjis_no);
+		    save_file_info.num_str.c_str());
         }
         else if (yesno_caller == SYSTEM_LOAD) {
             SaveFileInfo save_file_info;
             searchSaveFile(save_file_info, yesno_selected_file_no);
             sprintf(name, MESSAGE_LOAD_CONFIRM, save_item_name.c_str(),
-		    save_file_info.sjis_no);
+		    save_file_info.num_str.c_str());
         }
         else if (yesno_caller == SYSTEM_RESET)
             strcpy(name, MESSAGE_RESET_CONFIRM);

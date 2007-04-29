@@ -268,11 +268,7 @@ protected:
     struct SaveFileInfo {
         bool valid;
         int month, day, hour, minute;
-        char sjis_no[5];
-        char sjis_month[5];
-        char sjis_day[5];
-        char sjis_hour[5];
-        char sjis_minute[5];
+	string num_str;
     };
     unsigned int num_save_file;
     string save_menu_name;

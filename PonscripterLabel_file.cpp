@@ -51,8 +51,7 @@ void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
 {
     string filename;
 
-    string s = script_h.stringFromInteger(no, num_save_file >= 10 ? 2 : 1);
-    strcpy(save_file_info.sjis_no, s.c_str());
+    save_file_info.num_str = script_h.stringFromInteger(no, num_save_file >= 10 ? 2 : 1);
 #if defined (LINUX) || defined (MACOSX)
     filename = script_h.save_path + "save" + str(no) + ".dat";
     struct stat buf;
@@ -117,14 +116,6 @@ void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
     save_file_info.minute = 0;
 #endif
     save_file_info.valid = true;
-    s = script_h.stringFromInteger(save_file_info.month, 2);
-    strcpy(save_file_info.sjis_month, s.c_str());
-    s = script_h.stringFromInteger(save_file_info.day, 2);
-    strcpy(save_file_info.sjis_day, s.c_str());
-    s = script_h.stringFromInteger(save_file_info.hour, 2);
-    strcpy(save_file_info.sjis_hour, s.c_str());
-    s = script_h.stringFromInteger(save_file_info.minute, 2, true);
-    strcpy(save_file_info.sjis_minute, s.c_str());
 }
 
 
