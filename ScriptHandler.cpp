@@ -833,8 +833,7 @@ int ScriptHandler::readScript(const char* path)
     archive_path = path;
 
     FILE* fp = NULL;
-    char  filename[10];
-    int i, encrypt_mode;
+    int encrypt_mode;
     encodings enc;
 
     for (filetypes_t* ft = filetypes; ft->filename; ++ft) {
@@ -863,11 +862,11 @@ int ScriptHandler::readScript(const char* path)
 
     if (encrypt_mode == 0) {
         fclose(fp);
-        for (i = 1; i < 100; i++) {
-            sprintf(filename, enc == UTF8 ? "%d.utf" : "%d.txt", i);
-            if ((fp = fopen(filename, "rb")) == NULL) {
-                sprintf(filename, enc == UTF8 ? "%02d.utf" : "%02d.txt", i);
-                fp = fopen(filename, "rb");
+        for (int i = 1; i < 100; i++) {
+	    string filename = str(i) + (enc == UTF8 ? ".utf" : ".txt");
+            if ((fp = fopen(filename.c_str(), "rb")) == NULL) {
+		filename = "0" + filename;
+                fp = fopen(filename.c_str(), "rb");
             }
 
             if (fp) {
@@ -892,11 +891,11 @@ int ScriptHandler::readScript(const char* path)
         fclose(fp);
     }
     else {
-        for (i = 0; i < 100; i++) {
-            sprintf(filename, enc == UTF8 ? "%d.utf" : "%d.txt", i);
-            if ((fp = fopen(filename, "rb")) == NULL) {
-                sprintf(filename, enc == UTF8 ? "%02d.utf" : "%02d.txt", i);
-                fp = fopen(filename, "rb");
+        for (int i = 0; i < 100; i++) {
+	    string filename = str(i) + (enc == UTF8 ? ".utf" : ".txt");
+            if ((fp = fopen(filename.c_str(), "rb")) == NULL) {
+		filename = "0" + filename;
+                fp = fopen(filename.c_str(), "rb");
             }
 
             if (fp) {

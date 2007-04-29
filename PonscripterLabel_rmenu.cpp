@@ -428,8 +428,6 @@ void PonscripterLabel::executeSystemSave()
 
 void PonscripterLabel::executeSystemYesNo()
 {
-    char name[64] = { '\0' };
-
     current_font = &menu_font;
     if (event_mode & WAIT_BUTTON_MODE) {
         if (current_button_state.button == 0) return;
@@ -491,23 +489,24 @@ void PonscripterLabel::executeSystemYesNo()
     }
     else {
         text_info.fill(0, 0, 0, 0);
+	string name;
 
         if (yesno_caller == SYSTEM_SAVE) {
             SaveFileInfo save_file_info;
             searchSaveFile(save_file_info, yesno_selected_file_no);
-            sprintf(name, MESSAGE_SAVE_CONFIRM, save_item_name.c_str(),
-		    save_file_info.num_str.c_str());
+	    name = MESSAGE_SAVE_CONFIRM
+		 + save_item_name + save_file_info.num_str;
         }
         else if (yesno_caller == SYSTEM_LOAD) {
             SaveFileInfo save_file_info;
             searchSaveFile(save_file_info, yesno_selected_file_no);
-            sprintf(name, MESSAGE_LOAD_CONFIRM, save_item_name.c_str(),
-		    save_file_info.num_str.c_str());
+	    name = MESSAGE_LOAD_CONFIRM
+		 + save_item_name + save_file_info.num_str;		
         }
         else if (yesno_caller == SYSTEM_RESET)
-            strcpy(name, MESSAGE_RESET_CONFIRM);
+            name = MESSAGE_RESET_CONFIRM;
         else if (yesno_caller == SYSTEM_END)
-            strcpy(name, MESSAGE_END_CONFIRM);
+            name = MESSAGE_END_CONFIRM;
 
         menu_font.area_x = int (ceil(menu_font.StringAdvance(name)));
         menu_font.area_y = menu_font.line_top(4);
@@ -522,12 +521,12 @@ void PonscripterLabel::executeSystemYesNo()
         float yes_len = menu_font.StringAdvance(MESSAGE_YES),
               no_len  = menu_font.StringAdvance(MESSAGE_NO);
 
-        strcpy(name, MESSAGE_YES);
+        name = MESSAGE_YES;
         menu_font.SetXY(float (menu_font.area_x) / 4 - yes_len / 2,
 			menu_font.line_top(2));
 	buttons[1] = getSelectableSentence(name, &menu_font, false);
 
-        strcpy(name, MESSAGE_NO);
+        name = MESSAGE_NO;
         menu_font.SetXY(float (menu_font.area_x) * 3 / 4 - no_len / 2,
 			menu_font.line_top(2));
         buttons[2] = getSelectableSentence(name, &menu_font, false);

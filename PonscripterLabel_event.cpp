@@ -481,10 +481,6 @@ void PonscripterLabel::mousePressEvent(SDL_MouseButtonEvent* event)
 
 void PonscripterLabel::variableEditMode(SDL_KeyboardEvent* event)
 {
-    int   i;
-    char* var_name;
-    char  var_index[12];
-
     switch (event->keysym.sym) {
     case SDLK_m:
         if (variable_edit_mode != EDIT_SELECT_MODE) return;
@@ -576,7 +572,7 @@ void PonscripterLabel::variableEditMode(SDL_KeyboardEvent* event)
 
         case EDIT_SE_VOLUME_MODE:
             se_volume = variable_edit_num;
-            for (i = 1; i < ONS_MIX_CHANNELS; i++)
+            for (int i = 1; i < ONS_MIX_CHANNELS; i++)
                 if (wave_sample[i]) Mix_Volume(i, se_volume * 128 / 100);
 
             if (wave_sample[MIX_LOOPBGM_CHANNEL0])
@@ -618,18 +614,19 @@ void PonscripterLabel::variableEditMode(SDL_KeyboardEvent* event)
     }
 
     if (variable_edit_mode == EDIT_SELECT_MODE) {
-        sprintf(wm_edit_string, "%s%s", EDIT_MODE_PREFIX, EDIT_SELECT_STRING);
+        wm_edit_string = EDIT_MODE_PREFIX EDIT_SELECT_STRING;
     }
     else if (variable_edit_mode == EDIT_VARIABLE_INDEX_MODE) {
-        sprintf(wm_edit_string, "%s%s%d", EDIT_MODE_PREFIX, "Variable Index?  %", variable_edit_sign * variable_edit_num);
+        wm_edit_string = EDIT_MODE_PREFIX "Variable Index?  %" +
+	                 str(variable_edit_sign * variable_edit_num);
     }
     else if (variable_edit_mode >= EDIT_VARIABLE_NUM_MODE) {
         int p = 0;
-
+	string var_name;
+	
         switch (variable_edit_mode) {
         case EDIT_VARIABLE_NUM_MODE:
-            sprintf(var_index, "%%%d", variable_edit_index);
-            var_name = var_index;
+	    var_name = "%" + str(variable_edit_index);
 	    p = script_h.variable_data[variable_edit_index].num; break;
 
         case EDIT_MP3_VOLUME_MODE:
@@ -645,13 +642,11 @@ void PonscripterLabel::variableEditMode(SDL_KeyboardEvent* event)
             var_name = "";
         }
 
-        sprintf(wm_edit_string, "%sCurrent %s=%d  New value? %s%d",
-		EDIT_MODE_PREFIX, var_name, p,
-		(variable_edit_sign == 1) ? "" : "-",
-		variable_edit_num);
+	wm_edit_string = EDIT_MODE_PREFIX "Current " + var_name + "=" + str(p)
+	    + "  New value? " + str(variable_edit_num * variable_edit_sign);
     }
 
-    SDL_WM_SetCaption(wm_edit_string, wm_icon_string.c_str());
+    SDL_WM_SetCaption(wm_edit_string.c_str(), wm_icon_string.c_str());
 }
 
 
@@ -759,8 +754,8 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
             variable_edit_mode = EDIT_SELECT_MODE;
             variable_edit_sign = 1;
             variable_edit_num  = 0;
-            sprintf(wm_edit_string, "%s%s", EDIT_MODE_PREFIX, EDIT_SELECT_STRING);
-            SDL_WM_SetCaption(wm_edit_string, wm_icon_string.c_str());
+            wm_edit_string = EDIT_MODE_PREFIX EDIT_SELECT_STRING;
+            SDL_WM_SetCaption(wm_edit_string.c_str(), wm_icon_string.c_str());
         }
     }
 

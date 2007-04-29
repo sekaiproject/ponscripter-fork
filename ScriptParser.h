@@ -353,8 +353,8 @@ protected:
 	{ errorAndExit(str.c_str(), reason); }
 
     void allocFileIOBuf();
-    int saveFileIOBuf(const char* filename, int offset = 0);
-    int loadFileIOBuf(const char* filename);
+    int saveFileIOBuf(const string& filename, int offset = 0);
+    int loadFileIOBuf(const string& filename);
 
     void writeChar(char c, bool output_flag);
     char readChar();

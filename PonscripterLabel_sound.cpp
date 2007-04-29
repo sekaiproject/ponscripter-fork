@@ -211,16 +211,15 @@ void PonscripterLabel::playCDAudio()
         }
     }
     else {
-        char filename[256];
-        sprintf(filename, "cd\\track%2.2d.mp3", current_cd_track);
+	string filename = "cd/track" + lstr(current_cd_track, 2, 2) + ".mp3";
         int ret = playSound(filename, SOUND_MP3, cd_play_loop_flag);
         if (ret == SOUND_MP3) return;
 
-        sprintf(filename, "cd\\track%2.2d.ogg", current_cd_track);
+	filename = "cd/track" + lstr(current_cd_track, 2, 2) + ".ogg";
         ret = playSound(filename, SOUND_OGG_STREAMING, cd_play_loop_flag);
         if (ret == SOUND_OGG_STREAMING) return;
 
-        sprintf(filename, "cd\\track%2.2d.wav", current_cd_track);
+	filename = "cd/track" + lstr(current_cd_track, 2, 2) + ".wav";
         ret = playSound(filename, SOUND_WAVE, cd_play_loop_flag, MIX_BGM_CHANNEL);
     }
 }
@@ -430,23 +429,20 @@ int PonscripterLabel::playMPEG(const char* filename, bool click_flag)
 void PonscripterLabel::playAVI(const char* filename, bool click_flag)
 {
 #ifdef USE_AVIFILE
-    char* absolute_filename = new char[strlen(archive_path) + strlen(filename) + 1];
-    sprintf(absolute_filename, "%s%s", archive_path, filename);
-    for (unsigned int i = 0; i < strlen(absolute_filename); i++)
-        if (absolute_filename[i] == '/'
-            || absolute_filename[i] == '\\')
-            absolute_filename[i] = DELIMITER;
+    string abs_fname = archive_path + filename;
+    for (string::size_type i = 0; i < abs_fname.size(); i++)
+        if (abs_fname[i] == '/' || abs_fname[i] == '\\')
+            abs_fname[i] = DELIMITER;
 
     if (audio_open_flag) Mix_CloseAudio();
 
     AVIWrapper* avi = new AVIWrapper();
-    if (avi->init(absolute_filename, false) == 0
+    if (avi->init(abs_fname.c_str(), false) == 0
         && avi->initAV(screen_surface, audio_open_flag) == 0) {
         if (avi->play(click_flag)) endCommand();
     }
 
     delete avi;
-    delete[] absolute_filename;
 
     if (audio_open_flag) {
         Mix_CloseAudio();

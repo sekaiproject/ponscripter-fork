@@ -440,7 +440,7 @@ void ScriptParser::allocFileIOBuf()
 }
 
 
-int ScriptParser::saveFileIOBuf(const char* filename, int offset)
+int ScriptParser::saveFileIOBuf(const string& filename, int offset)
 {
     FILE* fp;
     string fnam = script_h.save_path + filename;
@@ -455,7 +455,7 @@ int ScriptParser::saveFileIOBuf(const char* filename, int offset)
 }
 
 
-int ScriptParser::loadFileIOBuf(const char* filename)
+int ScriptParser::loadFileIOBuf(const string& filename)
 {
     FILE* fp;
     string fnam = script_h.save_path + filename;

@@ -383,7 +383,7 @@ private:
     string trap_dist;
     string wm_title_string;
     string wm_icon_string;
-    char   wm_edit_string[256];
+    string wm_edit_string;
     bool   fullscreen_mode;
     bool   window_mode;
 

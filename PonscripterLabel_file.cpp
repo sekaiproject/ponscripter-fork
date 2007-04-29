@@ -121,10 +121,9 @@ void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
 
 int PonscripterLabel::loadSaveFile(int no)
 {
-    char filename[16];
-    sprintf(filename, "save%d.dat", no);
+    string filename = "save" + str(no) + ".dat";
     if (loadFileIOBuf(filename)) {
-        fprintf(stderr, "can't open save file %s\n", filename);
+        fprintf(stderr, "can't open save file %s\n", filename.c_str());
         return -1;
     }
 
@@ -178,7 +177,6 @@ int PonscripterLabel::loadSaveFile(int no)
 
     /* ---------------------------------------- */
     /* Load text history */
-// FIXME: this will (probably) NOT work with UTF-8 and proportional text...
     if (file_version >= 107) readInt();
 
     int text_history_num = readInt();
@@ -186,7 +184,6 @@ int PonscripterLabel::loadSaveFile(int no)
         int num_xy[2];
         num_xy[0] = readInt();
         num_xy[1] = readInt();
-        //current_text_buffer->num = (num_xy[0]*2+1)*num_xy[1];
         int xy[2];
         xy[0] = readInt();
         xy[1] = readInt();
@@ -230,7 +227,6 @@ int PonscripterLabel::loadSaveFile(int no)
     /* ---------------------------------------- */
     /* Load sentence font */
     j = readInt();
-    //sentence_font.is_valid = (j==1)?true:false;
     sentence_font.set_size(readInt());
     if (file_version >= 100) {
         sentence_font.set_mod_size(readInt());
@@ -523,18 +519,18 @@ int PonscripterLabel::saveSaveFile(int no)
     if (no >= 0) {
         saveAll();
 
-        char filename[16];
-        sprintf(filename, "save%d.dat", no);
-
+	string filename = "save" + str(no) + ".dat";
         memcpy(file_io_buf, save_data_buf, save_data_len);
         file_io_buf_ptr = save_data_len;
         if (saveFileIOBuf(filename)) {
-            fprintf(stderr, "can't open save file %s for writing\n", filename);
+            fprintf(stderr, "can't open save file %s for writing\n", filename.c_str());
             return -1;
         }
 
         size_t magic_len = strlen(SAVEFILE_MAGIC_NUMBER) + 2;
-        sprintf(filename, "sav%csave%d.dat", DELIMITER, no);
+	filename = "sav";
+	filename += DELIMITER;
+	filename += "save" + str(no) + ".dat";
         saveFileIOBuf(filename, magic_len);
     }
 
