@@ -40,8 +40,9 @@ wchar
 CP932Encoding::Decode(const char* string)
 {
     if (!string) return 0;
-    leading character = fmcp932_tbl[*(unsigned char*) string];
-    return character.tbl ? character.tbl[string[1]] : character.sbc;
+    unsigned char* us = (unsigned char*) string;
+    leading character = fmcp932_tbl[us[0]];
+    return character.tbl ? character.tbl[us[1]] : character.sbc;
 }
 
 

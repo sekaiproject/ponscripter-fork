@@ -15,7 +15,7 @@ names, as follows:
   nscript.*    -> pscript.*
   nscr_sec.dat -> pscr_sec.dat
 
-Ponscripter can still play NScripter games, though is not as
+Ponscripter can still play NScripter games, though it is not as
 compatible as ONScripter in this regard.
 
 
@@ -70,7 +70,7 @@ fonts used. They need not be TrueType, Japanese, monospaced, or called
 
 By default, each style N is associated with a file "faceN.ttf", which
 may either be in the game folder (a la ONScripter's "default.ttf"), in
-the game's main archive, or embedded in the game EXE itself. To use
+the game's main archive, or embedded in the game EXE itself.  To use
 fonts with different names, or to use non-TrueType fonts, the mappings
 must be set manually with the h_mapfont command; user-defined fonts
 are sought in the same places as the default names.
@@ -104,6 +104,10 @@ convention is the bold weight of the text font.
 Note that fonts must still be stored as part of and distributed with
 the game. It is not possible to use fonts that are installed on the
 user's computer.
+
+For compatibility with ONScripter, if a font (mapped or otherwise) is
+not found, "default.ttf" in the game directory is tried as a fallback
+measure.
 
 
 /---------------------------------------------------------------------
@@ -438,8 +442,8 @@ makes it easier to create centered dialog buttons and the like.
 /---------------------------------------------------------------------
 |  Enhanced OS X support
 
-OS X support in Ponscripter is enhanced in the same way as in "The
-world to reverse" and the Narcissu 2 demo, as follows:
+OS X support in Ponscripter is enhanced in the same way as in
+ONScripter-En, namely:
 
 1. Data files (script, fonts, archives) are stored in the
    Contents/Resources directory within the application bundle.  This

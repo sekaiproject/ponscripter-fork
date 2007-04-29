@@ -38,6 +38,8 @@ const int VARIABLE_RANGE = 4096;
 
 class ScriptHandler {
 public:
+    bool is_ponscripter;
+    
     enum { END_NONE  = 0,
            END_COMMA = 1,
            END_1BYTE_CHAR = 2 };

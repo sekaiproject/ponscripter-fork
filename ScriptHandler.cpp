@@ -879,10 +879,14 @@ int ScriptHandler::readScript(const char* path)
 	if ((fp = fopen(ft->filename, "rb")) != NULL) {
 	    encrypt_mode = ft->encryption;
 	    enc = ft->encoding;
-	    if (enc == UTF8)
+	    if (enc == UTF8) {
 		encoding = new UTF8Encoding;
-	    else
+		is_ponscripter = true;
+	    }
+	    else {
 		encoding = new CP932Encoding;
+		is_ponscripter = false;
+	    }
 	    break;
 	}
     }

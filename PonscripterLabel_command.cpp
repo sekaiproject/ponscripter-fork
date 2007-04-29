@@ -576,6 +576,12 @@ void PonscripterLabel::setwindowCore()
     sentence_font.is_bold   = script_h.readInt() ? true : false;
     sentence_font.is_shadow = script_h.readInt() ? true : false;
 
+    // Handle NScripter games: window size defined in characters
+    if (!script_h.is_ponscripter) {
+	sentence_font.area_x *= s1 + sentence_font.pitch_x;
+	sentence_font.area_y *= s2 + sentence_font.pitch_y;
+    }
+    
     const char* buf = script_h.readStr();
     dirty_rect.add(sentence_font_info.pos);
     if (buf[0] == '#') {
@@ -1492,6 +1498,10 @@ int PonscripterLabel::locateCommand(const string& cmd)
 {
     int x = script_h.readInt();
     int y = script_h.readInt();
+    if (!script_h.is_ponscripter) {
+	x *= sentence_font.size() + sentence_font.pitch_x;
+	y *= sentence_font.line_space() + sentence_font.pitch_y;
+    }
     sentence_font.SetXY(x, y);
     return RET_CONTINUE;
 }
@@ -2076,12 +2086,13 @@ int PonscripterLabel::getenterCommand(const string& cmd)
 
 int PonscripterLabel::getcursorposCommand(const string& cmd)
 {
+    int x = int(floor(sentence_font.GetX()));
+    int y = sentence_font.GetY();
+    
     script_h.readInt();
-    script_h.setInt(&script_h.current_variable,
-		    int(floor(sentence_font.GetX())));
-
+    script_h.setInt(&script_h.current_variable, x);
     script_h.readInt();
-    script_h.setInt(&script_h.current_variable, sentence_font.GetY());
+    script_h.setInt(&script_h.current_variable, y);
 
     return RET_CONTINUE;
 }
@@ -2925,7 +2936,8 @@ int PonscripterLabel::btnCommand(const string& cmd)
 
 int PonscripterLabel::brCommand(const string& cmd)
 {
-    int delta = cmd == "br2" ? script_h.readInt() : 50;
+    int delta = cmd == "br2" ? script_h.readInt()
+	                     : (script_h.is_ponscripter ? 50 : 100);
 
     int ret = enterTextDisplayMode();
     if (ret != RET_NOMATCH) return ret;
