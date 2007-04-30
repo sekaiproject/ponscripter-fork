@@ -46,7 +46,7 @@ ScriptHandler::ScriptHandler()
     // the last one is a sink:
     variable_data = new VariableData[VARIABLE_RANGE + 1];
 
-    root_array_variable = NULL;
+    arrays.clear();
 
     screen_size = SCREEN_SIZE_640x480;
     global_variable_border = 200;
@@ -70,13 +70,7 @@ void ScriptHandler::reset()
     for (int i = 0; i < VARIABLE_RANGE; i++)
         variable_data[i].reset(true);
 
-    ArrayVariable* av = root_array_variable;
-    while (av) {
-        ArrayVariable* tmp = av;
-        av = av->next;
-        delete tmp;
-    }
-    root_array_variable = current_array_variable = NULL;
+    arrays.clear();
 
     // reset log info
     label_log.clear();
@@ -640,10 +634,8 @@ void ScriptHandler::readVariable(bool reread_flag)
         current_variable.type = VAR_INT;
     }
     else if (*buf == '?') {
-        ArrayVariable av;
-        current_variable.var_no = parseArray(&buf, av);
-        current_variable.type  = VAR_ARRAY;
-        current_variable.array = av;
+        current_variable.var_no = parseArray(&buf, current_variable.array);
+        current_variable.type = VAR_ARRAY;
     }
     else if (*buf == '$') {
         buf++;
@@ -700,7 +692,7 @@ string ScriptHandler::stringFromInteger(int no, int num_column,
 					bool is_zero_inserted)
 {
     string n = nstr(no, num_column, is_zero_inserted);
-    if ((int)n.size() > num_column) n.resize(num_column);
+    if (num_column > 0 && (int)n.size() > num_column) n.resize(num_column);
     if (n == "-" || n == "") n = "0";
     return n;
 }
@@ -975,13 +967,6 @@ ScriptHandler::LabelInfo ScriptHandler::lookupLabelNext(const string& label)
 }
 
 
-ScriptHandler::ArrayVariable* ScriptHandler::getRootArrayVariable()
-{
-    return root_array_variable;
-}
-
-
-
 void ScriptHandler::errorAndExit(const char* str)
 {
     fprintf(stderr, " **** Script error, %s [%s] ***\n", str, string_buffer.c_str());
@@ -1178,11 +1163,9 @@ int ScriptHandler::parseInt(char** buf)
         return variable_data[current_variable.var_no].num;
     }
     else if (**buf == '?') {
-        ArrayVariable av;
-        current_variable.var_no = parseArray(buf, av);
+        current_variable.var_no = parseArray(buf, current_variable.array);
         current_variable.type  = VAR_ARRAY;
-        current_variable.array = av;
-        return * getArrayPtr(current_variable.var_no, current_variable.array, 0);
+        return *getArrayPtr(current_variable.var_no, current_variable.array, 0);
     }
     else {
         char ch;
@@ -1396,26 +1379,22 @@ int ScriptHandler::parseArray(char** buf, struct ArrayVariable &array)
 
 int* ScriptHandler::getArrayPtr(int no, ArrayVariable &array, int offset)
 {
-    ArrayVariable* av = root_array_variable;
-    while (av) {
-        if (av->no == no) break;
-
-        av = av->next;
-    }
-    if (av == NULL) errorAndExit("Array No. is not declared.");
+    ArrayVariable::iterator it = arrays.find(no);
+    if (it == arrays.end()) errorAndExit("Array No. is not declared.");
+    ArrayVariable& av = it->second;
 
     int dim = 0, i;
-    for (i = 0; i < av->num_dim; i++) {
-        if (av->dim[i] <= array.dim[i])
+    for (i = 0; i < av.num_dim; i++) {
+        if (av.dim[i] <= array.dim[i])
 	    errorAndExit("dim[i] <= array.dim[i].");
 
-        dim = dim * av->dim[i] + array.dim[i];
+        dim = dim * av.dim[i] + array.dim[i];
     }
 
-    if (av->dim[i - 1] <= array.dim[i - 1] + offset)
+    if (av.dim[i - 1] <= array.dim[i - 1] + offset)
 	errorAndExit("dim[i-1] <= array.dim[i-1] + offset.");
 
-    return &av->data[dim + offset];
+    return &av.data[dim + offset];
 }
 
 
@@ -1424,27 +1403,19 @@ void ScriptHandler::declareDim()
     current_script = next_script;
     char* buf = current_script;
 
-    if (current_array_variable) {
-        current_array_variable->next = new ArrayVariable();
-        current_array_variable = current_array_variable->next;
-    }
-    else {
-        root_array_variable    = new ArrayVariable();
-        current_array_variable = root_array_variable;
-    }
-
     ArrayVariable array;
-    current_array_variable->no = parseArray(&buf, array);
+    int no = parseArray(&buf, array);
+    ArrayVariable* newarr = &arrays[no];
 
     int dim = 1;
-    current_array_variable->num_dim = array.num_dim;
+    newarr->num_dim = array.num_dim;
     for (int i = 0; i < array.num_dim; i++) {
-        current_array_variable->dim[i] = array.dim[i] + 1;
-        dim *= (array.dim[i] + 1);
+        newarr->dim[i] = array.dim[i] + 1;
+        dim *= array.dim[i] + 1;
     }
 
-    current_array_variable->data = new int[dim];
-    memset(current_array_variable->data, 0, sizeof(int) * dim);
+    newarr->data = new int[dim];
+    memset(newarr->data, 0, sizeof(int) * dim);
 
     next_script = buf;
 }

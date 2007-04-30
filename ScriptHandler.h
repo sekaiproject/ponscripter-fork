@@ -56,23 +56,23 @@ public:
     };
 
     struct ArrayVariable {
-        ArrayVariable* next;
-        int no;
+	typedef std::map<int, ArrayVariable> map;
+	typedef map::iterator iterator;
+	
         int num_dim;
         int dim[20];
         int* data;
         ArrayVariable() {
-            next = NULL;
             data = NULL;
         };
         ~ArrayVariable() {
             if (data) delete[] data;
         };
+
         ArrayVariable& operator=(const ArrayVariable& av)
         {
 	    if (&av == this) return *this;
 
-            no = av.no;
             num_dim = av.num_dim;
 
             int total_dim = 1;
@@ -92,6 +92,7 @@ public:
             return *this;
         };
     };
+    ArrayVariable::map arrays;
 
     enum { VAR_NONE  = 0,
            VAR_INT   = 1,  // integer
@@ -179,7 +180,6 @@ public:
     LabelInfo lookupLabelNext(const string& label);
     void errorAndExit(const char* str);
 
-    ArrayVariable* getRootArrayVariable();
     void loadArrayVariable(FILE* fp);
 
     void addNumAlias(const string& str, int val)
@@ -254,8 +254,8 @@ private:
     int  parseIntExpression(char** buf);
     void readNextOp(char** buf, int* op, int* num);
     int  calcArithmetic(int num1, int op, int num2);
-    int  parseArray(char** buf, ArrayVariable &array);
-    int* getArrayPtr(int no, ArrayVariable &array, int offset);
+    int  parseArray(char** buf, ArrayVariable& array);
+    int* getArrayPtr(int no, ArrayVariable& array, int offset);
 
     /* ---------------------------------------- */
     /* Variable */
@@ -263,8 +263,6 @@ private:
     typedef dictionary<string, string>::t stralias_t;
     numalias_t num_aliases;
     stralias_t str_aliases;
-
-    ArrayVariable *root_array_variable, *current_array_variable;
 
     string archive_path;
     int   script_buffer_length;

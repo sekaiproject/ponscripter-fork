@@ -583,15 +583,14 @@ void ScriptParser::readVariables(int from, int to)
 
 void ScriptParser::writeArrayVariable(bool output_flag)
 {
-    ScriptHandler::ArrayVariable* av = script_h.getRootArrayVariable();
-
-    while (av) {
+    ScriptHandler::ArrayVariable::iterator it = script_h.arrays.begin();
+    while (it != script_h.arrays.end()) {
         int i, dim = 1;
-        for (i = 0; i < av->num_dim; i++)
-            dim *= av->dim[i];
+        for (i = 0; i < it->second.num_dim; i++)
+            dim *= it->second.dim[i];
 
         for (i = 0; i < dim; i++) {
-            unsigned long ch = av->data[i];
+            unsigned long ch = it->second.data[i];
             if (output_flag) {
                 file_io_buf[file_io_buf_ptr + 3] = (unsigned char) ((ch >> 24) & 0xff);
                 file_io_buf[file_io_buf_ptr + 2] = (unsigned char) ((ch >> 16) & 0xff);
@@ -601,20 +600,18 @@ void ScriptParser::writeArrayVariable(bool output_flag)
 
             file_io_buf_ptr += 4;
         }
-
-        av = av->next;
+        ++it;
     }
 }
 
 
 void ScriptParser::readArrayVariable()
 {
-    ScriptHandler::ArrayVariable* av = script_h.getRootArrayVariable();
-
-    while (av) {
+    ScriptHandler::ArrayVariable::iterator it = script_h.arrays.begin();
+    while (it != script_h.arrays.end()) {
         int i, dim = 1;
-        for (i = 0; i < av->num_dim; i++)
-            dim *= av->dim[i];
+        for (i = 0; i < it->second.num_dim; i++)
+            dim *= it->second.dim[i];
 
         for (i = 0; i < dim; i++) {
             unsigned long ret;
@@ -625,10 +622,9 @@ void ScriptParser::readArrayVariable()
             ret = ret << 8 | file_io_buf[file_io_buf_ptr + 1];
             ret = ret << 8 | file_io_buf[file_io_buf_ptr];
             file_io_buf_ptr += 4;
-            av->data[i] = ret;
+            it->second.data[i] = ret;
         }
-
-        av = av->next;
+        ++it;
     }
 }
 
