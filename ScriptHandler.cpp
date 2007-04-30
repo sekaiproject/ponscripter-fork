@@ -126,7 +126,7 @@ const char* ScriptHandler::readToken()
     SKIP_SPACE(buf);
     markAsKidoku(buf);
 
-    readTokenTop:
+readTokenTop:
     string_buffer.clear();
     char ch = *buf;
     if (ch == ';') { // comment
@@ -370,14 +370,6 @@ void ScriptHandler::skipToken()
     
     next_script = buf;
 }
-
-
-//// string access function
-//const char* ScriptHandler::saveStringBuffer()
-//{
-//    saved_string_buffer = string_buffer;
-//    return saved_string_buffer.c_str();
-//}
 
 
 // script address direct manipulation function

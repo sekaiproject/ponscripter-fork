@@ -271,8 +271,7 @@ private:
     char* script_buffer;
     char* tmp_script_buf;
 
-    string string_buffer; // updated only by readToken
-    string saved_string_buffer; // updated only by saveStringBuffer
+    string string_buffer; // updated only by readToken (is this true?)
 
     LabelInfo::vec label_info;
     LabelInfo::dic label_names;
