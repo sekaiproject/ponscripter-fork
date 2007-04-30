@@ -142,9 +142,9 @@ public:
     string stringFromInteger(int no, int num_column,
 			     bool is_zero_inserted = false);
     
-    int  readScriptSub(FILE* fp, char** buf, int encrypt_mode);
-    int  readScript(const char* path);
-    int  labelScript();
+    int readScriptSub(FILE* fp, char** buf, int encrypt_mode);
+    int readScript(const char* path);
+    int labelScript();
 
     LabelInfo lookupLabel(const string& label);
     LabelInfo lookupLabelNext(const string& label);

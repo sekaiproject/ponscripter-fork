@@ -535,26 +535,6 @@ void ScriptParser::writeStr(const string& s, bool output_flag)
 }
 
 
-void ScriptParser::readStr(char** s)
-{
-    int counter = 0;
-
-    while (file_io_buf_ptr + counter < file_io_buf_len) {
-        if (file_io_buf[file_io_buf_ptr + counter++] == 0) break;
-    }
-
-    if (*s) delete[] *s;
-
-    *s = NULL;
-
-    if (counter > 1) {
-        *s = new char[counter];
-        memcpy(*s, file_io_buf + file_io_buf_ptr, counter);
-    }
-
-    file_io_buf_ptr += counter;
-}
-
 string ScriptParser::readStr()
 {
     string rv((char*)file_io_buf + file_io_buf_ptr);

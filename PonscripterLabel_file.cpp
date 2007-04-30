@@ -127,9 +127,8 @@ int PonscripterLabel::loadSaveFile(int no)
         return -1;
     }
 
-    char* str = NULL;
-    int   i, j, k, address;
-    int   file_version;
+    int i, j, k, address;
+    int file_version;
 
     /* ---------------------------------------- */
     /* Load magic number */
@@ -300,8 +299,7 @@ int PonscripterLabel::loadSaveFile(int no)
 
     int offset = 0;
     while (1) {
-        readStr(&str);
-        current_label_info = script_h.lookupLabel(str);
+        current_label_info = script_h.lookupLabel(readStr());
 
         current_line = readInt() + 2;
         char* buf = current_label_info.label_header;

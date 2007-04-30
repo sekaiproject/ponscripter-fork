@@ -56,6 +56,7 @@
 class ScriptParser {
 public:
     ScriptParser();
+
     virtual ~ScriptParser();
 
     void reset();
@@ -174,21 +175,21 @@ protected:
            SYSTEM_LOAD        = 4,
            SYSTEM_LOOKBACK    = 5,
            SYSTEM_WINDOWERASE = 6,
-           SYSTEM_MENU     = 7,
-           SYSTEM_YESNO    = 8,
-           SYSTEM_AUTOMODE = 9,
-           SYSTEM_END = 10 };
+           SYSTEM_MENU        = 7,
+           SYSTEM_YESNO       = 8,
+           SYSTEM_AUTOMODE    = 9,
+           SYSTEM_END         = 10 };
     enum { RET_NOMATCH   = 0,
            RET_SKIP_LINE = 1,
            RET_CONTINUE  = 2,
-           RET_WAIT   = 4,
-           RET_NOREAD = 8,
-           RET_REREAD = 16 };
+           RET_WAIT      = 4,
+           RET_NOREAD    = 8,
+           RET_REREAD    = 16 };
     enum { CLICK_NONE    = 0,
            CLICK_WAIT    = 1,
            CLICK_NEWPAGE = 2,
            CLICK_IGNORE  = 3,
-           CLICK_EOL = 4 };
+           CLICK_EOL     = 4 };
     enum { NORMAL_MODE, DEFINE_MODE };
     int current_mode;
     int debug_level;
@@ -361,7 +362,6 @@ protected:
     void writeInt(int i, bool output_flag);
     int readInt();
     void writeStr(const string& s, bool output_flag);
-    void readStr(char** s);
     string readStr();
     void writeVariables(int from, int to, bool output_flag);
     void readVariables(int from, int to);
