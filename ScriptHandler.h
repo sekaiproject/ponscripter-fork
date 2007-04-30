@@ -58,39 +58,9 @@ public:
     struct ArrayVariable {
 	typedef std::map<int, ArrayVariable> map;
 	typedef map::iterator iterator;
-	
         int num_dim;
         int dim[20];
-        int* data;
-        ArrayVariable() {
-            data = NULL;
-        };
-        ~ArrayVariable() {
-            if (data) delete[] data;
-        };
-
-        ArrayVariable& operator=(const ArrayVariable& av)
-        {
-	    if (&av == this) return *this;
-
-            num_dim = av.num_dim;
-
-            int total_dim = 1;
-            for (int i = 0; i < 20; i++) {
-                dim[i]     = av.dim[i];
-                total_dim *= dim[i];
-            }
-
-            if (data) delete[] data;
-
-            data = NULL;
-            if (av.data) {
-                data = new int[total_dim];
-                memcpy(data, av.data, sizeof(int) * total_dim);
-            }
-
-            return *this;
-        };
+	std::vector<int> data;
     };
     ArrayVariable::map arrays;
 

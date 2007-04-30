@@ -1413,10 +1413,7 @@ void ScriptHandler::declareDim()
         newarr->dim[i] = array.dim[i] + 1;
         dim *= array.dim[i] + 1;
     }
-
-    newarr->data = new int[dim];
-    memset(newarr->data, 0, sizeof(int) * dim);
-
+    newarr->data.assign(dim, 0);
     next_script = buf;
 }
 
