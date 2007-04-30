@@ -189,23 +189,16 @@ int ScriptParser::soundpressplginCommand(const string& cmd)
     if (current_mode != DEFINE_MODE)
 	errorAndExit("soundpressplgin: not in the define section");
 
-    const char* buf = script_h.readStr();
-    char buf2[12];
-    memcpy(buf2, buf, 12);
+    string buf = script_h.readStr();
+    string buf2(buf, 12);
+
     // only nbzplgin.dll is supported
-    for (unsigned int i = 0; i < strlen(buf); i++)
-        if (buf2[i] >= 'A' && buf2[i] <= 'Z') buf2[i] += 'a' - 'A';
-
-    if (strncmp(buf2, "nbzplgin.dll", 12)) {
-        fprintf(stderr, " *** plugin %s is not available, ignored. ***\n", buf);
-        return RET_CONTINUE;
-    }
-
-    while (*buf != '|') buf++;
-    buf++;
-
-    ScriptHandler::cBR->registerCompressionType(buf, BaseReader::NBZ_COMPRESSION);
-
+    buf2.lowercase();
+    if (buf2 != "nbzplgin.dll")
+        fprintf(stderr, " *** plugin %s is not available, ignored. ***\n", buf.c_str());
+    else
+	ScriptHandler::cBR->registerCompressionType(buf.c_str() + buf.find('|'),
+						   BaseReader::NBZ_COMPRESSION);
     return RET_CONTINUE;
 }
 
@@ -489,7 +482,7 @@ int ScriptParser::movCommand(const string& cmd)
     }
     else if (script_h.current_variable.type == ScriptHandler::VAR_STR) {
         script_h.pushVariable();
-        const char* buf = script_h.readStr();
+        string buf = script_h.readStr();
         script_h.variable_data[script_h.pushed_variable.var_no].str = buf;
     }
     else errorAndExit(cmd + ": no variable");
@@ -570,8 +563,8 @@ int ScriptParser::menusetwindowCommand(const string& cmd)
     menu_font.is_bold   = script_h.readInt() ? true : false;
     menu_font.is_shadow = script_h.readInt() ? true : false;
 
-    const char* buf = script_h.readStr();
-    if (strlen(buf)) { // Comma may or may not appear in this case.
+    string buf = script_h.readStr();
+    if (buf) { // Comma may or may not appear in this case.
         menu_font.window_color = readColour(buf);
     }
     else {
@@ -676,9 +669,8 @@ int ScriptParser::lenCommand(const string& cmd)
     script_h.readInt();
     script_h.pushVariable();
 
-    const char* buf = script_h.readStr();
-
-    script_h.setInt(&script_h.pushed_variable, strlen(buf));
+    string buf = script_h.readStr();
+    script_h.setInt(&script_h.pushed_variable, buf.size());
 
     return RET_CONTINUE;
 }
@@ -1220,9 +1212,9 @@ int ScriptParser::atoiCommand(const string& cmd)
     script_h.readInt();
     script_h.pushVariable();
 
-    const char* buf = script_h.readStr();
+    string buf = script_h.readStr();
 
-    script_h.setInt(&script_h.pushed_variable, atoi(buf));
+    script_h.setInt(&script_h.pushed_variable, atoi(buf.c_str()));
 
     return RET_CONTINUE;
 }

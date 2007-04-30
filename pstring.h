@@ -318,6 +318,12 @@ public:
 	    if (*it >= 'a' && *it <= 'z') *it -= 32;
     }
 
+    void lowercase()
+    {
+	for (std::string::iterator it = c.begin(); it != c.end(); ++it)
+	    if (*it >= 'A' && *it <= 'Z') *it += 32;
+    }
+
     void replace(char what, char with)
     {
 	for (std::string::iterator it = c.begin(); it != c.end(); ++it)

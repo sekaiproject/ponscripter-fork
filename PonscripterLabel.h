@@ -99,7 +99,7 @@ public:
     void setSavePath(const char* path);
     void setArchivePath(const char* path);
 
-    bool hasArchivePath() const { return !archive_path.empty(); }
+    bool hasArchivePath() const { return archive_path; }
     void setFullscreenMode();
     void setWindowMode();
     void enableButtonShortCut();
@@ -333,7 +333,7 @@ private:
            WAIT_TIMER_MODE   = 32,
            WAIT_TEXTBTN_MODE = 64,
            WAIT_VOICE_MODE   = 128,
-           WAIT_TEXT_MODE = 256 // clickwait, newpage, select
+           WAIT_TEXT_MODE    = 256 // clickwait, newpage, select
     };
     typedef enum { COLOR_EFFECT_IMAGE  = 0,
                    DIRECT_EFFECT_IMAGE = 1,
