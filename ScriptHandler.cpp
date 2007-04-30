@@ -315,9 +315,8 @@ const char* ScriptHandler::readStr()
     string_buffer.clear();
 
     while (1) {
-        parseStr(&buf);
+        string_buffer += parseStr(&buf);
         buf = checkComma(buf);
-	string_buffer += str_string_buffer;
         if (buf[0] != '+') break;
 
         buf++;
@@ -1030,54 +1029,54 @@ char* ScriptHandler::checkComma(char* buf)
 }
 
 
-void ScriptHandler::parseStr(char** buf)
+string ScriptHandler::parseStr(char** buf)
 {
     SKIP_SPACE(*buf);
 
     if (**buf == '(') {
+	// (foo) bar baz : apparently returns bar if foo has been
+	// viewed, baz otherwise.
+	
         (*buf)++;
-        parseStr(buf);
+        string s = parseStr(buf);
         SKIP_SPACE(*buf);
         if ((*buf)[0] != ')') errorAndExit("parseStr: ) is not found.");
 
         (*buf)++;
 
-	// What the heck does this do?!
-        if (file_log.find(str_string_buffer)) {
+        if (file_log.find(s)) {
+            s = parseStr(buf);
             parseStr(buf);
-	    string tmp_buf = str_string_buffer; // FIXME: hideous ugliness
-            parseStr(buf);
-	    str_string_buffer = tmp_buf;
         }
         else {
             parseStr(buf);
-            parseStr(buf);
+            s = parseStr(buf);
         }
 
         current_variable.type |= VAR_CONST;
+	return s;
     }
     else if (**buf == '$') {
         (*buf)++;
         int no = parseInt(buf);
-	str_string_buffer = variable_data[no].str;
-
-        current_variable.type   = VAR_STR;
+        current_variable.type = VAR_STR;
         current_variable.var_no = no;
-        if (current_variable.var_no < 0
-            || current_variable.var_no >= VARIABLE_RANGE)
+        if (no < 0 || no >= VARIABLE_RANGE)
             current_variable.var_no = VARIABLE_RANGE;
+	return variable_data[no].str;
     }
     else if (**buf == '"') {
-	str_string_buffer.clear();
+	string s;
         (*buf)++;
 	while (**buf != '"' && **buf != 0x0a)
-            str_string_buffer.push_back(*(*buf)++);
+            s.push_back(*(*buf)++);
         if (**buf == '"') (*buf)++;
 
         current_variable.type |= VAR_CONST;
+	return s;
     }
     else if (**buf == encoding->TextMarker()) {
-        str_string_buffer.clear();
+        string s;
 	(*buf)++;
 
         char ch = **buf;
@@ -1085,7 +1084,7 @@ void ScriptHandler::parseStr(char** buf)
 	    if (encoding->UseTags() && ch == '~' && (ch = *++ (*buf)) != '~') {
                 while (ch != '~') {
                     int l;
-                    str_string_buffer += encoding->TranslateTag(*buf, l);
+                    s += encoding->TranslateTag(*buf, l);
                     *buf += l;
                     ch = **buf;
                 }
@@ -1095,7 +1094,7 @@ void ScriptHandler::parseStr(char** buf)
 
             const wchar uc = encoding->Decode(*buf);
             *buf += encoding->CharacterBytes(*buf);
-            str_string_buffer += encoding->Encode(uc);
+            s += encoding->Encode(uc);
             ch = **buf;
         }
 
@@ -1103,24 +1102,27 @@ void ScriptHandler::parseStr(char** buf)
 
         current_variable.type |= VAR_CONST;
         end_status |= END_1BYTE_CHAR;
+	return s;
     }
     else if (**buf == '#') { // for color
-	str_string_buffer.assign(*buf, 7);
+	string s(*buf, 7);
 	*buf += 7;
         current_variable.type = VAR_NONE;
+	return s;
     }
     else if (**buf == '*') { // label
-        str_string_buffer.assign(1, *(*buf)++);
+        string s(1, *(*buf)++);
         SKIP_SPACE(*buf);
         char ch = **buf;
         while((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') ||
               (ch >= '0' && ch <= '9') || ch == '_')
 	{
             if (ch >= 'A' && ch <= 'Z') ch += 'a' - 'A';
-            str_string_buffer += ch;
+            s += ch;
             ch = *++(*buf);
         }
         current_variable.type |= VAR_CONST;
+	return s;
     }   
     else { // str alias
         char ch;
@@ -1152,9 +1154,8 @@ void ScriptHandler::parseStr(char** buf)
         }
 
         if (!alias_buf) {
-            str_string_buffer.clear();
             current_variable.type = VAR_NONE;
-            return;
+            return "";
         }
 
 	stralias_t::iterator a = str_aliases.find(alias_buf);
@@ -1162,8 +1163,8 @@ void ScriptHandler::parseStr(char** buf)
             printf("can't find str alias for %s...\n", alias_buf.c_str());
             exit(-1);
 	}
-	str_string_buffer = a->second;
         current_variable.type |= VAR_CONST;
+	return a->second;
     }
 }
 

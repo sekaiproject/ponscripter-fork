@@ -250,7 +250,7 @@ private:
     LabelInfo::iterator findLabel(string label);
 
     char* checkComma(char* buf);
-    void parseStr(char** buf);
+    string parseStr(char** buf);
     int  parseIntExpression(char** buf);
     void readNextOp(char** buf, int* op, int* num);
     int  calcArithmetic(int num1, int op, int num2);
@@ -273,7 +273,6 @@ private:
 
     string string_buffer; // updated only by readToken
     string saved_string_buffer; // updated only by saveStringBuffer
-    string str_string_buffer; // updated only by readStr
 
     LabelInfo::vec label_info;
     LabelInfo::dic label_names;
