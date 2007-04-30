@@ -43,10 +43,6 @@ ScriptHandler::ScriptHandler()
     file_log.filename  = "NScrflog.dat";
     clickstr_list.clear();
 
-    string_buffer       = new char[STRING_BUFFER_LENGTH];
-    str_string_buffer   = new char[STRING_BUFFER_LENGTH];
-    saved_string_buffer = new char[STRING_BUFFER_LENGTH];
-
     // the last one is a sink:
     variable_data = new VariableData[VARIABLE_RANGE + 1];
 

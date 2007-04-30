@@ -264,7 +264,7 @@ private:
     numalias_t num_aliases;
     stralias_t str_aliases;
 
-    ArrayVariable* root_array_variable, * current_array_variable;
+    ArrayVariable *root_array_variable, *current_array_variable;
 
     string archive_path;
     int   script_buffer_length;
