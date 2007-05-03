@@ -1,40 +1,49 @@
 Ponscripter ("Proportional ONScripter") is a fork of ogapee's
 ONScripter, which in turn is an enhanced clone of NScripter.
 
-While ONScripter adds basic support for Western text, it does so only
-insofar as is easily done while retaining compatibility with
-unmodified Japanese games.  Ponscripter builds on the ONScripter
-source code, but removes many Japanese-specific features (vertical
-text, ruby), and makes some fundamental architectural changes to
-better support Western games (proportionally spaced text, scripts
-encoded as UTF-8 rather than Shift_JIS).
+While ONScripter adds basic support for Western text to the NScripter
+system, it does so only insofar as is easily done while retaining
+compatibility with unmodified Japanese games.  Ponscripter builds on
+the ONScripter source code, but removes many Japanese-specific
+features (vertical text, ruby), and makes some fundamental
+architectural changes to better support Western games (proportionally
+spaced text, scripts encoded as UTF-8 rather than Shift_JIS).
 
 The end result is a somewhat less stable and VASTLY less compatible
-engine -- but it should more than make up for that by making games
-look good, if one takes the time to convert them to make proper use of
-the new capabilities.
+engine -- but it sure does look a lot better when it works.
 
 I must repeat this for emphasis: unlike ONScripter, this engine is NOT
 designed for playing NScripter or ONScripter games!  While it is
 generally capable of running them to some extent, it is not fully
 compatible, and problems are very likely to occur.  Non-Ponscripter
 games may be considered unsupported, and fixing bugs in them will be a
-very, very low priority indeed.
+very low priority indeed.
 
-To put it another way, consider what you want.  If you want a portable
-game engine that works well with both Japanese and English games, and
-that strives to implement an NScripter-compatible system conforming to
-all the games and technical documentation out there, then avoid
-Ponscripter like the plague and stick with ONScripter, which does an
-admirable job at that.  If you are an ONScripter _developer_ who wants
-pretty Western text on Windows, OS X, or X11, and if you are willing
-to work to get it, then porting your game to Ponscripter is likely to
-be easier than rewriting from scratch in Ren'Py, but don't expect it
-to be effortless.
+To put it another way, consider what you want:
+
+- If you are a user or developer who wants a portable game engine that
+  works well with both Japanese and English games, and that strives to
+  implement an NScripter-compatible system conforming to all the games
+  and technical documentation out there, then avoid Ponscripter like
+  the plague and stick with ONScripter, which does an admirable job at
+  that.
+
+- If you are an adventurous user who wants to experiment with an
+  unstable system that might in some circumstances be able to enhance
+  your gaming experience, then feel free to try Ponscripter.  But
+  back up your saved games first, and don't be at all surprised if it
+  doesn't work.
+
+- If you are a developer who wants pretty Western text on Windows,
+  MacOS X, or X11, and if you are willing to work to get it, then
+  porting your game to Ponscripter is likely to be easier than
+  rewriting from scratch in Ren'Py, but don't expect it to be
+  effortless.
 
 Note that Ponscripter is still very much a work in progress.  What
 little documentation there is can be found in the file
 "README.ponscripter".  If you use this, you do so at your own risk,
-and I will not be held liable for any damage that ensues.
+and Haeleth will not be held liable for any damage that ensues.
 
-Please do not bug ogapee with any problems you encounter.
+Also, do NOT report bugs or problems you encounter to ogapee.  It is
+incredibly unlikely that they are anything to do with him.

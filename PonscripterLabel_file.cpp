@@ -176,7 +176,7 @@ int PonscripterLabel::loadSaveFile(int no)
 
     /* ---------------------------------------- */
     /* Load text history */
-    if (file_version >= 107) readInt();
+    sentence_font.setTateYoko(file_version >= 107 ? readInt() : 0);
 
     int text_history_num = readInt();
     for (i = 0; i < text_history_num; i++) {

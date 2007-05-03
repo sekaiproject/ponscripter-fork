@@ -179,8 +179,7 @@ void PonscripterLabel::setupAnimationInfo(AnimationInfo* anim, FontInfo* info)
     anim->abs_flag = true;
 
     if (anim->trans_mode == AnimationInfo::TRANS_STRING) {
-        FontInfo f_info = sentence_font;
-        if (info) f_info = *info;
+        FontInfo f_info = info ? *info : sentence_font;
 
         // handle private-use encodings
 	anim->file_name = anim->file_name.parseTags();
@@ -188,7 +187,7 @@ void PonscripterLabel::setupAnimationInfo(AnimationInfo* anim, FontInfo* info)
         if (anim->font_size_x >= 0) { // in case of Sprite, not rclick menu
             f_info.top_x = anim->pos.x * screen_ratio2 / screen_ratio1;
             f_info.top_y = anim->pos.y * screen_ratio2 / screen_ratio1;
-            f_info.clear();
+	    f_info.setTateYoko(0);
             f_info.style = Default;
 
             f_info.set_size(anim->font_size_y);

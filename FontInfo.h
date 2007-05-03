@@ -39,6 +39,7 @@ class FontInfo {
     float indent;
     float pos_x; int pos_y; // Current position
     int   font_size, font_size_mod;
+    bool  is_vertical;
 public:
     static int default_encoding;
 
@@ -62,6 +63,8 @@ public:
     void set_size(int val) { font_size = val; }
     void set_mod_size(int val) { font_size_mod = val; }
 
+    void setTateYoko(bool vertical) { is_vertical = vertical; clear(); }
+    
     int style;
 
     float em_width();

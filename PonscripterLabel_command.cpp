@@ -226,8 +226,7 @@ int PonscripterLabel::texecCommand(const string& cmd)
 
 int PonscripterLabel::tateyokoCommand(const string& cmd)
 {
-    // Ignored in this version
-
+    sentence_font.setTateYoko(script_h.readInt());
     return RET_CONTINUE;
 }
 
