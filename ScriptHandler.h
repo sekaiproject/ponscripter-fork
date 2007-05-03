@@ -33,6 +33,7 @@
 
 #include "defs.h"
 #include "BaseReader.h"
+#include "expression.h"
 
 const int VARIABLE_RANGE = 4096;
 
@@ -69,7 +70,8 @@ public:
            VAR_ARRAY = 2,  // array
            VAR_STR   = 4,  // string
            VAR_CONST = 8,  // direct value or alias, not variable
-           VAR_PTR   = 16  // poiter to a variable, e.g. i%0, s%0
+           VAR_PTR   = 16, // pointer to a variable, e.g. i%0, s%0
+	   VAR_LABEL = 32  // label, not string constant
     };
     struct VariableInfo {
         int type;
@@ -92,6 +94,16 @@ public:
     int  parseInt(char** buf);
     void skipToken();
 
+    // sane parser functions :)
+    // Implementations in expression.cpp
+    string readStrValue();
+    int readIntValue();
+    int readStrVar();
+    int readIntVar();
+    Expression readStrExpr();
+    Expression readIntExpr();
+    Expression readExpr();
+
     // function for string access
     inline string& getStringBuffer() { return string_buffer; }
     void addStringBuffer(char ch) { string_buffer += ch; }
@@ -107,7 +119,7 @@ public:
     
     int  getOffset(char* pos);
     char* getAddress(int offset);
-    int  getLineByAddress(char* address);
+    int  getLineByAddress(char* address, bool absolute = false);
     char* getAddressByLine(int line);
     LabelInfo getLabelByAddress(char* address);
     LabelInfo getLabelByLine(int line);

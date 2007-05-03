@@ -402,12 +402,12 @@ char* ScriptHandler::getAddress(int offset)
 }
 
 
-int ScriptHandler::getLineByAddress(char* address)
+int ScriptHandler::getLineByAddress(char* address, bool absolute)
 {
     LabelInfo label = getLabelByAddress(address);
 
     char* addr = label.label_header;
-    int   line = 0;
+    int   line = absolute ? label.start_line + 1 : 0;
     while (address > addr) {
         if (*addr == 0x0a) line++;
 
@@ -1098,7 +1098,7 @@ string ScriptHandler::parseStr(char** buf)
             s += ch;
             ch = *++(*buf);
         }
-        current_variable.type |= VAR_CONST;
+        current_variable.type |= VAR_CONST | VAR_LABEL;
 	return s;
     }   
     else { // str alias

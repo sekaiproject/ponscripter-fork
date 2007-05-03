@@ -134,12 +134,9 @@ public:
     template <class T> string& assign(T first, T last)
 	{ c.assign(first, last); return *this; }
 
-    string& operator=(const string& s)
-	{ return assign(s); }
-    string& operator=(const char* s)
-	{ return assign(s); }
-    string& operator=(char e)
-	{ c = e; return *this; }
+    string& operator=(const string& s) { return assign(s); }
+    string& operator=(const char* s) { return assign(s); }
+    string& operator=(char e) { c = e; return *this; }
 
     string& replace(size_type pos, size_type n, const string& s)
 	{ c.replace(pos, n, s.c); return *this; }

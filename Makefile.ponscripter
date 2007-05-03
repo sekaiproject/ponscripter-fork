@@ -22,7 +22,7 @@ GUI_OBJS = PonscripterLabel$(OBJSUFFIX)					\
 	FontInfo$(OBJSUFFIX) DirtyRect$(OBJSUFFIX)			\
 	resize_image$(OBJSUFFIX) encoding$(OBJSUFFIX)			\
 	font$(OBJSUFFIX) $(if $(NO_RESOURCES), ,resources$(OBJSUFFIX))  \
-	pstring$(OBJSUFFIX) cp932_encoding$(OBJSUFFIX)
+	pstring$(OBJSUFFIX) cp932_encoding$(OBJSUFFIX) expression$(OBJSUFFIX)
 DECODER_OBJS = DirectReader$(OBJSUFFIX) SarReader$(OBJSUFFIX)	\
 	NsaReader$(OBJSUFFIX)
 PONSCR_OBJS = Ponscripter$(OBJSUFFIX) $(DECODER_OBJS)		\
@@ -30,7 +30,7 @@ PONSCR_OBJS = Ponscripter$(OBJSUFFIX) $(DECODER_OBJS)		\
 	ScriptParser_command$(OBJSUFFIX) $(GUI_OBJS) $(EXT_OBJS)
 PARSER_HEADER = $(EXTRADEPS) BaseReader.h SarReader.h NsaReader.h	\
 	DirectReader.h ScriptHandler.h ScriptParser.h AnimationInfo.h	\
-	FontInfo.h DirtyRect.h pstring.h defs.h
+	FontInfo.h DirtyRect.h pstring.h defs.h expression.h encoding.h
 PONSCR_HEADER = font.h PonscripterLabel.h $(PARSER_HEADER)
 
 ponscr$(EXESUFFIX): $(PONSCR_OBJS)
@@ -48,14 +48,14 @@ pdistclean: clean $(DISTCLEAN_TARGETS)
 SarReader$(OBJSUFFIX):    BaseReader.h SarReader.h 
 NsaReader$(OBJSUFFIX):    BaseReader.h SarReader.h NsaReader.h 
 DirectReader$(OBJSUFFIX): BaseReader.h DirectReader.h
-ScriptHandler$(OBJSUFFIX): ScriptHandler.h encoding.h
+ScriptHandler$(OBJSUFFIX): ScriptHandler.h encoding.h defs.h pstring.h expression.h
 ScriptParser$(OBJSUFFIX): $(PARSER_HEADER)
 ScriptParser_command$(OBJSUFFIX): $(PARSER_HEADER)
 Ponscripter$(OBJSUFFIX): $(PONSCR_HEADER) version.h
-PonscripterLabel$(OBJSUFFIX): $(PONSCR_HEADER) encoding.h
-PonscripterLabel_command$(OBJSUFFIX): $(PONSCR_HEADER) version.h encoding.h
-PonscripterLabel_ext$(OBJSUFFIX): $(PONSCR_HEADER) encoding.h
-PonscripterLabel_text$(OBJSUFFIX): $(PONSCR_HEADER) encoding.h font.h
+PonscripterLabel$(OBJSUFFIX): $(PONSCR_HEADER)
+PonscripterLabel_command$(OBJSUFFIX): $(PONSCR_HEADER) version.h
+PonscripterLabel_ext$(OBJSUFFIX): $(PONSCR_HEADER)
+PonscripterLabel_text$(OBJSUFFIX): $(PONSCR_HEADER) font.h
 PonscripterLabel_effect$(OBJSUFFIX): $(PONSCR_HEADER)
 PonscripterLabel_event$(OBJSUFFIX): $(PONSCR_HEADER)
 PonscripterLabel_rmenu$(OBJSUFFIX): $(PONSCR_HEADER)
@@ -72,6 +72,7 @@ MadWrapper$(OBJSUFFIX): MadWrapper.h
 AVIWrapper$(OBJSUFFIX): AVIWrapper.h
 encoding$(OBJSUFFIX): defs.h pstring.h encoding.h
 cp932_encoding$(OBJSUFFIX): pstring.h encoding.h cp932_tables.h
+expression$(OBJSUFFIX): defs.h pstring.h encoding.h expression.h
 
 ifndef NO_DEFAULT_ICON
 RESOURCES ?= default.png =icon.png
