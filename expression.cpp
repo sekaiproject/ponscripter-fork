@@ -1,22 +1,16 @@
 #include "ScriptHandler.h"
 
-// FIXME: this currently DOES NOT HANDLE ARRAYS in any way, shape, or form!
-
 string typestr(Expression::type_t t, bool v = false)
 {
     string var = v ? " variable" : "";
     switch (t) {
-    case Expression::Int:
-	return "integer" + var;
-    case Expression::String:
-	return "string" + var;
-    case Expression::Label:
-	return "label";
-    case Expression::Bareword:
-	return "bareword";
-    default:
-	return "[invalid type]";
+    case Expression::Int:	return "integer" + var;
+    case Expression::Array:	return "integer array" + var;
+    case Expression::String:	return "string" + var;
+    case Expression::Label:	return "label";
+    case Expression::Bareword:	return "bareword";
     }
+    return "[invalid type]";
 }
 
 void Expression::die(string why) const
@@ -72,7 +66,9 @@ int Expression::as_int() const
 {
     if (is_number() && is_constant())
 	return value_.intval;
-    else if (is_number())
+    else if (type_ == Array)
+	return h.arrays.find(value_.intval)->second.getValue(index_);
+    else if (type_ == Int)
 	return h.variable_data[value_.intval].num;
     else if (is_textual())
 	return atoi(as_string().c_str());
@@ -85,10 +81,25 @@ int Expression::var_no() const
     return value_.intval;
 }
 
-void Expression::mutate(int newval)
+void Expression::mutate(int newval, int offset, bool as_array)
 {
-    require(Int, true);
-    h.setNumVariable(value_.intval, newval);
+    if (type_ == Int) {
+	if (as_array) require(Array, true); else require_variable();
+	if (offset == MAX_INT) offset = 0;
+	h.setNumVariable(value_.intval + offset, newval);
+    }
+    else if (type_ == Array) {
+	require_variable();
+	std::vector<int> i = index_;
+	if (offset != MAX_INT)
+	    if (as_array)
+		i.push_back(offset);
+	    else
+		i.back() += offset;
+	h.arrays.find(value_.intval)->second.setValue(i, newval);
+    }
+    else
+	require(Int, true);
 }
 
 void Expression::mutate(const string& newval)
@@ -104,6 +115,13 @@ Expression::~Expression()
 
 Expression::Expression(ScriptHandler& sh, type_t t, bool is_v, int val)
     : h(sh), type_(t), var_(is_v)
+{
+    value_.intval = val;
+}
+
+Expression::Expression(ScriptHandler& sh, type_t t, bool is_v, int val,
+		       const std::vector<int>& idx)
+    : h(sh), type_(t), var_(is_v), index_(idx)
 {
     value_.intval = val;
 }
@@ -139,6 +157,11 @@ Expression ScriptHandler::readIntExpr()
     int i = readInt();
     if (current_variable.type == VAR_INT)
 	return Expression(*this, Expression::Int, 1, current_variable.var_no);
+    else if (current_variable.type == VAR_ARRAY)
+	return Expression(*this, Expression::Array, 1, current_variable.var_no,
+			  std::vector<int>(current_variable.array.dim,
+					   current_variable.array.dim +
+					   current_variable.array.num_dim));
     else
 	return Expression(*this, Expression::Int, 0, i);
 }
@@ -150,11 +173,22 @@ Expression ScriptHandler::readExpr()
     // going through a safe interface like this.
     char* buf = next_script;
     while (*buf == ' ' || *buf == '\t' || *buf == 0x0a || *buf == '(') ++buf;
-    if (*buf != '%' && *buf != '?' && (*buf < '0' || *buf > '9') &&
-	*buf != '-' && *buf != '+')
-	return readStrExpr();
-    else
-	return readIntExpr();
+    Expression e =
+	(*buf != '%' && *buf != '?' && (*buf < '0' || *buf > '9') &&
+	 *buf != '-' && *buf != '+')
+	? readStrExpr()
+	: readIntExpr();
+    if (e.type() == Expression::Bareword) {
+	numalias_t::iterator a = num_aliases.find(e.as_string());
+	if (a != num_aliases.end()) {
+	    return Expression(*this, Expression::Int, 0, a->second);
+	}
+	stralias_t::iterator b = str_aliases.find(e.as_string());
+	if (b != str_aliases.end()) {
+	    return Expression(*this, Expression::String, 0, a->second);
+	}
+    }
+    return e;
 }
 
 string ScriptHandler::readStrValue()
@@ -179,4 +213,15 @@ int ScriptHandler::readIntVar()
     Expression e = readIntExpr();
     e.require(Expression::Int, true);
     return e.var_no();
+}
+
+bool ScriptHandler::checkPtr()
+{
+    char* buf = current_script = next_script;
+    while (*buf == ' ' || *buf == '\t') ++buf;
+    if (*buf == 'i' || *buf == 's') {
+        next_script = buf + 1;
+        return true;
+    }
+    return false;
 }

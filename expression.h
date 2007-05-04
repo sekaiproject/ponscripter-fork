@@ -10,7 +10,7 @@ class ScriptHandler;
 
 class Expression {
 public:
-    enum type_t { Int, String, Label, Bareword };
+    enum type_t { Int, Array, String, Label, Bareword };
     type_t type() const { return type_; }
 
     // Test for attributes
@@ -19,7 +19,7 @@ public:
     bool is_textual() const
 	{ return type_ == String || type_ == Label || type_ == Bareword; }
     bool is_number() const
-	{ return type_ == Int; }
+	{ return type_ == Int || type_ == Array; }
 
     // Fail if attributes are missing
     void require(type_t t) const;
@@ -27,9 +27,6 @@ public:
     void require_variable() const;
     void require_textual() const;
     void require_number() const;
-
-    void require_int()      const { require(Int); }
-    void require_string()   const { require(String); }
     void require_label()    const { require(Label); }
     void require_bareword() const { require(Bareword); }
 
@@ -39,11 +36,13 @@ public:
     int var_no() const; // if variable
 
     // Modify variable
-    void mutate(int newval);
+    void mutate(int newval, int offset = MAX_INT, bool as_array = false);
     void mutate(const string& newval);
     
     ~Expression();
     Expression(ScriptHandler& sh, type_t t, bool is_v, int val);
+    Expression(ScriptHandler& sh, type_t t, bool is_v, int val,
+	       const std::vector<int>& idx);
     Expression(ScriptHandler& sh, type_t t, bool is_v, const string& val);
 
 private:
@@ -51,6 +50,7 @@ private:
     ScriptHandler& h;
     type_t type_;
     bool var_;
+    std::vector<int> index_;
     union {
 	string* strptr;
 	int intval;

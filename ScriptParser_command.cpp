@@ -439,38 +439,28 @@ int ScriptParser::mulCommand(const string& cmd)
 
 int ScriptParser::movCommand(const string& cmd)
 {
-    int count = 1;
+    int limit = 1;
+    if (cmd == "mov10")
+        limit = 10;
+    else if (cmd == "movl")
+        limit = MAX_INT;
+    else if (cmd[3] >= '3' && cmd[3] <= '9')
+        limit = cmd[3] - '0';
 
-    if (cmd == "mov10") {
-        count = 10;
+    Expression e = script_h.readExpr();
+    if (e.is_textual()) {
+	if (limit != 1)
+	    errorAndExit(cmd + " is not valid with string variables (use mov)");
+	e.mutate(script_h.readStrValue());
     }
-    else if (cmd == "movl") {
-        count = -1; // infinite
+    else {
+        bool loop_flag = script_h.getEndStatus() & ScriptHandler::END_COMMA;
+	for (int i = 0; loop_flag && i < limit; ++i) {
+	    int no = script_h.readIntValue();
+	    loop_flag = script_h.getEndStatus() & ScriptHandler::END_COMMA;
+	    e.mutate(no, i, limit == MAX_INT);
+	}
     }
-    else if (cmd[3] >= '3' && cmd[3] <= '9') {
-        count = cmd[3] - '0';
-    }
-
-    script_h.readVariable();
-
-    if (script_h.current_variable.type == ScriptHandler::VAR_INT
-        || script_h.current_variable.type == ScriptHandler::VAR_ARRAY) {
-        script_h.pushVariable();
-        bool loop_flag = (script_h.getEndStatus() & ScriptHandler::END_COMMA);
-        int  i = 0;
-        while ((count == -1 || i < count) && loop_flag) {
-            int no = script_h.readInt();
-            loop_flag = (script_h.getEndStatus() & ScriptHandler::END_COMMA);
-            script_h.setInt(&script_h.pushed_variable, no, i++);
-        }
-    }
-    else if (script_h.current_variable.type == ScriptHandler::VAR_STR) {
-        script_h.pushVariable();
-        string buf = script_h.readStrValue();
-        script_h.variable_data[script_h.pushed_variable.var_no].str = buf;
-    }
-    else errorAndExit(cmd + ": no variable");
-
     return RET_CONTINUE;
 }
 
@@ -736,8 +726,10 @@ int ScriptParser::ifCommand(const string& cmd)
 	    else if (op_buf[0] == '<' || op_buf[0] == '>' || op_buf[0] == '=')
 		script_h.setCurrent(op_buf + 1);
 
-	    Expression right = script_h.readExpr();
-
+	    Expression right = left.is_textual()
+		             ? script_h.readStrExpr()
+		             : script_h.readIntExpr();
+	    
 	    int comp_val = 0;
 	    if (left.is_number() && right.is_number())
 		comp_val = left.as_int() < right.as_int() ? -1
@@ -748,17 +740,17 @@ int ScriptParser::ifCommand(const string& cmd)
 	    else
 		errorAndExit("comparison operands are different types");
 	    
-	    if (op_buf[0] == '>' && op_buf[1] == '=') f = (comp_val >= 0);
-	    else if (op_buf[0] == '<' && op_buf[1] == '=') f = (comp_val <= 0);
-	    else if (op_buf[0] == '=' && op_buf[1] == '=') f = (comp_val == 0);
-	    else if (op_buf[0] == '!' && op_buf[1] == '=') f = (comp_val != 0);
-	    else if (op_buf[0] == '<' && op_buf[1] == '>') f = (comp_val != 0);
-	    else if (op_buf[0] == '<') f = (comp_val < 0);
-	    else if (op_buf[0] == '>') f = (comp_val > 0);
-	    else if (op_buf[0] == '=') f = (comp_val == 0);
+	    if (op_buf[0] == '>' && op_buf[1] == '=') f = comp_val >= 0;
+	    else if (op_buf[0] == '<' && op_buf[1] == '=') f = comp_val <= 0;
+	    else if (op_buf[0] == '=' && op_buf[1] == '=') f = comp_val == 0;
+	    else if (op_buf[0] == '!' && op_buf[1] == '=') f = comp_val != 0;
+	    else if (op_buf[0] == '<' && op_buf[1] == '>') f = comp_val != 0;
+	    else if (op_buf[0] == '<') f = comp_val < 0;
+	    else if (op_buf[0] == '>') f = comp_val > 0;
+	    else if (op_buf[0] == '=') f = comp_val == 0;
         }
 
-        condition_flag &= (if_flag) ? (f) : (!f);
+        condition_flag &= if_flag ? f : !f;
 
         char* op_buf = script_h.getNext();
         if (op_buf[0] == '&') {
@@ -826,24 +818,19 @@ int ScriptParser::getparamCommand(const string& cmd)
         errorAndExit("getparam: not in a subroutine");
 
     int end_status;
+
     do {
-        script_h.readVariable();
-        script_h.pushVariable();
+	bool ptr = script_h.checkPtr();
+	Expression e = script_h.readExpr();
 
         script_h.pushCurrent(nest_infos.back().next_script);
 
-        if (script_h.pushed_variable.type & ScriptHandler::VAR_PTR) {
-            script_h.readVariable();
-            script_h.setInt(&script_h.pushed_variable, script_h.current_variable.var_no);
-        }
-        else if (script_h.pushed_variable.type & ScriptHandler::VAR_INT
-                 || script_h.pushed_variable.type & ScriptHandler::VAR_ARRAY) {
-            script_h.setInt(&script_h.pushed_variable, script_h.readInt());
-        }
-        else if (script_h.pushed_variable.type & ScriptHandler::VAR_STR) {
-            script_h.variable_data[script_h.pushed_variable.var_no].str =
-		script_h.readStr();
-        }
+	if (ptr)
+	    e.mutate(script_h.readExpr().var_no());
+	else if (e.is_number())
+	    e.mutate(script_h.readIntValue());
+	else
+	    e.mutate(script_h.readStrValue());
 
         end_status = script_h.getEndStatus();
 

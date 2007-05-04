@@ -3,16 +3,26 @@
 #ifndef __DEFS_H__
 #define __DEFS_H__
 
-#include <SDL.h>
-#include "pstring.h"
+#include <stdio.h>
 
+#include <utility>
+#include <limits>
+#include <string>
+#include <vector>
+#include <map>
+#include <numeric>
 #ifdef __GNU_C__
 #include <ext/hash_map>
 #include <ext/hash_set>
 #else
-#include <map>
 #include <set>
 #endif
+
+#include <SDL.h>
+
+#include "pstring.h"
+
+const int MAX_INT = std::numeric_limits<int>::max();
 
 template <typename KT, typename VT>
 struct dictionary {

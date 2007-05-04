@@ -23,7 +23,7 @@
  *  02111-1307 USA
  */
 
-#include "pstring.h"
+#include "defs.h"
 #include "cp932_tables.h"
 
 // NB. We currently don't support ligatures in CP932.

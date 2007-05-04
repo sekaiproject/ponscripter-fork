@@ -59,9 +59,22 @@ public:
     struct ArrayVariable {
 	typedef std::map<int, ArrayVariable> map;
 	typedef map::iterator iterator;
-        int num_dim;
+
+	int  getValue(const std::vector<int>& i)          { return getoffs(i); }
+	void setValue(const std::vector<int>& i, int val) { getoffs(i) = val; }
+
+	int  getValue(const int* indices, int num_idx);
+	void setValue(const int* indices, int num_idx, int val);
+	
+	ArrayVariable(ScriptHandler* o) : owner(o) {}
+
+	// TODO: make these private
+	int num_dim;
         int dim[20];
 	std::vector<int> data;
+    private:
+	ScriptHandler* owner;
+	int& getoffs(const std::vector<int>& indices);
     };
     ArrayVariable::map arrays;
 
@@ -77,6 +90,8 @@ public:
         int type;
         int var_no;   // for integer(%), array(?), string($) variable
         ArrayVariable array; // for array(?)
+
+	VariableInfo(ScriptHandler* o) : array(o) {}
     };
 
     ScriptHandler();
@@ -88,13 +103,13 @@ public:
     // basic parser function
     const char* readToken();
     const char* readLabel();
-    void readVariable(bool reread_flag = false);
+    void readVariable();
     const char* readStr();
     int  readInt();
     int  parseInt(char** buf);
     void skipToken();
 
-    // sane parser functions :)
+    // saner parser functions :)
     // Implementations in expression.cpp
     string readStrValue();
     int readIntValue();
@@ -103,6 +118,7 @@ public:
     Expression readStrExpr();
     Expression readIntExpr();
     Expression readExpr();
+    bool checkPtr();
 
     // function for string access
     inline string& getStringBuffer() { return string_buffer; }
@@ -160,7 +176,7 @@ public:
 
     LabelInfo lookupLabel(const string& label);
     LabelInfo lookupLabelNext(const string& label);
-    void errorAndExit(const char* str);
+    void errorAndExit(string str);
 
     void loadArrayVariable(FILE* fp);
 
@@ -204,7 +220,8 @@ public:
 
             if (str) str.clear();
         };
-    }* variable_data;
+    };
+    std::vector<VariableData> variable_data;
 
     VariableInfo current_variable, pushed_variable;
 

@@ -21,11 +21,7 @@
  *  02111-1307 USA
  */
 
-#include "pstring.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <map>
+#include "defs.h"
 
 Encoding* encoding = 0; // initialised in ScriptHandler::readScript
 

@@ -35,16 +35,15 @@
 BaseReader * ScriptHandler::cBR = NULL;
 
 ScriptHandler::ScriptHandler()
-    : game_identifier("Ponscripter")
+    : variable_data(VARIABLE_RANGE + 1),
+      current_variable(this), pushed_variable(this),
+      game_identifier("Ponscripter")
 {
     script_buffer = NULL;
     kidoku_buffer = NULL;
     label_log.filename = "NScrllog.dat";
     file_log.filename  = "NScrflog.dat";
     clickstr_list.clear();
-
-    // the last one is a sink:
-    variable_data = new VariableData[VARIABLE_RANGE + 1];
 
     arrays.clear();
 
@@ -56,12 +55,8 @@ ScriptHandler::ScriptHandler()
 ScriptHandler::~ScriptHandler()
 {
     reset();
-
     if (script_buffer) delete[] script_buffer;
-
     if (kidoku_buffer) delete[] kidoku_buffer;
-
-    delete[] variable_data;
 }
 
 
@@ -607,11 +602,10 @@ int ScriptHandler::getIntVariable(VariableInfo* var_info)
 }
 
 
-void ScriptHandler::readVariable(bool reread_flag)
+void ScriptHandler::readVariable()
 {
     end_status = END_NONE;
     current_variable.type = VAR_NONE;
-    if (reread_flag) next_script = current_script;
 
     current_script = next_script;
     char* buf = current_script;
@@ -619,7 +613,7 @@ void ScriptHandler::readVariable(bool reread_flag)
     SKIP_SPACE(buf);
 
     bool ptr_flag = false;
-    if (*buf == 'i' || *buf == 'f') {
+    if (*buf == 'i' || *buf == 's') {
         ptr_flag = true;
         buf++;
     }
@@ -967,9 +961,12 @@ ScriptHandler::LabelInfo ScriptHandler::lookupLabelNext(const string& label)
 }
 
 
-void ScriptHandler::errorAndExit(const char* str)
+void ScriptHandler::errorAndExit(string s)
 {
-    fprintf(stderr, " **** Script error, %s [%s] ***\n", str, string_buffer.c_str());
+    string why = "Script error at line "
+	       + str(getLineByAddress(getCurrent(), true))
+	       + ": " + s + "\n(String buffer: [" + string_buffer + "])\n";
+    fprintf(stderr, why.c_str());
     exit(-1);
 }
 
@@ -1136,10 +1133,9 @@ string ScriptHandler::parseStr(char** buf)
         }
 
 	stralias_t::iterator a = str_aliases.find(alias_buf);
-	if (a == str_aliases.end()) {
-            printf("can't find str alias for %s...\n", alias_buf.c_str());
-            exit(-1);
-	}
+	if (a == str_aliases.end())
+	    errorAndExit("can't find str alias for " + alias_buf);
+
         current_variable.type |= VAR_CONST;
 	return a->second;
     }
@@ -1403,9 +1399,10 @@ void ScriptHandler::declareDim()
     current_script = next_script;
     char* buf = current_script;
 
-    ArrayVariable array;
+    ArrayVariable array(this);
     int no = parseArray(&buf, array);
-    ArrayVariable* newarr = &arrays[no];
+    ArrayVariable* newarr =
+	&arrays.insert(std::make_pair(no, ArrayVariable(this))).first->second;
 
     int dim = 1;
     newarr->num_dim = array.num_dim;
@@ -1488,4 +1485,34 @@ void ScriptHandler::LogInfo::read(ScriptHandler& h)
 	}
     }
     if (buf) delete[] buf;
+}
+
+
+int&
+ScriptHandler::ArrayVariable::getoffs(const std::vector<int>& indices)
+{
+    if ((int) indices.size() > num_dim)
+	owner->errorAndExit("array has " + str(num_dim) + " dimensions, but " +
+			    "indexed " + str(indices.size()) + " deep");
+    int offs_idx = 0;
+    for (std::vector<int>::size_type i = 0; i < indices.size(); ++i) {
+	if (indices[i] > dim[i])
+	    owner->errorAndExit("array index out of range");
+	offs_idx *= dim[i];
+	offs_idx += indices[i];
+    }
+
+    return data[offs_idx];
+}
+    
+int
+ScriptHandler::ArrayVariable::getValue(const int* indices, int num_idx)
+{
+    return getoffs(std::vector<int>(indices, indices + num_idx));
+}
+
+void
+ScriptHandler::ArrayVariable::setValue(const int* indices, int num_idx, int val)
+{
+    getoffs(std::vector<int>(indices, indices + num_idx)) = val;
 }

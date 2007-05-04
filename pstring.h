@@ -15,10 +15,6 @@
 #ifndef PSTRING_H
 #define PSTRING_H
 
-#include <stdio.h>
-#include <string>
-#include <vector>
-
 class string;
 #include "encoding.h"
 

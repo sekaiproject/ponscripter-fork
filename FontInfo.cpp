@@ -31,7 +31,6 @@
 #include "BaseReader.h"
 #include "ScriptHandler.h"
 #include "resources.h"
-#include <stdio.h>
 #include <math.h>
 
 int screen_ratio1 = 1, screen_ratio2 = 1;
