@@ -18,6 +18,16 @@ names, as follows:
 Ponscripter can still play NScripter games, though it is not as
 compatible as ONScripter in this regard.
 
+(If you wish to adapt an NScripter game to behave differently with
+Ponscripter while still working with NScripter and ONScripter, you can
+keep the script in the old Shift_JIS format and define a numalias
+PONSCRIPTER as 0; Ponscripter will sneakily modify the definition to
+give it the value 1 instead, so you can use "if PONSCRIPTER == 1" to
+execute code conditionally depending on the interpreter in use.  Note
+however that most of the features described below are not available in
+compatibility mode.  This might actually be most useful for displaying
+an error message in games known NOT to work with Ponscripter... ^^;)
+
 
 /---------------------------------------------------------------------
 |  Directives
@@ -148,23 +158,28 @@ you might use a line like
 
 /---------------------------------------------------------------------
 |  h_ligate <string>, <int>
+|  h_ligate <string>, <string>
 |  h_ligate <string>, remove
 |  h_ligate <predefined set>
 
 Additional shortcuts/ligatures can be defined (or existing shortcuts
 undefined) using the h_ligate command.
 
-The first two forms of this command manage individual shortcuts /
-ligatures. The <string> is the text to replace, and the <int> is the
-Unicode character to use in its place, or the token "remove" (without
-quotation marks) to unmap the replacement.  For example, to define the
-standard fi/fl ligatures, use
+The first two forms of this command define shortcuts/ligatures: the
+first <string> is the text to replace, and the second argument is
+either the Unicode number of the character to use instead, or a string
+of which the first character is taken to be the desired replacement.
+For example, to define the standard fi/fl ligatures, use
 
   h_ligate "fi", 0xfb01
   h_ligate "fl", 0xfb02
 
 Where multiple replacements begin with the same substring, define the
 shortest first, or the longer options will never be used.
+
+If the second parameter is the bareword "remove" (without quotation
+marks), any defined ligature/shortcut for the first parameter will be
+undefined.
 
 Some built-in sets define the shortcuts I personally use.  The
 following commands exist:
@@ -201,9 +216,10 @@ not appear in most fonts, so you should normally define fi and fl
 ligatures manually as described above instead.
 
 Note that Ponscripter does not check whether a given character
-actually exists: substitutions take place at the parsing stage, before
-it is known which font will be used. The user is responsible for
-ensuring that appropriate glyphs will exist in the relevant fonts.
+actually exists in the fonts you are using: substitutions take place
+at the parsing stage, before it is known which font will be used. The
+user is responsible for ensuring that appropriate glyphs will exist in
+the relevant fonts.
 
 
 /---------------------------------------------------------------------

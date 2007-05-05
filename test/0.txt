@@ -7,6 +7,9 @@ dim ?0[10][5][2]
 numalias testnum, 72
 numalias teststr, 72
 
+; This is ignored by Ponscripter
+numalias PONSCRIPTER, 0
+
 defsub test
 defsub testsub
 
@@ -24,14 +27,16 @@ defaultspeed 0,0,0
 game
 
 *start
+if PONSCRIPTER = 0 skip 2
+h_mapfont 0, "default.ttf"
+
 !s0
 setwindow 8,16,20,23,20,20,0,2,20,1,1,#999999,0,0,639,479
 mov %testnum,0
 mov $teststr,"Test"
 
 ; Test itoa, itoa2, mid, and various `if' statements
-; Correct output: ›
-;                 ›
+; Correct output: all ›s
 test
 for %0=210 to 214: movl ?0[7][%0-210], %0, %0, %0: next
 itoa $5, ?0[7][3][1]

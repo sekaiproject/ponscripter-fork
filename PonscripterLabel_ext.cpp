@@ -166,6 +166,7 @@ int PonscripterLabel::haeleth_hinting_modeCommand(const string& cmd)
 /* h_ligate default
  * h_ligate none
  * h_ligate <input>, <unicode>
+ * h_ligate <input>, "unicode"
  * h_ligate <input>, remove
  *
  * Set default ligatures, no ligatures, or add/remove a ligature
@@ -188,10 +189,12 @@ int PonscripterLabel::haeleth_ligate_controlCommand(const string& cmd)
     }
     else {
 	Expression l = script_h.readExpr();
-	if (l.is_textual() && l.as_string() == "remove")
+	if (l.type() == Expression::Bareword && l.as_string() == "remove")
             DeleteLigature(s);
         else if (l.is_numeric())
             AddLigature(s, l.as_int());
+	else if (l.type() == Expression::String)
+	    AddLigature(s, *l.as_string().wbegin());
 	else
 	    fprintf(stderr, "Unknown character `%s'\n",
 		    l.debug_string().c_str());
@@ -203,7 +206,7 @@ int PonscripterLabel::haeleth_ligate_controlCommand(const string& cmd)
 int PonscripterLabel::haeleth_sayCommand(const string& cmd)
 {
     while (1) {
-	printf("%s", script_h.readExpr().as_string().c_str());
+	printf(script_h.readExpr().as_string().c_str());
 	if (script_h.getEndStatus() & ScriptHandler::END_COMMA)
 	    printf(", ");
 	else break;   

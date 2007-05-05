@@ -347,11 +347,14 @@ int ScriptParser::numaliasCommand(const string& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("numalias: numalias: not in the define section");
-
-    string label = script_h.readLabel();
+    string label = script_h.readStrValue();
+    label.lowercase();
     int no = script_h.readIntValue();
+    // Extension: allow detection of Ponscripter in compatibility mode
+    // by allowing the user to define an alias "ponscripter, 0" that
+    // Ponscripter actually defines as 1.
+    if (!script_h.is_ponscripter && label == "ponscripter") no = 1;
     script_h.addNumAlias(label, no);
-
     return RET_CONTINUE;
 }
 
