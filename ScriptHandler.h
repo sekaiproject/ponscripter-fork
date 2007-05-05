@@ -114,6 +114,7 @@ public:
     // saner parser functions :)
     // Implementations in expression.cpp
     string readStrValue();
+    string readBareword();
     int readIntValue();
     Expression readStrExpr();
     Expression readIntExpr();

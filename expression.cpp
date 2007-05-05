@@ -234,6 +234,13 @@ string ScriptHandler::readStrValue()
     return readStrExpr().as_string();
 }
 
+string ScriptHandler::readBareword()
+{
+    Expression e = readStrExpr();
+    e.require(Expression::Bareword, false);
+    return e.as_string();
+}
+
 int ScriptHandler::readIntValue()
 {
     return readIntExpr().as_int();

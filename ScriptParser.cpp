@@ -170,6 +170,16 @@ ScriptParser::ScriptParser()
     save_data_len   = 0;
 
     text_buffer = NULL;
+
+    syscall_dict["skip"]        = SYSTEM_SKIP;
+    syscall_dict["reset"]       = SYSTEM_RESET;
+    syscall_dict["save"]        = SYSTEM_SAVE;
+    syscall_dict["load"]        = SYSTEM_LOAD;
+    syscall_dict["lookback"]    = SYSTEM_LOOKBACK;
+    syscall_dict["windowerase"] = SYSTEM_WINDOWERASE;
+    syscall_dict["rmenu"]       = SYSTEM_MENU;
+    syscall_dict["automode"]    = SYSTEM_AUTOMODE;
+    syscall_dict["end"]         = SYSTEM_END;
 }
 
 
@@ -385,19 +395,14 @@ int ScriptParser::parseLine()
 }
 
 
-int ScriptParser::getSystemCallNo(const char* buffer)
+int ScriptParser::getSystemCallNo(const string& buffer)
 {
-    if (!strcmp(buffer, "skip")) return SYSTEM_SKIP;
-    else if (!strcmp(buffer, "reset")) return SYSTEM_RESET;
-    else if (!strcmp(buffer, "save")) return SYSTEM_SAVE;
-    else if (!strcmp(buffer, "load")) return SYSTEM_LOAD;
-    else if (!strcmp(buffer, "lookback")) return SYSTEM_LOOKBACK;
-    else if (!strcmp(buffer, "windowerase")) return SYSTEM_WINDOWERASE;
-    else if (!strcmp(buffer, "rmenu")) return SYSTEM_MENU;
-    else if (!strcmp(buffer, "automode")) return SYSTEM_AUTOMODE;
-    else if (!strcmp(buffer, "end")) return SYSTEM_END;
+    syscall_dict_t::iterator e = syscall_dict.find(buffer);
+    if (e != syscall_dict.end()) {
+	return e->second;
+    }
     else {
-        printf("Unsupported system call %s\n", buffer);
+        printf("Unsupported system call %s\n", buffer.c_str());
         return -1;
     }
 }

@@ -168,17 +168,20 @@ protected:
     NestInfo::vector nest_infos;
     void deleteNestInfo() { nest_infos.clear(); }
 
-    enum { SYSTEM_NULL        = 0,
-           SYSTEM_SKIP        = 1,
-           SYSTEM_RESET       = 2,
-           SYSTEM_SAVE        = 3,
-           SYSTEM_LOAD        = 4,
-           SYSTEM_LOOKBACK    = 5,
-           SYSTEM_WINDOWERASE = 6,
-           SYSTEM_MENU        = 7,
-           SYSTEM_YESNO       = 8,
-           SYSTEM_AUTOMODE    = 9,
-           SYSTEM_END         = 10 };
+    enum syscall { SYSTEM_NULL        = 0,
+		   SYSTEM_SKIP        = 1,
+		   SYSTEM_RESET       = 2,
+		   SYSTEM_SAVE        = 3,
+		   SYSTEM_LOAD        = 4,
+		   SYSTEM_LOOKBACK    = 5,
+		   SYSTEM_WINDOWERASE = 6,
+		   SYSTEM_MENU        = 7,
+		   SYSTEM_YESNO       = 8,
+		   SYSTEM_AUTOMODE    = 9,
+		   SYSTEM_END         = 10 };
+    typedef dictionary<string, syscall>::t syscall_dict_t;
+    syscall_dict_t syscall_dict;
+    
     enum { RET_NOMATCH   = 0,
            RET_SKIP_LINE = 1,
            RET_CONTINUE  = 2,
@@ -343,7 +346,7 @@ protected:
     RMenuElt::vec rmenu;
     unsigned int rmenu_link_width;
 
-    int getSystemCallNo(const char* buffer);
+    int getSystemCallNo(const string& buffer);
     unsigned char convHexToDec(char ch);
     rgb_t readColour(const char* buf);
     rgb_t readColour(const string& buf)

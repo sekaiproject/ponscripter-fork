@@ -98,16 +98,16 @@ int ScriptParser::transmodeCommand(const string& cmd)
     if (current_mode != DEFINE_MODE)
 	errorAndExit("transmode: not in the define section");
 
-    if (script_h.compareString("leftup"))
+    string l = script_h.readStrValue();
+    
+    if (l == "leftup")
 	trans_mode = AnimationInfo::TRANS_TOPLEFT;
-    else if (script_h.compareString("copy"))
+    else if (l == "copy")
 	trans_mode = AnimationInfo::TRANS_COPY;
-    else if (script_h.compareString("alpha"))
+    else if (l == "alpha")
 	trans_mode = AnimationInfo::TRANS_ALPHA;
-    else if (script_h.compareString("righttup"))
+    else if (l == "rightup")
 	trans_mode = AnimationInfo::TRANS_TOPRIGHT;
-
-    script_h.readLabel();
 
     return RET_CONTINUE;
 }
@@ -158,7 +158,7 @@ int ScriptParser::straliasCommand(const string& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("stralias: not in the define section");
-    string label = script_h.readLabel();
+    string label = script_h.readStrValue();
     script_h.addStrAlias(label, script_h.readStrValue());
     return RET_CONTINUE;
 }
@@ -300,7 +300,7 @@ int ScriptParser::rmenuCommand(const string& cmd)
     bool comma_flag = true;
     while (comma_flag) {
 	string s = script_h.readStrValue();
-	rmenu.push_back(RMenuElt(s, getSystemCallNo(script_h.readLabel())));
+	rmenu.push_back(RMenuElt(s, getSystemCallNo(script_h.readStrValue())));
         comma_flag = script_h.getEndStatus() & ScriptHandler::END_COMMA;
     }
 
@@ -705,11 +705,11 @@ int ScriptParser::ifCommand(const string& cmd)
 
     while (1) {
         if (script_h.compareString("fchk")) {
-            script_h.readLabel();
+            script_h.readStrExpr();
 	    f = script_h.file_log.find(script_h.readStrValue());
         }
         else if (script_h.compareString("lchk")) {
-            script_h.readLabel();
+            script_h.readStrExpr();
             f = script_h.label_log.find(script_h.readStrValue());
         }
         else {
@@ -861,15 +861,13 @@ int ScriptParser::forCommand(const string& cmd)
     int from = script_h.readIntValue();
     e.mutate(from);
 
-    if (!script_h.compareString("to"))
-        errorAndExit("for: no to");
-
-    script_h.readLabel();
+    if (script_h.readBareword() != "to")
+        errorAndExit("for: no `to'");
 
     ni.to = script_h.readIntValue();
 
     if (script_h.compareString("step")) {
-        script_h.readLabel();
+        script_h.readBareword();
         ni.step = script_h.readIntValue();
     }
     else {
@@ -967,7 +965,7 @@ int ScriptParser::defvoicevolCommand(const string& cmd)
 
 int ScriptParser::defsubCommand(const string& cmd)
 {
-    user_func_lut.insert(script_h.readLabel());
+    user_func_lut.insert(script_h.readBareword());
     return RET_CONTINUE;
 }
 
