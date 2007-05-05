@@ -161,21 +161,22 @@ void Expression::append(wchar newval)
     h.variable_data[intval_].str += newval;
 }
 
-Expression::~Expression()
-{}
-
 Expression::Expression(ScriptHandler& sh)
     : h(sh), type_(Int), var_(false), strval_(""), intval_(0)
 {}
 
 Expression::Expression(ScriptHandler& sh, type_t t, bool is_v, int val)
     : h(sh), type_(t), var_(is_v), strval_(""), intval_(val)
-{}
+{
+    if (is_v && (val < 0 || val > VARIABLE_RANGE)) intval_ = VARIABLE_RANGE;
+}
 
 Expression::Expression(ScriptHandler& sh, type_t t, bool is_v, int val,
 		       const std::vector<int>& idx)
     : h(sh), type_(t), var_(is_v), index_(idx), strval_(""), intval_(val)
-{}
+{
+    if (is_v && (val < 0 || val > VARIABLE_RANGE)) intval_ = VARIABLE_RANGE;
+}
 
 Expression::Expression(ScriptHandler& sh, type_t t, bool is_v,
 		       const string& val)
@@ -194,6 +195,9 @@ Expression& Expression::operator=(const Expression& src)
     intval_ = src.intval_;
     return *this;
 }
+
+
+// ScriptHandler expression handling
 
 Expression ScriptHandler::readStrExpr()
 {

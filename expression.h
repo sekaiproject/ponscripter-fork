@@ -49,7 +49,6 @@ public:
     void append(const string& newval);
     void append(wchar newval);    
     
-    ~Expression();
     Expression(ScriptHandler& sh);
     Expression(ScriptHandler& sh, type_t t, bool is_v, int val);
     Expression(ScriptHandler& sh, type_t t, bool is_v, int val,
