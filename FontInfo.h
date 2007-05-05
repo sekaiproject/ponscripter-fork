@@ -32,8 +32,8 @@
 
 extern int screen_ratio1, screen_ratio2;
 
-extern void MapFont(int id, const char* filename);
-extern void MapMetrics(int id, const char* filename);
+extern void MapFont(int id, const string& filename);
+extern void MapMetrics(int id, const string& filename);
 
 class FontInfo {
     float indent;

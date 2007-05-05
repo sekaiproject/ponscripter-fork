@@ -1098,7 +1098,7 @@ string ScriptHandler::parseStr(char** buf)
         current_variable.type |= VAR_CONST | VAR_LABEL;
 	return s;
     }   
-    else { // str alias
+    else { // bareword
         char ch;
 	string alias_buf;
         bool first_flag = true;
@@ -1133,8 +1133,10 @@ string ScriptHandler::parseStr(char** buf)
         }
 
 	stralias_t::iterator a = str_aliases.find(alias_buf);
-	if (a == str_aliases.end())
-	    errorAndExit("can't find str alias for " + alias_buf);
+	if (a == str_aliases.end()) {
+            current_variable.type = VAR_NONE;
+	    return alias_buf;
+	}
 
         current_variable.type |= VAR_CONST;
 	return a->second;

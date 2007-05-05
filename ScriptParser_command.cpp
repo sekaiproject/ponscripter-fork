@@ -117,16 +117,9 @@ int ScriptParser::timeCommand(const string& cmd)
 {
     time_t t = time(NULL);
     struct tm* tm = localtime(&t);
-
-    script_h.readVariable();
-    script_h.setInt(&script_h.current_variable, tm->tm_hour);
-
-    script_h.readVariable();
-    script_h.setInt(&script_h.current_variable, tm->tm_min);
-
-    script_h.readVariable();
-    script_h.setInt(&script_h.current_variable, tm->tm_sec);
-
+    script_h.readIntExpr().mutate(tm->tm_hour);
+    script_h.readIntExpr().mutate(tm->tm_min);
+    script_h.readIntExpr().mutate(tm->tm_sec);
     return RET_CONTINUE;
 }
 

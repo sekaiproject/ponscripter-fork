@@ -38,8 +38,8 @@ int screen_ratio1 = 1, screen_ratio2 = 1;
 int FontInfo::default_encoding = 0;
 
 static class FontsStruct {
-    friend void MapFont(int, const char*);
-    friend void MapMetrics(int, const char*);
+    friend void MapFont(int, const string&);
+    friend void MapMetrics(int, const string&);
 
     static const int count = 8;
     string mapping[count];
@@ -68,13 +68,13 @@ FontsStruct::~FontsStruct()
 }
 
 
-void MapFont(int id, const char* filename)
+void MapFont(int id, const string& filename)
 {
     Fonts.mapping[id] = filename;
 }
 
 
-void MapMetrics(int id, const char* filename)
+void MapMetrics(int id, const string& filename)
 {
     Fonts.metrics[id] = filename;
 }

@@ -31,21 +31,21 @@
  */
 int PonscripterLabel::haeleth_text_extentCommand(const string& cmd)
 {
-    script_h.readInt();
-    script_h.pushVariable();
-    string buf = script_h.readStr();
+    Expression ivar = script_h.readIntExpr();
+
+    string buf = script_h.readStrValue();
     if (buf[0] == encoding->TextMarker()) buf.shift();
 
     FontInfo f = sentence_font;
     if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
-        int s1 = script_h.readInt();
-	int s2 = script_h.readInt();
+        int s1 = script_h.readIntValue();
+	int s2 = script_h.readIntValue();
         f.set_size(s1 > s2 ? s1 : s2);
         f.set_mod_size(0);
-        f.pitch_x = script_h.readInt();
+        f.pitch_x = script_h.readIntValue();
     }
 
-    script_h.setInt(&script_h.pushed_variable, int(ceil(f.StringAdvance(buf))));
+    ivar.mutate(int(ceil(f.StringAdvance(buf))));
     return RET_CONTINUE;
 }
 
@@ -59,10 +59,10 @@ int PonscripterLabel::haeleth_text_extentCommand(const string& cmd)
  */
 int PonscripterLabel::haeleth_centre_lineCommand(const string& cmd)
 {
-    string buf = script_h.readStr();
+    string buf = script_h.readStrValue();
     if (buf[0] == encoding->TextMarker()) buf.shift();
 
-    sentence_font.SetXY(float (screen_width) / 2.0 -
+    sentence_font.SetXY(float(screen_width) / 2.0 -
 			sentence_font.StringAdvance(buf) / 2.0 -
 			sentence_font.top_x, -1);
     return RET_CONTINUE;
@@ -82,7 +82,7 @@ int PonscripterLabel::haeleth_char_setCommand(const string& cmd)
 	                      : break_chars;
     char_set.clear();
 
-    string buf = script_h.readStr();
+    string buf = script_h.readStrValue();
     string::witerator it = buf.wbegin();
     if (*it == encoding->TextMarker()) ++it;
     while (it != buf.wend()) {
@@ -100,10 +100,11 @@ int PonscripterLabel::haeleth_char_setCommand(const string& cmd)
  */
 int PonscripterLabel::haeleth_font_styleCommand(const string& cmd)
 {
-    const char* buf = script_h.readStr();
-    if (*buf == encoding->TextMarker()) ++buf;
+    string s = script_h.readStrValue();
+    if (s[0] == encoding->TextMarker()) s.shift();
 
     FontInfo::default_encoding = 0;
+    const char* buf = s.c_str();
     while (*buf && *buf != encoding->TextMarker() && *buf != '"') {
         if (*buf == 'c') {
             ++buf;
@@ -123,11 +124,10 @@ int PonscripterLabel::haeleth_font_styleCommand(const string& cmd)
  */
 int PonscripterLabel::haeleth_map_fontCommand(const string& cmd)
 {
-    int id = script_h.readInt();
-    MapFont(id, script_h.readStr());
+    int id = script_h.readIntValue();
+    MapFont(id, script_h.readStrValue());
     if (script_h.getEndStatus() & ScriptHandler::END_COMMA)
-        MapMetrics(id, script_h.readStr());
-
+        MapMetrics(id, script_h.readStrValue());
     return RET_CONTINUE;
 }
 
@@ -142,23 +142,23 @@ int PonscripterLabel::haeleth_map_fontCommand(const string& cmd)
  */
 int PonscripterLabel::haeleth_hinting_modeCommand(const string& cmd)
 {
-    if (script_h.compareString("light")) hinting = LightHinting;
-    else if (script_h.compareString("full")) hinting = FullHinting;
-    else if (script_h.compareString("none")) hinting = NoHinting;
+    string l = script_h.readStrValue();
+    if (l == "light") hinting = LightHinting;
+    else if (l == "full") hinting = FullHinting;
+    else if (l == "none") hinting = NoHinting;
+    else fprintf(stderr, "Unknown hinting mode `%s'\n", l.c_str());
+    l = script_h.readStrValue();
+    if (l == "integer") subpixel = false;
+    else if (l == "float") subpixel = true;
+    else fprintf(stderr, "Unknown positioning mode `%s'\n", l.c_str());
 
-    script_h.readLabel();
-    if (script_h.compareString("integer")) subpixel = false;
-    else if (script_h.compareString("float")) subpixel = true;
-
-    script_h.readLabel();
     if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
-        lightrender = script_h.compareString("light");
-        script_h.readLabel();
+	l = script_h.readStrValue();
+        lightrender = l == "light";
     }
     else {
         lightrender = hinting == LightHinting;
     }
-
     return RET_CONTINUE;
 }
 
@@ -170,41 +170,31 @@ int PonscripterLabel::haeleth_hinting_modeCommand(const string& cmd)
  *
  * Set default ligatures, no ligatures, or add/remove a ligature
  * to/from the list.
- * e.g. 'h_ligate "ffi", "U+FB03"' to map "ffi" onto an ffi ligature.
+ * e.g. 'h_ligate "ffi", 0xFB03' to map "ffi" onto an ffi ligature.
  * Ligature definitions are LIFO, so e.g. you must define "ff" before
  * "ffi", or the latter will never be seen.
  */
 int PonscripterLabel::haeleth_ligate_controlCommand(const string& cmd)
 {
-    if (script_h.compareString("none")) {
-        script_h.readLabel();
-        ClearLigatures();
-    }
-    else if (script_h.compareString("default")) {
-        script_h.readLabel();
-        DefaultLigatures(1 | 2 | 4);
-    }
-    else if (script_h.compareString("basic")) {
-        script_h.readLabel();
-        DefaultLigatures(1);
-    }
-    else if (script_h.compareString("punctuation")) {
-        script_h.readLabel();
-        DefaultLigatures(2);
-    }
-    else if (script_h.compareString("f_ligatures")) {
-        script_h.readLabel();
-        DefaultLigatures(4);
+    Expression e = script_h.readStrExpr();
+    string s = e.as_string();
+    if (e.type() == Expression::Bareword) {
+	if (s == "none")             ClearLigatures();
+	else if (s == "default")     DefaultLigatures(1 | 2 | 4);
+	else if (s == "basic")       DefaultLigatures(1);
+	else if (s == "punctuation") DefaultLigatures(2);
+	else if (s == "f_ligatures") DefaultLigatures(4);
+	else fprintf(stderr, "Unknown ligature set `%s'\n", s.c_str());    
     }
     else {
-        string in = script_h.readStr();
-        if (script_h.compareString("remove")) {
-            script_h.readLabel();
-            DeleteLigature(in);
-        }
-        else {
-            AddLigature(in, script_h.readInt());
-        }
+	Expression l = script_h.readExpr();
+	if (l.is_textual() && l.as_string() == "remove")
+            DeleteLigature(s);
+        else if (l.is_numeric())
+            AddLigature(s, l.as_int());
+	else
+	    fprintf(stderr, "Unknown character `%s'\n",
+		    l.debug_string().c_str());
     }
 
     return RET_CONTINUE;
@@ -213,18 +203,7 @@ int PonscripterLabel::haeleth_ligate_controlCommand(const string& cmd)
 int PonscripterLabel::haeleth_sayCommand(const string& cmd)
 {
     while (1) {
-	printf("%s", script_h.readToken());
-//	    
-//	script_h.readVariable();
-//	ScriptHandler::VariableData& vd =
-//	    script_h.variable_data[script_h.current_variable.var_no];
-//	if (script_h.current_variable.type == ScriptHandler::VAR_INT) {
-//	    printf("%d", vd.num);
-//	}
-//	else if (script_h.current_variable.type == ScriptHandler::VAR_STR) {
-//	    printf("%s", vd.str.c_str());
-//	}
-//	else printf("?");
+	printf("%s", script_h.readExpr().as_string().c_str());
 	if (script_h.getEndStatus() & ScriptHandler::END_COMMA)
 	    printf(", ");
 	else break;   

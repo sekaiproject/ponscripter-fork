@@ -57,10 +57,8 @@ private:
     type_t type_;
     bool var_;
     std::vector<int> index_;
-    union {
-	string* strptr;
-	int intval;
-    } value_;
+    string strval_;
+    int intval_;
 };
 
 #endif

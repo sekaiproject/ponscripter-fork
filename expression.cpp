@@ -25,10 +25,10 @@ string Expression::debug_string() const
 {
     if (var_) {
 	switch (type_) {
-	case Int:    return "%" + str(value_.intval);
-	case String: return "$" + str(value_.intval);
+	case Int:    return "%" + str(intval_);
+	case String: return "$" + str(intval_);
 	case Array:
-	  { string rv = "?" + str(value_.intval);
+	  { string rv = "?" + str(intval_);
 	    for (std::vector<int>::const_iterator it = index_.begin();
 		 it != index_.end(); ++it)
 		rv += "[" + str(*it) + "]";
@@ -38,10 +38,10 @@ string Expression::debug_string() const
     }
     else {
 	switch (type_) {
-	case Int:      return str(value_.intval);
-	case String:   return "\"" + *value_.strptr + "\"";
-	case Label:    return "*" + *value_.strptr;
-	case Bareword: return *value_.strptr;
+	case Int:      return str(intval_);
+	case String:   return "\"" + strval_ + "\"";
+	case Label:    return "*" + strval_;
+	case Bareword: return strval_;
 	default: return "[invalid type]";	    
 	}
     }
@@ -80,9 +80,9 @@ void Expression::require_numeric() const
 string Expression::as_string() const
 {
     if (is_textual() && is_constant())
-	return *value_.strptr;
+	return strval_;
     else if (is_textual())
-	return h.variable_data[value_.intval].str;
+	return h.variable_data[intval_].str;
     else if (is_numeric())
 	return str(as_int());
     throw "Error: invalid expression type";
@@ -91,11 +91,11 @@ string Expression::as_string() const
 int Expression::as_int() const
 {
     if (is_numeric() && is_constant())
-	return value_.intval;
+	return intval_;
     else if (type_ == Array)
-	return h.arrays.find(value_.intval)->second.getValue(index_);
+	return h.arrays.find(intval_)->second.getValue(index_);
     else if (type_ == Int)
-	return h.variable_data[value_.intval].num;
+	return h.variable_data[intval_].num;
     else if (is_textual())
 	return atoi(as_string().c_str());
     throw "Error: invalid expression type";
@@ -104,13 +104,13 @@ int Expression::as_int() const
 int Expression::var_no() const
 {
     require_variable();
-    return value_.intval;
+    return intval_;
 }
 
 int Expression::dim() const
 {
     require(Array, true);
-    return h.arrays.find(value_.intval)->second.getDimensionSize(index_.size());
+    return h.arrays.find(intval_)->second.getDimensionSize(index_.size());
 }
 
 void Expression::mutate(int newval, int offset, bool as_array)
@@ -118,7 +118,7 @@ void Expression::mutate(int newval, int offset, bool as_array)
     if (type_ == Int) {
 	if (as_array) require(Array, true); else require_variable();
 	if (offset == MAX_INT) offset = 0;
-	h.setNumVariable(value_.intval + offset, newval);
+	h.setNumVariable(intval_ + offset, newval);
     }
     else if (type_ == Array) {
 	require_variable();
@@ -128,7 +128,7 @@ void Expression::mutate(int newval, int offset, bool as_array)
 		i.push_back(offset);
 	    else
 		i.back() += offset;
-	h.arrays.find(value_.intval)->second.setValue(i, newval);
+	h.arrays.find(intval_)->second.setValue(i, newval);
     }
     else
 	require(Int, true);
@@ -137,45 +137,37 @@ void Expression::mutate(int newval, int offset, bool as_array)
 void Expression::mutate(const string& newval)
 {
     require(String, true);
-    h.variable_data[value_.intval].str = newval;
+    h.variable_data[intval_].str = newval;
 }
 
 void Expression::append(const string& newval)
 {
     require(String, true);
-    h.variable_data[value_.intval].str += newval;
+    h.variable_data[intval_].str += newval;
 }
 
 void Expression::append(wchar newval)
 {
     require(String, true);
-    h.variable_data[value_.intval].str += newval;
+    h.variable_data[intval_].str += newval;
 }
 
 Expression::~Expression()
-{
-    if (is_textual() && is_constant()) delete value_.strptr;
-}
+{}
 
 Expression::Expression(ScriptHandler& sh, type_t t, bool is_v, int val)
-    : h(sh), type_(t), var_(is_v)
-{
-    value_.intval = val;
-}
+    : h(sh), type_(t), var_(is_v), strval_(""), intval_(val)
+{}
 
 Expression::Expression(ScriptHandler& sh, type_t t, bool is_v, int val,
 		       const std::vector<int>& idx)
-    : h(sh), type_(t), var_(is_v), index_(idx)
-{
-    value_.intval = val;
-}
+    : h(sh), type_(t), var_(is_v), index_(idx), strval_(""), intval_(val)
+{}
 
 Expression::Expression(ScriptHandler& sh, type_t t, bool is_v,
 		       const string& val)
-    : h(sh), type_(t), var_(is_v)
-{
-    value_.strptr = new string(val);
-}
+    : h(sh), type_(t), var_(is_v), strval_(val), intval_(0)
+{}
 
 Expression ScriptHandler::readStrExpr()
 {
@@ -189,6 +181,8 @@ Expression ScriptHandler::readStrExpr()
 	s.shift();
 	return Expression(*this, Expression::Label, 0, s);
     }
+    else if (current_variable.type == VAR_NONE)
+	return Expression(*this, Expression::Bareword, 0, s);
     else
 	return Expression(*this, Expression::String, 0, s);
 }
@@ -243,20 +237,6 @@ string ScriptHandler::readStrValue()
 int ScriptHandler::readIntValue()
 {
     return readIntExpr().as_int();
-}
-
-int ScriptHandler::readStrVar()
-{
-    Expression e = readStrExpr();
-    e.require(Expression::String, true);
-    return e.var_no();
-}
-
-int ScriptHandler::readIntVar()
-{
-    Expression e = readIntExpr();
-    e.require(Expression::Int, true);
-    return e.var_no();
 }
 
 char ScriptHandler::checkPtr()

@@ -115,8 +115,6 @@ public:
     // Implementations in expression.cpp
     string readStrValue();
     int readIntValue();
-    int readStrVar();
-    int readIntVar();
     Expression readStrExpr();
     Expression readIntExpr();
     Expression readExpr();

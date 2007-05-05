@@ -660,13 +660,13 @@ int ScriptParser::readEffect(Effect& effect)
 {
     int num = 1;
 
-    effect.effect = script_h.readInt();
+    effect.effect = script_h.readIntValue();
     if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
         ++num;
-        effect.duration = script_h.readInt();
+        effect.duration = script_h.readIntValue();
         if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
             ++num;
-            effect.anim.setImageName(script_h.readStr());
+            effect.anim.setImageName(script_h.readStrValue());
         }
         else
             effect.anim.remove();
