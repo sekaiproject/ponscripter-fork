@@ -671,16 +671,13 @@ int PonscripterLabel::selectCommand(const string& cmd)
             setCurrentLabel(select_links[button].label);
         }
         else if (select_mode == SELECT_GOSUB_MODE) {
-            gosubReal(select_links[button].label,
-		      select_label_info.next_script);
+            gosubReal(select_links[button].label, select_label_next_script);
         }
         else { // selnum
 	    script_h.readIntExpr().mutate(button);
-            current_label_info =
-		script_h.getLabelByAddress(select_label_info.next_script);
-            current_line =
-		script_h.getLineByAddress(select_label_info.next_script);
-            script_h.setCurrent(select_label_info.next_script);
+            current_label_info = script_h.getLabelByAddress(select_label_next_script);
+            current_line = script_h.getLineByAddress(select_label_next_script);
+            script_h.setCurrent(select_label_next_script);
         }
 
         select_links.clear();
@@ -746,14 +743,14 @@ int PonscripterLabel::selectCommand(const string& cmd)
                 }
 
                 if (!comma_flag && !comma2_flag) {
-                    select_label_info.next_script = buf;
+                    select_label_next_script = buf;
                     break;
                 }
 
                 comma_flag = true;
             }
             else { // if select ends at the middle of the line
-                select_label_info.next_script = script_h.getNext();
+                select_label_next_script = script_h.getNext();
                 break;
             }
         }
@@ -1510,9 +1507,9 @@ int PonscripterLabel::jumpfCommand(const string& cmd)
 
 int PonscripterLabel::jumpbCommand(const string& cmd)
 {
-    script_h.setCurrent(last_tilde.next_script);
-    current_label_info = script_h.getLabelByAddress(last_tilde.next_script);
-    current_line = script_h.getLineByAddress(last_tilde.next_script);
+    script_h.setCurrent(last_tilde);
+    current_label_info = script_h.getLabelByAddress(last_tilde);
+    current_line = script_h.getLineByAddress(last_tilde);
 
     return RET_CONTINUE;
 }

@@ -995,7 +995,7 @@ void PonscripterLabel::executeLabel()
 		   string_buffer_offset, display_mode);
 
         if (script_h.getStringBuffer()[0] == '~') {
-            last_tilde.next_script = script_h.getNext();
+            last_tilde = script_h.getNext();
             readToken();
             continue;
         }

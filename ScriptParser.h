@@ -160,11 +160,15 @@ protected:
 	
         enum { LABEL = 0, FOR = 1 } nest_mode;
         char* next_script; // used in gosub and for
-        int var_no, to, step; // used in for
+	Expression var; // used in for
+        int to, step; // used in for
 
-        NestInfo(char* ns = 0) : nest_mode(LABEL), next_script(ns) {}
+        NestInfo(ScriptHandler& h, char* ns = 0)
+	    : nest_mode(LABEL), next_script(ns), var(h) {}
+	NestInfo(Expression e, char* ns = 0)
+	    : nest_mode(FOR), next_script(ns), var(e) {}
     };
-    NestInfo last_tilde; // CHECK: should this be NestInfo::iterator?
+    char* last_tilde;
     NestInfo::vector nest_infos;
     void deleteNestInfo() { nest_infos.clear(); }
 

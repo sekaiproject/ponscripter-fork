@@ -56,6 +56,7 @@ public:
 	       const std::vector<int>& idx);
     Expression(ScriptHandler& sh, type_t t, bool is_v, const string& val);
 
+    Expression& operator=(const Expression& src);    
 private:
     void die(string why) const;
     ScriptHandler& h;

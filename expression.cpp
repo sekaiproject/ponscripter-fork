@@ -182,6 +182,19 @@ Expression::Expression(ScriptHandler& sh, type_t t, bool is_v,
     : h(sh), type_(t), var_(is_v), strval_(val), intval_(0)
 {}
 
+Expression& Expression::operator=(const Expression& src)
+{
+    if (&src == this) return *this;
+    if (&src.h != &h)
+	fprintf(stderr, "Warning: we have more than one ScriptHandler...\n");
+    type_ = src.type_;
+    var_ = src.var_;
+    index_ = src.index_;
+    strval_ = src.strval_;
+    intval_ = src.intval_;
+    return *this;
+}
+
 Expression ScriptHandler::readStrExpr()
 {
     // Currently this is a sane wrapper around the existing unsafe

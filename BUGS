@@ -2,7 +2,14 @@ NB. These are all described in terms of Narcissu 2, and may not apply
 to other titles.
 
 
-NSCRIPTER COMPATIBILITY MODE
+MAJOR BUGS
+
+* Default font style not saved/loaded - e.g. save outside the bonus
+  stage and load from within the bonus stage, and the font will remain
+  sans.
+
+
+MINOR BUGS
 
 * Built-in save/load menus are broken when encoding is Shift_JIS
 

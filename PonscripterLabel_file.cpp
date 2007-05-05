@@ -326,7 +326,8 @@ int PonscripterLabel::loadSaveFile(int no)
 
         if (readChar() == 0) break;
 
-	nest_infos.push_back(NestInfo(script_h.getCurrent() + offset));
+	nest_infos.push_back(NestInfo(script_h,
+				      script_h.getCurrent() + offset));
     }
     script_h.setCurrent(script_h.getCurrent() + offset);
 

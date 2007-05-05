@@ -394,7 +394,7 @@ int ScriptParser::nextCommand(const string& cmd)
     if (nest_infos.empty() || nest_infos.back().nest_mode != NestInfo::FOR)
         errorAndExit("next: not in for loop\n");
 
-    Expression e(script_h, Expression::Int, true, nest_infos.back().var_no);
+    Expression& e = nest_infos.back().var;
 
     if (!break_flag)
 	e.mutate(e.as_int() + nest_infos.back().step);
@@ -784,7 +784,7 @@ int ScriptParser::gotoCommand(const string& cmd)
 
 void ScriptParser::gosubReal(const string& label, char* next_script)
 {
-    nest_infos.push_back(NestInfo(next_script));
+    nest_infos.push_back(NestInfo(script_h, next_script));
     setCurrentLabel(label);
 }
 
@@ -844,20 +844,13 @@ int ScriptParser::getparamCommand(const string& cmd)
 
 int ScriptParser::forCommand(const string& cmd)
 {
-    NestInfo ni;
-    ni.nest_mode = NestInfo::FOR;
-
-    Expression e = script_h.readIntExpr();
-    ni.var_no = e.var_no();
-    if (ni.var_no < 0 || ni.var_no >= VARIABLE_RANGE)
-        ni.var_no = VARIABLE_RANGE;
+    NestInfo ni(script_h.readIntExpr());
 
     if (!script_h.compareString("="))
         errorAndExit("for: no =");
 
     script_h.setCurrent(script_h.getNext() + 1);
-    int from = script_h.readIntValue();
-    e.mutate(from);
+    ni.var.mutate(script_h.readIntValue());
 
     if (script_h.readBareword() != "to")
         errorAndExit("for: no `to'");
@@ -872,8 +865,8 @@ int ScriptParser::forCommand(const string& cmd)
         ni.step = 1;
     }
 
-    break_flag = ni.step > 0 && from > ni.to ||
-		 ni.step < 0 && from < ni.to;
+    break_flag = ni.step > 0 && ni.var.as_int() > ni.to
+	      || ni.step < 0 && ni.var.as_int() < ni.to;
     
     /* ---------------------------------------- */
     /* Step forward callee's label info */
