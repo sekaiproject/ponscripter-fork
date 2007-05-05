@@ -1,11 +1,14 @@
 This is a very basic set of tests.  Absolutely no pretence is made at
-adequate coverage, as a simple glance at the code will prove.  All
+significant coverage, as a simple glance at the code will prove.  All
 they demonstrate is that Ponscripter is not _totally_ incompatible
 with NScripter.  :)
 
-I will note in passing that current versions of ONScripter do not pass
-even these tests, though ONScripter-En does slightly better.
+Interestingly, they reveal a number of problems with current versions
+of ONScripter... even ONScripter-En.  (I really must get round to
+fixing those!)
 
 If you wish to try them, note that you will need to supply a font
-yourself.  Note also that NScripter 2.49 or better is required -
-earlier versions do not support commands like itoa2.
+yourself.  Note also that you will need an up-to-date NScripter if you
+wish to try that; the mere fact that it came with a recent game does
+not guarantee that any nscr.exe is up-to-date, so get it straight from
+Takahashi Naoki's website.

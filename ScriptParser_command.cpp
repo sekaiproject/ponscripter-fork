@@ -394,14 +394,12 @@ int ScriptParser::nextCommand(const string& cmd)
     if (nest_infos.empty() || nest_infos.back().nest_mode != NestInfo::FOR)
         errorAndExit("next: not in for loop\n");
 
-    int val;
-    if (!break_flag) {
-        val = script_h.variable_data[nest_infos.back().var_no].num;
-        script_h.setNumVariable(nest_infos.back().var_no,
-				val + nest_infos.back().step);
-    }
+    Expression e(script_h, Expression::Int, true, nest_infos.back().var_no);
 
-    val = script_h.variable_data[nest_infos.back().var_no].num;
+    if (!break_flag)
+	e.mutate(e.as_int() + nest_infos.back().step);
+
+    int val = e.as_int();
 
     if (break_flag
         || nest_infos.back().step > 0 && val > nest_infos.back().to
@@ -1117,9 +1115,11 @@ int ScriptParser::addCommand(const string& cmd)
     if (!script_h.is_ponscripter && e.is_array())
 	errorAndCont("NScripter does not permit `add ?array, val': for "
 		     "portability, use `mov ?array,?array + val' instead.");
+
     if (e.is_numeric())
 	e.mutate(e.as_int() + script_h.readIntValue());
     else
 	e.append(script_h.readStrValue());
+
     return RET_CONTINUE;
 }

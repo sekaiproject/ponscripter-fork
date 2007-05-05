@@ -47,6 +47,15 @@ string Expression::debug_string() const
     }
 }
 
+bool Expression::is_bareword(string what) const
+{
+    if (type_ != Bareword) return false;
+    what.lowercase();
+    string w2 = strval_;
+    w2.lowercase();
+    return what == w2;
+}
+
 void Expression::require(type_t t) const
 {
     if (type_ != t)
@@ -153,6 +162,10 @@ void Expression::append(wchar newval)
 }
 
 Expression::~Expression()
+{}
+
+Expression::Expression(ScriptHandler& sh)
+    : h(sh), type_(Int), var_(false), strval_(""), intval_(0)
 {}
 
 Expression::Expression(ScriptHandler& sh, type_t t, bool is_v, int val)

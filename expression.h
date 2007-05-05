@@ -26,8 +26,7 @@ public:
     bool is_array() const { return type_ == Array; }
     bool is_label() const { return type_ == Label; }
     bool is_bareword() const { return type_ == Bareword; }
-    bool is_bareword(const string& s) const
-	{ return type_ == Bareword && strval_ == s; }
+    bool is_bareword(string s) const;
 
     // Fail if attributes are missing
     void require(type_t t) const;
@@ -51,6 +50,7 @@ public:
     void append(wchar newval);    
     
     ~Expression();
+    Expression(ScriptHandler& sh);
     Expression(ScriptHandler& sh, type_t t, bool is_v, int val);
     Expression(ScriptHandler& sh, type_t t, bool is_v, int val,
 	       const std::vector<int>& idx);

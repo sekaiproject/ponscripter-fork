@@ -692,8 +692,8 @@ private:
     int playExternalMusic(bool loop_flag);
     int playMIDI(bool loop_flag);
 
-    int playMPEG(const char* filename, bool click_flag);
-    void playAVI(const char* filename, bool click_flag);
+    int playMPEG(const string& filename, bool click_flag);
+    void playAVI(const string& filename, bool click_flag);
 
     enum { WAVE_PLAY        = 0,
            WAVE_PRELOAD     = 1,

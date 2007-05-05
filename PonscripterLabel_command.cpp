@@ -810,19 +810,17 @@ int PonscripterLabel::savetimeCommand(const string& cmd)
 
 int PonscripterLabel::savescreenshotCommand(const string& cmd)
 {
-    const char* buf = script_h.readStr();
-
-    char* ext = strrchr(buf, '.');
-    if (ext && (!strcmp(ext + 1, "BMP") || !strcmp(ext + 1, "bmp"))) {
-	string filename = archive_path + buf;
-	for (string::iterator i = filename.begin(); i != filename.end(); ++i)
-	    if (*i == '/' || *i == '\\')
-		*i = DELIMITER[0];
-
+    string filename = script_h.readStrValue();
+    string ext = filename.substr(filename.rfind('.'));
+    ext.lowercase();
+    if (ext == ".bmp") {
+	filename = archive_path + filename;
+	filename.replace('/', DELIMITER[0]);
+	filename.replace('\\', DELIMITER[0]);	
         SDL_SaveBMP(screenshot_surface, filename.c_str());
     }
     else
-        printf("%s: file %s is not supported.\n", cmd.c_str(), buf);
+        printf("%s: %s files are not supported.\n", cmd.c_str(), ext.c_str());
 
     return RET_CONTINUE;
 }
@@ -846,30 +844,23 @@ int PonscripterLabel::saveoffCommand(const string& cmd)
 
 int PonscripterLabel::savegameCommand(const string& cmd)
 {
-    int no = script_h.readInt();
-
+    int no = script_h.readIntValue();
     if (no < 0)
         errorAndExit("savegame: the specified number is less than 0.");
     else {
         shelter_event_mode = event_mode;
         saveSaveFile(no);
     }
-
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::savefileexistCommand(const string& cmd)
 {
-    script_h.readInt();
-    script_h.pushVariable();
-    int no = script_h.readInt();
-
+    Expression e = script_h.readIntExpr();
     SaveFileInfo info;
-    searchSaveFile(info, no);
-
-    script_h.setInt(&script_h.pushed_variable, (info.valid == true) ? 1 : 0);
-
+    searchSaveFile(info, script_h.readIntValue());
+    e.mutate(info.valid);
     return RET_CONTINUE;
 }
 
@@ -877,34 +868,24 @@ int PonscripterLabel::savefileexistCommand(const string& cmd)
 int PonscripterLabel::rndCommand(const string& cmd)
 {
     int upper, lower;
-
+    Expression e = script_h.readIntExpr();
     if (cmd == "rnd2") {
-        script_h.readInt();
-        script_h.pushVariable();
-
-        lower = script_h.readInt();
-        upper = script_h.readInt();
+        lower = script_h.readIntValue();
+        upper = script_h.readIntValue();
     }
     else {
-        script_h.readInt();
-        script_h.pushVariable();
-
         lower = 0;
-        upper = script_h.readInt() - 1;
+        upper = script_h.readIntValue() - 1;
     }
-
-    script_h.setInt(&script_h.pushed_variable,
-		    lower + (int)((double)(upper - lower + 1) * rand() /
-				  (RAND_MAX + 1.0)));
-
+    e.mutate(lower + int(double(upper - lower + 1) * rand() /
+			 (RAND_MAX + 1.0)));
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::rmodeCommand(const string& cmd)
 {
-    rmode_flag = script_h.readInt() == 1;
-
+    rmode_flag = script_h.readIntValue() == 1;
     return RET_CONTINUE;
 }
 
@@ -951,8 +932,8 @@ int PonscripterLabel::quakeCommand(const string& cmd)
         quake_type = 2;
     }
 
-    tmp_effect.no = script_h.readInt();
-    tmp_effect.duration = script_h.readInt();
+    tmp_effect.no = script_h.readIntValue();
+    tmp_effect.duration = script_h.readIntValue();
     if (tmp_effect.duration < tmp_effect.no * 4)
 	tmp_effect.duration = tmp_effect.no * 4;
 
@@ -981,28 +962,20 @@ int PonscripterLabel::puttextCommand(const string& cmd)
     int ret = enterTextDisplayMode(false);
     if (ret != RET_NOMATCH) return ret;
 
-    script_h.readStr();
-    script_h.addStringBuffer(0x0a);
-    if (script_h.getEndStatus() & ScriptHandler::END_1BYTE_CHAR
-        && string_buffer_offset == 0)
-        string_buffer_offset = 1;
+    string s = script_h.readStrValue() + "\n";
+    if (s[0] == encoding->TextMarker()) s.shift();
 
-    // skip the heading ^
-
+    // FIXME: processText() should take the text to process as a parameter
+    script_h.getStringBuffer() = s;
+    string_buffer_offset = 0;
     ret = processText();
     if (script_h.getStringBuffer()[string_buffer_offset] == 0x0a) {
         ret = RET_CONTINUE; // suppress RET_CONTINUE | RET_NOREAD
         if (!sentence_font.isLineEmpty() && !new_line_skip_flag) {
             current_text_buffer->addBuffer(0x0a);
             sentence_font.newLine();
-            //for (int i=0 ; i<indent_offset ; i++){
-            //    current_text_buffer->addBuffer(((char*)"@")[0]);
-            //    current_text_buffer->addBuffer(((char*)"@")[1]);
-            //    sentence_font.advanceCharInHankaku(2);
-            //}
         }
     }
-
     if (ret != RET_CONTINUE) {
         ret &= ~RET_NOREAD;
         return ret | RET_REREAD;
@@ -1030,7 +1003,7 @@ int PonscripterLabel::prnumclearCommand(const string& cmd)
 
 int PonscripterLabel::prnumCommand(const string& cmd)
 {
-    int no = script_h.readInt();
+    int no = script_h.readIntValue();
     if (prnum_info[no]) {
         dirty_rect.add(prnum_info[no]->pos);
         delete prnum_info[no];
@@ -1042,11 +1015,11 @@ int PonscripterLabel::prnumCommand(const string& cmd)
     prnum_info[no]->setCell(0);
     prnum_info[no]->color_list.resize(1);
 
-    prnum_info[no]->param = script_h.readInt();
-    prnum_info[no]->pos.x = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    prnum_info[no]->pos.y = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    prnum_info[no]->font_size_x = script_h.readInt();
-    prnum_info[no]->font_size_y = script_h.readInt();
+    prnum_info[no]->param = script_h.readIntValue();
+    prnum_info[no]->pos.x = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    prnum_info[no]->pos.y = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    prnum_info[no]->font_size_x = script_h.readIntValue();
+    prnum_info[no]->font_size_y = script_h.readIntValue();
 
     prnum_info[no]->color_list[0] = readColour(script_h.readStrValue());
 
@@ -1083,31 +1056,30 @@ int PonscripterLabel::playstopCommand(const string& cmd)
 
 int PonscripterLabel::playCommand(const string& cmd)
 {
-    bool loop_flag = cmd != "playonce";
-
-    const char* buf = script_h.readStr();
+    string buf = script_h.readStrValue();
     if (buf[0] == '*') {
-        cd_play_loop_flag = loop_flag;
-        int new_cd_track = atoi(buf + 1);
+	cd_play_loop_flag = cmd != "playonce";
+	buf.shift();
+        int new_cd_track = atoi(buf.c_str());
 #ifdef CONTINUOUS_PLAY
         if (current_cd_track != new_cd_track) {
 #endif
-        stopBGM(false);
-        current_cd_track = new_cd_track;
-        playCDAudio();
+	    stopBGM(false);
+	    current_cd_track = new_cd_track;
+	    playCDAudio();
 #ifdef CONTINUOUS_PLAY
-    }
-
+	}
 #endif
     }
     else { // play MIDI
         stopBGM(false);
 
         midi_file_name = buf;
-        midi_play_loop_flag = loop_flag;
-        if (playSound(midi_file_name, SOUND_MIDI, midi_play_loop_flag) != SOUND_MIDI) {
-            fprintf(stderr, "can't play MIDI file %s\n", midi_file_name.c_str());
-        }
+        midi_play_loop_flag = cmd != "playonce";
+        if (playSound(midi_file_name, SOUND_MIDI,
+		      midi_play_loop_flag) != SOUND_MIDI)
+            fprintf(stderr, "can't play MIDI file %s\n",
+		    midi_file_name.c_str());
     }
 
     return RET_CONTINUE;
@@ -1124,24 +1096,24 @@ int PonscripterLabel::ofscopyCommand(const string& cmd)
 
 int PonscripterLabel::negaCommand(const string& cmd)
 {
-    nega_mode = script_h.readInt();
-
+    nega_mode = script_h.readIntValue();
     dirty_rect.fill(screen_width, screen_height);
     flush(refreshMode());
-
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::mspCommand(const string& cmd)
 {
-    int no = script_h.readInt();
+    int no = script_h.readIntValue();
     dirty_rect.add(sprite_info[no].pos);
-    sprite_info[no].pos.x += script_h.readInt() * screen_ratio1 / screen_ratio2;
-    sprite_info[no].pos.y += script_h.readInt() * screen_ratio1 / screen_ratio2;
+    sprite_info[no].pos.x += script_h.readIntValue() *
+	screen_ratio1 / screen_ratio2;
+    sprite_info[no].pos.y += script_h.readIntValue() *
+	screen_ratio1 / screen_ratio2;
     dirty_rect.add(sprite_info[no].pos);
     if (script_h.getEndStatus() & ScriptHandler::END_COMMA)
-        sprite_info[no].trans += script_h.readInt();
+        sprite_info[no].trans += script_h.readIntValue();
 
     if (sprite_info[no].trans > 256) sprite_info[no].trans = 256;
     else if (sprite_info[no].trans < 0) sprite_info[no].trans = 0;
@@ -1152,21 +1124,16 @@ int PonscripterLabel::mspCommand(const string& cmd)
 
 int PonscripterLabel::mpegplayCommand(const string& cmd)
 {
-    string name = script_h.readStr();
-
-    bool click_flag = script_h.readInt() == 1;
-
+    string name = script_h.readStrValue();
     stopBGM(false);
-    if (playMPEG(name.c_str(), click_flag))
-	endCommand("end");
-
+    if (playMPEG(name, script_h.readIntValue() == 1)) endCommand("end");
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::mp3volCommand(const string& cmd)
 {
-    music_volume = script_h.readInt();
+    music_volume = script_h.readIntValue();
 
     if (mp3_sample)
 	SMPEG_setvolume(mp3_sample, music_volume);
@@ -1178,7 +1145,7 @@ int PonscripterLabel::mp3volCommand(const string& cmd)
 int PonscripterLabel::mp3fadeoutCommand(const string& cmd)
 {
     mp3fadeout_start    = SDL_GetTicks();
-    mp3fadeout_duration = script_h.readInt();
+    mp3fadeout_duration = script_h.readIntValue();
 
     timer_mp3fadeout_id = SDL_AddTimer(20, mp3fadeoutCallback, NULL);
 
@@ -1207,7 +1174,7 @@ int PonscripterLabel::mp3Command(const string& cmd)
     stopBGM(false);
     music_play_loop_flag = loop_flag;
 
-    music_file_name = script_h.readStr();
+    music_file_name = script_h.readStrValue();
     playSound(music_file_name,
 	      SOUND_WAVE | SOUND_OGG_STREAMING | SOUND_MP3 | SOUND_MIDI,
 	      music_play_loop_flag, MIX_BGM_CHANNEL);
@@ -1218,8 +1185,8 @@ int PonscripterLabel::mp3Command(const string& cmd)
 
 int PonscripterLabel::movemousecursorCommand(const string& cmd)
 {
-    int x = script_h.readInt();
-    int y = script_h.readInt();
+    int x = script_h.readIntValue();
+    int y = script_h.readIntValue();
 
     SDL_WarpMouse(x, y);
 
@@ -1229,24 +1196,21 @@ int PonscripterLabel::movemousecursorCommand(const string& cmd)
 
 int PonscripterLabel::monocroCommand(const string& cmd)
 {
-    if (script_h.compareString("off")) {
-        script_h.readLabel();
+    Expression e = script_h.readStrExpr();
+    if (e.is_bareword("off")) {
         monocro_flag = false;
     }
     else {
         monocro_flag = true;
-        monocro_color = readColour(script_h.readStr());
-
+        monocro_color = readColour(e.as_string());
         for (int i = 0; i < 256; i++) {
             monocro_color_lut[i].r = (monocro_color.r * i) >> 8;
             monocro_color_lut[i].g = (monocro_color.g * i) >> 8;
             monocro_color_lut[i].b = (monocro_color.b * i) >> 8;
         }
     }
-
     dirty_rect.fill(screen_width, screen_height);
     flush(refreshMode());
-
     return RET_CONTINUE;
 }
 
@@ -1301,19 +1265,20 @@ int PonscripterLabel::menu_automodeCommand(const string& cmd)
 
 int PonscripterLabel::lspCommand(const string& cmd)
 {
-    int no = script_h.readInt();
+    int no = script_h.readIntValue();
     if (sprite_info[no].visible)
         dirty_rect.add(sprite_info[no].pos);
 
     sprite_info[no].visible = cmd != "lsph";
 
-    const char* buf = script_h.readStr();
-    sprite_info[no].setImageName(buf);
+    sprite_info[no].setImageName(script_h.readStrValue());
 
-    sprite_info[no].pos.x = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    sprite_info[no].pos.y = script_h.readInt() * screen_ratio1 / screen_ratio2;
+    sprite_info[no].pos.x = script_h.readIntValue() *
+	screen_ratio1 / screen_ratio2;
+    sprite_info[no].pos.y = script_h.readIntValue() *
+	screen_ratio1 / screen_ratio2;
     if (script_h.getEndStatus() & ScriptHandler::END_COMMA)
-        sprite_info[no].trans = script_h.readInt();
+        sprite_info[no].trans = script_h.readIntValue();
     else
         sprite_info[no].trans = 256;
 
@@ -1348,8 +1313,8 @@ int PonscripterLabel::loopbgmstopCommand(const string& cmd)
 
 int PonscripterLabel::loopbgmCommand(const string& cmd)
 {
-    loop_bgm_name[0] = script_h.readStr();
-    loop_bgm_name[1] = script_h.readStr();    
+    loop_bgm_name[0] = script_h.readStrValue();
+    loop_bgm_name[1] = script_h.readStrValue();    
 
     playSound(loop_bgm_name[1],
         SOUND_PRELOAD | SOUND_WAVE | SOUND_OGG, false, MIX_LOOPBGM_CHANNEL1);
@@ -1378,7 +1343,7 @@ int PonscripterLabel::lookbackflushCommand(const string& cmd)
 int PonscripterLabel::lookbackbuttonCommand(const string& cmd)
 {
     for (int i = 0; i < 4; i++) {
-        lookback_info[i].image_name = script_h.readStr();
+        lookback_info[i].image_name = script_h.readStrValue();
         parseTaggedString(&lookback_info[i]);
         setupAnimationInfo(&lookback_info[i]);
     }
@@ -1389,23 +1354,23 @@ int PonscripterLabel::lookbackbuttonCommand(const string& cmd)
 
 int PonscripterLabel::logspCommand(const string& cmd)
 {
-    int sprite_no = script_h.readInt();
+    int sprite_no = script_h.readIntValue();
 
     AnimationInfo &si = sprite_info[sprite_no];
     if (si.visible) dirty_rect.add(si.pos);
 
     si.remove();
-    si.file_name = script_h.readStr();
+    si.file_name = script_h.readStrValue();
 
-    si.pos.x = script_h.readInt();
-    si.pos.y = script_h.readInt();
+    si.pos.x = script_h.readIntValue();
+    si.pos.y = script_h.readIntValue();
 
     si.trans_mode = AnimationInfo::TRANS_STRING;
     if (cmd == "logsp2") {
-        si.font_size_x = script_h.readInt();
-        si.font_size_y = script_h.readInt();
-        si.font_pitch  = script_h.readInt() + si.font_size_x;
-        script_h.readInt(); // dummy read for y pitch
+        si.font_size_x = script_h.readIntValue();
+        si.font_size_y = script_h.readIntValue();
+        si.font_pitch  = script_h.readIntValue() + si.font_size_x;
+        script_h.readIntValue(); // dummy read for y pitch
     }
     else {
         si.font_size_x = sentence_font.size();
@@ -1413,24 +1378,15 @@ int PonscripterLabel::logspCommand(const string& cmd)
         si.font_pitch  = sentence_font.pitch_x;
     }
 
-    char* current = script_h.getNext();
-    int num = 0;
-    while (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
-        script_h.readStr();
-        num++;
-    }
-
-    script_h.setCurrent(current);
-    if (num == 0) {
-        si.num_of_cells = 1;
-        si.color_list.assign(1, rgb_t(0xff));
+    if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
+	si.color_list.clear();
+	while (script_h.getEndStatus() & ScriptHandler::END_COMMA)
+	    si.color_list.push_back(readColour(script_h.readStrValue()));
     }
     else {
-        si.num_of_cells = num;
-        si.color_list.clear();
-        for (int i = 0; i < num; i++)
-            si.color_list.push_back(readColour(script_h.readStr()));
+        si.color_list.assign(1, rgb_t(0xff));
     }
+    si.num_of_cells = si.color_list.size();
 
     si.is_single_line  = false;
     si.is_tight_region = false;
@@ -1446,8 +1402,8 @@ int PonscripterLabel::logspCommand(const string& cmd)
 
 int PonscripterLabel::locateCommand(const string& cmd)
 {
-    int x = script_h.readInt();
-    int y = script_h.readInt();
+    int x = script_h.readIntValue();
+    int y = script_h.readIntValue();
     if (!script_h.is_ponscripter) {
 	x *= sentence_font.size() + sentence_font.pitch_x;
 	y *= sentence_font.line_space() + sentence_font.pitch_y;
@@ -1459,13 +1415,17 @@ int PonscripterLabel::locateCommand(const string& cmd)
 
 int PonscripterLabel::loadgameCommand(const string& cmd)
 {
-    int no = script_h.readInt();
+    int no = script_h.readIntValue();
 
     if (no < 0)
         errorAndExit("loadgame: no < 0.");
 
-    if (loadSaveFile(no)) return RET_CONTINUE;
+    if (loadSaveFile(no) != 0) {
+	// failed
+	return RET_CONTINUE;
+    }
     else {
+	// succeeded
         dirty_rect.fill(screen_width, screen_height);
         flush(refreshMode());
 
@@ -1503,14 +1463,14 @@ int PonscripterLabel::ldCommand(const string& cmd)
     if (ret != RET_NOMATCH) return ret;
 #endif
 
-    char loc = script_h.readLabel()[0];
+    Expression loc = script_h.readStrExpr();
     int no = -1;
-    if (loc == 'l') no = 0;
-    else if (loc == 'c') no = 1;
-    else if (loc == 'r') no = 2;
+    if (loc.is_bareword("l")) no = 0;
+    else if (loc.is_bareword("c")) no = 1;
+    else if (loc.is_bareword("r")) no = 2;
 
-    const char* buf = NULL;
-    if (no >= 0) buf = script_h.readStr();
+    string buf;
+    if (no >= 0) buf = script_h.readStrValue();
 
     if (event_mode & EFFECT_EVENT_MODE) {
         return doEffect(parseEffect(false), NULL, TACHI_EFFECT_IMAGE);
@@ -1560,77 +1520,52 @@ int PonscripterLabel::jumpbCommand(const string& cmd)
 
 int PonscripterLabel::ispageCommand(const string& cmd)
 {
-    script_h.readInt();
-
-    if (textgosub_clickstr_state == CLICK_NEWPAGE)
-        script_h.setInt(&script_h.current_variable, 1);
-    else
-        script_h.setInt(&script_h.current_variable, 0);
-
+    script_h.readIntExpr().mutate(textgosub_clickstr_state == CLICK_NEWPAGE);
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::isfullCommand(const string& cmd)
 {
-    script_h.readInt();
-    script_h.setInt(&script_h.current_variable, fullscreen_mode ? 1 : 0);
-
+    script_h.readIntExpr().mutate(fullscreen_mode);
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::isskipCommand(const string& cmd)
 {
-    script_h.readInt();
-
-    if (automode_flag)
-        script_h.setInt(&script_h.current_variable, 2);
-    else if (skip_flag)
-        script_h.setInt(&script_h.current_variable, 1);
-    else if (ctrl_pressed_status)
-        script_h.setInt(&script_h.current_variable, 3);
-    else
-        script_h.setInt(&script_h.current_variable, 0);
-
+    script_h.readIntExpr().mutate(automode_flag         ? 2 :
+				  (skip_flag            ? 1 :
+				   (ctrl_pressed_status ? 3 : 
+				                          0)));
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::isdownCommand(const string& cmd)
 {
-    script_h.readInt();
-
-    if (current_button_state.down_flag)
-        script_h.setInt(&script_h.current_variable, 1);
-    else
-        script_h.setInt(&script_h.current_variable, 0);
-
+    script_h.readIntExpr().mutate(current_button_state.down_flag);
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::inputCommand(const string& cmd)
 {
-    script_h.readStr();
+    Expression e = script_h.readStrExpr();
 
-    if (script_h.current_variable.type != ScriptHandler::VAR_STR)
-        errorAndExit("input: no string variable.");
+    script_h.readStrValue(); // description
 
-    int no = script_h.current_variable.var_no;
+    e.mutate(script_h.readStrValue());
+    printf("%s: %s is set to the default value, %s\n", cmd.c_str(),
+	   e.debug_string().c_str(), e.as_string().c_str());
 
-    script_h.readStr(); // description
-    script_h.variable_data[no].str = script_h.readStr();
-
-    printf("*** inputCommand(): $%d is set to the default value: %s\n",
-	   no, script_h.variable_data[no].str.c_str());
-    script_h.readInt(); // maxlen
-    script_h.readInt(); // widechar flag
+    script_h.readIntValue(); // maxlen
+    script_h.readIntValue(); // widechar flag
     if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
-        script_h.readInt(); // window width
-        script_h.readInt(); // window height
-        script_h.readInt(); // text box width
-        script_h.readInt(); // text box height
+        script_h.readIntValue(); // window width
+        script_h.readIntValue(); // window height
+        script_h.readIntValue(); // text box width
+        script_h.readIntValue(); // text box height
     }
 
     return RET_CONTINUE;
@@ -1639,7 +1574,7 @@ int PonscripterLabel::inputCommand(const string& cmd)
 
 int PonscripterLabel::indentCommand(const string& cmd)
 {
-    indent_offset = script_h.readInt();
+    indent_offset = script_h.readIntValue();
     fprintf(stderr, " warning: [indent] command is broken\n");
     return RET_CONTINUE;
 }
@@ -1650,7 +1585,7 @@ int PonscripterLabel::humanorderCommand(const string& cmd)
     int ret = leaveTextDisplayMode();
     if (ret != RET_NOMATCH) return ret;
 
-    const char* buf = script_h.readStr();
+    string buf = script_h.readStrValue();
     int i;
     for (i = 0; i < 3; i++) {
         if (buf[i] == 'l') human_order[i] = 0;
@@ -1681,31 +1616,24 @@ int PonscripterLabel::getzxcCommand(const string& cmd)
 
 int PonscripterLabel::getvoicevolCommand(const string& cmd)
 {
-    script_h.readInt();
-    script_h.setInt(&script_h.current_variable, voice_volume);
+    script_h.readIntExpr().mutate(voice_volume);
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::getversionCommand(const string& cmd)
 {
-    script_h.readInt();
-    script_h.setInt(&script_h.current_variable, NSC_VERSION);
-
+    script_h.readIntExpr().mutate(NSC_VERSION);
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::gettimerCommand(const string& cmd)
 {
-    script_h.readInt();
-
-    if (cmd == "gettimer") {
-        script_h.setInt(&script_h.current_variable, SDL_GetTicks() - internal_timer);
-    }
-    else {
-        script_h.setInt(&script_h.current_variable, btnwait_time);
-    }
+    if (cmd == "gettimer")
+	script_h.readIntExpr().mutate(SDL_GetTicks() - internal_timer);
+    else
+	script_h.readIntExpr().mutate(btnwait_time);	
 
     return RET_CONTINUE;
 }
@@ -1713,21 +1641,12 @@ int PonscripterLabel::gettimerCommand(const string& cmd)
 
 int PonscripterLabel::gettextCommand(const string& cmd)
 {
-    script_h.readStr();
-    int no = script_h.current_variable.var_no;
-
-    char* buf = new char[current_text_buffer->contents.size() + 1];
-    unsigned int i, j;
-    for (i = 0, j = 0; i < current_text_buffer->contents.size(); i++) {
-        if (current_text_buffer->contents[i] != 0x0a)
-            buf[j++] = current_text_buffer->contents[i];
-    }
-
-    buf[j] = '\0';
-
-    script_h.variable_data[no].str = buf;
-    delete[] buf;
-
+    string buf;
+    remove_copy(current_text_buffer->contents.begin(),
+		current_text_buffer->contents.end(),
+		buf.begin(),
+		0x0a);
+    script_h.readStrExpr().mutate(buf);
     return RET_CONTINUE;
 }
 
@@ -1749,32 +1668,21 @@ int PonscripterLabel::gettagCommand(const string& cmd)
 
     int end_status;
     do {
-        script_h.readVariable();
+	Expression e = script_h.readExpr();
         end_status = script_h.getEndStatus();
-        script_h.pushVariable();
 
-        if (script_h.pushed_variable.type & ScriptHandler::VAR_INT
-            || script_h.pushed_variable.type & ScriptHandler::VAR_ARRAY) {
-            if (end_flag)
-                script_h.setInt(&script_h.pushed_variable, 0);
-            else {
-                script_h.setInt(&script_h.pushed_variable, script_h.parseInt(&buf));
-            }
-        }
-        else if (script_h.pushed_variable.type & ScriptHandler::VAR_STR) {
-            if (end_flag)
-                script_h.variable_data[script_h.pushed_variable.var_no].str.clear();
-            else {
-                const char* buf_start = buf;
-                while (*buf != '/'
-                       && (!zenkakko_flag || encoding->Decode(buf) != 0x3011 /* z*/)
-                       && *buf != ']') {
-                    buf += encoding->CharacterBytes(buf);
-                }
-                script_h.variable_data[script_h.pushed_variable.var_no].str.assign(buf_start, buf - buf_start);
-            }
-        }
-
+	if (e.is_numeric())
+	    e.mutate(end_flag ? 0 : script_h.parseInt(&buf));
+	else if (end_flag)
+	    e.mutate("");
+	else {
+	    const char* buf_start = buf;
+	    while (*buf != '/' &&
+		   (!zenkakko_flag || encoding->Decode(buf) != 0x3011) &&
+		   *buf != ']')
+		buf += encoding->CharacterBytes(buf);
+	    e.mutate(string(buf_start, buf - buf_start));
+	}
         if (*buf == '/')
             buf++;
         else
@@ -1803,18 +1711,14 @@ int PonscripterLabel::gettabCommand(const string& cmd)
 
 int PonscripterLabel::getspsizeCommand(const string& cmd)
 {
-    int no = script_h.readInt();
+    int no = script_h.readIntValue();
 
-    script_h.readVariable();
-    script_h.setInt(&script_h.current_variable,
-		    sprite_info[no].pos.w * screen_ratio2 / screen_ratio1);
-    script_h.readVariable();
-    script_h.setInt(&script_h.current_variable,
-		    sprite_info[no].pos.h * screen_ratio2 / screen_ratio1);
-    if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
-        script_h.readVariable();
-        script_h.setInt(&script_h.current_variable, sprite_info[no].num_of_cells);
-    }
+    script_h.readIntExpr().mutate(sprite_info[no].pos.w *
+				  screen_ratio2 / screen_ratio1);
+    script_h.readIntExpr().mutate(sprite_info[no].pos.h *
+				  screen_ratio2 / screen_ratio1);
+    if (script_h.getEndStatus() & ScriptHandler::END_COMMA)
+        script_h.readIntExpr().mutate(sprite_info[no].num_of_cells);
 
     return RET_CONTINUE;
 }
@@ -1822,43 +1726,40 @@ int PonscripterLabel::getspsizeCommand(const string& cmd)
 
 int PonscripterLabel::getspmodeCommand(const string& cmd)
 {
-    script_h.readVariable();
-    script_h.pushVariable();
-
-    int no = script_h.readInt();
-    script_h.setInt(&script_h.pushed_variable, sprite_info[no].visible ? 1 : 0);
-
+    Expression e = script_h.readIntExpr();
+    e.mutate(sprite_info[script_h.readIntValue()].visible);
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::getsevolCommand(const string& cmd)
 {
-    script_h.readInt();
-    script_h.setInt(&script_h.current_variable, se_volume);
+    script_h.readIntExpr().mutate(se_volume);
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::getscreenshotCommand(const string& cmd)
 {
-    int w = script_h.readInt();
-    int h = script_h.readInt();
+    int w = script_h.readIntValue();
+    int h = script_h.readIntValue();
     if (w == 0) w = 1;
-
     if (h == 0) h = 1;
-
-    if (screenshot_surface
-        && screenshot_surface->w != w
-        && screenshot_surface->h != h) {
+    if (screenshot_surface &&
+        screenshot_surface->w != w &&
+        screenshot_surface->h != h) {
         SDL_FreeSurface(screenshot_surface);
         screenshot_surface = NULL;
     }
 
     if (screenshot_surface == NULL)
-        screenshot_surface = SDL_CreateRGBSurface(SDL_SWSURFACE, w, h, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+        screenshot_surface =
+	    SDL_CreateRGBSurface(SDL_SWSURFACE, w, h, 32, 0x00ff0000,
+				 0x0000ff00, 0x000000ff, 0xff000000);
 
-    SDL_Surface* surface = SDL_ConvertSurface(screen_surface, image_surface->format, SDL_SWSURFACE);
+    SDL_Surface* surface =
+	SDL_ConvertSurface(screen_surface,image_surface->format, SDL_SWSURFACE);
+
     resizeSurface(surface, screenshot_surface);
     SDL_FreeSurface(surface);
 
@@ -1885,126 +1786,82 @@ int PonscripterLabel::getpageCommand(const string& cmd)
 
 int PonscripterLabel::getretCommand(const string& cmd)
 {
-    script_h.readVariable();
-
-    if (script_h.current_variable.type == ScriptHandler::VAR_INT
-        || script_h.current_variable.type == ScriptHandler::VAR_ARRAY) {
-        script_h.setInt(&script_h.current_variable, getret_int);
-    }
-    else if (script_h.current_variable.type == ScriptHandler::VAR_STR) {
-        int no = script_h.current_variable.var_no;
-        script_h.variable_data[no].str = getret_str;
-    }
-    else errorAndExit("getret: no variable.");
-
+    Expression e = script_h.readExpr();
+    if (e.is_numeric()) e.mutate(getret_int); else e.mutate(getret_str);
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::getregCommand(const string& cmd)
 {
-    script_h.readVariable();
+    Expression e = script_h.readStrExpr();
 
-    if (script_h.current_variable.type != ScriptHandler::VAR_STR)
-        errorAndExit("getreg: no string variable.");
-
-    int no = script_h.current_variable.var_no;
-
-    const char* buf = script_h.readStr();
-    char path[256], key[256];
-    strcpy(path, buf);
-    buf = script_h.readStr();
-    strcpy(key, buf);
-
-    printf("  reading Registry file for [%s] %s\n", path, key);
+    string path = "[" + script_h.readStrValue() + "]";
+    string key = script_h.readStrValue();
 
     FILE* fp;
     if ((fp = fopen(registry_file.c_str(), "r")) == NULL) {
         fprintf(stderr, "Cannot open file [%s]\n", registry_file.c_str());
         return RET_CONTINUE;
     }
-
-    char reg_buf[256], reg_buf2[256];
-    bool found_flag = false;
-    while (fgets(reg_buf, 256, fp) && !found_flag) {
-        if (reg_buf[0] == '[') {
-            unsigned int c = 0;
-            while (reg_buf[c] != ']' && reg_buf[c] != '\0') c++;
-            if (!strncmp(reg_buf + 1, path, (c - 1 > strlen(path)) ? (c - 1) : strlen(path))) {
-                while (fgets(reg_buf2, 256, fp)) {
-                    script_h.pushCurrent(reg_buf2);
-                    buf = script_h.readStr();
-                    if (strncmp(buf,
-                            key,
-                            (strlen(buf) > strlen(key)) ? strlen(buf) : strlen(key))) {
-                        script_h.popCurrent();
-                        continue;
-                    }
-
-                    if (!script_h.compareString("=")) {
-                        script_h.popCurrent();
-                        continue;
-                    }
-
-                    script_h.setCurrent(script_h.getNext() + 1);
-
-                    script_h.variable_data[no].str = script_h.readStr();
-                    script_h.popCurrent();
-                    printf("  $%d = %s\n", no, script_h.variable_data[no].str.c_str());
-                    found_flag = true;
-                    break;
-                }
-            }
-        }
+    string reg_buf;
+    while (!feof(fp)) {
+	fp >> reg_buf;
+	if (reg_buf == path) {
+	    while (!feof(fp)) {
+		fp >> reg_buf;
+		string::iterator s, f;
+		s = reg_buf.begin();
+		while (s != reg_buf.end() && *s != '"') ++s;
+		if (s == reg_buf.end()) continue;
+		f = ++s;
+		while (f != reg_buf.end() && *f != '"') f += 1 + *f == '\\';
+		if (f == reg_buf.end() || string(s, f) != key) continue;
+		s = ++f;
+		while (s != reg_buf.end() && *s != '"') ++s;
+		if (s == reg_buf.end()) continue;
+		f = ++s;
+		while (f != reg_buf.end() && *f != '"') f += 1 + *f == '\\';
+		e.mutate(string(s, f));
+		fclose(fp);
+		return RET_CONTINUE;
+	    }
+	}
     }
-
-    if (!found_flag) fprintf(stderr, "  The key is not found.\n");
-
+    fprintf(stderr, "Registry key %s\\%s not found.\n",
+	    path.c_str(), key.c_str());
     fclose(fp);
-
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::getmp3volCommand(const string& cmd)
 {
-    script_h.readInt();
-    script_h.setInt(&script_h.current_variable, music_volume);
+    script_h.readIntExpr().mutate(music_volume);
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::getmouseposCommand(const string& cmd)
 {
-    script_h.readInt();
-    script_h.setInt(&script_h.current_variable, current_button_state.x * screen_ratio2 / screen_ratio1);
-
-    script_h.readInt();
-    script_h.setInt(&script_h.current_variable, current_button_state.y * screen_ratio2 / screen_ratio1);
-
+    script_h.readIntExpr().mutate(current_button_state.x *
+				  screen_ratio2 / screen_ratio1);
+    script_h.readIntExpr().mutate(current_button_state.y *
+				  screen_ratio2 / screen_ratio1);
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::getlogCommand(const string& cmd)
 {
-    script_h.readVariable();
-    script_h.pushVariable();
-
-    int page_no = script_h.readInt();
-
+    Expression e = script_h.readStrExpr();
+    int page_no = script_h.readIntValue();
     TextBuffer* t_buf = current_text_buffer;
     while (t_buf != start_text_buffer && page_no > 0) {
         page_no--;
         t_buf = t_buf->previous;
     }
-
-    if (page_no > 0)
-        script_h.variable_data[script_h.pushed_variable.var_no].str.clear();
-    else
-        script_h.variable_data[script_h.pushed_variable.var_no].str =
-	    t_buf->contents;
-
+    e.mutate(page_no > 0 ? "" : t_buf->contents);
     return RET_CONTINUE;
 }
 
@@ -2012,7 +1869,6 @@ int PonscripterLabel::getlogCommand(const string& cmd)
 int PonscripterLabel::getinsertCommand(const string& cmd)
 {
     getinsert_flag = true;
-
     return RET_CONTINUE;
 }
 
@@ -2020,63 +1876,46 @@ int PonscripterLabel::getinsertCommand(const string& cmd)
 int PonscripterLabel::getfunctionCommand(const string& cmd)
 {
     getfunction_flag = true;
-
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::getenterCommand(const string& cmd)
 {
-    if (!force_button_shortcut_flag)
-        getenter_flag = true;
-
+    if (!force_button_shortcut_flag) getenter_flag = true;
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::getcursorposCommand(const string& cmd)
 {
-    int x = int(floor(sentence_font.GetX()));
-    int y = sentence_font.GetY();
-    
-    script_h.readInt();
-    script_h.setInt(&script_h.current_variable, x);
-    script_h.readInt();
-    script_h.setInt(&script_h.current_variable, y);
-
+    script_h.readIntExpr().mutate(int(floor(sentence_font.GetX())));
+    script_h.readIntExpr().mutate(sentence_font.GetY());
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::getcursorCommand(const string& cmd)
 {
-    if (!force_button_shortcut_flag)
-        getcursor_flag = true;
-
+    if (!force_button_shortcut_flag) getcursor_flag = true;
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::getcselstrCommand(const string& cmd)
 {
-    script_h.readVariable();
-    script_h.pushVariable();
-
-    int csel_no = script_h.readInt();
-    if (csel_no >= (int)select_links.size())
+    Expression e = script_h.readStrExpr();
+    int csel_no = script_h.readIntValue();
+    if (csel_no >= int(select_links.size()))
 	errorAndExit("getcselstr: no select link");
-
-    script_h.variable_data[script_h.pushed_variable.var_no].str =
-	select_links[csel_no].text;
-
+    e.mutate(select_links[csel_no].text);
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::getcselnumCommand(const string& cmd)
 {
-    script_h.readInt();
-    script_h.setInt(&script_h.current_variable, (int)select_links.size());
+    script_h.readIntExpr().mutate(int(select_links.size()));
     return RET_CONTINUE;
 }
 
@@ -2144,29 +1983,15 @@ int PonscripterLabel::gameCommand(const string& cmd)
 
 int PonscripterLabel::fileexistCommand(const string& cmd)
 {
-    script_h.readInt();
-    script_h.pushVariable();
-    const char* buf = script_h.readStr();
-
-    script_h.setInt(&script_h.pushed_variable,
-		    (ScriptHandler::cBR->getFileLength(buf) > 0) ? 1 : 0);
-
+    Expression e = script_h.readIntExpr();
+    e.mutate(ScriptHandler::cBR->getFileLength(script_h.readStrValue()) > 0);
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::exec_dllCommand(const string& cmd)
 {
-    const char* buf = script_h.readStr();
-    char dll_name[256];
-    unsigned int c = 0;
-    while (buf[c] != '/') {
-        dll_name[c] = buf[c];
-        c++;
-    }
-    dll_name[c] = '\0';
-
-    printf("  reading %s for %s\n", dll_file.c_str(), dll_name);
+    string dll_name = "[" + script_h.readStrValue().split("/", 2).at(0) + "]";
 
     FILE* fp;
     if ((fp = fopen(dll_file.c_str(), "r")) == NULL) {
@@ -2174,51 +1999,35 @@ int PonscripterLabel::exec_dllCommand(const string& cmd)
         return RET_CONTINUE;
     }
 
-    char dll_buf[256], dll_buf2[256];
-    bool found_flag = false;
-    while (fgets(dll_buf, 256, fp) && !found_flag) {
-        if (dll_buf[0] == '[') {
-            c = 0;
-            while (dll_buf[c] != ']' && dll_buf[c] != '\0') c++;
-            if (!strncmp(dll_buf + 1, dll_name, (c - 1 > strlen(dll_name)) ? (c - 1) : strlen(dll_name))) {
-                found_flag = true;
-                while (fgets(dll_buf2, 256, fp)) {
-                    c = 0;
-                    while (dll_buf2[c] == ' ' || dll_buf2[c] == '\t') c++;
-                    if (!strncmp(&dll_buf2[c], "str", 3)) {
-                        c += 3;
-                        while (dll_buf2[c] == ' ' || dll_buf2[c] == '\t') c++;
-                        if (dll_buf2[c] != '=') continue;
-
-                        c++;
-                        while (dll_buf2[c] != '"') c++;
-                        unsigned int c2 = ++c;
-                        while (dll_buf2[c2] != '"' && dll_buf2[c2] != '\0') c2++;
-                        dll_buf2[c2] = '\0';
-                        getret_str = dll_buf2 + c;
-                        printf("  getret_str = %s\n", getret_str.c_str());
-                    }
-                    else if (!strncmp(&dll_buf2[c], "ret", 3)) {
-                        c += 3;
-                        while (dll_buf2[c] == ' ' || dll_buf2[c] == '\t') c++;
-                        if (dll_buf2[c] != '=') continue;
-
-                        c++;
-                        while (dll_buf2[c] == ' ' || dll_buf2[c] == '\t') c++;
-                        getret_int = atoi(&dll_buf2[c]);
-                        printf("  getret_int = %d\n", getret_int);
-                    }
-                    else if (dll_buf2[c] == '[')
-                        break;
-                }
-            }
-        }
+    string dll_buf;
+    while (!feof(fp)) {
+	fp >> dll_buf;
+	dll_buf.trim();
+	if (dll_buf == dll_name) {
+	    getret_str.clear();
+	    getret_int = 0;
+	    while (!feof(fp)) {
+		fp >> dll_buf;
+		dll_buf.ltrim();
+		if (dll_buf[0] == '[') break;
+		std::vector<string> parts = dll_buf.split("=", 2);
+		parts[0].trim();
+		parts[1].trim();
+		if (parts[0] == "str") {
+		    if (parts[1][0] == '"') parts[1].shift();
+		    if (parts[1].back() == '"') parts[1].pop();
+		    getret_str = parts[1];
+		}
+		else if (parts[0] == "ret") {
+		    getret_int = atoi(parts[1].c_str());
+		}
+	    }
+	    fclose(fp);
+	    return RET_CONTINUE;
+	}
     }
-
-    if (!found_flag) fprintf(stderr, "  The DLL is not found in %s.\n", dll_file.c_str());
-
+    fprintf(stderr, "The DLL is not found in %s.\n", dll_file.c_str());
     fclose(fp);
-
     return RET_CONTINUE;
 }
 
@@ -2230,11 +2039,11 @@ int PonscripterLabel::exbtnCommand(const string& cmd)
 
     if (cmd != "exbtn_d") {
         bool cellcheck_flag = cmd == "cellcheckexbtn";
-        sprite_no = script_h.readInt();
-        no = script_h.readInt();
-        if (cellcheck_flag && (sprite_info[sprite_no].num_of_cells < 2)
-            || !cellcheck_flag && (sprite_info[sprite_no].num_of_cells == 0)) {
-            script_h.readStr();
+        sprite_no = script_h.readIntValue();
+        no = script_h.readIntValue();
+        if (cellcheck_flag && (sprite_info[sprite_no].num_of_cells < 2) ||
+	    !cellcheck_flag && (sprite_info[sprite_no].num_of_cells == 0)) {
+            script_h.readStrValue();
             return RET_CONTINUE;
         }
 	button = &buttons[no];
@@ -2242,7 +2051,7 @@ int PonscripterLabel::exbtnCommand(const string& cmd)
 
     button->button_type = ButtonElt::EX_SPRITE_BUTTON;
     button->sprite_no = sprite_no;
-    button->exbtn_ctl = script_h.readStr();
+    button->exbtn_ctl = script_h.readStrValue();
 
     if (sprite_no >= 0
         && (sprite_info[sprite_no].image_surface ||
@@ -2257,9 +2066,8 @@ int PonscripterLabel::exbtnCommand(const string& cmd)
 
 int PonscripterLabel::erasetextwindowCommand(const string& cmd)
 {
-    erase_text_window_mode = script_h.readInt();
+    erase_text_window_mode = script_h.readIntValue();
     dirty_rect.add(sentence_font_info.pos);
-
     return RET_CONTINUE;
 }
 
@@ -2274,14 +2082,12 @@ int PonscripterLabel::endCommand(const string& cmd)
 
 int PonscripterLabel::dwavestopCommand(const string& cmd)
 {
-    int ch = script_h.readInt();
-
+    int ch = script_h.readIntValue();
     if (wave_sample[ch]) {
         Mix_Pause(ch);
         Mix_FreeChunk(wave_sample[ch]);
         wave_sample[ch] = NULL;
     }
-
     return RET_CONTINUE;
 }
 
@@ -2306,7 +2112,7 @@ int PonscripterLabel::dwaveCommand(const string& cmd)
         loop_flag = false;
     }
 
-    int ch = script_h.readInt();
+    int ch = script_h.readIntValue();
     if (ch < 0) ch = 0;
     else if (ch >= ONS_MIX_CHANNELS) ch = ONS_MIX_CHANNELS - 1;
 
@@ -2314,11 +2120,9 @@ int PonscripterLabel::dwaveCommand(const string& cmd)
         Mix_PlayChannel(ch, wave_sample[ch], loop_flag ? -1 : 0);
     }
     else {
-        const char* buf = script_h.readStr();
         int fmt = SOUND_WAVE | SOUND_OGG;
         if (play_mode == WAVE_PRELOAD) fmt |= SOUND_PRELOAD;
-
-        playSound(buf, fmt, loop_flag, ch);
+        playSound(script_h.readStrValue(), fmt, loop_flag, ch);
     }
 
     return RET_CONTINUE;
@@ -2346,19 +2150,19 @@ int PonscripterLabel::drawtextCommand(const string& cmd)
 
 int PonscripterLabel::drawsp3Command(const string& cmd)
 {
-    int sprite_no = script_h.readInt();
-    int cell_no = script_h.readInt();
-    int alpha = script_h.readInt();
-    int x = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    int y = script_h.readInt() * screen_ratio1 / screen_ratio2;
+    int sprite_no = script_h.readIntValue();
+    int cell_no   = script_h.readIntValue();
+    int alpha     = script_h.readIntValue();
+    int x         = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    int y         = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
 
     // |mat[0][0] mat[0][1]|
     // |mat[1][0] mat[1][1]|
     int mat[2][2];
-    mat[0][0] = script_h.readInt();
-    mat[0][1] = script_h.readInt();
-    mat[1][0] = script_h.readInt();
-    mat[1][1] = script_h.readInt();
+    mat[0][0] = script_h.readIntValue();
+    mat[0][1] = script_h.readIntValue();
+    mat[1][0] = script_h.readIntValue();
+    mat[1][1] = script_h.readIntValue();
 
     AnimationInfo &si = sprite_info[sprite_no];
     int old_cell_no = si.current_cell;
@@ -2373,14 +2177,14 @@ int PonscripterLabel::drawsp3Command(const string& cmd)
 
 int PonscripterLabel::drawsp2Command(const string& cmd)
 {
-    int sprite_no = script_h.readInt();
-    int cell_no = script_h.readInt();
-    int alpha = script_h.readInt();
-    int x = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    int y = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    int scale_x = script_h.readInt();
-    int scale_y = script_h.readInt();
-    int rot = script_h.readInt();
+    int sprite_no = script_h.readIntValue();
+    int cell_no   = script_h.readIntValue();
+    int alpha     = script_h.readIntValue();
+    int x         = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    int y         = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    int scale_x   = script_h.readIntValue();
+    int scale_y   = script_h.readIntValue();
+    int rot       = script_h.readIntValue();
 
     AnimationInfo &si = sprite_info[sprite_no];
     int old_cell_no = si.current_cell;
@@ -2410,11 +2214,11 @@ int PonscripterLabel::drawsp2Command(const string& cmd)
 
 int PonscripterLabel::drawspCommand(const string& cmd)
 {
-    int sprite_no = script_h.readInt();
-    int cell_no = script_h.readInt();
-    int alpha = script_h.readInt();
-    int x = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    int y = script_h.readInt() * screen_ratio1 / screen_ratio2;
+    int sprite_no = script_h.readIntValue();
+    int cell_no   = script_h.readIntValue();
+    int alpha     = script_h.readIntValue();
+    int x         = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    int y         = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
 
     AnimationInfo &si = sprite_info[sprite_no];
     int old_cell_no = si.current_cell;
@@ -2429,20 +2233,19 @@ int PonscripterLabel::drawspCommand(const string& cmd)
 
 int PonscripterLabel::drawfillCommand(const string& cmd)
 {
-    int r = script_h.readInt();
-    int g = script_h.readInt();
-    int b = script_h.readInt();
-
-    SDL_FillRect(accumulation_surface, NULL, SDL_MapRGBA(accumulation_surface->format, r, g, b, 0xff));
-
+    int r = script_h.readIntValue();
+    int g = script_h.readIntValue();
+    int b = script_h.readIntValue();
+    SDL_FillRect(accumulation_surface, NULL,
+		 SDL_MapRGBA(accumulation_surface->format, r, g, b, 0xff));
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::drawclearCommand(const string& cmd)
 {
-    SDL_FillRect(accumulation_surface, NULL, SDL_MapRGBA(accumulation_surface->format, 0, 0, 0, 0xff));
-
+    SDL_FillRect(accumulation_surface, NULL,
+		 SDL_MapRGBA(accumulation_surface->format, 0, 0, 0, 0xff));
     return RET_CONTINUE;
 }
 
@@ -2450,19 +2253,19 @@ int PonscripterLabel::drawclearCommand(const string& cmd)
 int PonscripterLabel::drawbgCommand(const string& cmd)
 {
     SDL_Rect clip = { 0, 0, accumulation_surface->w, accumulation_surface->h };
-    bg_info.blendOnSurface(accumulation_surface, bg_info.pos.x, bg_info.pos.y, clip);
-
+    bg_info.blendOnSurface(accumulation_surface, bg_info.pos.x, bg_info.pos.y,
+			   clip);
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::drawbg2Command(const string& cmd)
 {
-    int x = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    int y = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    int scale_x = script_h.readInt();
-    int scale_y = script_h.readInt();
-    int rot = script_h.readInt();
+    int x       = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    int y       = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    int scale_x = script_h.readIntValue();
+    int scale_y = script_h.readIntValue();
+    int rot     = script_h.readIntValue();
 
     // |mat[0][0] mat[0][1]|
     // |mat[1][0] mat[1][1]|
@@ -2497,7 +2300,7 @@ int PonscripterLabel::drawCommand(const string& cmd)
 
 int PonscripterLabel::delayCommand(const string& cmd)
 {
-    int t = script_h.readInt();
+    int t = script_h.readIntValue();
 
     if (event_mode & WAIT_INPUT_MODE) {
         event_mode = IDLE_EVENT_MODE;
@@ -2526,7 +2329,7 @@ int PonscripterLabel::defineresetCommand(const string& cmd)
 
 int PonscripterLabel::cspCommand(const string& cmd)
 {
-    int no = script_h.readInt();
+    int no = script_h.readIntValue();
 
     if (no == -1)
         for (int i = 0; i < MAX_SPRITE_NUM; i++) {
@@ -2555,8 +2358,8 @@ int PonscripterLabel::cspCommand(const string& cmd)
 
 int PonscripterLabel::cselgotoCommand(const string& cmd)
 {
-    int csel_no = script_h.readInt();
-    if (csel_no >= (int)select_links.size())
+    int csel_no = script_h.readIntValue();
+    if (csel_no >= int(select_links.size()))
 	errorAndExit("cselgoto: no select link");
 
     setCurrentLabel(select_links[csel_no].label);
@@ -2569,12 +2372,12 @@ int PonscripterLabel::cselgotoCommand(const string& cmd)
 
 int PonscripterLabel::cselbtnCommand(const string& cmd)
 {
-    int csel_no   = script_h.readInt();
-    int button_no = script_h.readInt();
+    int csel_no   = script_h.readIntValue();
+    int button_no = script_h.readIntValue();
 
     FontInfo csel_info = sentence_font;
-    csel_info.top_x = script_h.readInt();
-    csel_info.top_y = script_h.readInt();
+    csel_info.top_x = script_h.readIntValue();
+    csel_info.top_y = script_h.readIntValue();
 
     if (csel_no >= (int)select_links.size()) return RET_CONTINUE;
     const string& text = select_links[csel_no].text;
@@ -2612,7 +2415,7 @@ int PonscripterLabel::clCommand(const string& cmd)
     if (ret != RET_NOMATCH) return ret;
 #endif
 
-    char loc = script_h.readLabel()[0];
+    char loc = script_h.readBareword()[0];
 
     if (event_mode & EFFECT_EVENT_MODE) {
         return doEffect(parseEffect(false), NULL, TACHI_EFFECT_IMAGE);
@@ -2640,47 +2443,31 @@ int PonscripterLabel::clCommand(const string& cmd)
 
 int PonscripterLabel::chvolCommand(const string& cmd)
 {
-    int ch  = script_h.readInt();
-    int vol = script_h.readInt();
-
-    if (wave_sample[ch]) {
-        Mix_Volume(ch, vol * 128 / 100);
-    }
-
+    int ch  = script_h.readIntValue();
+    int vol = script_h.readIntValue();
+    if (wave_sample[ch]) Mix_Volume(ch, vol * 128 / 100);
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::checkpageCommand(const string& cmd)
 {
-    script_h.readVariable();
-    script_h.pushVariable();
-
-    if (script_h.pushed_variable.type != ScriptHandler::VAR_INT
-        && script_h.pushed_variable.type != ScriptHandler::VAR_ARRAY)
-        errorAndExit("checkpage: no variable.");
-
-    int page_no = script_h.readInt();
-
+    Expression e = script_h.readIntExpr();
+    int page_no = script_h.readIntValue();
     TextBuffer* t_buf = current_text_buffer;
     while (t_buf != start_text_buffer && page_no > 0) {
         page_no--;
         t_buf = t_buf->previous;
     }
-
-    if (page_no > 0)
-        script_h.setInt(&script_h.pushed_variable, 0);
-    else
-        script_h.setInt(&script_h.pushed_variable, 1);
-
+    e.mutate(page_no <= 0);
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::cellCommand(const string& cmd)
 {
-    int sprite_no = script_h.readInt();
-    int no = script_h.readInt();
+    int sprite_no = script_h.readIntValue();
+    int no = script_h.readIntValue();
 
     sprite_info[sprite_no].setCell(no);
     dirty_rect.add(sprite_info[sprite_no].pos);
@@ -2691,8 +2478,8 @@ int PonscripterLabel::cellCommand(const string& cmd)
 
 int PonscripterLabel::captionCommand(const string& cmd)
 {
-    const char* buf = script_h.readStr();
-    SDL_WM_SetCaption(buf, buf);
+    string buf = script_h.readStrValue();
+    SDL_WM_SetCaption(buf.c_str(), buf.c_str());
     return RET_CONTINUE;
 }
 
@@ -2712,7 +2499,7 @@ int PonscripterLabel::btnwaitCommand(const string& cmd)
         textbtn_flag = true;
     }
 
-    script_h.readInt();
+    Expression e = script_h.readIntExpr();
 
     if (event_mode & WAIT_BUTTON_MODE
         || (textbtn_flag && (skip_flag || (draw_one_page_flag && clickstr_state == CLICK_WAIT) || ctrl_pressed_status))) {
@@ -2723,7 +2510,7 @@ int PonscripterLabel::btnwaitCommand(const string& cmd)
         if (textbtn_flag && (skip_flag || (draw_one_page_flag && clickstr_state == CLICK_WAIT) || ctrl_pressed_status))
             current_button_state.button = 0;
 
-        script_h.setInt(&script_h.current_variable, current_button_state.button);
+	e.mutate(current_button_state.button);
 
         if (current_button_state.button >= 1 && del_flag)
             deleteButtons();
@@ -2795,32 +2582,25 @@ int PonscripterLabel::btnwaitCommand(const string& cmd)
 int PonscripterLabel::btntimeCommand(const string& cmd)
 {
     btntime2_flag = cmd == "btntime2";
-    btntime_value = script_h.readInt();
-
+    btntime_value = script_h.readIntValue();
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::btndownCommand(const string& cmd)
 {
-    btndown_flag = script_h.readInt() == 1;
-
+    btndown_flag = script_h.readIntValue() == 1;
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::btndefCommand(const string& cmd)
 {
-    if (script_h.compareString("clear")) {
-        script_h.readLabel();
-    }
-    else {
-        string buf = script_h.readStr();
-
+    Expression e = script_h.readStrExpr();
+    if (!e.is_bareword("clear")) {
         btndef_info.remove();
-
-        if (buf) {
-            btndef_info.setImageName(buf);
+        if (e.as_string()) {
+            btndef_info.setImageName(e.as_string());
             parseTaggedString(&btndef_info);
             btndef_info.trans_mode = AnimationInfo::TRANS_COPY;
             setupAnimationInfo(&btndef_info);
@@ -2829,16 +2609,11 @@ int PonscripterLabel::btndefCommand(const string& cmd)
 			     SDL_ALPHA_OPAQUE);
 	    else
 		fprintf(stderr, "Could not create button: %s not found\n",
-			buf.c_str());
+			e.as_string().c_str());
         }
     }
-
-//printf("deleteButtons()... ");fflush(stdout);
     deleteButtons();
-//printf("OK\n");
-
     disableGetButtonFlag();
-
     return RET_CONTINUE;
 }
 
@@ -2847,18 +2622,22 @@ int PonscripterLabel::btnCommand(const string& cmd)
 {
     SDL_Rect src_rect;
 
-    const int no = script_h.readInt();
+    const int no = script_h.readIntValue();
 
     ButtonElt* button = &buttons[no];
     
-    button->image_rect.x = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    button->image_rect.y = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    button->image_rect.w = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    button->image_rect.h = script_h.readInt() * screen_ratio1 / screen_ratio2;
+    button->image_rect.x = script_h.readIntValue() *
+	screen_ratio1 / screen_ratio2;
+    button->image_rect.y = script_h.readIntValue() *
+	screen_ratio1 / screen_ratio2;
+    button->image_rect.w = script_h.readIntValue() *
+	screen_ratio1 / screen_ratio2;
+    button->image_rect.h = script_h.readIntValue() *
+	screen_ratio1 / screen_ratio2;
     button->select_rect = button->image_rect;
 
-    src_rect.x = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    src_rect.y = script_h.readInt() * screen_ratio1 / screen_ratio2;
+    src_rect.x = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    src_rect.y = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
     if (btndef_info.image_surface
         && src_rect.x + button->image_rect.w > btndef_info.image_surface->w) {
         button->image_rect.w = btndef_info.image_surface->w - src_rect.x;
@@ -2886,7 +2665,7 @@ int PonscripterLabel::btnCommand(const string& cmd)
 
 int PonscripterLabel::brCommand(const string& cmd)
 {
-    int delta = cmd == "br2" ? script_h.readInt()
+    int delta = cmd == "br2" ? script_h.readIntValue()
 	                     : (script_h.is_ponscripter ? 50 : 100);
 
     int ret = enterTextDisplayMode();
@@ -2915,14 +2694,14 @@ int PonscripterLabel::bltCommand(const string& cmd)
     int dx, dy, dw, dh;
     int sx, sy, sw, sh;
 
-    dx = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    dy = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    dw = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    dh = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    sx = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    sy = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    sw = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    sh = script_h.readInt() * screen_ratio1 / screen_ratio2;
+    dx = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    dy = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    dw = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    dh = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    sx = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    sy = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    sw = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    sh = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
 
     if (btndef_info.image_surface == NULL) return RET_CONTINUE;
 
@@ -3015,19 +2794,9 @@ int PonscripterLabel::bgCommand(const string& cmd)
     int ret = leaveTextDisplayMode();
     if (ret != RET_NOMATCH) return ret;
 
-    const char* buf;
-    if (script_h.compareString("white")) {
-        buf = "white";
-        script_h.readLabel();
-    }
-    else if (script_h.compareString("black")) {
-        buf = "black";
-        script_h.readLabel();
-    }
-    else {
-        buf = script_h.readStr();
-        bg_info.file_name = buf;
-    }
+    Expression e = script_h.readStrExpr();
+    if (!(e.is_bareword("white") || e.is_bareword("black")))
+        bg_info.file_name = e.as_string();
 
     if (event_mode & EFFECT_EVENT_MODE) {
         return doEffect(parseEffect(false), &bg_info, bg_effect_image);
@@ -3037,7 +2806,7 @@ int PonscripterLabel::bgCommand(const string& cmd)
             tachi_info[i].remove();
 
         bg_info.remove();
-        bg_info.file_name = buf;
+        bg_info.file_name = e.as_string();
 
         createBackground();
         dirty_rect.fill(screen_width, screen_height);
@@ -3063,7 +2832,7 @@ int PonscripterLabel::barclearCommand(const string& cmd)
 
 int PonscripterLabel::barCommand(const string& cmd)
 {
-    int no = script_h.readInt();
+    int no = script_h.readIntValue();
     if (bar_info[no]) {
         dirty_rect.add(bar_info[no]->pos);
         bar_info[no]->remove();
@@ -3076,15 +2845,19 @@ int PonscripterLabel::barCommand(const string& cmd)
     bar_info[no]->num_of_cells = 1;
     bar_info[no]->setCell(0);
 
-    bar_info[no]->param = script_h.readInt();
-    bar_info[no]->pos.x = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    bar_info[no]->pos.y = script_h.readInt() * screen_ratio1 / screen_ratio2;
+    bar_info[no]->param = script_h.readIntValue();
+    bar_info[no]->pos.x = script_h.readIntValue() *
+	screen_ratio1 / screen_ratio2;
+    bar_info[no]->pos.y = script_h.readIntValue() *
+	screen_ratio1 / screen_ratio2;
 
-    bar_info[no]->max_width = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    bar_info[no]->pos.h = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    bar_info[no]->max_param = script_h.readInt();
+    bar_info[no]->max_width = script_h.readIntValue() *
+	screen_ratio1 / screen_ratio2;
+    bar_info[no]->pos.h = script_h.readIntValue() *
+	screen_ratio1 / screen_ratio2;
+    bar_info[no]->max_param = script_h.readIntValue();
 
-    bar_info[no]->color = readColour(script_h.readStr());
+    bar_info[no]->color = readColour(script_h.readStrValue());
 
     int w = bar_info[no]->max_width * bar_info[no]->param / bar_info[no]->max_param;
     if (bar_info[no]->max_width > 0 && w > 0) {
@@ -3100,41 +2873,38 @@ int PonscripterLabel::barCommand(const string& cmd)
 
 int PonscripterLabel::aviCommand(const string& cmd)
 {
-    string name = script_h.readStr();
-    bool click_flag = script_h.readInt() == 1;
-
+    string name = script_h.readStrValue();
     stopBGM(false);
-    playAVI(name.c_str(), click_flag);
-
+    playAVI(name, script_h.readIntValue() == 1);
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::automode_timeCommand(const string& cmd)
 {
-    automode_time = script_h.readInt();
-
+    automode_time = script_h.readIntValue();
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::autoclickCommand(const string& cmd)
 {
-    autoclick_time = script_h.readInt();
-
+    autoclick_time = script_h.readIntValue();
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::amspCommand(const string& cmd)
 {
-    int no = script_h.readInt();
+    int no = script_h.readIntValue();
     dirty_rect.add(sprite_info[no].pos);
-    sprite_info[no].pos.x = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    sprite_info[no].pos.y = script_h.readInt() * screen_ratio1 / screen_ratio2;
+    sprite_info[no].pos.x = script_h.readIntValue() *
+	screen_ratio1 / screen_ratio2;
+    sprite_info[no].pos.y = script_h.readIntValue() *
+	screen_ratio1 / screen_ratio2;
 
     if (script_h.getEndStatus() & ScriptHandler::END_COMMA)
-        sprite_info[no].trans = script_h.readInt();
+        sprite_info[no].trans = script_h.readIntValue();
 
     if (sprite_info[no].trans > 256) sprite_info[no].trans = 256;
     else if (sprite_info[no].trans < 0) sprite_info[no].trans = 0;

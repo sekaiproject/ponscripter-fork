@@ -104,10 +104,11 @@ public:
 
     // basic parser function
     const char* readToken();
+private:
     const char* readLabel();
-    void readVariable();
     const char* readStr();
     int  readInt();
+public:    
     int  parseInt(char** buf);
     void skipToken();
 
@@ -163,10 +164,7 @@ public:
     void setClickstr(string values);
     int  checkClickstr(const char* buf, bool recursive_flag = false);
 
-    void setInt(VariableInfo* var_info, int val, int offset = 0);
     void setNumVariable(int no, int val);
-    void pushVariable();
-    int getIntVariable(VariableInfo* var_info = NULL);
 
     string stringFromInteger(int no, int num_column,
 			     bool is_zero_inserted = false);
@@ -224,7 +222,7 @@ public:
     };
     std::vector<VariableData> variable_data;
 
-    VariableInfo current_variable, pushed_variable;
+    VariableInfo current_variable;
 
     int screen_size;
     enum { SCREEN_SIZE_640x480 = 0,

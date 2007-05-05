@@ -6,12 +6,12 @@
 
 #include <stdio.h>
 
+#include <algorithm>
 #include <utility>
 #include <limits>
 #include <string>
 #include <vector>
 #include <map>
-#include <numeric>
 #ifdef __GNU_C__
 #include <ext/hash_map>
 #include <ext/hash_set>

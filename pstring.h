@@ -293,16 +293,32 @@ public:
 
     // Miscellanea
     
-    std::vector<string> split(const string& delimiter)
+    std::vector<string> split(const string& delimiter, int max = 0)
     {
 	std::vector<string> rv;
 	size_type spos = 0, epos;
-	while ((epos = find(delimiter, spos)) != npos) {
+	while (--max && (epos = find(delimiter, spos)) != npos) {
 	    rv.push_back(substr(spos, epos - spos));
 	    spos = epos + delimiter.size();
 	}
 	rv.push_back(substr(spos, size() - spos));
 	return rv;
+    }
+
+    void ltrim()
+    {
+	c.erase(0, c.find_first_not_of(" \t"));
+    }
+
+    void rtrim()
+    {
+	c.erase(c.find_last_not_of(" \t"));
+    }
+
+    void trim()
+    {
+	rtrim();
+	ltrim();
     }
 
     void uppercase()
@@ -377,5 +393,12 @@ inline bool operator<(const string& s1, const char* s2)
 
 inline void swap(string& s1, string& s2)
     { swap(s1.c, s2.c); }
-    
+
+inline FILE*& operator>>(FILE*& f, string& dest) {
+    dest.clear();
+    int c;
+    while ((c = fgetc(f)) != EOF) dest += char(c);
+    return f;
+}
+
 #endif

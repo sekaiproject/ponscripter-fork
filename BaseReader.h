@@ -27,6 +27,7 @@
 #define __BASE_READER_H__
 
 #include <stdio.h>
+#include "defs.h"
 
 #ifndef SEEK_END
 #define SEEK_END 2
@@ -94,8 +95,11 @@ struct BaseReader {
     virtual struct FileInfo getFileByIndex(unsigned int index) = 0;
 
     virtual size_t getFileLength(const char* file_name) = 0;
+    size_t getFileLength(const string& s) { return getFileLength(s.c_str()); }
 
     virtual size_t getFile(const char* file_name, unsigned char* buffer, int* location = NULL) = 0;
+    size_t getFile(const string& s, unsigned char* buffer, int* location = NULL)
+	{ return getFile(s.c_str(), buffer, location); }
 };
 
 #endif // __BASE_READER_H__

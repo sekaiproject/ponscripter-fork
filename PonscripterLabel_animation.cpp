@@ -283,11 +283,11 @@ void PonscripterLabel::parseTaggedString(AnimationInfo* anim)
                 script_h.getNext();
 
                 script_h.pushCurrent((char*) buffer); // FIXME: unsafe
-                anim->font_size_x = script_h.readInt();
-                anim->font_size_y = script_h.readInt();
-                anim->font_pitch  = script_h.readInt();
+                anim->font_size_x = script_h.readIntValue();
+                anim->font_size_y = script_h.readIntValue();
+                anim->font_pitch  = script_h.readIntValue();
                 if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
-                    script_h.readInt(); // 0 ... normal, 1 ... no anti-aliasing, 2 ... Fukuro
+                    script_h.readIntValue(); // 0 ... normal, 1 ... no anti-aliasing, 2 ... Fukuro
                 }
 
                 buffer = script_h.getNext();
@@ -370,7 +370,7 @@ void PonscripterLabel::parseTaggedString(AnimationInfo* anim)
 
     if (anim->trans_mode == AnimationInfo::TRANS_STRING && buffer[0] == '$') {
         script_h.pushCurrent((char*) buffer); // FIXME: unsafe
-        anim->file_name = script_h.readStr();
+        anim->file_name = script_h.readStrValue();
         script_h.popCurrent();
     }
     else {

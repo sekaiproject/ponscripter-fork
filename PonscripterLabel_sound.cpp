@@ -363,7 +363,7 @@ int PonscripterLabel::playMIDI(bool loop_flag)
 }
 
 
-int PonscripterLabel::playMPEG(const char* filename, bool click_flag)
+int PonscripterLabel::playMPEG(const string& filename, bool click_flag)
 {
     int ret = 0;
 #ifndef MP3_MAD
@@ -426,7 +426,7 @@ int PonscripterLabel::playMPEG(const char* filename, bool click_flag)
 }
 
 
-void PonscripterLabel::playAVI(const char* filename, bool click_flag)
+void PonscripterLabel::playAVI(const string& filename, bool click_flag)
 {
 #ifdef USE_AVIFILE
     string abs_fname = archive_path + filename;

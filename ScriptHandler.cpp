@@ -32,11 +32,11 @@
 
 #define SKIP_SPACE(p) while (*(p) == ' ' || *(p) == '\t') (p)++
 
-BaseReader * ScriptHandler::cBR = NULL;
+BaseReader* ScriptHandler::cBR = NULL;
 
 ScriptHandler::ScriptHandler()
     : variable_data(VARIABLE_RANGE + 1),
-      current_variable(this), pushed_variable(this),
+      current_variable(this),
       game_identifier("Ponscripter")
 {
     script_buffer = NULL;
@@ -589,84 +589,6 @@ int ScriptHandler::checkClickstr(const char* buf, bool recursive_flag)
 }
 
 
-int ScriptHandler::getIntVariable(VariableInfo* var_info)
-{
-    if (var_info == NULL) var_info = &current_variable;
-
-    if (var_info->type == VAR_INT)
-        return variable_data[var_info->var_no].num;
-    else if (var_info->type == VAR_ARRAY)
-        return * getArrayPtr(var_info->var_no, var_info->array, 0);
-
-    return 0;
-}
-
-
-void ScriptHandler::readVariable()
-{
-    end_status = END_NONE;
-    current_variable.type = VAR_NONE;
-
-    current_script = next_script;
-    char* buf = current_script;
-
-    SKIP_SPACE(buf);
-
-    bool ptr_flag = false;
-    if (*buf == 'i' || *buf == 's') {
-        ptr_flag = true;
-        buf++;
-    }
-
-    if (*buf == '%') {
-        buf++;
-        current_variable.var_no = parseInt(&buf);
-        if (current_variable.var_no < 0
-            || current_variable.var_no >= VARIABLE_RANGE)
-            current_variable.var_no = VARIABLE_RANGE;
-
-        current_variable.type = VAR_INT;
-    }
-    else if (*buf == '?') {
-        current_variable.var_no = parseArray(&buf, current_variable.array);
-        current_variable.type = VAR_ARRAY;
-    }
-    else if (*buf == '$') {
-        buf++;
-        current_variable.var_no = parseInt(&buf);
-        if (current_variable.var_no < 0
-            || current_variable.var_no >= VARIABLE_RANGE)
-            current_variable.var_no = VARIABLE_RANGE;
-
-        current_variable.type = VAR_STR;
-    }
-
-    if (ptr_flag) current_variable.type |= VAR_PTR;
-
-    next_script = checkComma(buf);
-}
-
-
-void ScriptHandler::setInt(VariableInfo* var_info, int val, int offset)
-{
-    if (var_info->type & VAR_INT) {
-        setNumVariable(var_info->var_no + offset, val);
-    }
-    else if (var_info->type & VAR_ARRAY) {
-        * getArrayPtr(var_info->var_no, var_info->array, offset) = val;
-    }
-    else {
-        errorAndExit("setInt: no variables.");
-    }
-}
-
-
-void ScriptHandler::pushVariable()
-{
-    pushed_variable = current_variable;
-}
-
-
 void ScriptHandler::setNumVariable(int no, int val)
 {
     if (no < 0 || no >= VARIABLE_RANGE)
@@ -1049,7 +971,7 @@ string ScriptHandler::parseStr(char** buf)
 	return s;
     }
     else if (**buf == encoding->TextMarker()) {
-        string s;
+        string s(1, encoding->TextMarker());
 	(*buf)++;
 
         char ch = **buf;
