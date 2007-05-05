@@ -49,12 +49,7 @@ AnimationInfo::AnimationInfo()
 {
     image_surface = NULL;
     alpha_buf = NULL;
-
-    duration_list = NULL;
-    color_list = NULL;
-
     trans_mode = TRANS_TOPLEFT;
-
     reset();
 }
 
@@ -103,16 +98,8 @@ void AnimationInfo::remove()
 
 void AnimationInfo::removeTag()
 {
-    if (duration_list) {
-        delete[] duration_list;
-        duration_list = NULL;
-    }
-
-    if (color_list) {
-        delete[] color_list;
-        color_list = NULL;
-    }
-
+    duration_list.clear();
+    color_list.clear();
     file_name.clear();
     mask_file_name.clear();    
 

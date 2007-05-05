@@ -467,17 +467,15 @@ void PonscripterLabel::setDLLFile(const char* filename)
 }
 
 
-void PonscripterLabel::setArchivePath(const char* path)
+void PonscripterLabel::setArchivePath(string path)
 {
-    archive_path = path;
-    archive_path += DELIMITER;
+    archive_path = path + DELIMITER;
 }
 
 
-void PonscripterLabel::setSavePath(const char* path)
+void PonscripterLabel::setSavePath(string path)
 {
-    script_h.save_path = path;
-    script_h.save_path += DELIMITER;
+    script_h.save_path = path + DELIMITER;
 }
 
 
@@ -1363,7 +1361,7 @@ PonscripterLabel::getSelectableSentence(const string& buffer, FontInfo* info,
     anim->is_single_line = false;
 
     anim->num_of_cells = 2;
-    anim->color_list = new rgb_t[anim->num_of_cells];
+    anim->color_list.resize(2);
     anim->color_list[0] = nofile_flag ? info->nofile_color : info->off_color;
     anim->color_list[1] = info->on_color;
 

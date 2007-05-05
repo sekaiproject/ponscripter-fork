@@ -305,9 +305,9 @@ void PonscripterLabel::parseTaggedString(AnimationInfo* anim)
                 anim->num_of_cells++;
                 i += 7;
             }
-            anim->color_list = new rgb_t[anim->num_of_cells];
+            anim->color_list.clear();
             for (i = 0; i < anim->num_of_cells; i++) {
-                anim->color_list[i] = readColour(buffer);
+                anim->color_list.push_back(readColour(buffer));
                 buffer += 7;
             }
         }
@@ -344,10 +344,9 @@ void PonscripterLabel::parseTaggedString(AnimationInfo* anim)
             return;
         }
 
-        anim->duration_list = new int[anim->num_of_cells];
-
         if (*buffer == '<') {
             buffer++;
+	    anim->duration_list.resize(anim->num_of_cells);
             for (i = 0; i < anim->num_of_cells; i++) {
                 anim->duration_list[i] = getNumberFromBuffer((const char**) &buffer);
                 buffer++;
@@ -356,10 +355,8 @@ void PonscripterLabel::parseTaggedString(AnimationInfo* anim)
             buffer++; // skip '>'
         }
         else {
-            anim->duration_list[0] = getNumberFromBuffer((const char**) &buffer);
-            for (i = 1; i < anim->num_of_cells; i++)
-                anim->duration_list[i] = anim->duration_list[0];
-
+            anim->duration_list.assign(anim->num_of_cells,
+		      getNumberFromBuffer((const char**) &buffer));
             buffer++;
         }
 

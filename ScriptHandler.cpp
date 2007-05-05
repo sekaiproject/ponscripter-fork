@@ -976,9 +976,8 @@ void ScriptHandler::errorAndExit(string s)
 
 ScriptHandler::LabelInfo::iterator ScriptHandler::findLabel(string label)
 {
-    for (string::size_type i = 0; i < label.size(); ++i)
-        if ('A' <= label[i] && label[i] <= 'Z')
-	    label[i] += 'a' - 'A';
+    if (label[0] == '*') label.shift();
+    label.lowercase();
 
     LabelInfo::dic::iterator e = label_names.find(label);
     if (e != label_names.end())
@@ -1517,4 +1516,30 @@ void
 ScriptHandler::ArrayVariable::setValue(const int* indices, int num_idx, int val)
 {
     getoffs(std::vector<int>(indices, indices + num_idx)) = val;
+}
+
+struct aliases_t {
+    set<string>::t aliases;
+    aliases_t();    
+} dodgy;
+aliases_t::aliases_t() {
+    aliases.insert("black");
+    aliases.insert("white");
+    aliases.insert("clear");
+    aliases.insert("none");
+    aliases.insert("fchk");
+    aliases.insert("lchk");
+    aliases.insert("on");
+    aliases.insert("off");
+    aliases.insert("remove");
+    aliases.insert("step");
+    aliases.insert("to");
+}
+
+void ScriptHandler::checkalias(const string& alias)
+{
+    if (dodgy.aliases.find(alias) != dodgy.aliases.end())
+	fprintf(stderr,
+		"Warning: alias `%s' may conflict with some barewords\n",
+		alias.c_str());
 }

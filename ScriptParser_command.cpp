@@ -437,7 +437,7 @@ int ScriptParser::movCommand(const string& cmd)
 	      : atoi(cmd.c_str() + 3);
 
     // ONScripter has been a bit permissive in the past.
-    if (!script_h.is_ponscripter && e.type() == Expression::Array &&
+    if (!script_h.is_ponscripter && e.is_array() &&
 	cmd != "movl" && cmd != "mov")
 	errorAndCont("NScripter does not permit `" + cmd + " " +
 		     e.debug_string() + ", ...': for portability, use "
@@ -1114,7 +1114,7 @@ int ScriptParser::arcCommand(const string& cmd)
 int ScriptParser::addCommand(const string& cmd)
 {
     Expression e = script_h.readExpr();
-    if (!script_h.is_ponscripter && e.type() == Expression::Array)
+    if (!script_h.is_ponscripter && e.is_array())
 	errorAndCont("NScripter does not permit `add ?array, val': for "
 		     "portability, use `mov ?array,?array + val' instead.");
     if (e.is_numeric())

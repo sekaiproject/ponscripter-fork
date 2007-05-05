@@ -96,8 +96,8 @@ public:
     void setCDNumber(int cdrom_drive_number);
     void setRegistryFile(const char* filename);
     void setDLLFile(const char* filename);
-    void setSavePath(const char* path);
-    void setArchivePath(const char* path);
+    void setSavePath(string path);
+    void setArchivePath(string path);
 
     bool hasArchivePath() const { return archive_path; }
     void setFullscreenMode();

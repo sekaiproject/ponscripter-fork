@@ -179,7 +179,7 @@ int PonscripterLabel::haeleth_ligate_controlCommand(const string& cmd)
 {
     Expression e = script_h.readStrExpr();
     string s = e.as_string();
-    if (e.type() == Expression::Bareword) {
+    if (e.is_bareword()) {
 	if (s == "none")             ClearLigatures();
 	else if (s == "default")     DefaultLigatures(1 | 2 | 4);
 	else if (s == "basic")       DefaultLigatures(1);
@@ -189,7 +189,7 @@ int PonscripterLabel::haeleth_ligate_controlCommand(const string& cmd)
     }
     else {
 	Expression l = script_h.readExpr();
-	if (l.type() == Expression::Bareword && l.as_string() == "remove")
+	if (l.is_bareword("remove"))
             DeleteLigature(s);
         else if (l.is_numeric())
             AddLigature(s, l.as_int());

@@ -1,3 +1,4 @@
+// -*- C++ -*-
 // Global definitions not otherwise attributable to any class.
 
 #ifndef __DEFS_H__
@@ -93,7 +94,8 @@ rgb_t {
     void set(int all) { r = g = b = all; }
     void set(int red, int green, int blue) { r = red; g = green; b = blue; }
 
-    rgb_t() {};
+    rgb_t() {}
+    rgb_t(int all) : r(all), g(all), b(all) {}
     rgb_t(int red, int green, int blue) : r(red), g(green), b(blue) {}
     rgb_t(const rgb_t& c) : r(c.r), g(c.g), b(c.b) {}
     

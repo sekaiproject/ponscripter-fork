@@ -53,16 +53,16 @@ public:
     rgb_t    color;
     SDL_Rect pos; // pos and size of the current cell
 
-    int    num_of_cells;
-    int    current_cell;
-    int    direction;
-    int*   duration_list;
-    rgb_t* color_list;
-    int    loop_mode;
-    bool   is_animatable;
-    bool   is_single_line;
-    bool   is_tight_region; // valid under TRANS_STRING
-    bool   is_centered_text;
+    int num_of_cells;
+    int current_cell;
+    int direction;
+    std::vector<int>   duration_list;
+    std::vector<rgb_t> color_list;
+    int  loop_mode;
+    bool is_animatable;
+    bool is_single_line;
+    bool is_tight_region; // valid under TRANS_STRING
+    bool is_centered_text;
 
     string file_name;
     string mask_file_name;

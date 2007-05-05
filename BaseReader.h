@@ -33,9 +33,9 @@
 #endif
 
 #ifdef WIN32
-#define DELIMITER '\\'
+#define DELIMITER "\\"
 #else
-#define DELIMITER '/'
+#define DELIMITER "/"
 #endif
 
 struct BaseReader {

@@ -154,7 +154,7 @@ FILE* DirectReader::fopen(const char* path, const char* mode)
 
         char* delim_p = NULL;
         while (1) {
-            delim_p = strchr(cur_p, (char) DELIMITER);
+            delim_p = strchr(cur_p, DELIMITER[0]);
             if (delim_p != cur_p) break;
 
             cur_p++;
@@ -329,7 +329,7 @@ FILE* DirectReader::getFileHandle(const char* file_name, int &compression_type, 
     capital_name[len] = '\0';
 
     for (i = 0; i < len; i++) {
-        if (capital_name[i] == '/' || capital_name[i] == '\\') capital_name[i] = (char) DELIMITER;
+        if (capital_name[i] == '/' || capital_name[i] == '\\') capital_name[i] = DELIMITER[0];
     }
 
 #ifdef UTF8_FILESYSTEM

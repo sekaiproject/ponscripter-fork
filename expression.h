@@ -23,6 +23,11 @@ public:
 	{ return type_ == String || type_ == Label || type_ == Bareword; }
     bool is_numeric() const
 	{ return type_ == Int || type_ == Array; }
+    bool is_array() const { return type_ == Array; }
+    bool is_label() const { return type_ == Label; }
+    bool is_bareword() const { return type_ == Bareword; }
+    bool is_bareword(const string& s) const
+	{ return type_ == Bareword && strval_ == s; }
 
     // Fail if attributes are missing
     void require(type_t t) const;

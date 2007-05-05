@@ -287,7 +287,7 @@ int PonscripterLabel::loadSaveFile2(int file_version)
             prnum_info[i] = new AnimationInfo();
             prnum_info[i]->trans_mode   = AnimationInfo::TRANS_STRING;
             prnum_info[i]->num_of_cells = 1;
-            prnum_info[i]->color_list = new rgb_t[1];
+            prnum_info[i]->color_list.resize(1);
 
             prnum_info[i]->param = j;
             prnum_info[i]->pos.x = readInt() * screen_ratio1 / screen_ratio2;

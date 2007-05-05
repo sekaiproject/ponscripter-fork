@@ -182,9 +182,9 @@ public:
     void loadArrayVariable(FILE* fp);
 
     void addNumAlias(const string& str, int val)
-	{ num_aliases[str] = val; }
+	{ checkalias(str); num_aliases[str] = val; }
     void addStrAlias(const string& str, const string& val)
-	{ str_aliases[str] = val; }
+	{ checkalias(str); str_aliases[str] = val; }
 
 
     class LogInfo {
@@ -256,11 +256,12 @@ private:
     int  calcArithmetic(int num1, int op, int num2);
     int  parseArray(char** buf, ArrayVariable& array);
     int* getArrayPtr(int no, ArrayVariable& array, int offset);
-
+    
     /* ---------------------------------------- */
     /* Variable */
     typedef dictionary<string, int>::t    numalias_t;
     typedef dictionary<string, string>::t stralias_t;
+    void checkalias(const string& alias); // warns if an alias may cause trouble
     numalias_t num_aliases;
     stralias_t str_aliases;
 
