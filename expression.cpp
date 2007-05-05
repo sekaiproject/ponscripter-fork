@@ -21,6 +21,32 @@ void Expression::die(string why) const
     exit(-1);
 }
 
+string Expression::debug_string() const
+{
+    if (var_) {
+	switch (type_) {
+	case Int:    return "%" + str(value_.intval);
+	case String: return "$" + str(value_.intval);
+	case Array:
+	  { string rv = "?" + str(value_.intval);
+	    for (std::vector<int>::const_iterator it = index_.begin();
+		 it != index_.end(); ++it)
+		rv += "[" + str(*it) + "]";
+	    return rv; }
+	default: return "[invalid type]";
+	}
+    }
+    else {
+	switch (type_) {
+	case Int:      return str(value_.intval);
+	case String:   return "\"" + *value_.strptr + "\"";
+	case Label:    return "*" + *value_.strptr;
+	case Bareword: return *value_.strptr;
+	default: return "[invalid type]";	    
+	}
+    }
+}
+
 void Expression::require(type_t t) const
 {
     if (type_ != t)
@@ -81,6 +107,12 @@ int Expression::var_no() const
     return value_.intval;
 }
 
+int Expression::dim() const
+{
+    require(Array, true);
+    return h.arrays.find(value_.intval)->second.getDimensionSize(index_.size());
+}
+
 void Expression::mutate(int newval, int offset, bool as_array)
 {
     if (type_ == Int) {
@@ -109,6 +141,12 @@ void Expression::mutate(const string& newval)
 }
 
 void Expression::append(const string& newval)
+{
+    require(String, true);
+    h.variable_data[value_.intval].str += newval;
+}
+
+void Expression::append(wchar newval)
 {
     require(String, true);
     h.variable_data[value_.intval].str += newval;
@@ -221,13 +259,13 @@ int ScriptHandler::readIntVar()
     return e.var_no();
 }
 
-bool ScriptHandler::checkPtr()
+char ScriptHandler::checkPtr()
 {
     char* buf = current_script = next_script;
     while (*buf == ' ' || *buf == '\t') ++buf;
     if (*buf == 'i' || *buf == 's') {
         next_script = buf + 1;
-        return true;
+        return *buf;
     }
-    return false;
+    return 0;
 }

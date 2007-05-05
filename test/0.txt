@@ -1,0 +1,89 @@
+;mode800
+;gameid test
+
+*define
+
+dim ?0[10][5][2]
+numalias testnum, 72
+numalias teststr, 72
+
+defsub test
+defsub testsub
+
+caption "NScripter test suite"
+versionstr "NScripter test suite"," version 1.0"
+
+savename "Save","Load","File "
+savenumber 20
+effectblank 0
+transmode alpha
+selectcolor #ffffff,#cccccc
+menuselectcolor #ffffff,#aaaaaa,#999999
+defaultspeed 0,0,0
+
+game
+
+*start
+!s0
+setwindow 8,16,20,23,20,20,0,2,20,1,1,#999999,0,0,639,479
+mov %testnum,0
+mov $teststr,"Test"
+
+; Test itoa, itoa2, mid, and various `if' statements
+; Correct output: ›
+;                 ›
+test
+for %0=210 to 214: movl ?0[7][%0-210], %0, %0, %0: next
+itoa $5, ?0[7][3][1]
+itoa2 $6, ?0[7][3][1]
+mid $4, $5, 1, 1
+if $4 > "0mung" & $4 < "2gsf" puttext "›": skip 2
+~
+if $5 = "213" puttext "›": skip 2
+~
+if $6 = "‚Q‚P‚R" puttext "›": skip 2
+~
+if ?0[7][3][1] + 2 > 214 & ?0[7][3][1] < 214 puttext "›": skip 2
+~
+br
+
+; Test user subs and parameter handling
+; Correct output: •—
+;                 24601
+;                 61@365
+;                 42@”k
+; Note that many versions of ONScripter fail this test!
+test
+mov %61,365
+mov $42,"”k"
+testsub "•—", 24601, %61, $42
+br
+goto *enddefinition
+*testsub
+  getparam $0,%0,i%1,s%2
+  $0
+  %0
+  %1@%%1
+  %2@$%2
+  return
+*enddefinition
+
+; Test `for' loops and array handling
+; Correct output: 30 
+;                 42
+;                 54
+;                 66
+test
+for %0=0 to 4: movl ?0[8][%0], %0, %0, %0: next
+for %50=0 to 6 step 2
+  mov ?0[8][2][0], ?0[8][2][0] + 1
+  ?0[8][2][0]%50
+next
+\
+
+end
+
+*test
+inc %testnum
+$teststr^%testnum
+return

@@ -349,9 +349,8 @@ protected:
     rgb_t readColour(const string& buf)
 	{ return readColour(buf.c_str()); }
 
-    void errorAndExit(const char* str, const char* reason = NULL);
-    void errorAndExit(const string& str, const char* reason = NULL)
-	{ errorAndExit(str.c_str(), reason); }
+    void errorAndExit(string why, string reason = "");
+    void errorAndCont(string why, string reason = "");
 
     void allocFileIOBuf();
     int saveFileIOBuf(const string& filename, int offset = 0);

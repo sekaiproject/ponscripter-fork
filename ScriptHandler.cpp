@@ -1491,7 +1491,7 @@ void ScriptHandler::LogInfo::read(ScriptHandler& h)
 int&
 ScriptHandler::ArrayVariable::getoffs(const std::vector<int>& indices)
 {
-    if ((int) indices.size() > num_dim)
+    if ((int) indices.size() != num_dim)
 	owner->errorAndExit("array has " + str(num_dim) + " dimensions, but " +
 			    "indexed " + str(indices.size()) + " deep");
     int offs_idx = 0;

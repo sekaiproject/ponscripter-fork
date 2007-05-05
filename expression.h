@@ -13,6 +13,9 @@ public:
     enum type_t { Int, Array, String, Label, Bareword };
     type_t type() const { return type_; }
 
+    // For debugging use
+    string debug_string() const; // returns representation such as "?25[0]"
+    
     // Test for attributes
     bool is_variable() const { return var_; }
     bool is_constant() const { return !var_; }
@@ -34,11 +37,13 @@ public:
     string as_string() const; // coerced if necessary
     int as_int() const; // coerced if necessary
     int var_no() const; // if variable
-
+    int dim() const; // if array: returns size of indexed dimension
+    
     // Modify variable
     void mutate(int newval, int offset = MAX_INT, bool as_array = false);
     void mutate(const string& newval);
     void append(const string& newval);
+    void append(wchar newval);    
     
     ~Expression();
     Expression(ScriptHandler& sh, type_t t, bool is_v, int val);

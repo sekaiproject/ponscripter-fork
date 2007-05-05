@@ -435,27 +435,31 @@ int ScriptParser::mulCommand(const string& cmd)
 
 int ScriptParser::movCommand(const string& cmd)
 {
-    int limit = 1;
-    if (cmd == "mov10")
-        limit = 10;
-    else if (cmd == "movl")
-        limit = MAX_INT;
-    else if (cmd[3] >= '3' && cmd[3] <= '9')
-        limit = cmd[3] - '0';
-
     Expression e = script_h.readExpr();
+    int limit = cmd == "mov" ? 1
+	      : cmd == "movl" ? e.dim()
+	      : atoi(cmd.c_str() + 3);
+
+    // ONScripter has been a bit permissive in the past.
+    if (!script_h.is_ponscripter && e.type() == Expression::Array &&
+	cmd != "movl" && cmd != "mov")
+	errorAndCont("NScripter does not permit `" + cmd + " " +
+		     e.debug_string() + ", ...': for portability, use "
+		     "`movl' or a series of `mov' calls instead.");
+    
     if (e.is_textual()) {
 	if (limit != 1)
 	    errorAndExit(cmd + " is not valid with string variables (use mov)");
 	e.mutate(script_h.readStrValue());
     }
     else {
-        bool loop_flag = script_h.getEndStatus() & ScriptHandler::END_COMMA;
-	for (int i = 0; loop_flag && i < limit; ++i) {
-	    int no = script_h.readIntValue();
-	    loop_flag = script_h.getEndStatus() & ScriptHandler::END_COMMA;
-	    e.mutate(no, i, limit == MAX_INT);
+	for (int i = 0; i < limit; ++i) {
+	    if (!(script_h.getEndStatus() & ScriptHandler::END_COMMA))
+		errorAndExit("Not enough arguments to " + cmd);
+	    e.mutate(script_h.readIntValue(), i, cmd == "movl");
 	}
+	if (script_h.getEndStatus() & ScriptHandler::END_COMMA)
+	    errorAndCont("Too many arguments to " + cmd);
     }
     return RET_CONTINUE;
 }
@@ -661,11 +665,15 @@ int ScriptParser::kidokumodeCommand(const string& cmd)
 int ScriptParser::itoaCommand(const string& cmd)
 {
     Expression e = script_h.readStrExpr();
-    e.mutate(str(script_h.readIntValue()));
-    if (cmd == "itoa2") {
-	printf("itoa2: zenkaku conversion not implemented (returning hankaku moji)\n");
-	// TODO: zenkaku-fy string
+    string v = str(script_h.readIntValue());
+    if (!script_h.is_ponscripter && cmd == "itoa2") {
+	// Handle zenkaku output in compatibility mode
+	e.mutate("");
+	for (string::witerator it = v.wbegin(); it != v.wend(); ++it)
+	    e.append(*it - 0x0030 + 0xff10);
     }
+    else
+	e.mutate(v);
 
     return RET_CONTINUE;
 }
@@ -696,7 +704,6 @@ int ScriptParser::incCommand(const string& cmd)
 
 int ScriptParser::ifCommand(const string& cmd)
 {
-    //printf("ifCommand\n");
     bool condition_flag = true, f = false;
     bool if_flag = cmd != "notif";
 
@@ -816,13 +823,15 @@ int ScriptParser::getparamCommand(const string& cmd)
     int end_status;
 
     do {
-	bool ptr = script_h.checkPtr();
+	char ptr = script_h.checkPtr();
 	Expression e = script_h.readExpr();
 
         script_h.pushCurrent(nest_infos.back().next_script);
 
-	if (ptr)
-	    e.mutate(script_h.readExpr().var_no());
+	if (ptr == 'i')
+	    e.mutate(script_h.readIntExpr().var_no());
+	else if (ptr == 's')
+	    e.mutate(script_h.readStrExpr().var_no());
 	else if (e.is_numeric())
 	    e.mutate(script_h.readIntValue());
 	else
@@ -848,8 +857,6 @@ int ScriptParser::forCommand(const string& cmd)
     ni.var_no = e.var_no();
     if (ni.var_no < 0 || ni.var_no >= VARIABLE_RANGE)
         ni.var_no = VARIABLE_RANGE;
-
-//    script_h.pushVariable();
 
     if (!script_h.compareString("="))
         errorAndExit("for: no =");
@@ -1113,6 +1120,9 @@ int ScriptParser::arcCommand(const string& cmd)
 int ScriptParser::addCommand(const string& cmd)
 {
     Expression e = script_h.readExpr();
+    if (!script_h.is_ponscripter && e.type() == Expression::Array)
+	errorAndCont("NScripter does not permit `add ?array, val': for "
+		     "portability, use `mov ?array,?array + val' instead.");
     if (e.is_numeric())
 	e.mutate(e.as_int() + script_h.readIntValue());
     else

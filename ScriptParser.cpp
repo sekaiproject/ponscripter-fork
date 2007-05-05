@@ -347,7 +347,7 @@ unsigned char ScriptParser::convHexToDec(char ch)
     if ('0' <= ch && ch <= '9') return ch - '0';
     else if ('a' <= ch && ch <= 'f') return ch - 'a' + 10;
     else if ('A' <= ch && ch <= 'F') return ch - 'A' + 10;
-    else errorAndExit("convHexToDec: not valid character for color.");
+        else errorAndExit("convHexToDec: not valid character for color.");
 
     return 0;
 }
@@ -609,22 +609,23 @@ void ScriptParser::readArrayVariable()
 }
 
 
-void ScriptParser::errorAndExit(const char* str, const char* reason)
+void ScriptParser::errorAndCont(string why, string reason)
 {
+    why = "Parse error at line "
+	+ str(script_h.getLineByAddress(script_h.getCurrent(), true))
+	+ ": " + why;
     if (reason)
-        fprintf(stderr, " *** Parse error at %s:%d [%s]; %s ***\n",
-		current_label_info.name.c_str(),
-		current_line,
-		str, reason);
-    else
-        fprintf(stderr, " *** Parse error at %s:%d [%s] ***\n",
-		current_label_info.name.c_str(),
-		current_line,
-		str);
-
-    exit(-1);
+	why += "; " + reason;
+    why += "\n(*" + current_label_info.name
+	+ " line " + str(current_line) + ")\n";
+    fprintf(stderr, why.c_str());
 }
 
+void ScriptParser::errorAndExit(string why, string reason)
+{
+    errorAndCont(why, reason);
+    exit(-1);
+}
 
 void ScriptParser::setCurrentLabel(const string& label)
 {

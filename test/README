@@ -1,0 +1,11 @@
+This is a very basic set of tests.  Absolutely no pretence is made at
+adequate coverage, as a simple glance at the code will prove.  All
+they demonstrate is that Ponscripter is not _totally_ incompatible
+with NScripter.  :)
+
+I will note in passing that current versions of ONScripter do not pass
+even these tests, though ONScripter-En does slightly better.
+
+If you wish to try them, note that you will need to supply a font
+yourself.  Note also that NScripter 2.49 or better is required -
+earlier versions do not support commands like itoa2.

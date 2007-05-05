@@ -65,6 +65,8 @@ public:
 
 	int  getValue(const int* indices, int num_idx);
 	void setValue(const int* indices, int num_idx, int val);
+
+	int getDimensionSize(int depth) { return dim[depth]; }
 	
 	ArrayVariable(ScriptHandler* o) : owner(o) {}
 
@@ -118,7 +120,7 @@ public:
     Expression readStrExpr();
     Expression readIntExpr();
     Expression readExpr();
-    bool checkPtr();
+    char checkPtr();
 
     // function for string access
     inline string& getStringBuffer() { return string_buffer; }
