@@ -322,17 +322,17 @@ int PonscripterLabel::stopCommand(const string& cmd)
 
 int PonscripterLabel::sp_rgb_gradationCommand(const string& cmd)
 {
-    int no = script_h.readInt();
-    int upper_r  = script_h.readInt();
-    int upper_g  = script_h.readInt();
-    int upper_b  = script_h.readInt();
-    int lower_r  = script_h.readInt();
-    int lower_g  = script_h.readInt();
-    int lower_b  = script_h.readInt();
-    ONSBuf key_r = script_h.readInt();
-    ONSBuf key_g = script_h.readInt();
-    ONSBuf key_b = script_h.readInt();
-    Uint32 alpha = script_h.readInt();
+    int no = script_h.readIntValue();
+    int upper_r  = script_h.readIntValue();
+    int upper_g  = script_h.readIntValue();
+    int upper_b  = script_h.readIntValue();
+    int lower_r  = script_h.readIntValue();
+    int lower_g  = script_h.readIntValue();
+    int lower_b  = script_h.readIntValue();
+    ONSBuf key_r = script_h.readIntValue();
+    ONSBuf key_g = script_h.readIntValue();
+    ONSBuf key_b = script_h.readIntValue();
+    Uint32 alpha = script_h.readIntValue();
 
     AnimationInfo* si;
     if (no == -1) si = &sentence_font_info;
@@ -419,15 +419,14 @@ int PonscripterLabel::sp_rgb_gradationCommand(const string& cmd)
 
 int PonscripterLabel::spstrCommand(const string& cmd)
 {
-    decodeExbtnControl(script_h.readStr());
-
+    decodeExbtnControl(script_h.readStrValue());
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::spreloadCommand(const string& cmd)
 {
-    int no = script_h.readInt();
+    int no = script_h.readIntValue();
     AnimationInfo* si;
     if (no == -1) si = &sentence_font_info;
     else si = &sprite_info[no];
@@ -444,23 +443,17 @@ int PonscripterLabel::spreloadCommand(const string& cmd)
 
 int PonscripterLabel::splitCommand(const string& cmd)
 {
-    string buf = script_h.readStr();
-    string delimiter = script_h.readStr();
+    string buf = script_h.readStrValue();
+    string delimiter = script_h.readStrValue();
     delimiter.erase(encoding->CharacterBytes(delimiter.c_str()));
     std::vector<string> parts = buf.split(delimiter);
-    printf("Splitting %s on %s: %lu parts\n", buf.c_str(), delimiter.c_str(), parts.size());
     std::vector<string>::const_iterator it = parts.begin();
     while (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
-	script_h.readVariable();
-        if (script_h.current_variable.type & ScriptHandler::VAR_INT ||
-            script_h.current_variable.type & ScriptHandler::VAR_ARRAY) {
-	    int val = it == parts.end() ? 0 : atoi(it->c_str());
-            script_h.setInt(&script_h.current_variable, val);
-        }
-        else if (script_h.current_variable.type & ScriptHandler::VAR_STR) {
-            script_h.variable_data[script_h.current_variable.var_no].str =
-		it == parts.end() ? "" : *it;
-        }
+	Expression e = script_h.readExpr();
+	if (e.is_numeric())
+	    e.mutate(it == parts.end() ? 0 : atoi(it->c_str()));
+	else
+	    e.mutate(it == parts.end() ? "" : *it);
 	++it;
     }
     return RET_CONTINUE;
@@ -483,8 +476,8 @@ int PonscripterLabel::spbtnCommand(const string& cmd)
     if (cmd == "cellcheckspbtn")
         cellcheck_flag = true;
 
-    int sprite_no = script_h.readInt();
-    int no = script_h.readInt();
+    int sprite_no = script_h.readIntValue();
+    int no = script_h.readIntValue();
 
     if (cellcheck_flag) {
         if (sprite_info[sprite_no].num_of_cells < 2) return RET_CONTINUE;
@@ -519,7 +512,7 @@ int PonscripterLabel::skipoffCommand(const string& cmd)
 
 int PonscripterLabel::sevolCommand(const string& cmd)
 {
-    se_volume = script_h.readInt();
+    se_volume = script_h.readIntValue();
 
     for (int i = 1; i < ONS_MIX_CHANNELS; i++)
         if (wave_sample[i]) Mix_Volume(i, se_volume * 128 / 100);
@@ -536,47 +529,47 @@ int PonscripterLabel::sevolCommand(const string& cmd)
 
 void PonscripterLabel::setwindowCore()
 {
-    sentence_font.top_x  = script_h.readInt();
-    sentence_font.top_y  = script_h.readInt();
-    sentence_font.area_x = script_h.readInt();
-    sentence_font.area_y = script_h.readInt();
-    int s1 = script_h.readInt(), s2 = script_h.readInt();
+    sentence_font.top_x  = script_h.readIntValue();
+    sentence_font.top_y  = script_h.readIntValue();
+    sentence_font.area_x = script_h.readIntValue();
+    sentence_font.area_y = script_h.readIntValue();
+    int s1 = script_h.readIntValue(), s2 = script_h.readIntValue();
     sentence_font.set_size(s1 > s2 ? s1 : s2);
     sentence_font.set_mod_size(0);
-    sentence_font.pitch_x   = script_h.readInt();
-    sentence_font.pitch_y   = script_h.readInt();
-    sentence_font.wait_time = script_h.readInt();
-    sentence_font.is_bold   = script_h.readInt() ? true : false;
-    sentence_font.is_shadow = script_h.readInt() ? true : false;
+    sentence_font.pitch_x   = script_h.readIntValue();
+    sentence_font.pitch_y   = script_h.readIntValue();
+    sentence_font.wait_time = script_h.readIntValue();
+    sentence_font.is_bold   = script_h.readIntValue();
+    sentence_font.is_shadow = script_h.readIntValue();
 
     // Handle NScripter games: window size defined in characters
     if (!script_h.is_ponscripter) {
 	sentence_font.area_x *= s1 + sentence_font.pitch_x;
 	sentence_font.area_y *= s2 + sentence_font.pitch_y;
     }
-    
-    const char* buf = script_h.readStr();
-    dirty_rect.add(sentence_font_info.pos);
-    if (buf[0] == '#') {
-        sentence_font.is_transparent = true;
-        sentence_font.window_color = readColour(buf);
 
-        sentence_font_info.pos.x = script_h.readInt() * screen_ratio1 / screen_ratio2;
-        sentence_font_info.pos.y = script_h.readInt() * screen_ratio1 / screen_ratio2;
-        sentence_font_info.pos.w = script_h.readInt() * screen_ratio1 / screen_ratio2 - sentence_font_info.pos.x + 1;
-        sentence_font_info.pos.h = script_h.readInt() * screen_ratio1 / screen_ratio2 - sentence_font_info.pos.y + 1;
+    string back = script_h.readStrValue();
+    dirty_rect.add(sentence_font_info.pos);
+    float r = float(screen_ratio1) / float(screen_ratio2);
+    if (back[0] == '#') {
+        sentence_font.is_transparent = true;
+        sentence_font.window_color = readColour(back);
+        sentence_font_info.pos.x = int(script_h.readIntValue() * r);
+        sentence_font_info.pos.y = int(script_h.readIntValue() * r);
+        sentence_font_info.pos.w = int(script_h.readIntValue() * r);
+        sentence_font_info.pos.h = int(script_h.readIntValue() * r);
     }
     else {
         sentence_font.is_transparent = false;
-        sentence_font_info.setImageName(buf);
+        sentence_font_info.setImageName(back);
         parseTaggedString(&sentence_font_info);
         setupAnimationInfo(&sentence_font_info);
-        sentence_font_info.pos.x = script_h.readInt() * screen_ratio1 / screen_ratio2;
-        sentence_font_info.pos.y = script_h.readInt() * screen_ratio1 / screen_ratio2;
+        sentence_font_info.pos.x = int(script_h.readIntValue() * r);
+	sentence_font_info.pos.y = int(script_h.readIntValue() * r);
 #if 0
         if (sentence_font_info.image_surface) {
-            sentence_font_info.pos.w = sentence_font_info.image_surface->w * screen_ratio1 / screen_ratio2;
-            sentence_font_info.pos.h = sentence_font_info.image_surface->h * screen_ratio1 / screen_ratio2;
+            sentence_font_info.pos.w = int(sentence_font_info.image_surface->w * r);
+            sentence_font_info.pos.h = int(sentence_font_info.image_surface->h * r);
         }
 
 #endif
@@ -601,14 +594,14 @@ int PonscripterLabel::setwindow3Command(const string& cmd)
 
 int PonscripterLabel::setwindow2Command(const string& cmd)
 {
-    const char* buf = script_h.readStr();
-    if (buf[0] == '#') {
+    string back = script_h.readStrValue();
+    if (back[0] == '#') {
         sentence_font.is_transparent = true;
-        sentence_font.window_color = readColour(buf);
+        sentence_font.window_color = readColour(back);
     }
     else {
         sentence_font.is_transparent = false;
-        sentence_font_info.setImageName(buf);
+        sentence_font_info.setImageName(back);
         parseTaggedString(&sentence_font_info);
         setupAnimationInfo(&sentence_font_info);
     }
@@ -635,10 +628,10 @@ int PonscripterLabel::setwindowCommand(const string& cmd)
 
 int PonscripterLabel::setcursorCommand(const string& cmd)
 {
-    int no = script_h.readInt();
-    string cur = script_h.readStr();
-    int x = script_h.readInt() * screen_ratio1 / screen_ratio2;
-    int y = script_h.readInt() * screen_ratio1 / screen_ratio2;
+    int no = script_h.readIntValue();
+    string cur = script_h.readStrValue();
+    int x = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    int y = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
 
     loadCursor(no, cur.c_str(), x, y, cmd == "abssetcursor");
 
@@ -662,11 +655,6 @@ int PonscripterLabel::selectCommand(const string& cmd)
     else if (cmd == "csel")
         select_mode = SELECT_CSEL_MODE;
 
-    if (select_mode == SELECT_NUM_MODE) {
-        script_h.readVariable();
-        script_h.pushVariable();
-    }
-
     // If waiting for a selection to be made...
     if (event_mode & WAIT_BUTTON_MODE) {
 	const int button = current_button_state.button - 1;
@@ -687,7 +675,7 @@ int PonscripterLabel::selectCommand(const string& cmd)
 		      select_label_info.next_script);
         }
         else { // selnum
-            script_h.setInt(&script_h.pushed_variable, button);
+	    script_h.readIntExpr().mutate(button);
             current_label_info =
 		script_h.getLabelByAddress(select_label_info.next_script);
             current_line =
@@ -707,7 +695,10 @@ int PonscripterLabel::selectCommand(const string& cmd)
         if (select_mode == SELECT_CSEL_MODE) {
             saveoffCommand("saveoff");
         }
-
+	else if (select_mode == SELECT_NUM_MODE) {
+	    script_h.readIntExpr();
+	}
+	
         shortcut_mouse_line = buttons.end();
 
         float old_x = sentence_font.GetXOffset();
@@ -720,14 +711,14 @@ int PonscripterLabel::selectCommand(const string& cmd)
 
         while (1) {
             if (script_h.getNext()[0] != 0x0a && comma_flag == true) {
-                string text = script_h.readStr();
+                string text = script_h.readStrValue();
                 comma_flag = script_h.getEndStatus() & ScriptHandler::END_COMMA;
                 if (select_mode != SELECT_NUM_MODE && !comma_flag)
 		    errorAndExit(cmd + ": comma is needed here.");
 
 		string label;
                 if (select_mode != SELECT_NUM_MODE)
-                    label = script_h.readStr() + 1;
+                    label = script_h.readStrValue();
 
 		select_links.push_back(SelectElt(text, label));
 		
@@ -800,37 +791,25 @@ int PonscripterLabel::selectCommand(const string& cmd)
 
 int PonscripterLabel::savetimeCommand(const string& cmd)
 {
-    int no = script_h.readInt();
-
     SaveFileInfo info;
-    searchSaveFile(info, no);
-
-    script_h.readVariable();
+    searchSaveFile(info, script_h.readIntValue());
     if (!info.valid) {
-        script_h.setInt(&script_h.current_variable, 0);
+	script_h.readIntExpr().mutate(0);
         for (int i = 0; i < 3; i++)
-            script_h.readVariable();
+            script_h.readIntExpr();
 
         return RET_CONTINUE;
     }
-
-    script_h.setInt(&script_h.current_variable, info.month);
-    script_h.readInt();
-    script_h.setInt(&script_h.current_variable, info.day);
-    script_h.readInt();
-    script_h.setInt(&script_h.current_variable, info.hour);
-    script_h.readInt();
-    script_h.setInt(&script_h.current_variable, info.minute);
-
+    script_h.readIntExpr().mutate(info.month);
+    script_h.readIntExpr().mutate(info.day);
+    script_h.readIntExpr().mutate(info.hour);
+    script_h.readIntExpr().mutate(info.minute);
     return RET_CONTINUE;
 }
 
 
 int PonscripterLabel::savescreenshotCommand(const string& cmd)
 {
-    //if (cmd == "savescreenshot") { }
-    //else if (cmd == "savescreenshot2") { }
-
     const char* buf = script_h.readStr();
 
     char* ext = strrchr(buf, '.');
