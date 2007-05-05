@@ -8,9 +8,9 @@
 
 // In bool contexts, strings are true if non-empty.
 
-// Extensions are a Perl-like shift/unshift/push/pop set, a
+// Extensions include a Perl-like shift/unshift/push/pop set, a
 // vector-like back(), split/uppercase/replace functions, a set of
-// UTF-8-aware iterators...
+// UTF-8-aware iterators, and so on.
 
 #ifndef PSTRING_H
 #define PSTRING_H

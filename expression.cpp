@@ -45,9 +45,9 @@ void Expression::require_textual() const
 	die("expected text, found " + typestr(type_, var_));
 }
 
-void Expression::require_number() const
+void Expression::require_numeric() const
 {
-    if (!is_number())
+    if (!is_numeric())
 	die("expected number, found " + typestr(type_, var_));
 }
 
@@ -57,14 +57,14 @@ string Expression::as_string() const
 	return *value_.strptr;
     else if (is_textual())
 	return h.variable_data[value_.intval].str;
-    else if (is_number())
+    else if (is_numeric())
 	return str(as_int());
     throw "Error: invalid expression type";
 }
 
 int Expression::as_int() const
 {
-    if (is_number() && is_constant())
+    if (is_numeric() && is_constant())
 	return value_.intval;
     else if (type_ == Array)
 	return h.arrays.find(value_.intval)->second.getValue(index_);
@@ -106,6 +106,12 @@ void Expression::mutate(const string& newval)
 {
     require(String, true);
     h.variable_data[value_.intval].str = newval;
+}
+
+void Expression::append(const string& newval)
+{
+    require(String, true);
+    h.variable_data[value_.intval].str += newval;
 }
 
 Expression::~Expression()

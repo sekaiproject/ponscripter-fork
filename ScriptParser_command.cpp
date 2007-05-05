@@ -165,12 +165,8 @@ int ScriptParser::straliasCommand(const string& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("stralias: not in the define section");
-
     string label = script_h.readLabel();
-    string value = script_h.readStrValue();
-
-    script_h.addStrAlias(label, value);
-
+    script_h.addStrAlias(label, script_h.readStrValue());
     return RET_CONTINUE;
 }
 
@@ -731,7 +727,7 @@ int ScriptParser::ifCommand(const string& cmd)
 		             : script_h.readIntExpr();
 	    
 	    int comp_val = 0;
-	    if (left.is_number() && right.is_number())
+	    if (left.is_numeric() && right.is_numeric())
 		comp_val = left.as_int() < right.as_int() ? -1
 		         : left.as_int() > right.as_int() ? 1
 		         : 0;
@@ -827,7 +823,7 @@ int ScriptParser::getparamCommand(const string& cmd)
 
 	if (ptr)
 	    e.mutate(script_h.readExpr().var_no());
-	else if (e.is_number())
+	else if (e.is_numeric())
 	    e.mutate(script_h.readIntValue());
 	else
 	    e.mutate(script_h.readStrValue());
@@ -848,33 +844,30 @@ int ScriptParser::forCommand(const string& cmd)
     NestInfo ni;
     ni.nest_mode = NestInfo::FOR;
 
-    script_h.readVariable();
-    if (script_h.current_variable.type != ScriptHandler::VAR_INT)
-        errorAndExit("for: no integer variable.");
-
-    ni.var_no = script_h.current_variable.var_no;
+    Expression e = script_h.readIntExpr();
+    ni.var_no = e.var_no();
     if (ni.var_no < 0 || ni.var_no >= VARIABLE_RANGE)
         ni.var_no = VARIABLE_RANGE;
 
-    script_h.pushVariable();
+//    script_h.pushVariable();
 
     if (!script_h.compareString("="))
         errorAndExit("for: no =");
 
     script_h.setCurrent(script_h.getNext() + 1);
-    int from = script_h.readInt();
-    script_h.setInt(&script_h.pushed_variable, from);
+    int from = script_h.readIntValue();
+    e.mutate(from);
 
     if (!script_h.compareString("to"))
         errorAndExit("for: no to");
 
     script_h.readLabel();
 
-    ni.to = script_h.readInt();
+    ni.to = script_h.readIntValue();
 
     if (script_h.compareString("step")) {
         script_h.readLabel();
-        ni.step = script_h.readInt();
+        ni.step = script_h.readIntValue();
     }
     else {
         ni.step = 1;
@@ -920,7 +913,7 @@ int ScriptParser::effectblankCommand(const string& cmd)
     if (current_mode != DEFINE_MODE)
 	errorAndExit("effectblank: not in the define section");
 
-    effect_blank = script_h.readInt();
+    effect_blank = script_h.readIntValue();
 
     return RET_CONTINUE;
 }
@@ -936,7 +929,7 @@ int ScriptParser::effectCommand(const string& cmd)
     if (current_mode != DEFINE_MODE) errorAndExit("effect: not in the define section");
 
     Effect e;
-    e.no = script_h.readInt();
+    e.no = script_h.readIntValue();
     if (e.no < 2 || e.no > 255) errorAndExit("Effect No. is out of range");
     readEffect(e);
     effects.push_back(e);
@@ -947,12 +940,8 @@ int ScriptParser::effectCommand(const string& cmd)
 
 int ScriptParser::divCommand(const string& cmd)
 {
-    int val1 = script_h.readInt();
-    script_h.pushVariable();
-
-    int val2 = script_h.readInt();
-    script_h.setInt(&script_h.pushed_variable, val1 / val2);
-
+    Expression e = script_h.readIntExpr();
+    e.mutate(e.as_int() / script_h.readIntValue());
     return RET_CONTINUE;
 }
 
@@ -961,17 +950,14 @@ int ScriptParser::dimCommand(const string& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("dim: not in the define section");
-
     script_h.declareDim();
-
     return RET_CONTINUE;
 }
 
 
 int ScriptParser::defvoicevolCommand(const string& cmd)
 {
-    voice_volume = script_h.readInt();
-
+    voice_volume = script_h.readIntValue();
     return RET_CONTINUE;
 }
 
@@ -979,23 +965,20 @@ int ScriptParser::defvoicevolCommand(const string& cmd)
 int ScriptParser::defsubCommand(const string& cmd)
 {
     user_func_lut.insert(script_h.readLabel());
-
     return RET_CONTINUE;
 }
 
 
 int ScriptParser::defsevolCommand(const string& cmd)
 {
-    se_volume = script_h.readInt();
-
+    se_volume = script_h.readIntValue();
     return RET_CONTINUE;
 }
 
 
 int ScriptParser::defmp3volCommand(const string& cmd)
 {
-    music_volume = script_h.readInt();
-
+    music_volume = script_h.readIntValue();
     return RET_CONTINUE;
 }
 
@@ -1004,9 +987,8 @@ int ScriptParser::defaultspeedCommand(const string& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("defaultspeed: not in the define section");
-
-    for (int i = 0; i < 3; i++) default_text_speed[i] = script_h.readInt();
-
+    for (int i = 0; i < 3; i++)
+	default_text_speed[i] = script_h.readIntValue();
     return RET_CONTINUE;
 }
 
@@ -1015,18 +997,15 @@ int ScriptParser::defaultfontCommand(const string& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("defaultfont: not in the define section");
-
-    default_env_font = script_h.readStr();
-
+    default_env_font = script_h.readStrValue();
     return RET_CONTINUE;
 }
 
 
 int ScriptParser::decCommand(const string& cmd)
 {
-    int val = script_h.readInt();
-    script_h.setInt(&script_h.current_variable, val - 1);
-
+    Expression e = script_h.readIntExpr();
+    e.mutate(e.as_int() - 1);
     return RET_CONTINUE;
 }
 
@@ -1035,47 +1014,30 @@ int ScriptParser::dateCommand(const string& cmd)
 {
     time_t t = time(NULL);
     struct tm* tm = localtime(&t);
-
-    script_h.readInt();
-    script_h.setInt(&script_h.current_variable, tm->tm_year % 100);
-
-    script_h.readInt();
-    script_h.setInt(&script_h.current_variable, tm->tm_mon + 1);
-
-    script_h.readInt();
-    script_h.setInt(&script_h.current_variable, tm->tm_mday);
-
+    script_h.readIntExpr().mutate(tm->tm_year % 100);
+    script_h.readIntExpr().mutate(tm->tm_mon + 1);
+    script_h.readIntExpr().mutate(tm->tm_mday);
     return RET_CONTINUE;
 }
 
 
 int ScriptParser::cosCommand(const string& cmd)
 {
-    script_h.readInt();
-    script_h.pushVariable();
-
-    int val = script_h.readInt();
-    script_h.setInt(&script_h.pushed_variable,
-		    (int)(cos(M_PI * val / 180.0) * 1000.0));
-
+    Expression e = script_h.readIntExpr();
+    e.mutate(int(cos(M_PI * script_h.readIntValue() / 180.0) * 1000.0));
     return RET_CONTINUE;
 }
 
 
 int ScriptParser::cmpCommand(const string& cmd)
 {
-    script_h.readInt();
-    script_h.pushVariable();
-
-    string buf1 = script_h.readStr();
-    string buf2 = script_h.readStr();
-
+    Expression e = script_h.readIntExpr();
+    string buf1 = script_h.readStrValue();
+    string buf2 = script_h.readStrValue();
     int val = buf1.compare(buf2);
     if (val > 0) val = 1;
     else if (val < 0) val = -1;
-
-    script_h.setInt(&script_h.pushed_variable, val);
-
+    e.mutate(val);
     return RET_CONTINUE;
 }
 
@@ -1084,18 +1046,16 @@ int ScriptParser::clickvoiceCommand(const string& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("clickvoice: not in the define section");
-
     for (int i = 0; i < CLICKVOICE_NUM; i++)
-        clickvoice_file_name[i] = script_h.readStr();
-
+        clickvoice_file_name[i] = script_h.readStrValue();
     return RET_CONTINUE;
 }
 
 
 int ScriptParser::clickstrCommand(const string& cmd)
 {
-    script_h.setClickstr(script_h.readStr());
-    clickstr_line = script_h.readInt();
+    script_h.setClickstr(script_h.readStrValue());
+    clickstr_line = script_h.readIntValue();
     return RET_CONTINUE;
 }
 
@@ -1108,7 +1068,7 @@ int ScriptParser::breakCommand(const string& cmd)
     char* buf = script_h.getNext();
     if (buf[0] == '*') {
         nest_infos.pop_back();
-        setCurrentLabel(script_h.readStr() + 1);
+        setCurrentLabel(script_h.readStrValue());
     }
     else {
         break_flag = true;
@@ -1120,66 +1080,42 @@ int ScriptParser::breakCommand(const string& cmd)
 
 int ScriptParser::atoiCommand(const string& cmd)
 {
-    script_h.readInt();
-    script_h.pushVariable();
-
-    string buf = script_h.readStr();
-
-    script_h.setInt(&script_h.pushed_variable, atoi(buf.c_str()));
-
+    Expression e = script_h.readIntExpr();
+    e.mutate(atoi(script_h.readStrValue().c_str()));
     return RET_CONTINUE;
 }
 
 
 int ScriptParser::arcCommand(const string& cmd)
 {
-    const char* buf = script_h.readStr();
-    char* buf2 = new char[strlen(buf) + 1];
-    strcpy(buf2, buf);
-
-    int i = 0;
-    while (buf2[i] != '|' && buf2[i] != '\0') i++;
-    buf2[i] = '\0';
-
+    // arc "filename|archive reader DLL"
+    // We ignore the DLL, and assume the archive is SAR.
+    string buf = script_h.readStrValue();
+    buf.erase(buf.find('|', 0));
     if (strcmp(ScriptHandler::cBR->getArchiveName(), "direct") == 0) {
         delete ScriptHandler::cBR;
         ScriptHandler::cBR = new SarReader(archive_path.c_str(), key_table);
-        if (ScriptHandler::cBR->open(buf2))
+        if (ScriptHandler::cBR->open(buf.c_str()))
             fprintf(stderr, " *** failed to open archive %s, ignored.  ***\n",
-		    buf2);
+		    buf.c_str());
     }
     else if (strcmp(ScriptHandler::cBR->getArchiveName(), "sar") == 0) {
-        if (ScriptHandler::cBR->open(buf2)) {
+        if (ScriptHandler::cBR->open(buf.c_str())) {
             fprintf(stderr, " *** failed to open archive %s, ignored.  ***\n",
-		    buf2);
+		    buf.c_str());
         }
     }
-
     // skip "arc" commands after "ns?" command
-
-    delete[] buf2;
-
     return RET_CONTINUE;
 }
 
 
 int ScriptParser::addCommand(const string& cmd)
 {
-    script_h.readVariable();
-
-    if (script_h.current_variable.type == ScriptHandler::VAR_INT
-        || script_h.current_variable.type == ScriptHandler::VAR_ARRAY) {
-        int val = script_h.getIntVariable(&script_h.current_variable);
-        script_h.pushVariable();
-
-        script_h.setInt(&script_h.pushed_variable, val + script_h.readInt());
-    }
-    else if (script_h.current_variable.type == ScriptHandler::VAR_STR) {
-	script_h.pushVariable();
-        script_h.variable_data[script_h.pushed_variable.var_no].str +=
-	    script_h.readStr();
-    }
-    else errorAndExit("add: no variable.");
-
+    Expression e = script_h.readExpr();
+    if (e.is_numeric())
+	e.mutate(e.as_int() + script_h.readIntValue());
+    else
+	e.append(script_h.readStrValue());
     return RET_CONTINUE;
 }

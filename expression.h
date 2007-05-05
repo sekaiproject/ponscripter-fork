@@ -18,7 +18,7 @@ public:
     bool is_constant() const { return !var_; }
     bool is_textual() const
 	{ return type_ == String || type_ == Label || type_ == Bareword; }
-    bool is_number() const
+    bool is_numeric() const
 	{ return type_ == Int || type_ == Array; }
 
     // Fail if attributes are missing
@@ -26,7 +26,7 @@ public:
     void require(type_t t, bool var) const;
     void require_variable() const;
     void require_textual() const;
-    void require_number() const;
+    void require_numeric() const;
     void require_label()    const { require(Label); }
     void require_bareword() const { require(Bareword); }
 
@@ -38,6 +38,7 @@ public:
     // Modify variable
     void mutate(int newval, int offset = MAX_INT, bool as_array = false);
     void mutate(const string& newval);
+    void append(const string& newval);
     
     ~Expression();
     Expression(ScriptHandler& sh, type_t t, bool is_v, int val);
