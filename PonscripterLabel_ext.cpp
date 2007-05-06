@@ -37,7 +37,7 @@ int PonscripterLabel::haeleth_text_extentCommand(const string& cmd)
     if (buf[0] == encoding->TextMarker()) buf.shift();
 
     FontInfo f = sentence_font;
-    if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
+    if (script_h.hasMoreArgs()) {
         int s1 = script_h.readIntValue();
 	int s2 = script_h.readIntValue();
         f.set_size(s1 > s2 ? s1 : s2);
@@ -126,8 +126,7 @@ int PonscripterLabel::haeleth_map_fontCommand(const string& cmd)
 {
     int id = script_h.readIntValue();
     MapFont(id, script_h.readStrValue());
-    if (script_h.getEndStatus() & ScriptHandler::END_COMMA)
-        MapMetrics(id, script_h.readStrValue());
+    if (script_h.hasMoreArgs()) MapMetrics(id, script_h.readStrValue());
     return RET_CONTINUE;
 }
 
@@ -152,7 +151,7 @@ int PonscripterLabel::haeleth_hinting_modeCommand(const string& cmd)
     else if (l == "float") subpixel = true;
     else fprintf(stderr, "Unknown positioning mode `%s'\n", l.c_str());
 
-    if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
+    if (script_h.hasMoreArgs()) {
 	l = script_h.readStrValue();
         lightrender = l == "light";
     }
@@ -207,9 +206,7 @@ int PonscripterLabel::haeleth_sayCommand(const string& cmd)
 {
     while (1) {
 	printf(script_h.readExpr().as_string().c_str());
-	if (script_h.getEndStatus() & ScriptHandler::END_COMMA)
-	    printf(", ");
-	else break;   
+	if (script_h.hasMoreArgs()) printf(", "); else break;   
     }
     printf("\n");
     return RET_CONTINUE;

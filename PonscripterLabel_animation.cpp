@@ -286,9 +286,8 @@ void PonscripterLabel::parseTaggedString(AnimationInfo* anim)
                 anim->font_size_x = script_h.readIntValue();
                 anim->font_size_y = script_h.readIntValue();
                 anim->font_pitch  = script_h.readIntValue();
-                if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
+                if (script_h.hasMoreArgs())
                     script_h.readIntValue(); // 0 ... normal, 1 ... no anti-aliasing, 2 ... Fukuro
-                }
 
                 buffer = script_h.getNext();
                 script_h.popCurrent();

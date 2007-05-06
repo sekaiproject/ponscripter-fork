@@ -112,6 +112,7 @@ public:
 
     // saner parser functions :)
     // Implementations in expression.cpp
+    bool hasMoreArgs();
     string readStrValue();
     string readBareword();
     int readIntValue();
@@ -143,7 +144,8 @@ public:
     bool isText();
     bool compareString(const char* buf);
 
-    inline int getEndStatus() { return end_status; };
+    //inline int getEndStatus() { return end_status; };
+    inline bool end1ByteChar() { return end_status & END_1BYTE_CHAR; }
     void skipLine(int no = 1);
     void setLinepage(bool val);
 
@@ -236,11 +238,11 @@ public:
 
 private:
     enum { OP_INVALID = 0, // 000
-           OP_PLUS  = 2,   // 010
-           OP_MINUS = 3, // 011
-           OP_MULT  = 4,   // 100
-           OP_DIV   = 5,   // 101
-           OP_MOD   = 6    // 110
+           OP_PLUS    = 2, // 010
+           OP_MINUS   = 3, // 011
+           OP_MULT    = 4, // 100
+           OP_DIV     = 5, // 101
+           OP_MOD     = 6  // 110
     };
 
     LabelInfo::iterator findLabel(string label);
@@ -252,7 +254,6 @@ private:
     int  calcArithmetic(int num1, int op, int num2);
     typedef std::pair<int, index_t> array_ref;
     array_ref parseArray(char** buf);
-    //int* getArrayPtr(int no, index_t indices, int offset);
     
     /* ---------------------------------------- */
     /* Variable */

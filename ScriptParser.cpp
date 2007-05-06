@@ -660,10 +660,10 @@ int ScriptParser::readEffect(Effect& effect)
     int num = 1;
 
     effect.effect = script_h.readIntValue();
-    if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
+    if (script_h.hasMoreArgs()) {
         ++num;
         effect.duration = script_h.readIntValue();
-        if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
+        if (script_h.hasMoreArgs()) {
             ++num;
             effect.anim.setImageName(script_h.readStrValue());
         }
@@ -671,7 +671,7 @@ int ScriptParser::readEffect(Effect& effect)
             effect.anim.remove();
     }
     else if (effect.effect < 0 || effect.effect > 255) {
-        fprintf(stderr, "Effect %d is out of range and is switched to 0.\n", effect.effect);
+        fprintf(stderr, "Effect %d out of range: using 0.\n", effect.effect);
         effect.effect = 0; // to suppress error
     }
     return num;

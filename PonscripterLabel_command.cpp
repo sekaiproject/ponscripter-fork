@@ -249,7 +249,7 @@ int PonscripterLabel::tablegotoCommand(const string& cmd)
 {
     int count = 0;
     int no = script_h.readIntValue();
-    while (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
+    while (script_h.hasMoreArgs()) {
         string buf = script_h.readStrValue();
         if (count++ == no) {
 	    setCurrentLabel(buf);
@@ -290,9 +290,9 @@ int PonscripterLabel::strspCommand(const string& cmd)
     fi.is_bold   = script_h.readIntValue();
     fi.is_shadow = script_h.readIntValue();
 
-    if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
+    if (script_h.hasMoreArgs()) {
 	ai->color_list.clear();
-	while (script_h.getEndStatus() & ScriptHandler::END_COMMA)
+	while (script_h.hasMoreArgs())
 	    ai->color_list.push_back(readColour(script_h.readStrValue()));
 	ai->num_of_cells = ai->color_list.size();
     }
@@ -448,7 +448,7 @@ int PonscripterLabel::splitCommand(const string& cmd)
     delimiter.erase(encoding->CharacterBytes(delimiter.c_str()));
     std::vector<string> parts = buf.split(delimiter);
     std::vector<string>::const_iterator it = parts.begin();
-    while (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
+    while (script_h.hasMoreArgs()) {
 	Expression e = script_h.readExpr();
 	if (e.is_numeric())
 	    e.mutate(it == parts.end() ? 0 : atoi(it->c_str()));
@@ -709,7 +709,7 @@ int PonscripterLabel::selectCommand(const string& cmd)
         while (1) {
             if (script_h.getNext()[0] != 0x0a && comma_flag == true) {
                 string text = script_h.readStrValue();
-                comma_flag = script_h.getEndStatus() & ScriptHandler::END_COMMA;
+                comma_flag = script_h.hasMoreArgs();
                 if (select_mode != SELECT_NUM_MODE && !comma_flag)
 		    errorAndExit(cmd + ": comma is needed here.");
 
@@ -719,7 +719,7 @@ int PonscripterLabel::selectCommand(const string& cmd)
 
 		select_links.push_back(SelectElt(text, label));
 		
-                comma_flag = script_h.getEndStatus() & ScriptHandler::END_COMMA;
+                comma_flag = script_h.hasMoreArgs();
             }
             else if (script_h.getNext()[0] == 0x0a) {
                 char* buf = script_h.getNext() + 1; // consume eol
@@ -1109,7 +1109,7 @@ int PonscripterLabel::mspCommand(const string& cmd)
     sprite_info[no].pos.y += script_h.readIntValue() *
 	screen_ratio1 / screen_ratio2;
     dirty_rect.add(sprite_info[no].pos);
-    if (script_h.getEndStatus() & ScriptHandler::END_COMMA)
+    if (script_h.hasMoreArgs())
         sprite_info[no].trans += script_h.readIntValue();
 
     if (sprite_info[no].trans > 256) sprite_info[no].trans = 256;
@@ -1274,7 +1274,7 @@ int PonscripterLabel::lspCommand(const string& cmd)
 	screen_ratio1 / screen_ratio2;
     sprite_info[no].pos.y = script_h.readIntValue() *
 	screen_ratio1 / screen_ratio2;
-    if (script_h.getEndStatus() & ScriptHandler::END_COMMA)
+    if (script_h.hasMoreArgs())
         sprite_info[no].trans = script_h.readIntValue();
     else
         sprite_info[no].trans = 256;
@@ -1375,9 +1375,9 @@ int PonscripterLabel::logspCommand(const string& cmd)
         si.font_pitch  = sentence_font.pitch_x;
     }
 
-    if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
+    if (script_h.hasMoreArgs()) {
 	si.color_list.clear();
-	while (script_h.getEndStatus() & ScriptHandler::END_COMMA)
+	while (script_h.hasMoreArgs())
 	    si.color_list.push_back(readColour(script_h.readStrValue()));
     }
     else {
@@ -1558,7 +1558,7 @@ int PonscripterLabel::inputCommand(const string& cmd)
 
     script_h.readIntValue(); // maxlen
     script_h.readIntValue(); // widechar flag
-    if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
+    if (script_h.hasMoreArgs()) {
         script_h.readIntValue(); // window width
         script_h.readIntValue(); // window height
         script_h.readIntValue(); // text box width
@@ -1663,10 +1663,10 @@ int PonscripterLabel::gettagCommand(const string& cmd)
     else
         end_flag = true;
 
-    int end_status;
+    bool more_args;
     do {
 	Expression e = script_h.readExpr();
-        end_status = script_h.getEndStatus();
+        more_args = script_h.hasMoreArgs();
 
 	if (e.is_numeric())
 	    e.mutate(end_flag ? 0 : script_h.parseInt(&buf));
@@ -1685,7 +1685,7 @@ int PonscripterLabel::gettagCommand(const string& cmd)
         else
             end_flag = true;
     }
-    while (end_status & ScriptHandler::END_COMMA);
+    while (more_args);
 
     if (zenkakko_flag && encoding->Decode(buf) == 0x3010 /*y */)
 	buf += encoding->CharacterBytes(buf);
@@ -1714,7 +1714,7 @@ int PonscripterLabel::getspsizeCommand(const string& cmd)
 				  screen_ratio2 / screen_ratio1);
     script_h.readIntExpr().mutate(sprite_info[no].pos.h *
 				  screen_ratio2 / screen_ratio1);
-    if (script_h.getEndStatus() & ScriptHandler::END_COMMA)
+    if (script_h.hasMoreArgs())
         script_h.readIntExpr().mutate(sprite_info[no].num_of_cells);
 
     return RET_CONTINUE;
@@ -2900,7 +2900,7 @@ int PonscripterLabel::amspCommand(const string& cmd)
     sprite_info[no].pos.y = script_h.readIntValue() *
 	screen_ratio1 / screen_ratio2;
 
-    if (script_h.getEndStatus() & ScriptHandler::END_COMMA)
+    if (script_h.hasMoreArgs())
         sprite_info[no].trans = script_h.readIntValue();
 
     if (sprite_info[no].trans > 256) sprite_info[no].trans = 256;

@@ -1396,17 +1396,15 @@ ScriptHandler::ArrayVariable::getoffs(const index_t& indices)
 	offs_idx *= dim[i];
 	offs_idx += indices[i];
     }
-
     return data[offs_idx];
 }
-    
+
 ScriptHandler::ArrayVariable::ArrayVariable(ScriptHandler* o, index_t sizes)
     : owner(o), dim(sizes)
 {
-    int acc = 1;
-    for (index_t::iterator it = dim.begin(); it != dim.end(); ++it)
-	acc *= ++(*it);    
-    data.assign(acc, 0);
+    int sz = 1;
+    for (index_t::iterator i = dim.begin(); i != dim.end(); ++i) sz *= ++(*i);
+    data.assign(sz, 0);
 }
 
 

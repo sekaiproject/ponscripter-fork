@@ -453,7 +453,7 @@ int PonscripterLabel::processText()
 
     new_line_skip_flag = false;
 
-    while ((!(script_h.getEndStatus() & ScriptHandler::END_1BYTE_CHAR)
+    while ((!script_h.end1ByteChar()
             && script_h.getStringBuffer()[string_buffer_offset] == ' ')
            || script_h.getStringBuffer()[string_buffer_offset] == '\t')
 	string_buffer_offset++;

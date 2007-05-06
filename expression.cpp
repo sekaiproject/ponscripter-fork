@@ -284,3 +284,10 @@ char ScriptHandler::checkPtr()
     }
     return 0;
 }
+
+bool ScriptHandler::hasMoreArgs()
+{
+    // TODO: replace with a lookahead (and have the readers chomp
+    // preceding commas)
+    return end_status & END_COMMA;
+}

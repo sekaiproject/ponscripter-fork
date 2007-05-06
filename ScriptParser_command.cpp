@@ -265,7 +265,7 @@ int ScriptParser::rubyonCommand(const string& cmd)
         script_h.readIntValue();
         script_h.readIntValue();
 
-        if (script_h.getEndStatus() & ScriptHandler::END_COMMA) {
+        if (script_h.hasMoreArgs()) {
             script_h.readStrExpr();
         }
     }
@@ -297,12 +297,10 @@ int ScriptParser::rmenuCommand(const string& cmd)
     rmenu.clear();
     rmenu_link_width = 0;
 
-    bool comma_flag = true;
-    while (comma_flag) {
+    do {
 	string s = script_h.readStrValue();
 	rmenu.push_back(RMenuElt(s, getSystemCallNo(script_h.readStrValue())));
-        comma_flag = script_h.getEndStatus() & ScriptHandler::END_COMMA;
-    }
+    } while (script_h.hasMoreArgs());
 
     return RET_CONTINUE;
 }
@@ -449,11 +447,11 @@ int ScriptParser::movCommand(const string& cmd)
     else {
 	bool movl = cmd == "movl";
 	for (int i = 0; i < limit; ++i) {
-	    if (!(script_h.getEndStatus() & ScriptHandler::END_COMMA))
+	    if (!script_h.hasMoreArgs())
 		errorAndExit("Not enough arguments to " + cmd);
 	    e.mutate(script_h.readIntValue(), i, movl);
 	}
-	if (script_h.getEndStatus() & ScriptHandler::END_COMMA)
+	if (script_h.hasMoreArgs())
 	    errorAndCont("Too many arguments to " + cmd);
     }
     return RET_CONTINUE;
@@ -815,7 +813,7 @@ int ScriptParser::getparamCommand(const string& cmd)
     if (nest_infos.empty() || nest_infos.back().nest_mode != NestInfo::LABEL)
         errorAndExit("getparam: not in a subroutine");
 
-    int end_status;
+    bool more_args;
 
     do {
 	char ptr = script_h.checkPtr();
@@ -832,12 +830,12 @@ int ScriptParser::getparamCommand(const string& cmd)
 	else
 	    e.mutate(script_h.readStrValue());
 
-        end_status = script_h.getEndStatus();
+        more_args = script_h.hasMoreArgs();
 
         nest_infos.back().next_script = script_h.getNext();
         script_h.popCurrent();
     }
-    while (end_status & ScriptHandler::END_COMMA);
+    while (more_args);
 
     return RET_CONTINUE;
 }
