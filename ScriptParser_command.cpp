@@ -32,7 +32,7 @@
 int ScriptParser::zenkakkoCommand(const string& cmd)
 {
     if (current_mode != DEFINE_MODE)
-	errorAndExit(script_h.getStringBuffer(), "not in the define section");
+	errorAndExit(cmd, "not in the define section");
 
     zenkakko_flag = true;
 
@@ -43,7 +43,7 @@ int ScriptParser::zenkakkoCommand(const string& cmd)
 int ScriptParser::windowbackCommand(const string& cmd)
 {
     if (current_mode != DEFINE_MODE)
-	errorAndExit(script_h.getStringBuffer(), "not in the define section");
+	errorAndExit(cmd, "not in the define section");
 
     windowback_flag = true;
 

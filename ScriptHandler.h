@@ -144,8 +144,9 @@ public:
     bool isText();
     bool compareString(const char* buf);
 
-    //inline int getEndStatus() { return end_status; };
+    // FIXME: this is nasty:
     inline bool end1ByteChar() { return end_status & END_1BYTE_CHAR; }
+    
     void skipLine(int no = 1);
     void setLinepage(bool val);
 

@@ -1158,20 +1158,20 @@ int PonscripterLabel::parseLine()
             // If this is the start of a sentence, or follows some
             // other punctuation that makes this desirable, we pretend
             // short words have a minimum length.
-            // Consider the case where we are rendering "We all of us
-            // love pies. I eat them every day" in a fixed-width font
-            // in a text window 25 characters wide.  A naive approach
-            // would lead to rendering this as
+            // Consider the case where we are rendering "O how I love
+            // thee, pie! I eat of thee each day" in a fixed-width
+            // font in a text window 25 characters wide.  A naive
+            // approach would lead to rendering this as
             //    -------------------------
-            //    We all of us love pies. I
-            //    eat them every day.
+            //    O how I love thee, pie! I
+            //    eat of thee each day.
             //    -------------------------
-            // By treating the second "I", which follows a full stop,
-            // as though it was four letters long, we get instead the
-            // more readable layout
+            // By treating the second "I", which begins a new
+            // sentence, as though it was four letters long, we get
+            // instead the more readable layout
             //    -------------------------
-            //    We all of us love pies.
-            //    I eat them every day.
+            //    O how I love thee, pie!
+            //    I eat of thee each day.
             //    -------------------------
             // Currently we use four em widths, which is an arbtrary
             // figure that may need tweaking.
