@@ -1387,9 +1387,8 @@ int&
 ScriptHandler::ArrayVariable::getoffs(const index_t& indices)
 {
     if (indices.size() != dim.size())
-	*(int*)0 = 0;
-	//owner->errorAndExit("Indexed " + str(indices.size()) + " deep into " +
-	//		    str(dim.size()) + "-dimensional array");
+	owner->errorAndExit("Indexed " + str(indices.size()) + " deep into " +
+			    str(dim.size()) + "-dimensional array");
     int offs_idx = 0;
     for (index_t::size_type i = 0; i < indices.size(); ++i) {
 	if (indices[i] > dim[i])
