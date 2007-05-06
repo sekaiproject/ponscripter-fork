@@ -447,10 +447,11 @@ int ScriptParser::movCommand(const string& cmd)
 	e.mutate(script_h.readStrValue());
     }
     else {
+	bool movl = cmd == "movl";
 	for (int i = 0; i < limit; ++i) {
 	    if (!(script_h.getEndStatus() & ScriptHandler::END_COMMA))
 		errorAndExit("Not enough arguments to " + cmd);
-	    e.mutate(script_h.readIntValue(), i, cmd == "movl");
+	    e.mutate(script_h.readIntValue(), i, movl);
 	}
 	if (script_h.getEndStatus() & ScriptHandler::END_COMMA)
 	    errorAndCont("Too many arguments to " + cmd);

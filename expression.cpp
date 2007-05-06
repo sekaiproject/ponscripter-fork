@@ -119,7 +119,7 @@ int Expression::var_no() const
 int Expression::dim() const
 {
     require(Array, true);
-    return h.arrays.find(intval_)->second.getDimensionSize(index_.size());
+    return h.arrays.find(intval_)->second.dimension_size(index_.size());
 }
 
 void Expression::mutate(int newval, int offset, bool as_array)

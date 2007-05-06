@@ -3,3 +3,4 @@
 #include "defs.h"
 
 const string::size_type string::npos = std::string::npos;
+const string eol("\n");

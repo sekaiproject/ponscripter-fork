@@ -570,8 +570,9 @@ void ScriptParser::writeArrayVariable(bool output_flag)
 {
     ScriptHandler::ArrayVariable::iterator it = script_h.arrays.begin();
     while (it != script_h.arrays.end()) {
-        for (index_t::size_type i = 0; i < it->second.data.size(); ++i) {
-            unsigned long ch = it->second.data[i];
+        for (index_t::iterator d = it->second.begin();
+	     d != it->second.end(); ++d) {
+            unsigned long ch = *d;
             if (output_flag) {
                 file_io_buf[file_io_buf_ptr + 3] = (unsigned char) ((ch >> 24) & 0xff);
                 file_io_buf[file_io_buf_ptr + 2] = (unsigned char) ((ch >> 16) & 0xff);
@@ -590,7 +591,8 @@ void ScriptParser::readArrayVariable()
 {
     ScriptHandler::ArrayVariable::iterator it = script_h.arrays.begin();
     while (it != script_h.arrays.end()) {
-        for (index_t::size_type i = 0; i < it->second.data.size(); ++i) {
+        for (index_t::iterator d = it->second.begin();
+	     d != it->second.end(); ++d) {
             unsigned long ret;
             if (file_io_buf_ptr + 3 >= file_io_buf_len) return;
 
@@ -599,7 +601,7 @@ void ScriptParser::readArrayVariable()
             ret = ret << 8 | file_io_buf[file_io_buf_ptr + 1];
             ret = ret << 8 | file_io_buf[file_io_buf_ptr];
             file_io_buf_ptr += 4;
-            it->second.data[i] = ret;
+            *d = ret;
         }
         ++it;
     }

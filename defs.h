@@ -88,7 +88,6 @@ inline string str(size_t i, int radix = 10)
     return nstr(i, 1, false, radix);
 }
 
-
 struct __attribute__((__packed__))
 rgb_t {
     unsigned char r, g, b;
@@ -104,5 +103,17 @@ rgb_t {
     rgb_t& operator=(const rgb_t& c) { set(c.r, c.g, c.b); return *this; }
     rgb_t& operator=(const SDL_Color& c) { set(c.r, c.g, c.b); return *this; }
 };
+
+
+// Haeleth dose not liek teh iostreams.
+inline FILE*& operator<<(FILE*& dst, const index_t& src)
+{
+    dst << string("{ ");
+    for (index_t::const_iterator it = src.begin(); it != src.end(); ++it) {
+	if (it != src.begin()) dst << string(", ");
+	dst << str(*it);
+    }
+    return dst << string(" }");
+}
 
 #endif

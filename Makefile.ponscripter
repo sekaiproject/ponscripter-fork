@@ -72,7 +72,8 @@ MadWrapper$(OBJSUFFIX): MadWrapper.h
 AVIWrapper$(OBJSUFFIX): AVIWrapper.h
 encoding$(OBJSUFFIX): defs.h pstring.h encoding.h
 cp932_encoding$(OBJSUFFIX): pstring.h encoding.h cp932_tables.h
-expression$(OBJSUFFIX): defs.h pstring.h encoding.h expression.h
+expression$(OBJSUFFIX): $(PONSCR_HEADER)
+pstring$(OBJSUFFIX): $(PONSCR_HEADER)
 
 ifndef NO_DEFAULT_ICON
 RESOURCES ?= default.png =icon.png

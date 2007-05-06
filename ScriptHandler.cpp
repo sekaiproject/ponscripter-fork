@@ -1085,7 +1085,13 @@ int ScriptHandler::parseInt(char** buf)
 	current_variable.var_no = arr.first;
 	current_variable.array = arr.second;
         current_variable.type  = VAR_ARRAY;
-        return *getArrayPtr(current_variable.var_no, current_variable.array, 0);
+	ArrayVariable::iterator i = arrays.find(arr.first);
+	if (i != arrays.end()) {
+	    if (arr.second.size() < i->second.dimensions())
+		arr.second.push_back(0);
+	    return i->second.getValue(arr.second);
+	}
+	return 0;
     }
     else {
         char ch;
@@ -1294,55 +1300,12 @@ ScriptHandler::array_ref ScriptHandler::parseArray(char** buf)
     return std::make_pair(no, indices);
 }
 
-
-int* ScriptHandler::getArrayPtr(int no, index_t indices, int offset)
-{
-    ArrayVariable::iterator it = arrays.find(no);
-    if (it == arrays.end())
-	errorAndExit("?" + str(no) + " is not declared.");
-    ArrayVariable& av = it->second;
-    if (indices.size() <  av.dim.size())
-	indices.push_back(0);
-
-    if (indices.size() != av.dim.size())
-	errorAndExit("Indexed " + str(indices.size()) + " deep into " +
-		     str(av.dim.size()) + "-dimensional array ?" + str(no));
-
-    int dim = 0;
-    for (index_t::size_type i = 0; i < av.dim.size(); i++) {
-        if (av.dim[i] <= indices[i])
-	    errorAndExit("dim[" + str(i) + "] (=" + str(av.dim[i]) + ") <= "
-			 "index " + str(i) + "(=" + str(indices[i]) + ").");
-
-        dim = dim * av.dim[i] + indices[i];
-    }
-
-    if (av.dim.back() <= indices.back() + offset)
-	errorAndExit("last dim <= last index + offset.");
-
-    return &av.data[dim + offset];
-}
-
-
 void ScriptHandler::declareDim()
 {
     current_script = next_script;
     char* buf = current_script;
-
     array_ref arr = parseArray(&buf);
-
-    // Sometimes, STL can be truly astonishingly ugly...
-    ArrayVariable* newarr =
-	&arrays.insert(std::make_pair(arr.first, ArrayVariable(this)))
-	.first->second;
-
-    int dim = 1;
-    newarr->dim = arr.second;
-    for (index_t::iterator it = newarr->dim.begin();
-	 it != newarr->dim.end(); ++it)
-	dim *= ++(*it);
-    
-    newarr->data.assign(dim, 0);
+    arrays.insert(std::make_pair(arr.first, ArrayVariable(this, arr.second)));
     next_script = buf;
 }
 
@@ -1424,8 +1387,9 @@ int&
 ScriptHandler::ArrayVariable::getoffs(const index_t& indices)
 {
     if (indices.size() != dim.size())
-	owner->errorAndExit("Indexed " + str(indices.size()) + " deep into " +
-			    str(dim.size()) + "-dimensional array");
+	*(int*)0 = 0;
+	//owner->errorAndExit("Indexed " + str(indices.size()) + " deep into " +
+	//		    str(dim.size()) + "-dimensional array");
     int offs_idx = 0;
     for (index_t::size_type i = 0; i < indices.size(); ++i) {
 	if (indices[i] > dim[i])
@@ -1437,17 +1401,15 @@ ScriptHandler::ArrayVariable::getoffs(const index_t& indices)
     return data[offs_idx];
 }
     
-int
-ScriptHandler::ArrayVariable::getValue(const int* indices, int num_idx)
+ScriptHandler::ArrayVariable::ArrayVariable(ScriptHandler* o, index_t sizes)
+    : owner(o), dim(sizes)
 {
-    return getoffs(index_t(indices, indices + num_idx));
+    int acc = 1;
+    for (index_t::iterator it = dim.begin(); it != dim.end(); ++it)
+	acc *= ++(*it);    
+    data.assign(acc, 0);
 }
 
-void
-ScriptHandler::ArrayVariable::setValue(const int* indices, int num_idx, int val)
-{
-    getoffs(index_t(indices, indices + num_idx)) = val;
-}
 
 struct aliases_t {
     set<string>::t aliases;

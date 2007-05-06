@@ -56,25 +56,25 @@ public:
 	LabelInfo() : start_address(NULL) {}
     };
 
-    struct ArrayVariable {
+    class ArrayVariable {
+    public:
 	typedef std::map<int, ArrayVariable> map;
 	typedef map::iterator iterator;
 
 	int  getValue(const index_t& i)          { return getoffs(i); }
 	void setValue(const index_t& i, int val) { getoffs(i) = val; }
 
-	int  getValue(const int* indices, int num_idx);
-	void setValue(const int* indices, int num_idx, int val);
-
-	int getDimensionSize(int depth) { return dim[depth]; }
+	index_t::size_type dimensions() const { return dim.size(); }
+	int dimension_size(int depth)   const { return dim[depth]; }
 	
-	ArrayVariable(ScriptHandler* o) : owner(o) {}
+	ArrayVariable(ScriptHandler* o, index_t sizes);
 
-	// TODO: make these private
-        index_t dim;
-	index_t data;
+	index_t::iterator begin() { return data.begin(); }
+	index_t::iterator end()   { return data.end(); }
     private:
 	ScriptHandler* owner;
+        index_t dim;
+	index_t data;
 	int& getoffs(const index_t& indices);
     };
     ArrayVariable::map arrays;
@@ -252,7 +252,7 @@ private:
     int  calcArithmetic(int num1, int op, int num2);
     typedef std::pair<int, index_t> array_ref;
     array_ref parseArray(char** buf);
-    int* getArrayPtr(int no, index_t indices, int offset);
+    //int* getArrayPtr(int no, index_t indices, int offset);
     
     /* ---------------------------------------- */
     /* Variable */

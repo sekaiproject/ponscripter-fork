@@ -12,6 +12,12 @@
 // vector-like back(), split/uppercase/replace functions, a set of
 // UTF-8-aware iterators, and so on.
 
+// IO is provided for C streams.
+// FILE* >> string // reads an entire line, sans trailing eol
+// FILE* << string // prints string, but no newline
+// FILE* << eol    // eol is defined, just like for iostreams
+// (I hate hideous bloated iostreams, but the syntax can be convenient!)
+
 #ifndef PSTRING_H
 #define PSTRING_H
 
@@ -233,6 +239,7 @@ public:
     operator bool() const { return !empty(); }
     void push_uchar(unsigned char e) { c.push_back(char(e)); }
     char& back() { return c[c.size() - 1]; }
+    const char back() const { return c[c.size() - 1]; }    
 
     // Perl-like stuff
     char pop() { char e = back(); c.resize(c.size() - 1); return e; }
@@ -397,8 +404,15 @@ inline void swap(string& s1, string& s2)
 inline FILE*& operator>>(FILE*& f, string& dest) {
     dest.clear();
     int c;
-    while ((c = fgetc(f)) != EOF) dest += char(c);
+    while ((c = fgetc(f)) != EOF && c != '\n') dest += char(c);
     return f;
+}
+
+extern const string eol;
+
+inline FILE*& operator<<(FILE*& dst, const string& src) {
+    fputs(src.c_str(), dst);
+    return dst;
 }
 
 #endif
