@@ -723,8 +723,6 @@ void PonscripterLabel::reset()
     current_over_button = 0;
     variable_edit_mode  = NOT_EDIT_MODE;
 
-    refresh_shadow_text_mode = REFRESH_NORMAL_MODE | REFRESH_SHADOW_MODE |
-                               REFRESH_TEXT_MODE;
     new_line_skip_flag = false;
     text_on_flag = true;
     draw_cursor_flag = false;
@@ -762,6 +760,8 @@ void PonscripterLabel::resetSub()
 
     for (i = 0; i < 3; i++) human_order[i] = 2 - i; // "rcl"
 
+    refresh_shadow_text_mode = REFRESH_NORMAL_MODE | REFRESH_SHADOW_MODE |
+                               REFRESH_TEXT_MODE;
     erase_text_window_mode = 1;
     skip_flag    = false;
     monocro_flag = false;
