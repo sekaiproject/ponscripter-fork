@@ -60,8 +60,8 @@ public:
 	typedef std::map<int, ArrayVariable> map;
 	typedef map::iterator iterator;
 
-	int  getValue(const std::vector<int>& i)          { return getoffs(i); }
-	void setValue(const std::vector<int>& i, int val) { getoffs(i) = val; }
+	int  getValue(const index_t& i)          { return getoffs(i); }
+	void setValue(const index_t& i, int val) { getoffs(i) = val; }
 
 	int  getValue(const int* indices, int num_idx);
 	void setValue(const int* indices, int num_idx, int val);
@@ -71,12 +71,11 @@ public:
 	ArrayVariable(ScriptHandler* o) : owner(o) {}
 
 	// TODO: make these private
-	int num_dim;
-        int dim[20];
-	std::vector<int> data;
+        index_t dim;
+	index_t data;
     private:
 	ScriptHandler* owner;
-	int& getoffs(const std::vector<int>& indices);
+	int& getoffs(const index_t& indices);
     };
     ArrayVariable::map arrays;
 
@@ -91,9 +90,8 @@ public:
     struct VariableInfo {
         int type;
         int var_no;   // for integer(%), array(?), string($) variable
-        ArrayVariable array; // for array(?)
-
-	VariableInfo(ScriptHandler* o) : array(o) {}
+        index_t array; // for array(?)
+	VariableInfo() {}
     };
 
     ScriptHandler();
@@ -252,8 +250,9 @@ private:
     int  parseIntExpression(char** buf);
     void readNextOp(char** buf, int* op, int* num);
     int  calcArithmetic(int num1, int op, int num2);
-    int  parseArray(char** buf, ArrayVariable& array);
-    int* getArrayPtr(int no, ArrayVariable& array, int offset);
+    typedef std::pair<int, index_t> array_ref;
+    array_ref parseArray(char** buf);
+    int* getArrayPtr(int no, index_t indices, int offset);
     
     /* ---------------------------------------- */
     /* Variable */

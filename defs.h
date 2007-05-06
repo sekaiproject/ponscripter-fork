@@ -46,6 +46,8 @@ struct set {
 template<typename T> inline T pred(T t) { return --t; }
 template<typename T> inline T succ(T t) { return ++t; }
 
+typedef std::vector<int> index_t;
+
 inline string lstr(int i, int len, int min, int radix = 10)
 {
     char buf[1024];

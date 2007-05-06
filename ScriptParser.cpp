@@ -570,11 +570,7 @@ void ScriptParser::writeArrayVariable(bool output_flag)
 {
     ScriptHandler::ArrayVariable::iterator it = script_h.arrays.begin();
     while (it != script_h.arrays.end()) {
-        int i, dim = 1;
-        for (i = 0; i < it->second.num_dim; i++)
-            dim *= it->second.dim[i];
-
-        for (i = 0; i < dim; i++) {
+        for (index_t::size_type i = 0; i < it->second.data.size(); ++i) {
             unsigned long ch = it->second.data[i];
             if (output_flag) {
                 file_io_buf[file_io_buf_ptr + 3] = (unsigned char) ((ch >> 24) & 0xff);
@@ -594,11 +590,7 @@ void ScriptParser::readArrayVariable()
 {
     ScriptHandler::ArrayVariable::iterator it = script_h.arrays.begin();
     while (it != script_h.arrays.end()) {
-        int i, dim = 1;
-        for (i = 0; i < it->second.num_dim; i++)
-            dim *= it->second.dim[i];
-
-        for (i = 0; i < dim; i++) {
+        for (index_t::size_type i = 0; i < it->second.data.size(); ++i) {
             unsigned long ret;
             if (file_io_buf_ptr + 3 >= file_io_buf_len) return;
 

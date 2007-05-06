@@ -29,7 +29,7 @@ string Expression::debug_string() const
 	case String: return "$" + str(intval_);
 	case Array:
 	  { string rv = "?" + str(intval_);
-	    for (std::vector<int>::const_iterator it = index_.begin();
+	    for (index_t::const_iterator it = index_.begin();
 		 it != index_.end(); ++it)
 		rv += "[" + str(*it) + "]";
 	    return rv; }
@@ -131,7 +131,7 @@ void Expression::mutate(int newval, int offset, bool as_array)
     }
     else if (type_ == Array) {
 	require_variable();
-	std::vector<int> i = index_;
+	index_t i = index_;
 	if (offset != MAX_INT)
 	    if (as_array)
 		i.push_back(offset);
@@ -172,7 +172,7 @@ Expression::Expression(ScriptHandler& sh, type_t t, bool is_v, int val)
 }
 
 Expression::Expression(ScriptHandler& sh, type_t t, bool is_v, int val,
-		       const std::vector<int>& idx)
+		       const index_t& idx)
     : h(sh), type_(t), var_(is_v), index_(idx), strval_(""), intval_(val)
 {
     if (is_v && (val < 0 || val > VARIABLE_RANGE)) intval_ = VARIABLE_RANGE;
@@ -227,9 +227,7 @@ Expression ScriptHandler::readIntExpr()
 	return Expression(*this, Expression::Int, 1, current_variable.var_no);
     else if (current_variable.type == VAR_ARRAY)
 	return Expression(*this, Expression::Array, 1, current_variable.var_no,
-			  std::vector<int>(current_variable.array.dim,
-					   current_variable.array.dim +
-					   current_variable.array.num_dim));
+			  current_variable.array);
     else
 	return Expression(*this, Expression::Int, 0, i);
 }
