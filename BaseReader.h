@@ -56,7 +56,7 @@ struct BaseReader {
     };
 
     struct FileInfo {
-        char name[256];
+        string name;
         int compression_type;
         size_t offset;
         size_t length;
@@ -64,9 +64,10 @@ struct BaseReader {
     };
 
     struct ArchiveInfo {
+	// FIXME: convert to an STL container
         ArchiveInfo* next;
         FILE* file_handle;
-        char* file_name;
+        string file_name;
         FileInfo* fi_list;
         unsigned int num_of_files;
         unsigned long base_offset;
@@ -74,7 +75,6 @@ struct BaseReader {
         ArchiveInfo() {
             next = NULL;
             file_handle = NULL;
-            file_name = NULL;
             fi_list = NULL;
             num_of_files = 0;
         }
@@ -82,24 +82,22 @@ struct BaseReader {
 
     virtual ~BaseReader() { };
 
-    virtual int open(const char* name = NULL, int archive_type = ARCHIVE_TYPE_NONE) = 0;
-
+    virtual int open(const string& name = "",
+		     int archive_type = ARCHIVE_TYPE_NONE) = 0;
     virtual int close() = 0;
 
-    virtual char* getArchiveName() const = 0;
+    virtual string getArchiveName() const = 0;
 
     virtual int getNumFiles() = 0;
 
-    virtual void registerCompressionType(const char* ext, int type) = 0;
+    virtual void registerCompressionType(const string& ext, int type) = 0;
 
     virtual FileInfo getFileByIndex(unsigned int index) = 0;
 
-    virtual size_t getFileLength(const char* file_name) = 0;
-    size_t getFileLength(const string& s) { return getFileLength(s.c_str()); }
+    virtual size_t getFileLength(const string& file_name) = 0;
 
-    virtual size_t getFile(const char* file_name, unsigned char* buffer, int* location = NULL) = 0;
-    size_t getFile(const string& s, unsigned char* buffer, int* location = NULL)
-	{ return getFile(s.c_str(), buffer, location); }
+    virtual size_t getFile(const string& file_name, unsigned char* buffer,
+			   int* location = NULL) = 0;
 };
 
 #endif // __BASE_READER_H__

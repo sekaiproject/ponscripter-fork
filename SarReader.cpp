@@ -26,11 +26,11 @@
 #include "SarReader.h"
 #define WRITE_LENGTH 4096
 
-SarReader::SarReader(const char* path, const unsigned char* key_table)
-    : DirectReader(path, key_table)
+SarReader::SarReader(const string& path, const unsigned char* key_table)
+    : DirectReader(path, key_table),
+      num_of_sar_archives(0)
 {
     root_archive_info   = last_archive_info = &archive_info;
-    num_of_sar_archives = 0;
 }
 
 
@@ -40,7 +40,7 @@ SarReader::~SarReader()
 }
 
 
-int SarReader::open(const char* name, int archive_type)
+int SarReader::open(const string& name, int archive_type)
 {
     ArchiveInfo* info = new ArchiveInfo();
 
@@ -49,8 +49,7 @@ int SarReader::open(const char* name, int archive_type)
         return -1;
     }
 
-    info->file_name = new char[strlen(name) + 1];
-    memcpy(info->file_name, name, strlen(name) + 1);
+    info->file_name = name;
 
     readArchive(info);
 
@@ -88,14 +87,11 @@ int SarReader::readArchive(ArchiveInfo* ai, int archive_type)
 
     for (i = 0; i < ai->num_of_files; i++) {
         unsigned char ch;
-        int count = 0;
 
+	ai->fi_list[i].name.clear();
         while ((ch = key_table[fgetc(ai->file_handle)])) {
-            if ('a' <= ch && ch <= 'z') ch += 'A' - 'a';
-
-            ai->fi_list[i].name[count++] = ch;
+            ai->fi_list[i].name.push_uchar(ch);
         }
-        ai->fi_list[i].name[count] = ch;
 
         if (archive_type >= ARCHIVE_TYPE_NSA)
             ai->fi_list[i].compression_type = readChar(ai->file_handle);
@@ -114,11 +110,15 @@ int SarReader::readArchive(ArchiveInfo* ai, int archive_type)
 
         /* Registered Plugin check */
         if (ai->fi_list[i].compression_type == NO_COMPRESSION)
-            ai->fi_list[i].compression_type = getRegisteredCompressionType(ai->fi_list[i].name);
+            ai->fi_list[i].compression_type =
+		getRegisteredCompressionType(ai->fi_list[i].name);
 
         if (ai->fi_list[i].compression_type == NBZ_COMPRESSION
             || ai->fi_list[i].compression_type == SPB_COMPRESSION) {
-            ai->fi_list[i].original_length = getDecompressedFileLength(ai->fi_list[i].compression_type, ai->file_handle, ai->fi_list[i].offset);
+            ai->fi_list[i].original_length =
+		getDecompressedFileLength(ai->fi_list[i].compression_type,
+					  ai->file_handle,
+					  ai->fi_list[i].offset);
         }
     }
 
@@ -133,7 +133,6 @@ int SarReader::close()
     for (int i = 0; i < num_of_sar_archives; i++) {
         if (info->file_handle) {
             fclose(info->file_handle);
-            delete[] info->file_name;
             delete[] info->fi_list;
         }
 
@@ -143,12 +142,6 @@ int SarReader::close()
     }
 
     return 0;
-}
-
-
-char* SarReader::getArchiveName() const
-{
-    return "sar";
 }
 
 
@@ -166,30 +159,20 @@ int SarReader::getNumFiles()
 }
 
 
-int SarReader::getIndexFromFile(ArchiveInfo* ai, const char* file_name)
+int SarReader::getIndexFromFile(ArchiveInfo* ai, string file_name)
 {
-    unsigned int i, len;
+    unsigned int i;
 
-    len = strlen(file_name);
-    if (len > MAX_FILE_NAME_LENGTH) len = MAX_FILE_NAME_LENGTH;
-
-    memcpy(capital_name, file_name, len);
-    capital_name[len] = '\0';
-
-    for (i = 0; i < len; i++) {
-        if ('a' <= capital_name[i] && capital_name[i] <= 'z') capital_name[i] += 'A' - 'a';
-        else if (capital_name[i] == '/') capital_name[i] = '\\';
-    }
-
-    for (i = 0; i < ai->num_of_files; i++) {
-        if (!strcmp(capital_name, ai->fi_list[i].name)) break;
-    }
+    file_name.replace(wchar('/'), wchar('\\'));
+    
+    for (i = 0; i < ai->num_of_files; i++)
+	if (file_name.icompare(ai->fi_list[i].name) == 0) break;
 
     return i;
 }
 
 
-size_t SarReader::getFileLength(const char* file_name)
+size_t SarReader::getFileLength(const string& file_name)
 {
     size_t ret;
     if ((ret = DirectReader::getFileLength(file_name))) return ret;
@@ -208,14 +191,16 @@ size_t SarReader::getFileLength(const char* file_name)
     if (info->fi_list[j].compression_type == NO_COMPRESSION) {
         int type = getRegisteredCompressionType(file_name);
         if (type == NBZ_COMPRESSION || type == SPB_COMPRESSION)
-            return getDecompressedFileLength(type, info->file_handle, info->fi_list[j].offset);
+            return getDecompressedFileLength(type, info->file_handle,
+					     info->fi_list[j].offset);
     }
 
     return info->fi_list[j].original_length;
 }
 
 
-size_t SarReader::getFileSub(ArchiveInfo* ai, const char* file_name, unsigned char* buf)
+size_t SarReader::getFileSub(ArchiveInfo* ai, const string& file_name,
+			     unsigned char* buf)
 {
     unsigned int i = getIndexFromFile(ai, file_name);
     if (i == ai->num_of_files) return 0;
@@ -241,7 +226,8 @@ size_t SarReader::getFileSub(ArchiveInfo* ai, const char* file_name, unsigned ch
 }
 
 
-size_t SarReader::getFile(const char* file_name, unsigned char* buf, int* location)
+size_t SarReader::getFile(const string& file_name, unsigned char* buf,
+			  int* location)
 {
     size_t ret;
     if ((ret = DirectReader::getFile(file_name, buf, location))) return ret;

@@ -31,24 +31,25 @@
 
 class NsaReader : public SarReader {
 public:
-    NsaReader(const char* path = NULL, const unsigned char* key_table = NULL);
+    NsaReader(const string& path = "", const unsigned char* key_table = NULL);
     ~NsaReader();
 
-    int open(const char* nsa_path = NULL, int archive_type = ARCHIVE_TYPE_NSA);
-    char* getArchiveName() const;
+    int open(const string& nsa_path = "", int archive_type = ARCHIVE_TYPE_NSA);
+    string getArchiveName() const { return "nsa"; }
     int getNumFiles();
 
-    size_t getFileLength(const char* file_name);
-    size_t getFile(const char* file_name, unsigned char* buf, int* location = NULL);
+    size_t getFileLength(const string& file_name);
+    size_t getFile(const string& file_name, unsigned char* buf,
+		   int* location = NULL);
     FileInfo getFileByIndex(unsigned int index);
 
 private:
     bool sar_flag;
     struct ArchiveInfo archive_info2[MAX_EXTRA_ARCHIVE];
-    int   num_of_nsa_archives;
-    char* nsa_archive_ext;
+    int num_of_nsa_archives;
+    string nsa_archive_ext;
 
-    size_t getFileLengthSub(ArchiveInfo* ai, const char* file_name);
+    size_t getFileLengthSub(ArchiveInfo* ai, const string& file_name);
 };
 
 #endif // __NSA_READER_H__

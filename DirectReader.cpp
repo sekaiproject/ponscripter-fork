@@ -51,27 +51,14 @@ static iconv_t iconv_cd = NULL;
 #define N (1 << EI)  /* buffer size */
 #define F ((1 << EJ) + P)  /* lookahead buffer size */
 
-DirectReader::DirectReader(const char* path, const unsigned char* key_table)
+DirectReader::DirectReader(const string& path, const unsigned char* key_table)
+    : archive_path(path)
 {
-    file_full_path = NULL;
-    file_sub_path  = NULL;
-    file_path_len  = 0;
-
-    capital_name = new char[MAX_FILE_NAME_LENGTH * 2 + 1];
-    capital_name_tmp = new char[MAX_FILE_NAME_LENGTH * 2 + 1];
 #if defined (UTF8_FILESYSTEM) && !defined (MACOSX)
     if (iconv_cd == NULL) iconv_cd = iconv_open("UTF-8", "SJIS");
 
     iconv_ref_count++;
 #endif
-
-    if (path) {
-        archive_path = new char[strlen(path) + 1];
-        memcpy(archive_path, path, strlen(path) + 1);
-    }
-    else {
-        archive_path = "";
-    }
 
     int i;
     if (key_table) {
@@ -96,12 +83,6 @@ DirectReader::DirectReader(const char* path, const unsigned char* key_table)
 
 DirectReader::~DirectReader()
 {
-    if (file_full_path) delete[] file_full_path;
-
-    if (file_sub_path) delete[] file_sub_path;
-
-    delete[] capital_name;
-    delete[] capital_name_tmp;
 #if defined (UTF8_FILESYSTEM) && !defined (MACOSX)
     if (--iconv_ref_count == 0) {
         iconv_close(iconv_cd);
@@ -121,73 +102,55 @@ DirectReader::~DirectReader()
 }
 
 
-FILE* DirectReader::fopen(const char* path, const char* mode)
+FILE* DirectReader::fopen(string path, const char* mode)
 {
-    size_t len = strlen(archive_path) + strlen(path) + 1;
-    if (file_path_len < len) {
-        file_path_len = len;
-        if (file_full_path) delete[] file_full_path;
+    // FIXME: this routine is one place we need to convert to OS
+    // filename encoding at various points.
+    // <path> is encoded in the global internal encoding.
+    // How is <archive_path> encoded?  Probably in the OS filename encoding?
 
-        file_full_path = new char[file_path_len];
-        if (file_sub_path) delete[] file_sub_path;
+    string full_path = archive_path + path;
 
-        file_sub_path = new char[file_path_len];
-    }
-
-    sprintf(file_full_path, "%s%s", archive_path, path);
-
-    FILE* fp = ::fopen(file_full_path, mode);
+    // If the file is trivially found, open it and return the handle.
+    FILE* fp = ::fopen(full_path.c_str(), mode);
     if (fp) return fp;
 
-#if !defined (WIN32) && !defined (MACOS9) && !defined (PSP) && !defined (__OS2__)
-    char* cur_p = NULL;
-    DIR*  dp = NULL;
-    len = strlen(archive_path);
-    if (len > 0) dp = opendir(archive_path);
-    else dp = opendir(".");
+#if !defined (WIN32) && !defined (PSP) && !defined (__OS2__)    
+    // Otherwise, split the path into directories and check each for
+    // correct case, correcting the case in memory as appropriate,
+    // until we either find the file or show that it doesn't exist.
 
-    cur_p = file_full_path + len;
+    // Get the archive path sans final delimiter.
+    const wchar Delim = encoding->Decode(DELIMITER);
+    full_path = archive_path ? archive_path : ".";    
+    if (full_path.wback() == Delim) full_path.wpop();
 
-    while (1) {
-        if (dp == NULL) return NULL;
+    // Get the constituent parts of the file path.
+    string::vector parts = path.wsplit(Delim);
 
-        char* delim_p = NULL;
-        while (1) {
-            delim_p = strchr(cur_p, DELIMITER[0]);
-            if (delim_p != cur_p) break;
-
-            cur_p++;
-        }
-
-        if (delim_p) len = delim_p - cur_p;
-        else len = strlen(cur_p);
-
-        memcpy(file_sub_path, cur_p, len);
-        file_sub_path[len] = '\0';
-
-        dirent* entp;
-        while ((entp = readdir(dp)) != NULL) {
-            if (!strcasecmp(file_sub_path, entp->d_name)) {
-                memcpy(cur_p, entp->d_name, len);
-                break;
-            }
-        }
-        closedir(dp);
-
-        if (entp == NULL) return NULL;
-
-        if (delim_p == NULL) break;
-
-        memcpy(file_sub_path, file_full_path, delim_p - file_full_path);
-        file_sub_path[delim_p - file_full_path] = '\0';
-        dp = opendir(file_sub_path);
-
-        cur_p = delim_p + 1;
+//fprintf(stderr, "Seeking %s:\n", path.c_str());
+    // Correct the case of each.
+    for (string::vector::iterator it = parts.begin(); it != parts.end(); ++it) {
+//fprintf(stderr, "  Check in %s...\n", full_path.c_str());
+	DIR* dp = opendir(full_path.c_str());
+	if (!dp) return NULL;
+	dirent* entry;
+	bool found = false;
+	while ((entry = readdir(dp))) {
+	    string item = entry->d_name; // FIXME: does this need decoding?
+//fprintf(stderr, "    Check %s: %s\n", entry->d_name, full_path.icompare(item) == 0 ? "found" : "not found");
+	    if (full_path.icompare(item) == 0) {
+		found = true;
+		full_path += Delim;
+		full_path += item;
+		break;
+	    }
+	}
+	closedir(dp);
+	if (!found) return NULL;
     }
-
-    fp = ::fopen(file_full_path, mode);
+    fp = ::fopen(full_path.c_str(), mode);
 #endif
-
     return fp;
 }
 
@@ -226,7 +189,7 @@ unsigned long DirectReader::readLong(FILE* fp)
 }
 
 
-int DirectReader::open(const char* name, int archive_type)
+int DirectReader::open(const string& name, int archive_type)
 {
     return 0;
 }
@@ -238,43 +201,28 @@ int DirectReader::close()
 }
 
 
-char* DirectReader::getArchiveName() const
-{
-    return "direct";
-}
-
-
 int DirectReader::getNumFiles()
 {
     return 0;
 }
 
 
-void DirectReader::registerCompressionType(const char* ext, int type)
+void DirectReader::registerCompressionType(const string& ext, int type)
 {
     last_registered_compression_type->next = new RegisteredCompressionType(ext, type);
     last_registered_compression_type = last_registered_compression_type->next;
 }
 
 
-int DirectReader::getRegisteredCompressionType(const char* file_name)
+int DirectReader::getRegisteredCompressionType(string filename)
 {
-    const char* ext_buf = file_name + strlen(file_name);
-    while (*ext_buf != '.' && ext_buf != file_name) ext_buf--;
-    ext_buf++;
-
-    strcpy(capital_name, ext_buf);
-    for (unsigned int i = 0; i < strlen(ext_buf) + 1; i++)
-        if (capital_name[i] >= 'a' && capital_name[i] <= 'z')
-            capital_name[i] += 'A' - 'a';
-
+    filename.erase(0, filename.rfind('.') + 1);
+    filename.uppercase();
     RegisteredCompressionType* reg = root_registered_compression_type.next;
     while (reg) {
-        if (!strcmp(capital_name, reg->ext)) return reg->type;
-
+        if (filename == reg->ext) return reg->type;
         reg = reg->next;
     }
-
     return NO_COMPRESSION;
 }
 
@@ -287,34 +235,18 @@ DirectReader::FileInfo DirectReader::getFileByIndex(unsigned int index)
 }
 
 
-FILE* DirectReader::getFileHandle(const char* file_name, int &compression_type, size_t* length)
+FILE* DirectReader::getFileHandle(string filename, int& compression_type,
+				  size_t* length)
 {
     FILE* fp;
-    unsigned int i;
-
     compression_type = NO_COMPRESSION;
-    size_t len = strlen(file_name);
-    if (len > MAX_FILE_NAME_LENGTH) len = MAX_FILE_NAME_LENGTH;
-
-    memcpy(capital_name, file_name, len);
-    capital_name[len] = '\0';
-
-    for (i = 0; i < len; i++) {
-        if (capital_name[i] == '/' || capital_name[i] == '\\') capital_name[i] = DELIMITER[0];
-    }
-
-#ifdef UTF8_FILESYSTEM
-    convertFromSJISToUTF8(capital_name_tmp, capital_name, len);
-    strcpy(capital_name, capital_name_tmp);
-    len = strlen(capital_name);
-#elif defined (LINUX)
-    convertFromSJISToEUC(capital_name);
-#endif
-
+    filename.replace(wchar('/'), encoding->Decode(DELIMITER));
+    filename.replace(wchar('\\'), encoding->Decode(DELIMITER));
     *length = 0;
-    if ((fp = fopen(capital_name, "rb")) != NULL && len >= 3) {
-        compression_type = getRegisteredCompressionType(capital_name);
-        if (compression_type == NBZ_COMPRESSION || compression_type == SPB_COMPRESSION) {
+    if ((fp = fopen(filename, "rb")) != NULL && filename.size() >= 3) {
+        compression_type = getRegisteredCompressionType(filename);
+        if (compression_type == NBZ_COMPRESSION ||
+	    compression_type == SPB_COMPRESSION) {
             *length = getDecompressedFileLength(compression_type, fp, 0);
         }
         else {
@@ -323,32 +255,32 @@ FILE* DirectReader::getFileHandle(const char* file_name, int &compression_type, 
             fseek(fp, 0, SEEK_SET);
         }
     }
-
     return fp;
 }
 
 
-size_t DirectReader::getFileLength(const char* file_name)
+size_t DirectReader::getFileLength(const string& file_name)
 {
     int compression_type;
     size_t len;
     FILE*  fp = getFileHandle(file_name, compression_type, &len);
-
     if (fp) fclose(fp);
-
     return len;
 }
 
 
-size_t DirectReader::getFile(const char* file_name, unsigned char* buffer, int* location)
+size_t DirectReader::getFile(const string& file_name, unsigned char* buffer,
+			     int* location)
 {
     int compression_type;
     size_t len, c, total = 0;
     FILE*  fp = getFileHandle(file_name, compression_type, &len);
 
     if (fp) {
-        if (compression_type & NBZ_COMPRESSION) return decodeNBZ(fp, 0, buffer);
-        else if (compression_type & SPB_COMPRESSION) return decodeSPB(fp, 0, buffer);
+        if (compression_type & NBZ_COMPRESSION)
+	    return decodeNBZ(fp, 0, buffer);
+        else if (compression_type & SPB_COMPRESSION)
+	    return decodeSPB(fp, 0, buffer);
 
         total = len;
         while (len > 0) {
@@ -367,57 +299,57 @@ size_t DirectReader::getFile(const char* file_name, unsigned char* buffer, int* 
 }
 
 
-void DirectReader::convertFromSJISToEUC(char* buf)
-{
-    int i = 0;
-    while (buf[i]) {
-        if ((unsigned char) buf[i] > 0x80) {
-            unsigned char c1, c2;
-            c1 = buf[i];
-            c2 = buf[i + 1];
-
-            c1 -= (c1 <= 0x9f) ? 0x71 : 0xb1;
-            c1  = c1 * 2 + 1;
-            if (c2 > 0x9e) {
-                c2 -= 0x7e;
-                c1++;
-            }
-            else if (c2 >= 0x80) {
-                c2 -= 0x20;
-            }
-            else {
-                c2 -= 0x1f;
-            }
-
-            buf[i] = c1 | 0x80;
-            buf[i + 1] = c2 | 0x80;
-            i++;
-        }
-
-        i++;
-    }
-}
-
-
-void DirectReader::convertFromSJISToUTF8(char* dst_buf, char* src_buf, size_t src_len)
-{
-#ifdef UTF8_FILESYSTEM
-#ifdef MACOSX
-    CFStringRef unicodeStrRef = CFStringCreateWithBytes(nil, (const UInt8*) src_buf, src_len,
-                                    kCFStringEncodingShiftJIS, false);
-    Boolean ret = CFStringGetCString(unicodeStrRef, dst_buf, src_len * 2 + 1, kCFStringEncodingUTF8);
-    CFRelease(unicodeStrRef);
-    if (!ret) strcpy(dst_buf, src_buf);
-
-#else
-    src_len++;
-    size_t dst_len = src_len * 2 + 1;
-    int ret = iconv(iconv_cd, &src_buf, &src_len, &dst_buf, &dst_len);
-    if (ret == -1) strcpy(dst_buf, src_buf);
-
-#endif
-#endif
-}
+//void DirectReader::convertFromSJISToEUC(char* buf)
+//{
+//    int i = 0;
+//    while (buf[i]) {
+//        if ((unsigned char) buf[i] > 0x80) {
+//            unsigned char c1, c2;
+//            c1 = buf[i];
+//            c2 = buf[i + 1];
+//
+//            c1 -= (c1 <= 0x9f) ? 0x71 : 0xb1;
+//            c1  = c1 * 2 + 1;
+//            if (c2 > 0x9e) {
+//                c2 -= 0x7e;
+//                c1++;
+//            }
+//            else if (c2 >= 0x80) {
+//                c2 -= 0x20;
+//            }
+//            else {
+//                c2 -= 0x1f;
+//            }
+//
+//            buf[i] = c1 | 0x80;
+//            buf[i + 1] = c2 | 0x80;
+//            i++;
+//        }
+//
+//        i++;
+//    }
+//}
+//
+//
+//void DirectReader::convertFromSJISToUTF8(char* dst_buf, char* src_buf, size_t src_len)
+//{
+//#ifdef UTF8_FILESYSTEM
+//#ifdef MACOSX
+//    CFStringRef unicodeStrRef = CFStringCreateWithBytes(nil, (const UInt8*) src_buf, src_len,
+//                                    kCFStringEncodingShiftJIS, false);
+//    Boolean ret = CFStringGetCString(unicodeStrRef, dst_buf, src_len * 2 + 1, kCFStringEncodingUTF8);
+//    CFRelease(unicodeStrRef);
+//    if (!ret) strcpy(dst_buf, src_buf);
+//
+//#else
+//    src_len++;
+//    size_t dst_len = src_len * 2 + 1;
+//    int ret = iconv(iconv_cd, &src_buf, &src_len, &dst_buf, &dst_len);
+//    if (ret == -1) strcpy(dst_buf, src_buf);
+//
+//#endif
+//#endif
+//}
 
 
 size_t DirectReader::decodeNBZ(FILE* fp, size_t offset, unsigned char* buf)

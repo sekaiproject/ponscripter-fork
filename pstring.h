@@ -1,12 +1,15 @@
 // -*- c++ -*-
 // Wrapper for std::string that implements saner semantics and adds
-// a few handy extensions.
+// loads of handy extensions.  OK, it's a dumping-ground and a mess.  :)
 
 // This wrapper treats NULL as an empty string (except in comparisons,
 // where NULL < ""), instead of dying horribly whenever it sees one like
 // std::string does.
 
 // In bool contexts, strings are true if non-empty.
+
+// Strings can be instantiated from signed or unsigned chars; u_str() is
+// c_str() for unsigned chars, and udata() is data().
 
 // Extensions include a Perl-like shift/unshift/push/pop set, a
 // vector-like back(), split/uppercase/replace functions, a set of
@@ -24,6 +27,9 @@
 class string;
 #include "encoding.h"
 
+template<typename T> inline T pred(T t) { return --t; }
+template<typename T> inline T succ(T t) { return ++t; }
+
 class string {
 public:
     typedef std::string::size_type size_type;
@@ -35,6 +41,7 @@ public:
     typedef std::string::const_reverse_iterator const_reverse_iterator;
     static const size_type npos;
 
+    typedef std::vector<string> vector;
 private:
     std::string c;
     string(const std::string s, size_type pos, size_type n)
@@ -227,7 +234,9 @@ public:
         { return c.find_last_not_of(e, pos); }
 
     string substr(size_type pos = 0, size_type n = npos) const
-	{ return string(c, pos, n); }
+	{ if (pos >= c.size()) return "";
+	  if (pos + n >= c.size()) n = c.size() - pos;
+	  return n ? string(c, pos, n) : ""; }
 		
     int compare(const string& s) const
 	{ return c.compare(s.c); }
@@ -246,18 +255,70 @@ public:
 
     operator bool() const { return !empty(); }
     void push_uchar(unsigned char e) { c.push_back(char(e)); }
-    char& back() { return c[c.size() - 1]; }
-    const char back() const { return c[c.size() - 1]; }    
 
+    char& back() { return c[c.size() - 1]; }
+    char back() const { return c[c.size() - 1]; }    
+    wchar wback() const { return *(pred(wend())); }
+
+    // Non-case-sensitive comparisons (encoding-aware)
+    int icompare(size_type pos, size_type n, const string& s,
+		 size_type pos1, size_type n1) const {
+	const char *a1 = c.c_str() + pos,
+	           *a2 = c.c_str() + (n > c.size() ? c.size() : n),
+		   *b1 = s.c.c_str() + pos1,
+		   *b2 = s.c.c_str() + (n1 > s.c.size() ? s.c.size() : n1);
+	while (a1 < a2 && b1 < b2) {
+	    wchar ac = encoding->Decode(a1);
+	    wchar bc = encoding->Decode(b1);
+	    if (ac >= 'A' && ac <= 'Z') ac += 32;
+	    if (bc >= 'A' && bc <= 'Z') bc += 32;
+	    if (ac < bc) return -1;
+	    if (ac > bc) return 1;
+	    a1 += encoding->CharacterBytes(a1);
+	    b1 += encoding->CharacterBytes(b1);
+	}
+	return 0;
+    }
+    int icompare(const string& s) const
+	{ return icompare(0, npos, s, 0, npos); }
+    int icompare(size_type pos, size_type n, const string& s) const
+	{ return icompare(pos, n, s, pos, n); }
+    int icompare(const char* s) const
+	{ return icompare(0, npos, s, npos); }
+    int icompare(size_type pos, size_type n, const char* s,
+		size_type len = npos) const
+	{ return s ? icompare(pos, n, string(s), 0, len) : 1; }
+    
     // Perl-like stuff
     char pop() { char e = back(); c.resize(c.size() - 1); return e; }
     string& push(char e) { c.push_back(e); return *this; }
     char shift() { char e = c[0]; c.erase(0, 1); return e; }
     string& unshift(char e) { c.insert(0, 1, e); return *this; }
 
-    // Unicode handling
-    size_type wsize() { return encoding->CharacterCount(c_str()); }
+    wchar wpop()
+	{ const char* p = encoding->Previous(c.c_str() + c.size(), c.c_str());
+	  wchar e = encoding->Decode(p);
+	  c.erase(p - c.c_str());
+	  return e; }
+    string& wpush(wchar e)
+	{ append(e); return *this; }
+    wchar wshift()
+	{ char e = encoding->Decode(c_str());
+	  c.erase(encoding->CharacterBytes(c_str()));
+	  return e; }
+    string& wunshift(wchar e)
+	{ char buf[32];
+	  std::string out(buf, encoding->Encode(e, buf));
+	  out.append(c);
+	  c.swap(out);
+	  return *this; }
     
+    // Unicode handling
+
+    // wsize(): number of characters (rather than bytes) in string
+    size_type wsize() { return encoding->CharacterCount(c_str()); }
+
+    // witerator: encoding-aware const iterator
     class witerator {
 	friend class string;
 	const char *min, *max, *pos;
@@ -303,14 +364,15 @@ public:
 	    { return pos - o.pos; }
     };
 
-    witerator wbegin() { return witerator(*this, c_str()); }
-    witerator wend() { return witerator(); }
+    witerator wbegin() const { return witerator(*this, c_str()); }
+    witerator wend() const { return witerator(*this, c_str() + size()); }
 
     // Miscellanea
-    
-    std::vector<string> split(const string& delimiter, int max = 0)
+
+    // Split string on every instance of delimiter, up to max items.
+    vector split(const string& delimiter, int max = 0)
     {
-	std::vector<string> rv;
+	vector rv;
 	size_type spos = 0, epos;
 	while (--max && (epos = find(delimiter, spos)) != npos) {
 	    rv.push_back(substr(spos, epos - spos));
@@ -320,40 +382,58 @@ public:
 	return rv;
     }
 
-    void ltrim()
+    // Split string on every instance of delimiter, taking encoding
+    // into account, up to max items.
+    vector wsplit(wchar delimiter, int max = 0)
     {
-	c.erase(0, c.find_first_not_of(" \t"));
+	vector rv;
+	size_type spos = 0, epos = 0;
+	while (--max && spos < size()) {
+	    const char* c = c_str();
+	    while (epos < size() && encoding->Decode(c + epos) != delimiter)
+		epos += encoding->CharacterBytes(c + epos);
+	    if (epos >= size()) break;
+	    rv.push_back(substr(spos, epos - spos));
+	    spos = epos += encoding->CharacterBytes(c + epos);
+	}
+	rv.push_back(substr(spos, size() - spos));
+	return rv;
     }
 
-    void rtrim()
-    {
-	c.erase(c.find_last_not_of(" \t"));
-    }
+    // Trim spaces and tabs.
+    void ltrim() { c.erase(0, c.find_first_not_of(" \t")); }
+    void rtrim() { c.erase(c.find_last_not_of(" \t")); }
+    void trim() { rtrim(); ltrim(); }
 
-    void trim()
-    {
-	rtrim();
-	ltrim();
-    }
-
+    // Case folding (ASCII only; FIXME: NOT encoding-aware!)
     void uppercase()
     {
 	for (std::string::iterator it = c.begin(); it != c.end(); ++it)
 	    if (*it >= 'a' && *it <= 'z') *it -= 32;
     }
-
     void lowercase()
     {
 	for (std::string::iterator it = c.begin(); it != c.end(); ++it)
 	    if (*it >= 'A' && *it <= 'Z') *it += 32;
     }
 
+    // Character-based replacement
     void replace(char what, char with)
     {
 	for (std::string::iterator it = c.begin(); it != c.end(); ++it)
 	    if (*it == what) *it = with;
     }
-    
+    void replace(wchar what, wchar with)
+    {
+	std::string out;
+	char buf[32];
+	for (witerator it = wbegin(); it != wend(); ++it)
+	    out.append(buf, encoding->Encode(*it == what ? with : *it, buf));
+	c.swap(out);
+    }
+
+    // Parse tags in current string; return new string with tags
+    // converted to bytecode
     string parseTags()
     {
 	string rv;

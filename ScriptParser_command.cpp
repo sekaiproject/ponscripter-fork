@@ -169,16 +169,17 @@ int ScriptParser::soundpressplginCommand(const string& cmd)
     if (current_mode != DEFINE_MODE)
 	errorAndExit("soundpressplgin: not in the define section");
 
-    string buf = script_h.readStrValue();
-    string buf2(buf, 0, 12);
-
+    string::vector opts = script_h.readStrValue().split("|", 2);
+    
     // only nbzplgin.dll is supported
-    buf2.lowercase();
-    if (buf2 != "nbzplgin.dll")
-        fprintf(stderr, " *** plugin %s is not available, ignored. ***\n", buf.c_str());
+    opts[0].lowercase();
+    if (opts[0] != "nbzplgin.dll")
+        fprintf(stderr, " *** plugin %s is not available, ignored. ***\n",
+		opts[0].c_str());
     else
-	ScriptHandler::cBR->registerCompressionType(buf.c_str() + buf.find('|'),
-						   BaseReader::NBZ_COMPRESSION);
+	ScriptHandler::cBR->
+	    registerCompressionType(opts[1], BaseReader::NBZ_COMPRESSION);
+	
     return RET_CONTINUE;
 }
 
@@ -379,8 +380,8 @@ int ScriptParser::nsaCommand(const string& cmd)
     }
 
     delete ScriptHandler::cBR;
-    ScriptHandler::cBR = new NsaReader(archive_path.c_str(), key_table);
-    if (ScriptHandler::cBR->open(nsa_path.c_str(), archive_type))
+    ScriptHandler::cBR = new NsaReader(archive_path, key_table);
+    if (ScriptHandler::cBR->open(nsa_path, archive_type))
         fprintf(stderr, " *** failed to open Nsa archive, ignored.  ***\n");
 
     return RET_CONTINUE;
@@ -1083,15 +1084,15 @@ int ScriptParser::arcCommand(const string& cmd)
     // We ignore the DLL, and assume the archive is SAR.
     string buf = script_h.readStrValue();
     buf.erase(buf.find('|', 0));
-    if (strcmp(ScriptHandler::cBR->getArchiveName(), "direct") == 0) {
+    if (ScriptHandler::cBR->getArchiveName() == "direct") {
         delete ScriptHandler::cBR;
-        ScriptHandler::cBR = new SarReader(archive_path.c_str(), key_table);
-        if (ScriptHandler::cBR->open(buf.c_str()))
+        ScriptHandler::cBR = new SarReader(archive_path, key_table);
+        if (ScriptHandler::cBR->open(buf))
             fprintf(stderr, " *** failed to open archive %s, ignored.  ***\n",
 		    buf.c_str());
     }
-    else if (strcmp(ScriptHandler::cBR->getArchiveName(), "sar") == 0) {
-        if (ScriptHandler::cBR->open(buf.c_str())) {
+    else if (ScriptHandler::cBR->getArchiveName() == "sar") {
+        if (ScriptHandler::cBR->open(buf)) {
             fprintf(stderr, " *** failed to open archive %s, ignored.  ***\n",
 		    buf.c_str());
         }

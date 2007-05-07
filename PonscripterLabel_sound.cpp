@@ -129,11 +129,11 @@ int PonscripterLabel::playSound(const string& filename, int format,
 {
     if (!filename || !audio_open_flag) return SOUND_NONE;
 
-    long length = ScriptHandler::cBR->getFileLength(filename.c_str());
+    long length = ScriptHandler::cBR->getFileLength(filename);
     if (length == 0) return SOUND_NONE;
 
     unsigned char* buffer = new unsigned char[length];
-    ScriptHandler::cBR->getFile(filename.c_str(), buffer);
+    ScriptHandler::cBR->getFile(filename, buffer);
 
     if (format & (SOUND_OGG | SOUND_OGG_STREAMING)) {
         int ret = playOGG(format, buffer, length, loop_flag, channel);

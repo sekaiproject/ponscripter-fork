@@ -446,8 +446,8 @@ int PonscripterLabel::splitCommand(const string& cmd)
     string buf = script_h.readStrValue();
     string delimiter = script_h.readStrValue();
     delimiter.erase(encoding->CharacterBytes(delimiter.c_str()));
-    std::vector<string> parts = buf.split(delimiter);
-    std::vector<string>::const_iterator it = parts.begin();
+    string::vector parts = buf.split(delimiter);
+    string::vector::const_iterator it = parts.begin();
     while (script_h.hasMoreArgs()) {
 	Expression e = script_h.readExpr();
 	if (e.is_numeric())
@@ -2007,7 +2007,7 @@ int PonscripterLabel::exec_dllCommand(const string& cmd)
 		fp >> dll_buf;
 		dll_buf.ltrim();
 		if (dll_buf[0] == '[') break;
-		std::vector<string> parts = dll_buf.split("=", 2);
+		string::vector parts = dll_buf.split("=", 2);
 		parts[0].trim();
 		parts[1].trim();
 		if (parts[0] == "str") {

@@ -99,13 +99,14 @@ Font* FontsStruct::font(int style)
 
         font_[style] = new Font(mapping[style].c_str(), metnam);
     }
-    else if ((len = ScriptHandler::cBR->getFileLength(mapping[style].c_str()))) {
+    else if ((len = ScriptHandler::cBR->getFileLength(mapping[style]))) {
         Uint8 *data = new Uint8[len], *mdat = NULL;
-        ScriptHandler::cBR->getFile(mapping[style].c_str(), data);
+        ScriptHandler::cBR->getFile(mapping[style], data);
         size_t mlen = 0;
-        if (metrics[style] && (mlen = ScriptHandler::cBR->getFileLength(metrics[style].c_str()))) {
+        if (metrics[style] &&
+	    (mlen = ScriptHandler::cBR->getFileLength(metrics[style]))) {
             mdat = new Uint8[mlen];
-            ScriptHandler::cBR->getFile(metrics[style].c_str(), mdat);
+            ScriptHandler::cBR->getFile(metrics[style], mdat);
         }
 
         font_[style] = new Font(data, len, mdat, mlen);

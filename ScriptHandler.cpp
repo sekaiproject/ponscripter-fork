@@ -688,7 +688,7 @@ int ScriptHandler::readScriptSub(FILE* fp, char** buf, int encrypt_mode)
 }
 
 
-int ScriptHandler::readScript(const char* path)
+int ScriptHandler::readScript(const string& path)
 {
     archive_path = path;
 
