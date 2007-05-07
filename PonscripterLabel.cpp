@@ -520,31 +520,135 @@ void PonscripterLabel::setKeyEXE(const char* filename)
     key_exe_file = filename;
 }
 
+#ifdef MACOSX
+string MacOSX_SeekArchive()
+{
+    // Store archives etc in the application bundle by default, but
+    // fall back to the application root directory if the bundle
+    // doesn't contain any script files.
+    using namespace Carbon;
+//  ProcessSerialNumber psn;
+//  GetCurrentProcess(&psn);
+//  FSRef bundle;
+//  GetProcessBundleLocation(&psn, &bundle);
+//  char bpath[32768];
+//  FSRefMakePath(&bundle, (UInt8*) bpath, 32768);
+//  archive_path = string(bpath) + "/Contents/Resources/";
+    string rv;
+    CFURLRef url;
+    const CFIndex max_path = 32768;
+    UInt8 path[max_path];
+    CFBundleRef bundle = CFBundleGetMainBundle();
+    if (bundle) {
+	if ((url = CFBundleCopyResourcesDirectoryURL(bundle))) {
+	    if (CFURLGetFileSystemRepresentation(url, true, path, max_path))
+		rv = string(path) + '/';
+            CFRelease(url);
+	}
+	if (rv) {
+	    // Verify that this is the archive path by checking for a script
+	    // file.
+	    ScriptHandler::ScriptFilename::iterator it =
+		script_h.script_filenames.begin();
+	    for (; it != script_h.script_filenames.end(); ++it) {
+		string s = rv + it->filename;
+		FSRef ref;
+		// If we've found a script file, we've found the archive
+		// path, so return it.
+		if (FSPathMakeRef(s.u_str(), &ref, 0) == noErr &&
+		    FSGetCatalogInfo(&ref, kFSCatInfoNone, 0, 0, 0, 0) == noErr)
+		    return rv;
+	    }
+	}
+	// There were no script files in the application bundle.
+	// Assume that the script files are intended to be in the
+	// application path.
+	if ((url = CFBundleCopyBundleURL(bundle))) {
+	    CFURLRef app =
+		CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorDefault,
+							 url);
+	    CFRelease(url);
+	    if (app) {
+		Boolean valid =
+		    CFURLGetFileSystemRepresentation(app, true, path, max_path);
+		CFRelease(appurl);
+		if (valid) return string(path) + '/';
+	    }
+	}
+    }
+    return "";
+}
+#endif
+
+#ifdef WIN32
+string Platform_GetSavePath(const string& gameid) // Windows version
+{
+    // On Windows, store saves in [Profiles]/All Users/Application Data.
+    // TODO: optionally permit saves to be per-user rather than shared?
+    HMODULE shdll = LoadLibrary("shfolder");
+    string rv;
+    if (shdll) {
+	GETFOLDERPATH gfp =
+	    GETFOLDERPATH(GetProcAddress(shdll, "SHGetFolderPathA"));
+	if (gfp) {
+	    char hpath[MAX_PATH];
+	    HRESULT res = gfp(0, 0x0023, 0, 0, hpath);
+	    if (res != S_FALSE && res != E_FAIL && res != E_INVALIDARG) {
+		rv = string(hpath) + '/' + gameid + '/';
+		CreateDirectory(rv.c_str(), 0);
+	    }
+	}
+	FreeLibrary(shdll);
+    }
+    return rv;
+}
+#elif defined MACOSX
+string Platform_GetSavePath(const string& gameid) // MacOS X version
+{
+    // On Mac OS X, place in ~/Library/Application Support/<gameid>/
+    using namespace Carbon;
+    FSRef appsupport;
+    FSFindFolder(kUserDomain, kApplicationSupportFolderType, kDontCreateFolder,
+		 &appsupport);
+    char path[32768];
+    FSRefMakePath(&appsupport, (UInt8*) path, 32768);
+    mkdir(path, 0755);
+    return string(path) + '/' + gameid + '/';
+}
+#elif defined LINUX
+string Platform_GetSavePath(const string& gameid) // POSIX version
+{
+    // On Linux (and other POSIX-a-likes), place in ~/.gameid
+    passwd* pwd = getpwuid(getuid());
+    if (pwd) {
+	string rv = string(pwd->pw_dir) + "/." + gameid + '/';
+	if (mkdir(rv.c_str(), 0755) == 0 || errno == EEXIST)
+	    return rv;
+    }
+    // Error; either getpwuid failed, or we couldn't create a save
+    // directory.  Either way, issue a warning and then give up.
+    fprintf(stderr, "Warning: could not create save directory ~/.%s.\n",
+	    gameid.c_str());
+    return "";
+}
+#else
+string Platform_GetSavePath(const string& gameid) // Stub for unknown platforms
+{
+    return "";
+}
+#endif
 
 int PonscripterLabel::init()
 {
-    if (archive_path.empty()) {
+    // On Mac OS X, archives may be stored in the application bundle.
+    // On other platforms the location will either be in the EXE
+    // directory, the current directory, or somewhere unpredictable
+    // that must be specified with the -r option; in all such cases we
+    // assume the current directory if nothing else was specified.
 #ifdef MACOSX
-        // On OS X, store archives etc in the application bundle by
-        // default.
-        using namespace Carbon;
-        ProcessSerialNumber psn;
-        GetCurrentProcess(&psn);
-        FSRef bundle;
-        GetProcessBundleLocation(&psn, &bundle);
-        char bpath[32768];
-        FSRefMakePath(&bundle, (UInt8*) bpath, 32768);
-	archive_path = bpath;
-	archive_path += "/Contents/Resources/";
-#else
-        // Otherwise, data is either stored with the executable, or in
-        // some unpredictable location that must be defined by using
-        // "-r PATH" in a launcher script.
-        archive_path = "";
+    if (!archive_path) archive_path = MacOSX_SeekArchive();
 #endif
-    }
-    // Set cwd to archive path
-    chdir(archive_path.c_str());
+    if (archive_path) chdir(archive_path.c_str());
     
     if (key_exe_file) {
         createKeyTable(key_exe_file);
@@ -553,70 +657,18 @@ int PonscripterLabel::init()
 
     if (open()) return -1;
 
+    // Try to determine an appropriate location for saved games.
     if (!script_h.save_path) {
-        // Per-platform configuration for saved games.
         string gameid = script_h.game_identifier;
-	if (!gameid) {
+	// TODO: seek and use caption definition instead?
+	if (!gameid)
 	    gameid = "Ponscripter-" + str(script_h.getScriptBufferLength(), 16);
-	}
-#ifdef WIN32
-        // On Windows, store in [Profiles]/All Users/Application Data.
-        // TODO: optionally permit saves to be per-user rather than shared?
-        HMODULE shdll = LoadLibrary("shfolder");
-        if (shdll) {
-            GETFOLDERPATH gfp =
-		GETFOLDERPATH(GetProcAddress(shdll, "SHGetFolderPathA"));
-            if (gfp) {
-                char hpath[MAX_PATH];
-                HRESULT res = gfp(0, 0x0023, 0, 0, hpath);
-                if (res != S_FALSE && res != E_FAIL && res != E_INVALIDARG) {
-		    script_h.save_path = hpath;
-		    script_h.save_path += "/" + gameid + "/";
-                    CreateDirectory(script_h.save_path.c_str(), 0);
-                }
-            }
-            FreeLibrary(shdll);
-        }
-        if (!script_h.save_path) {
-            // Error; assume ancient Windows. In this case it's safe
-            // to use the archive path.
-            script_h.save_path = archive_path;
-        }
-#elif defined MACOSX
-        // On OS X, place in subfolder of ~/Library/Preferences.
-        using namespace Carbon;
-        FSRef home;
-        FSFindFolder(kUserDomain, kPreferencesFolderType, kDontCreateFolder,
-		     &home);
-        char hpath[32768];
-        FSRefMakePath(&home, (UInt8*) hpath, 32768);
-        script_h.save_path = hpath;
-	script_h.save_path += "/" + gameid + " Data/";
-        mkdir(script_h.save_path.c_str(), 0755);
-#elif defined LINUX
-        // On Linux (and other POSIX-a-likes), place in ~/.gameid
-        passwd* pwd = getpwuid(getuid());
-        if (pwd) {
-	    script_h.save_path = pwd->pw_dir;
-	    script_h.save_path += "/." + gameid + "/";
-            if (mkdir(script_h.save_path.c_str(), 0755) != 0 &&
-		errno != EEXIST)
-                script_h.save_path.clear();
-        }
-        if (!script_h.save_path) {
-            // Error; either getpwuid failed, or we couldn't create a
-            // save directory.  Either way, issue a warning and then
-            // fall back on default ONScripter behaviour.
-            fprintf(stderr, "Warning: could not create save directory ~/.%s.\n",
-		    gameid.c_str());
-            script_h.save_path = archive_path;
-        }
-#else
-        // Fall back on default ONScripter behaviour if we don't have
-        // any better ideas.
-        script_h.save_path = archive_path;
-#endif
+	script_h.save_path = Platform_GetSavePath(gameid);
     }
+
+    // If we couldn't find anything obvious, fall back on ONScripter
+    // behaviour of putting saved games in the archive path.
+    if (!script_h.save_path) script_h.save_path = archive_path;
 
     initSDL();
 

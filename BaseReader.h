@@ -64,10 +64,10 @@ struct BaseReader {
     };
 
     struct ArchiveInfo {
-        struct ArchiveInfo* next;
+        ArchiveInfo* next;
         FILE* file_handle;
         char* file_name;
-        struct FileInfo* fi_list;
+        FileInfo* fi_list;
         unsigned int num_of_files;
         unsigned long base_offset;
 
@@ -92,7 +92,7 @@ struct BaseReader {
 
     virtual void registerCompressionType(const char* ext, int type) = 0;
 
-    virtual struct FileInfo getFileByIndex(unsigned int index) = 0;
+    virtual FileInfo getFileByIndex(unsigned int index) = 0;
 
     virtual size_t getFileLength(const char* file_name) = 0;
     size_t getFileLength(const string& s) { return getFileLength(s.c_str()); }

@@ -598,6 +598,9 @@ LIBS = -Lextlib/lib \\
 
 DEFS = -DMACOSX -DUTF8_FILESYSTEM -DUSE_OGG_VORBIS
 NO_DEFAULT_ICON = true
+
+PSCFLAGS = -fpascal-strings
+
 _EOF
 ;;
 Linux)
@@ -624,9 +627,9 @@ CXX = $CXX
 LD  = \$(CXX) -o 
 
 ifdef DEBUG
-PSCFLAGS = -g -ggdb3 -O0 -Wall -Wpointer-arith -Werror
+PSCFLAGS += -g -ggdb3 -O0 -Wall -Wpointer-arith -Werror
 else
-PSCFLAGS = -O3 -Wall -Wpointer-arith -Werror -fomit-frame-pointer -pipe 
+PSCFLAGS += -O3 -Wall -Wpointer-arith -Werror -fomit-frame-pointer -pipe 
 endif
 
 TARGET = ponscr$EXE

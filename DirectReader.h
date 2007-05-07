@@ -43,7 +43,7 @@ public:
     int getNumFiles();
     void registerCompressionType(const char* ext, int type);
 
-    struct FileInfo getFileByIndex(unsigned int index);
+    FileInfo getFileByIndex(unsigned int index);
     size_t getFileLength(const char* file_name);
     size_t getFile(const char* file_name, unsigned char* buffer, int* location = NULL);
 
@@ -94,14 +94,10 @@ protected:
     unsigned char readChar(FILE* fp);
     unsigned short readShort(FILE* fp);
     unsigned long readLong(FILE* fp);
-    void writeChar(FILE* fp, unsigned char ch);
-    void writeShort(FILE* fp, unsigned short ch);
-    void writeLong(FILE* fp, unsigned long ch);
     size_t decodeNBZ(FILE* fp, size_t offset, unsigned char* buf);
-    size_t encodeNBZ(FILE* fp, size_t length, unsigned char* buf);
     int getbit(FILE* fp, int n);
     size_t decodeSPB(FILE* fp, size_t offset, unsigned char* buf);
-    size_t decodeLZSS(struct ArchiveInfo* ai, int no, unsigned char* buf);
+    size_t decodeLZSS(ArchiveInfo* ai, int no, unsigned char* buf);
     int getRegisteredCompressionType(const char* file_name);
     size_t getDecompressedFileLength(int type, FILE* fp, size_t offset);
 

@@ -40,22 +40,16 @@ public:
 
     size_t getFileLength(const char* file_name);
     size_t getFile(const char* file_name, unsigned char* buf, int* location = NULL);
-    struct FileInfo getFileByIndex(unsigned int index);
-
-    int writeHeader(FILE* fp);
-    size_t putFile(FILE* fp, int no, size_t offset, size_t length, size_t original_length, bool modified_flag, unsigned char* buffer);
+    FileInfo getFileByIndex(unsigned int index);
 
 protected:
-    struct ArchiveInfo  archive_info;
-    struct ArchiveInfo* root_archive_info, * last_archive_info;
+    ArchiveInfo  archive_info;
+    ArchiveInfo* root_archive_info, * last_archive_info;
     int num_of_sar_archives;
 
     int readArchive(ArchiveInfo* ai, int archive_type = ARCHIVE_TYPE_SAR);
     int getIndexFromFile(ArchiveInfo* ai, const char* file_name);
     size_t getFileSub(ArchiveInfo* ai, const char* file_name, unsigned char* buf);
-
-    int writeHeaderSub(ArchiveInfo* ai, FILE* fp, int archive_type = ARCHIVE_TYPE_SAR);
-    size_t putFileSub(ArchiveInfo* ai, FILE* fp, int no, size_t offset, size_t length, size_t original_length, int compression_type, bool modified_flag, unsigned char* buffer);
 };
 
 #endif // __SAR_READER_H__

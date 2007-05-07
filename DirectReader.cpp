@@ -25,7 +25,7 @@
 
 #include "DirectReader.h"
 #include <bzlib.h>
-#if !defined (WIN32) && !defined (MACOS9) && !defined (PSP) && !defined (__OS2__)
+#if !defined (WIN32) && !defined (PSP) && !defined (__OS2__)
 #include <dirent.h>
 #endif
 
@@ -44,7 +44,6 @@ static iconv_t iconv_cd = NULL;
 #endif
 
 #define READ_LENGTH 4096
-#define WRITE_LENGTH 5000
 
 #define EI 8
 #define EJ 4
@@ -166,7 +165,7 @@ FILE* DirectReader::fopen(const char* path, const char* mode)
         memcpy(file_sub_path, cur_p, len);
         file_sub_path[len] = '\0';
 
-        struct dirent* entp;
+        dirent* entp;
         while ((entp = readdir(dp)) != NULL) {
             if (!strcasecmp(file_sub_path, entp->d_name)) {
                 memcpy(cur_p, entp->d_name, len);
@@ -227,34 +226,6 @@ unsigned long DirectReader::readLong(FILE* fp)
 }
 
 
-void DirectReader::writeChar(FILE* fp, unsigned char ch)
-{
-    fwrite(&ch, 1, 1, fp);
-}
-
-
-void DirectReader::writeShort(FILE* fp, unsigned short ch)
-{
-    unsigned char buf[2];
-
-    buf[0] = (unsigned char) ((ch >> 8) & 0xff);
-    buf[1] = (unsigned char) (ch & 0xff);
-    fwrite(&buf, 1, 2, fp);
-}
-
-
-void DirectReader::writeLong(FILE* fp, unsigned long ch)
-{
-    unsigned char buf[4];
-
-    buf[0] = (unsigned char) ((ch >> 24) & 0xff);
-    buf[1] = (unsigned char) ((ch >> 16) & 0xff);
-    buf[2] = (unsigned char) ((ch >> 8) & 0xff);
-    buf[3] = (unsigned char) (ch & 0xff);
-    fwrite(&buf, 1, 4, fp);
-}
-
-
 int DirectReader::open(const char* name, int archive_type)
 {
     return 0;
@@ -308,7 +279,7 @@ int DirectReader::getRegisteredCompressionType(const char* file_name)
 }
 
 
-struct DirectReader::FileInfo DirectReader::getFileByIndex(unsigned int index)
+DirectReader::FileInfo DirectReader::getFileByIndex(unsigned int index)
 {
     DirectReader::FileInfo fi;
     memset(&fi, 0, sizeof fi);
@@ -482,32 +453,6 @@ size_t DirectReader::decodeNBZ(FILE* fp, size_t offset, unsigned char* buf)
 }
 
 
-size_t DirectReader::encodeNBZ(FILE* fp, size_t length, unsigned char* buf)
-{
-    unsigned int bytes_in, bytes_out;
-    int err;
-
-    BZFILE* bfp = BZ2_bzWriteOpen(&err, fp, 9, 0, 30);
-    if (bfp == NULL || err != BZ_OK) return 0;
-
-    while (err == BZ_OK && length > 0) {
-        if (length >= WRITE_LENGTH) {
-            BZ2_bzWrite(&err, bfp, buf, WRITE_LENGTH);
-            buf    += WRITE_LENGTH;
-            length -= WRITE_LENGTH;
-        }
-        else {
-            BZ2_bzWrite(&err, bfp, buf, length);
-            break;
-        }
-    }
-
-    BZ2_bzWriteClose(&err, bfp, 0, &bytes_in, &bytes_out);
-
-    return bytes_out;
-}
-
-
 int DirectReader::getbit(FILE* fp, int n)
 {
     int i, x = 0;
@@ -635,7 +580,7 @@ size_t DirectReader::decodeSPB(FILE* fp, size_t offset, unsigned char* buf)
 }
 
 
-size_t DirectReader::decodeLZSS(struct ArchiveInfo* ai, int no, unsigned char* buf)
+size_t DirectReader::decodeLZSS(ArchiveInfo* ai, int no, unsigned char* buf)
 {
     unsigned int count = 0;
     int i, j, k, r, c;

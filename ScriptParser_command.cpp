@@ -170,7 +170,7 @@ int ScriptParser::soundpressplginCommand(const string& cmd)
 	errorAndExit("soundpressplgin: not in the define section");
 
     string buf = script_h.readStrValue();
-    string buf2(buf, 12);
+    string buf2(buf, 0, 12);
 
     // only nbzplgin.dll is supported
     buf2.lowercase();

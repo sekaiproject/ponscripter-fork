@@ -27,6 +27,10 @@
 #include "FontInfo.h"
 #include <ctype.h>
 
+#ifdef MACOSX
+#include <Carbon/Carbon.h>
+#endif
+
 #define TMP_SCRIPT_BUF_LEN 4096
 #define STRING_BUFFER_LENGTH 2048
 
@@ -48,6 +52,17 @@ ScriptHandler::ScriptHandler()
 
     screen_size = SCREEN_SIZE_640x480;
     global_variable_border = 200;
+
+    script_filenames.push_back(ScriptFilename("0.txt",        0, CP932));
+    script_filenames.push_back(ScriptFilename("0.utf",        0, UTF8));
+    script_filenames.push_back(ScriptFilename("00.txt",       0, CP932));
+    script_filenames.push_back(ScriptFilename("00.utf",       0, UTF8));
+    script_filenames.push_back(ScriptFilename("nscr_sec.dat", 2, CP932));
+    script_filenames.push_back(ScriptFilename("pscr_sec.dat", 2, UTF8));
+    script_filenames.push_back(ScriptFilename("nscript.___",  3, CP932));
+    script_filenames.push_back(ScriptFilename("pscript.___",  3, UTF8));
+    script_filenames.push_back(ScriptFilename("nscript.dat",  1, CP932));
+    script_filenames.push_back(ScriptFilename("pscript.dat",  1, UTF8));
 }
 
 
@@ -465,8 +480,7 @@ bool ScriptHandler::compareString(const char* buf)
 
         if (ch != buf[i]) break;
     }
-
-    return (i == num) ? true : false;
+    return i == num;
 }
 
 
@@ -674,30 +688,17 @@ int ScriptHandler::readScriptSub(FILE* fp, char** buf, int encrypt_mode)
 }
 
 
-enum encodings { UTF8, CP932 };
-static struct filetypes_t {
-    char* filename;
-    int encryption;
-    encodings encoding;
-} filetypes[] = {
-    { "0.txt",        0, CP932 }, { "0.utf",        0, UTF8 },
-    { "00.txt",       0, CP932 }, { "00.utf",       0, UTF8 },
-    { "nscr_sec.dat", 2, CP932 }, { "pscr_sec.dat", 2, UTF8 },
-    { "nscript.___",  3, CP932 }, { "pscript.___",  3, UTF8 },
-    { "nscript.dat",  1, CP932 }, { "pscript.dat",  1, UTF8 },
-    { 0, 0, UTF8 }
-};
-
 int ScriptHandler::readScript(const char* path)
 {
     archive_path = path;
 
     FILE* fp = NULL;
     int encrypt_mode;
-    encodings enc;
+    encoding_t enc;
 
-    for (filetypes_t* ft = filetypes; ft->filename; ++ft) {
-	if ((fp = fopen(ft->filename, "rb")) != NULL) {
+    for (ScriptFilename::iterator ft = script_filenames.begin();
+	 ft != script_filenames.end(); ++ft) {
+	if ((fp = fopen(ft->filename.c_str(), "rb")) != NULL) {
 	    encrypt_mode = ft->encryption;
 	    enc = ft->encoding;
 	    if (enc == UTF8) {
@@ -713,7 +714,15 @@ int ScriptHandler::readScript(const char* path)
     }
 
     if (fp == NULL) {
-        fprintf(stderr, "can't open any of 0.txt, 0.utf, 00.txt, 00.utf, nscript.dat, pscript.dat, nscript.___, or pscript.___\n");
+#ifdef MACOSX
+        // Note: \p Pascal strings require compilation with -fpascal-strings
+        StandardAlert(kAlertStopAlert, "\pMissing game data",
+		      "\pNo game data found. This application must be run "
+		      "from a directory containing NScripter, ONScripter, "
+		      "or Ponscripter game data.", NULL, NULL);
+#else
+	stderr << string("Can't open any of ") << script_filenames << eol;
+#endif
         return -1;
     }
 

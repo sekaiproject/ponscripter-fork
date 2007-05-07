@@ -59,13 +59,21 @@ public:
 
     const char* c_str() const { return c.c_str(); }
     const char* data() const { return c.data(); }
+    
+    const unsigned char* u_str() const
+	{ return (const unsigned char*) c.c_str(); }
+    const unsigned char* udata() const
+	{ return (const unsigned char*) c.data(); }    
 
     string() {}
     string(const string& s) : c(s.c) {}
     string(const string& s, size_type p, size_type n) : c(s.c, p, n) {}
     string(const char* s) : c(s ? s : "") {}
     string(const char* s, size_type n) : c(s ? s : "", n) {}
+    string(const unsigned char* s) : c(s ? (char*) s : "") {}
+    string(const unsigned char* s, size_type n) : c(s ? (char*) s : "", n) {}
     string(size_type n, char c) : c(n, c) {}
+    string(size_type n, unsigned char c) : c(n, (char) c) {}    
     template <typename T> string(T first, T last) : c(first, last) {}
 
     void reserve(size_t n) { c.reserve(n); }

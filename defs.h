@@ -105,13 +105,25 @@ rgb_t {
 };
 
 
-// Haeleth dose not liek teh iostreams.
+// Haeleth does not liek teh iostreams.
 inline FILE*& operator<<(FILE*& dst, const index_t& src)
 {
     dst << string("{ ");
     for (index_t::const_iterator it = src.begin(); it != src.end(); ++it) {
 	if (it != src.begin()) dst << string(", ");
 	dst << str(*it);
+    }
+    return dst << string(" }");
+}
+
+template <class T>
+inline FILE*& operator<<(FILE*& dst, const std::vector<T> src)
+{
+    dst << string("{ ");
+    for (typename std::vector<T>::const_iterator it = src.begin();
+	 it != src.end(); ++it) {
+	if (it != src.begin()) dst << string(", ");
+	dst << it->to_string();
     }
     return dst << string(" }");
 }

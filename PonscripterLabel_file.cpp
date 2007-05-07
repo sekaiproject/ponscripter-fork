@@ -138,8 +138,7 @@ int PonscripterLabel::loadSaveFile(int no)
     if (i != (int) strlen(SAVEFILE_MAGIC_NUMBER)) { // if not ONS save file
         file_io_buf_ptr = 0;
         // check for ONS version 0
-        bool ons_ver0_flag = false;
-        if (readInt() != 1) ons_ver0_flag = true;
+        bool ons_ver0_flag = readInt() != 1;
 
         readInt();
         readInt();
@@ -243,9 +242,9 @@ int PonscripterLabel::loadSaveFile(int no)
     sentence_font.pitch_x   = readInt();
     sentence_font.pitch_y   = readInt();
     sentence_font.wait_time = readInt();
-    sentence_font.is_bold   = (readInt() == 1) ? true : false;
-    sentence_font.is_shadow = (readInt() == 1) ? true : false;
-    sentence_font.is_transparent = (readInt() == 1) ? true : false;
+    sentence_font.is_bold   = readInt() == 1;
+    sentence_font.is_shadow = readInt() == 1;
+    sentence_font.is_transparent = readInt() == 1;
 
 // FIXME: not sure what this does, but it'll be broken.
 // Actually, looking at it, it doesn't appear to be essential...?
@@ -289,7 +288,7 @@ int PonscripterLabel::loadSaveFile(int no)
     }
 
     clickstr_state = readInt();
-    new_line_skip_flag = (readInt() == 1) ? true : false;
+    new_line_skip_flag = readInt() == 1;
     if (file_version >= 103) {
         erase_text_window_mode = readInt();
     }
@@ -339,9 +338,9 @@ int PonscripterLabel::loadSaveFile(int no)
 
     /* ---------------------------------------- */
     /* Load monocro flag */
-    monocro_flag = (readChar() == 1) ? true : false;
+    monocro_flag = readChar() == 1;
     if (file_version >= 101) {
-        monocro_flag = (readChar() == 1) ? true : false;
+        monocro_flag = readChar() == 1;
     }
 
     monocro_color.r = readChar();
@@ -408,7 +407,7 @@ int PonscripterLabel::loadSaveFile(int no)
     /* ---------------------------------------- */
     /* Load current sprites */
     for (i = 0; i < 256; i++) {
-        sprite_info[i].visible = (readInt() == 1) ? true : false;
+        sprite_info[i].visible = readInt() == 1;
         sprite_info[i].pos.x = readInt() * screen_ratio1 / screen_ratio2;
         sprite_info[i].pos.y = readInt() * screen_ratio1 / screen_ratio2;
         sprite_info[i].trans = readInt();
@@ -425,7 +424,7 @@ int PonscripterLabel::loadSaveFile(int no)
     loopbgmstopCommand("loopbgmstop");
 
     current_cd_track = (Sint8) readChar();
-    bool play_once_flag = (readChar() == 1) ? true : false;
+    bool play_once_flag = readChar() == 1;
     if (current_cd_track == -2) {
         midi_file_name = readStr();
         midi_play_loop_flag = !play_once_flag;
@@ -461,11 +460,11 @@ int PonscripterLabel::loadSaveFile(int no)
 
     /* ---------------------------------------- */
     /* Load rmode flag */
-    rmode_flag = (readChar() == 1) ? true : false;
+    rmode_flag = readChar() == 1;
 
     /* ---------------------------------------- */
     /* Load text on flag */
-    text_on_flag = (readChar() == 1) ? true : false;
+    text_on_flag = readChar() == 1;
 
     restoreTextBuffer();
     num_chars_in_sentence = 0;
@@ -485,7 +484,7 @@ int PonscripterLabel::loadSaveFile(int no)
 
     if (event_mode & WAIT_INPUT_MODE) event_mode |= WAIT_TEXT_MODE;
 
-    draw_cursor_flag = (clickstr_state == CLICK_NONE) ? false : true;
+    draw_cursor_flag = clickstr_state != CLICK_NONE;
 
     return 0;
 }

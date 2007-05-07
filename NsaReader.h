@@ -40,11 +40,7 @@ public:
 
     size_t getFileLength(const char* file_name);
     size_t getFile(const char* file_name, unsigned char* buf, int* location = NULL);
-    struct FileInfo getFileByIndex(unsigned int index);
-
-    int openForConvert(const char* nsa_name, int archive_type = ARCHIVE_TYPE_NSA);
-    int writeHeader(FILE* fp, int archive_type = ARCHIVE_TYPE_NSA);
-    size_t putFile(FILE* fp, int no, size_t offset, size_t length, size_t original_length, int compression_type, bool modified_flag, unsigned char* buffer);
+    FileInfo getFileByIndex(unsigned int index);
 
 private:
     bool sar_flag;

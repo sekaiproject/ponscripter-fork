@@ -32,14 +32,11 @@ int PonscripterLabel::loadSaveFile2(int file_version)
     int i, j;
 
     readInt(); // 1
-    if (readInt() == 1) sentence_font.is_bold = true;
-    else sentence_font.is_bold = false;
-
-    if (readInt() == 1) sentence_font.is_shadow = true;
-    else sentence_font.is_shadow = false;
+    sentence_font.is_bold = readInt() == 1;
+    sentence_font.is_shadow = readInt() == 1;
 
     readInt(); // 0
-    rmode_flag = (readInt() == 1) ? true : false;
+    rmode_flag = readInt() == 1;
     sentence_font.color.r = readInt();
     sentence_font.color.g = readInt();
     sentence_font.color.b = readInt();
@@ -77,10 +74,8 @@ int PonscripterLabel::loadSaveFile2(int file_version)
     sentence_font.window_color.b = readChar();
     sentence_font.window_color.g = readChar();
     sentence_font.window_color.r = readChar();
+    sentence_font.is_transparent = readChar() == 0;
     
-    if (readChar() == 0x00) sentence_font.is_transparent = true;
-    else sentence_font.is_transparent = false;
-
     sentence_font.wait_time  = readInt();
     sentence_font_info.pos.x = readInt() * screen_ratio1 / screen_ratio2;
     sentence_font_info.pos.y = readInt() * screen_ratio1 / screen_ratio2;
@@ -92,11 +87,8 @@ int PonscripterLabel::loadSaveFile2(int file_version)
         setupAnimationInfo(&sentence_font_info);
     }
 
-    if (readInt() == 1) cursor_info[0].abs_flag = false;
-    else cursor_info[0].abs_flag = true;
-
-    if (readInt() == 1) cursor_info[1].abs_flag = false;
-    else cursor_info[1].abs_flag = true;
+    cursor_info[0].abs_flag = readInt() != 1;
+    cursor_info[1].abs_flag = readInt() != 1;    
 
     cursor_info[0].pos.x = readInt() * screen_ratio1 / screen_ratio2;
     cursor_info[1].pos.x = readInt() * screen_ratio1 / screen_ratio2;
@@ -143,9 +135,7 @@ int PonscripterLabel::loadSaveFile2(int file_version)
 
         sprite_info[i].pos.x = readInt() * screen_ratio1 / screen_ratio2;
         sprite_info[i].pos.y = readInt() * screen_ratio1 / screen_ratio2;
-        if (readInt() == 1) sprite_info[i].visible = true;
-        else sprite_info[i].visible = false;
-
+	sprite_info[i].visible = readInt() == 1;
         sprite_info[i].current_cell = readInt();
 	if (file_version >= 203) readInt(); // -1
     }
@@ -180,9 +170,7 @@ int PonscripterLabel::loadSaveFile2(int file_version)
         file_io_buf_ptr += num_nest * 4;
     }
 
-    if (readInt() == 1) monocro_flag = true;
-    else monocro_flag = false;
-
+    monocro_flag = readInt() == 1;
     monocro_color.b = readInt();
     monocro_color.g = readInt();
     monocro_color.r = readInt();
@@ -215,24 +203,19 @@ int PonscripterLabel::loadSaveFile2(int file_version)
         midi_play_loop_flag = false;
 
     // wave, waveloop
-    if (readInt() == 1) wave_play_loop_flag = true;
-    else wave_play_loop_flag = false;
+    wave_play_loop_flag = readInt() == 1;
 
     if (wave_file_name && wave_play_loop_flag)
         playSound(wave_file_name, SOUND_WAVE | SOUND_OGG, wave_play_loop_flag, MIX_WAVE_CHANNEL);
 
     // play, playonce
-    if (readInt() == 1) cd_play_loop_flag = true;
-    else cd_play_loop_flag = false;
+    cd_play_loop_flag = readInt() == 1;
 
     if (current_cd_track >= 0) playCDAudio();
 
     // bgm, mp3, mp3loop
-    if (readInt() == 1) music_play_loop_flag = true;
-    else music_play_loop_flag = false;
-
-    if (readInt() == 1) mp3save_flag = true;
-    else mp3save_flag = false;
+    music_play_loop_flag = readInt() == 1;
+    mp3save_flag = readInt() == 1;
 
     music_file_name = readStr();
     playSound(music_file_name,
@@ -515,7 +498,7 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
         ++info;
     }
 
-    writeInt((monocro_flag) ? 1 : 0, output_flag);
+    writeInt(monocro_flag ? 1 : 0, output_flag);
     writeInt(monocro_color.b, output_flag);
     writeInt(monocro_color.g, output_flag);
     writeInt(monocro_color.r, output_flag);
@@ -532,15 +515,12 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
     else
         writeInt(-1, output_flag);
 
-    writeInt((midi_play_loop_flag) ? 1 : 0, output_flag); // play, playonce MIDI
-    writeInt((wave_play_loop_flag) ? 1 : 0, output_flag); // wave, waveloop
-    writeInt((cd_play_loop_flag) ? 1 : 0, output_flag); // play, playonce
-    writeInt((music_play_loop_flag) ? 1 : 0, output_flag); // bgm, mp3, mp3loop
-    writeInt((mp3save_flag) ? 1 : 0, output_flag);
-    if (mp3save_flag)
-        writeStr(music_file_name, output_flag);
-    else
-        writeStr(NULL, output_flag);
+    writeInt(midi_play_loop_flag ? 1 : 0, output_flag); // play, playonce MIDI
+    writeInt(wave_play_loop_flag ? 1 : 0, output_flag); // wave, waveloop
+    writeInt(cd_play_loop_flag ? 1 : 0, output_flag); // play, playonce
+    writeInt(music_play_loop_flag ? 1 : 0, output_flag); // bgm, mp3, mp3loop
+    writeInt(mp3save_flag ? 1 : 0, output_flag);
+    writeStr(mp3save_flag ? music_file_name : "", output_flag);
 
     writeInt((erase_text_window_mode > 0) ? 1 : 0, output_flag);
     writeInt(1, output_flag);

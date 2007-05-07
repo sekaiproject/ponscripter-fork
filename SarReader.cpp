@@ -62,7 +62,7 @@ int SarReader::open(const char* name, int archive_type)
 }
 
 
-int SarReader::readArchive(struct ArchiveInfo* ai, int archive_type)
+int SarReader::readArchive(ArchiveInfo* ai, int archive_type)
 {
     unsigned int i = 0;
 
@@ -77,7 +77,7 @@ int SarReader::readArchive(struct ArchiveInfo* ai, int archive_type)
     }
 
     ai->num_of_files = readShort(ai->file_handle);
-    ai->fi_list = new struct FileInfo[ai->num_of_files];
+    ai->fi_list = new FileInfo[ai->num_of_files];
 
     ai->base_offset = readLong(ai->file_handle);
     if (archive_type == ARCHIVE_TYPE_NS2)
@@ -123,103 +123,6 @@ int SarReader::readArchive(struct ArchiveInfo* ai, int archive_type)
     }
 
     return 0;
-}
-
-
-int SarReader::writeHeaderSub(ArchiveInfo* ai, FILE* fp, int archive_type)
-{
-    unsigned int i, j;
-
-    fseek(fp, 0L, SEEK_SET);
-    if (archive_type == ARCHIVE_TYPE_NS2) fputc(0, fp);
-
-    if (archive_type == ARCHIVE_TYPE_NS3) {
-        fputc(0, fp);
-        fputc(0, fp);
-    }
-
-    writeShort(fp, ai->num_of_files);
-    if (archive_type == ARCHIVE_TYPE_NS2)
-        writeLong(fp, ai->base_offset - 1);
-    else if (archive_type == ARCHIVE_TYPE_NS3)
-        writeLong(fp, ai->base_offset - 2);
-    else
-        writeLong(fp, ai->base_offset);
-
-    for (i = 0; i < ai->num_of_files; i++) {
-        for (j = 0; ai->fi_list[i].name[j]; j++)
-            fputc(ai->fi_list[i].name[j], fp);
-
-        fputc(ai->fi_list[i].name[j], fp);
-
-        if (archive_type >= ARCHIVE_TYPE_NSA)
-            writeChar(fp, ai->fi_list[i].compression_type);
-
-        writeLong(fp, ai->fi_list[i].offset - ai->base_offset);
-        writeLong(fp, ai->fi_list[i].length);
-
-        if (archive_type >= ARCHIVE_TYPE_NSA) {
-            writeLong(fp, ai->fi_list[i].original_length);
-        }
-    }
-
-    return 0;
-}
-
-
-int SarReader::writeHeader(FILE* fp)
-{
-    ArchiveInfo* ai = archive_info.next;
-    return writeHeaderSub(ai, fp);
-}
-
-
-size_t SarReader::putFileSub(ArchiveInfo* ai, FILE* fp, int no, size_t offset, size_t length, size_t original_length, int compression_type, bool modified_flag, unsigned char* buffer)
-{
-    ai->fi_list[no].compression_type = compression_type;
-    ai->fi_list[no].length = length;
-    ai->fi_list[no].original_length = original_length;
-
-    fseek(fp, offset, SEEK_SET);
-    if (modified_flag) {
-        if (ai->fi_list[no].compression_type == NBZ_COMPRESSION) {
-            writeLong(fp, ai->fi_list[no].original_length);
-            fseek(ai->file_handle, ai->fi_list[no].offset + 2, SEEK_SET);
-            if (readChar(ai->file_handle) != 'B' || readChar(ai->file_handle) != 'Z') { // in case the original is not compressed in NBZ
-                ai->fi_list[no].length = encodeNBZ(fp, length, buffer) + 4;
-                ai->fi_list[no].offset = offset;
-                return ai->fi_list[no].length;
-            }
-        }
-        else {
-            ai->fi_list[no].compression_type = NO_COMPRESSION;
-        }
-    }
-    else {
-        fseek(ai->file_handle, ai->fi_list[no].offset, SEEK_SET);
-        fread(buffer, 1, ai->fi_list[no].length, ai->file_handle);
-    }
-
-    size_t len = ai->fi_list[no].length, c;
-    while (len > 0) {
-        if (len > WRITE_LENGTH) c = WRITE_LENGTH;
-        else c = len;
-
-        len -= c;
-        fwrite(buffer, 1, c, fp);
-        buffer += c;
-    }
-
-    ai->fi_list[no].offset = offset;
-
-    return ai->fi_list[no].length;
-}
-
-
-size_t SarReader::putFile(FILE* fp, int no, size_t offset, size_t length, size_t original_length, bool modified_flag, unsigned char* buffer)
-{
-    ArchiveInfo* ai = archive_info.next;
-    return putFileSub(ai, fp, no, offset, length, original_length, ai->fi_list[no].compression_type, modified_flag, buffer);
 }
 
 
@@ -357,7 +260,7 @@ size_t SarReader::getFile(const char* file_name, unsigned char* buf, int* locati
 }
 
 
-struct SarReader::FileInfo SarReader::getFileByIndex(unsigned int index)
+SarReader::FileInfo SarReader::getFileByIndex(unsigned int index)
 {
     ArchiveInfo* info = archive_info.next;
     for (int i = 0; i < num_of_sar_archives; i++) {

@@ -40,6 +40,19 @@ const int VARIABLE_RANGE = 4096;
 class ScriptHandler {
 public:
     bool is_ponscripter;
+
+    enum encoding_t { UTF8, CP932 };
+    struct ScriptFilename {
+	typedef std::vector<ScriptFilename> vec;
+	typedef vec::iterator iterator;
+	string filename;
+	int encryption;
+	encoding_t encoding;
+	ScriptFilename(const char* f, int e, encoding_t c)
+	    : filename(f), encryption(e), encoding(c) {}
+	string to_string() const { return filename; }
+    };
+    ScriptFilename::vec script_filenames;
     
     enum { END_NONE  = 0,
            END_COMMA = 1,
