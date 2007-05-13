@@ -16,12 +16,6 @@
 #ifdef __GNUC__
 #include <ext/hash_map>
 #include <ext/hash_set>
-#endif
-
-#include <SDL.h>
-
-#include "pstring.h"
-
 namespace __gnu_cxx {
     template<>
     struct hash<string> {
@@ -30,6 +24,11 @@ namespace __gnu_cxx {
         }
     };
 }
+#endif
+
+#include <SDL.h>
+
+#include "pstring.h"
 
 const int MAX_INT = std::numeric_limits<int>::max();
 
