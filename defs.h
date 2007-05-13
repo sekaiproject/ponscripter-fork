@@ -12,22 +12,30 @@
 #include <string>
 #include <vector>
 #include <map>
-#ifdef __GNU_C__
+#include <set>
+#ifdef __GNUC__
 #include <ext/hash_map>
 #include <ext/hash_set>
-#else
-#include <set>
 #endif
 
 #include <SDL.h>
 
 #include "pstring.h"
 
+namespace __gnu_cxx {
+    template<>
+    struct hash<string> {
+        size_t operator()(const string& s) const {
+            return __stl_hash_string(s.c_str());
+        }
+    };
+}
+
 const int MAX_INT = std::numeric_limits<int>::max();
 
 template <typename KT, typename VT>
 struct dictionary {
-#ifdef __GNU_C__
+#ifdef __GNUC__
     typedef __gnu_cxx::hash_map<KT, VT> t;
 #else
     typedef std::map<KT, VT> t;
@@ -36,7 +44,7 @@ struct dictionary {
 
 template <typename T>
 struct set {
-#ifdef __GNU_C__
+#ifdef __GNUC__
     typedef __gnu_cxx::hash_set<T> t;
 #else
     typedef std::set<T> t;
