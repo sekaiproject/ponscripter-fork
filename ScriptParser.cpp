@@ -75,7 +75,6 @@ func_lut_t::func_lut_t() {
     dict["effectcut"]       = &ScriptParser::effectcutCommand;
     dict["filelog"]         = &ScriptParser::filelogCommand;
     dict["for"]             = &ScriptParser::forCommand;
-  //dict["game"]            = &ScriptParser::gameCommand;
     dict["getparam"]        = &ScriptParser::getparamCommand;
     dict["globalon"]        = &ScriptParser::globalonCommand;
     dict["gosub"]           = &ScriptParser::gosubCommand;
@@ -93,7 +92,6 @@ func_lut_t::func_lut_t() {
     dict["linepage"]        = &ScriptParser::linepageCommand;
     dict["linepage2"]       = &ScriptParser::linepageCommand;
     dict["loadgosub"]       = &ScriptParser::loadgosubCommand;
-  //dict["lookbackbutton]   = &ScriptParser::lookbackbuttonCommand;
     dict["lookbackcolor"]   = &ScriptParser::lookbackcolorCommand;
     dict["lookbacksp"]      = &ScriptParser::lookbackspCommand;
     dict["maxkaisoupage"]   = &ScriptParser::maxkaisoupageCommand;

@@ -527,13 +527,6 @@ string MacOSX_SeekArchive()
     // fall back to the application root directory if the bundle
     // doesn't contain any script files.
     using namespace Carbon;
-//  ProcessSerialNumber psn;
-//  GetCurrentProcess(&psn);
-//  FSRef bundle;
-//  GetProcessBundleLocation(&psn, &bundle);
-//  char bpath[32768];
-//  FSRefMakePath(&bundle, (UInt8*) bpath, 32768);
-//  archive_path = string(bpath) + "/Contents/Resources/";
     string rv;
     CFURLRef url;
     const CFIndex max_path = 32768;
@@ -581,10 +574,11 @@ string MacOSX_SeekArchive()
 #endif
 
 #ifdef WIN32
-string Platform_GetSavePath(const string& gameid) // Windows version
+string Platform_GetSavePath(string gameid) // Windows version
 {
     // On Windows, store saves in [Profiles]/All Users/Application Data.
     // TODO: optionally permit saves to be per-user rather than shared?
+    gameid.replace('\\', '_');    
     HMODULE shdll = LoadLibrary("shfolder");
     string rv;
     if (shdll) {
@@ -603,9 +597,10 @@ string Platform_GetSavePath(const string& gameid) // Windows version
     return rv;
 }
 #elif defined MACOSX
-string Platform_GetSavePath(const string& gameid) // MacOS X version
+string Platform_GetSavePath(string gameid) // MacOS X version
 {
     // On Mac OS X, place in ~/Library/Application Support/<gameid>/
+    gameid.replace('/', '_');
     using namespace Carbon;
     FSRef appsupport;
     FSFindFolder(kUserDomain, kApplicationSupportFolderType, kDontCreateFolder,
@@ -616,9 +611,15 @@ string Platform_GetSavePath(const string& gameid) // MacOS X version
     return string(path) + '/' + gameid + '/';
 }
 #elif defined LINUX
-string Platform_GetSavePath(const string& gameid) // POSIX version
+string Platform_GetSavePath(string gameid) // POSIX version
 {
     // On Linux (and other POSIX-a-likes), place in ~/.gameid
+    gameid.replace(' ', '_');
+    gameid.replace('/', '_');
+    gameid.replace('(', '_');
+    gameid.replace(')', '_');		   
+    gameid.replace('[', '_');
+    gameid.replace(']', '_');		   
     passwd* pwd = getpwuid(getuid());
     if (pwd) {
 	string rv = string(pwd->pw_dir) + "/." + gameid + '/';
@@ -637,6 +638,50 @@ string Platform_GetSavePath(const string& gameid) // Stub for unknown platforms
     return "";
 }
 #endif
+
+// Retrieve a game identifier.
+string getGameId(ScriptHandler& script_h)
+{
+    // Ideally, this will have been supplied with a ;gameid directive.
+    if (script_h.game_identifier)
+	return script_h.game_identifier;
+
+    // If it wasn't, first we try to find the game's name as given in a
+    // versionstr or caption command.
+    ScriptHandler::LabelInfo define = script_h.lookupLabel("define");
+    string caption, versionstr;
+    script_h.pushCurrent(define.start_address);
+    while (script_h.getLineByAddress(script_h.getCurrent())
+	   < define.num_of_lines)
+    {
+	string t = script_h.readToken(true);
+	t.trim();
+	if (t == "caption")
+	    caption = script_h.readStrValue();
+	else if (t == "versionstr")
+	    versionstr = script_h.readStrValue();
+	if (!t || t[0] == ';' || script_h.getCurrent() >= script_h.getNext())
+	    script_h.skipLine();
+	else if (t == "game")
+	    break;
+	else
+	    script_h.skipToken();
+    }
+    script_h.popCurrent();
+    if (caption || versionstr) {
+	caption.trim();
+	versionstr.trim();
+	string& id = caption == versionstr || caption.size() < versionstr.size()
+	           ? caption
+	           : versionstr;
+	id.zentohan();
+	return id;
+    }
+    
+    // The fallback position is to generate a semi-unique ID using the
+    // length of the script file as a cheap hash.
+    return "Ponscripter-" + str(script_h.getScriptBufferLength(), 16);
+}
 
 int PonscripterLabel::init()
 {
@@ -658,13 +703,8 @@ int PonscripterLabel::init()
     if (open()) return -1;
 
     // Try to determine an appropriate location for saved games.
-    if (!script_h.save_path) {
-        string gameid = script_h.game_identifier;
-	// TODO: seek and use caption definition instead?
-	if (!gameid)
-	    gameid = "Ponscripter-" + str(script_h.getScriptBufferLength(), 16);
-	script_h.save_path = Platform_GetSavePath(gameid);
-    }
+    if (!script_h.save_path)
+	script_h.save_path = Platform_GetSavePath(getGameId(script_h));
 
     // If we couldn't find anything obvious, fall back on ONScripter
     // behaviour of putting saved games in the archive path.

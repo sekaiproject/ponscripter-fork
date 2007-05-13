@@ -294,6 +294,12 @@ public:
     string& push(char e) { c.push_back(e); return *this; }
     char shift() { char e = c[0]; c.erase(0, 1); return e; }
     string& unshift(char e) { c.insert(0, 1, e); return *this; }
+    size_type chomp() {
+	size_type rv = 0, back = c.size();
+	while (back > 0 && c[back - 1] == 0x0a) ++rv, --back;
+	c.resize(back);
+	return rv;
+    }
 
     wchar wpop()
 	{ const char* p = encoding->Previous(c.c_str() + c.size(), c.c_str());
@@ -401,9 +407,29 @@ public:
     }
 
     // Trim spaces and tabs.
-    void ltrim() { c.erase(0, c.find_first_not_of(" \t")); }
-    void rtrim() { c.erase(c.find_last_not_of(" \t")); }
-    void trim() { rtrim(); ltrim(); }
+    
+    void ltrim()
+    {
+	size_type end = c.find_first_not_of(" \t\r\n");
+	if (end == npos)
+	    c.clear();
+	else
+	    c.erase(0, end);
+    }
+
+    void rtrim()
+    {
+	size_type end = c.find_last_not_of(" \t\r\n");
+	if (end == npos)
+	    c.clear();
+	else
+	    c.erase(end + 1);
+    }
+    
+    void trim()
+    {
+	rtrim(); ltrim();
+    }
 
     // Case folding (ASCII only; FIXME: NOT encoding-aware!)
     void uppercase()
@@ -417,6 +443,10 @@ public:
 	    if (*it >= 'A' && *it <= 'Z') *it += 32;
     }
 
+    // Width folding
+    void hantozen();
+    void zentohan();
+    
     // Character-based replacement
     void replace(char what, char with)
     {

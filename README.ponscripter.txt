@@ -43,16 +43,16 @@ or
  
   ;mode800
 
-In Ponscripter this directive is mandatory, and must additionally be
-followed by a second directive, which takes the form
+As with ONScripter-En, in Ponscripter this directive can additionally
+be followed by a second directive, which takes the form
 
   ;gameid Your name here
 
-This second directive is used to confirm that the script file is
-intended for use with Ponscripter.  It is also used on most platforms
-to name a folder for the game's saved data:
+This second directive, if present, must be preceded by a resolution
+directive.  It is used on most platforms to name a folder for the
+game's saved data:
 
-  OS X: ~/Library/Preferences/[gameid] Files
+  OS X: ~/Library/Application Support/[gameid]
   Linux: ~/.[gameid]
   Windows: C:\Documents and Settings\All Users\Application Data\[gameid]
            (or something similar)
@@ -60,6 +60,12 @@ to name a folder for the game's saved data:
 (Note that on OS X and *nix saved games are per-user, while on Windows
 they are currently shared between all users.  This latter could easily
 be changed if so desired.)
+
+If the gameid directive is absent, Ponscripter tries to determine the
+game's name from a `caption' or `versionstr' command in the *define
+section (if both are found, it takes the shorter).  If that also
+fails, a semi-unique identifier is generated from the length of the
+script.
 
 
 /---------------------------------------------------------------------

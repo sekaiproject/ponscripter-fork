@@ -117,7 +117,7 @@ void ScriptHandler::setKeyTable(const unsigned char* key_table)
 
 
 // basic parser function
-const char* ScriptHandler::readToken()
+const char* ScriptHandler::readToken(bool no_kidoku)
 {
     current_script = next_script;
     char* buf = current_script;
@@ -127,7 +127,7 @@ const char* ScriptHandler::readToken()
     text_flag = false;
 
     SKIP_SPACE(buf);
-    markAsKidoku(buf);
+    if (!no_kidoku) markAsKidoku(buf);
 
 readTokenTop:
     string_buffer.clear();
@@ -191,7 +191,7 @@ readTokenTop:
         while (ch != 0x0a && ch != '\0' && loop_flag && ch != encoding->TextMarker()) /*nop*/;
         if (loop_flag && ch == 0x0a && !(textgosub_flag && linepage_flag)) {
             string_buffer += ch;
-            markAsKidoku(buf++);
+            if (!no_kidoku) markAsKidoku(buf++);
         }
 
         text_flag = true;
@@ -225,7 +225,7 @@ readTokenTop:
 
         if (ch == 0x0a && !(textgosub_flag && linepage_flag)) {
             string_buffer += ch;
-            markAsKidoku(buf++);
+            if (!no_kidoku) markAsKidoku(buf++);
         }
 
         text_flag   = true;
@@ -250,7 +250,7 @@ readTokenTop:
     }
     else if (ch == '~' || ch == 0x0a || ch == ':') {
         string_buffer += ch;
-        markAsKidoku(buf++);
+        if (!no_kidoku) markAsKidoku(buf++);
     }
     else if (ch != '\0') {
         fprintf(stderr, "readToken: skip unknown heading character %c (%x)\n",

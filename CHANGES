@@ -1,3 +1,9 @@
+2007-05-13
+
+  The game identifier can now be derived from caption or versionstr
+  commands if the ;gameid directive is absent.
+
+
 2007-04-28
 
   Ponscripter games now use slightly different script filenames.

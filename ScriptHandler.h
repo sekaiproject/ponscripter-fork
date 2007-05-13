@@ -114,7 +114,7 @@ public:
     void setKeyTable(const unsigned char* key_table);
 
     // basic parser function
-    const char* readToken();
+    const char* readToken(bool no_kidoku = false);
 private:
     const char* readLabel();
     const char* readStr();
