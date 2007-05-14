@@ -1291,17 +1291,19 @@ int PonscripterLabel::parseLine()
 }
 
 
-SDL_Surface* PonscripterLabel::loadImage(const char* file_name, bool* has_alpha)
+SDL_Surface* PonscripterLabel::loadImage(const string& file_name,
+					 bool* has_alpha)
 {
-    if (!file_name || !file_name[0]) return 0;
+    if (!file_name) return 0;
     unsigned long length = ScriptHandler::cBR->getFileLength(file_name);
     if (length == 0) {
-        if (strcmp(file_name, DEFAULT_LOOKBACK_NAME0) != 0 &&
-            strcmp(file_name, DEFAULT_LOOKBACK_NAME1) != 0 &&
-            strcmp(file_name, DEFAULT_LOOKBACK_NAME2) != 0 &&
-            strcmp(file_name, DEFAULT_LOOKBACK_NAME3) != 0 &&
-	    strcmp(file_name, DEFAULT_CURSOR1) != 0)
-            fprintf(stderr, " *** can't find file [%s] ***\n", file_name);
+        if (file_name != DEFAULT_LOOKBACK_NAME0 &&
+            file_name != DEFAULT_LOOKBACK_NAME1 &&
+            file_name != DEFAULT_LOOKBACK_NAME2 &&
+            file_name != DEFAULT_LOOKBACK_NAME3 &&
+	    file_name != DEFAULT_CURSOR0 &&
+	    file_name != DEFAULT_CURSOR1)
+          fprintf(stderr, " *** can't find file [%s] ***\n", file_name.c_str());
         return 0;
     }
     if (filelog_flag) script_h.file_log.add(file_name);
@@ -1311,18 +1313,18 @@ SDL_Surface* PonscripterLabel::loadImage(const char* file_name, bool* has_alpha)
     ScriptHandler::cBR->getFile(file_name, buffer, &location);
     SDL_Surface* tmp = IMG_Load_RW(SDL_RWFromMem(buffer, length), 1);
 
-    char* ext = strrchr(file_name, '.');
-    if (!tmp && ext && (!strcmp(ext + 1, "JPG") || !strcmp(ext + 1, "jpg"))) {
-        fprintf(stderr, " *** force-loading a JPG image [%s]\n", file_name);
+    if (!tmp && file_name.substr(file_name.rfind('.') + 1).icompare("jpg")) {
+        fprintf(stderr, " *** force-loading a JPEG image [%s]\n",
+		file_name.c_str());
         SDL_RWops* src = SDL_RWFromMem(buffer, length);
         tmp = IMG_LoadJPG_RW(src);
         SDL_RWclose(src);
     }
-    if (has_alpha) *has_alpha = tmp->format->Amask;
+    if (tmp && has_alpha) *has_alpha = tmp->format->Amask;
 
     delete[] buffer;
     if (!tmp) {
-        fprintf(stderr, " *** can't load file [%s] ***\n", file_name);
+        fprintf(stderr, " *** can't load file [%s] ***\n", file_name.c_str());
         return 0;
     }
 
@@ -1330,8 +1332,8 @@ SDL_Surface* PonscripterLabel::loadImage(const char* file_name, bool* has_alpha)
                            SDL_SWSURFACE);
     if (ret
         && screen_ratio2 != screen_ratio1
-        && (!disable_rescale_flag || location == BaseReader::
-            ARCHIVE_TYPE_NONE)) {
+        && (!disable_rescale_flag ||
+	    location == BaseReader::ARCHIVE_TYPE_NONE)) {
         SDL_Surface* src_s = ret;
 
         int w, h;

@@ -719,9 +719,7 @@ private:
 	       bool clear_dirty_flag = true, bool direct_flag = false);
     void flushDirect(SDL_Rect &rect, int refresh_mode, bool updaterect = true);
     void executeLabel();
-    SDL_Surface* loadImage(const char* file_name, bool* has_alpha = NULL);
-    SDL_Surface* loadImage(const string& file_name, bool* has_alpha = NULL)
-	{ return loadImage(file_name.c_str(), has_alpha); }
+    SDL_Surface* loadImage(const string& file_name, bool* has_alpha = NULL);
     int parseLine();
 
     void mouseOverCheck(int x, int y);

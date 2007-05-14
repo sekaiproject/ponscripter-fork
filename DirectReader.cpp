@@ -122,24 +122,20 @@ FILE* DirectReader::fopen(string path, const char* mode)
 
     // Get the archive path sans final delimiter.
     const wchar Delim = encoding->Decode(DELIMITER);
-    full_path = archive_path ? archive_path : ".";    
-    if (full_path.wback() == Delim) full_path.wpop();
+    full_path = "."; // FIXME: is this always where we want to start?
 
     // Get the constituent parts of the file path.
     string::vector parts = path.wsplit(Delim);
 
-//fprintf(stderr, "Seeking %s:\n", path.c_str());
     // Correct the case of each.
     for (string::vector::iterator it = parts.begin(); it != parts.end(); ++it) {
-//fprintf(stderr, "  Check in %s...\n", full_path.c_str());
 	DIR* dp = opendir(full_path.c_str());
 	if (!dp) return NULL;
 	dirent* entry;
 	bool found = false;
 	while ((entry = readdir(dp))) {
 	    string item = entry->d_name; // FIXME: does this need decoding?
-//fprintf(stderr, "    Check %s: %s\n", entry->d_name, full_path.icompare(item) == 0 ? "found" : "not found");
-	    if (full_path.icompare(item) == 0) {
+	    if (it->icompare(item) == 0) {
 		found = true;
 		full_path += Delim;
 		full_path += item;
