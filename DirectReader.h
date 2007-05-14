@@ -77,7 +77,7 @@ protected:
         };
     } root_registered_compression_type, *last_registered_compression_type;
 
-    FILE* fopen(string path, const char* mode);
+    FILE* fileopen(string path, const char* mode);
     unsigned char readChar(FILE* fp);
     unsigned short readShort(FILE* fp);
     unsigned long readLong(FILE* fp);

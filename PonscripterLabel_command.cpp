@@ -1797,7 +1797,8 @@ int PonscripterLabel::getregCommand(const string& cmd)
     string key = script_h.readStrValue();
 
     FILE* fp;
-    if ((fp = fopen(registry_file.c_str(), "r")) == NULL) {
+    if ((fp = fopen(registry_file.c_str(), "r")) == NULL &&
+	(fp = fopen((archive_path + registry_file).c_str(), "r")) == NULL) {
         fprintf(stderr, "Cannot open file [%s]\n", registry_file.c_str());
         return RET_CONTINUE;
     }
@@ -1991,7 +1992,8 @@ int PonscripterLabel::exec_dllCommand(const string& cmd)
     string dll_name = "[" + script_h.readStrValue().split("/", 2).at(0) + "]";
 
     FILE* fp;
-    if ((fp = fopen(dll_file.c_str(), "r")) == NULL) {
+    if ((fp = fopen(dll_file.c_str(), "r")) == NULL &&
+	(fp = fopen((archive_path + dll_file).c_str(), "r")) == NULL) {
         fprintf(stderr, "Cannot open file [%s]\n", dll_file.c_str());
         return RET_CONTINUE;
     }

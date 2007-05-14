@@ -24,6 +24,7 @@
  */
 
 #include "DirectReader.h"
+#include <stdio.h>
 #include <bzlib.h>
 #if !defined (WIN32) && !defined (PSP) && !defined (__OS2__)
 #include <dirent.h>
@@ -102,7 +103,7 @@ DirectReader::~DirectReader()
 }
 
 
-FILE* DirectReader::fopen(string path, const char* mode)
+FILE* DirectReader::fileopen(string path, const char* mode)
 {
     // FIXME: this routine is one place we need to convert to OS
     // filename encoding at various points.
@@ -112,7 +113,7 @@ FILE* DirectReader::fopen(string path, const char* mode)
     string full_path = archive_path + path;
 
     // If the file is trivially found, open it and return the handle.
-    FILE* fp = ::fopen(full_path.c_str(), mode);
+    FILE* fp = fopen(full_path.c_str(), mode);
     if (fp) return fp;
 
 #if !defined (WIN32) && !defined (PSP) && !defined (__OS2__)    
@@ -122,8 +123,9 @@ FILE* DirectReader::fopen(string path, const char* mode)
 
     // Get the archive path sans final delimiter.
     const wchar Delim = encoding->Decode(DELIMITER);
-    full_path = "."; // FIXME: is this always where we want to start?
-
+    full_path = archive_path ? archive_path : ".";
+    if (full_path.back() == Delim) full_path.pop();
+    
     // Get the constituent parts of the file path.
     string::vector parts = path.wsplit(Delim);
 
@@ -145,7 +147,7 @@ FILE* DirectReader::fopen(string path, const char* mode)
 	closedir(dp);
 	if (!found) return NULL;
     }
-    fp = ::fopen(full_path.c_str(), mode);
+    fp = fopen(full_path.c_str(), mode);
 #endif
     return fp;
 }
@@ -239,7 +241,7 @@ FILE* DirectReader::getFileHandle(string filename, int& compression_type,
     filename.replace(wchar('/'), encoding->Decode(DELIMITER));
     filename.replace(wchar('\\'), encoding->Decode(DELIMITER));
     *length = 0;
-    if ((fp = fopen(filename, "rb")) != NULL && filename.size() >= 3) {
+    if ((fp = fileopen(filename, "rb")) != NULL && filename.size() >= 3) {
         compression_type = getRegisteredCompressionType(filename);
         if (compression_type == NBZ_COMPRESSION ||
 	    compression_type == SPB_COMPRESSION) {

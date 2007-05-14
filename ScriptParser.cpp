@@ -698,9 +698,11 @@ void ScriptParser::createKeyTable(const string& key_exe)
 {
     if (!key_exe) return;
 
-    FILE* fp = ::fopen(key_exe.c_str(), "rb");
+    string path = archive_path + DELIMITER + key_exe;
+    FILE* fp = fopen(path.c_str(), "rb");
     if (fp == NULL) {
-        fprintf(stderr, "createKeyTable: can't open EXE file %s\n", key_exe.c_str());
+        fprintf(stderr, "createKeyTable: can't open EXE file %s\n",
+		path.c_str());
         return;
     }
 

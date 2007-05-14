@@ -26,7 +26,6 @@
 #ifndef __BASE_READER_H__
 #define __BASE_READER_H__
 
-#include <stdio.h>
 #include "defs.h"
 
 #ifndef SEEK_END

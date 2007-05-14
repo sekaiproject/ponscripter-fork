@@ -102,7 +102,7 @@ void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
     save_file_info.hour   = buf.st_mtime.hour;
     save_file_info.minute = buf.st_mtime.minute;
 #else
-    filename = "save" + str(no) + ".dat";        
+    filename = script_h.save_path + "save" + str(no) + ".dat";        
     FILE* fp;
     if ((fp = fopen(filename, "rb")) == NULL) {
         save_file_info.valid = false;

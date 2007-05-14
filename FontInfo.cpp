@@ -42,21 +42,26 @@ static class FontsStruct {
     friend void MapMetrics(int, const string&);
 
     static const int count = 8;
+    bool isinit;
+    string path, fallback;
     string mapping[count];
     string metrics[count];
     Font* font_[count];
 public:
     Font* font(int style);
 
-    FontsStruct()
+    void init(const string& basepath)
     {
+	isinit = true;
+	path = basepath;
+	fallback = basepath + "default.ttf";
         for (int i = 0; i < count; ++i) {
             font_[i] = NULL;
             mapping[i] = "face" + str(i) + ".ttf";
         }
     }
 
-
+    FontsStruct() : isinit(false) {}
     ~FontsStruct();
 } Fonts;
 
@@ -67,6 +72,10 @@ FontsStruct::~FontsStruct()
     }
 }
 
+void InitialiseFontSystem(const string& basepath)
+{
+    Fonts.init(basepath);
+}
 
 void MapFont(int id, const string& filename)
 {
@@ -82,22 +91,30 @@ void MapMetrics(int id, const string& filename)
 
 Font* FontsStruct::font(int style)
 {
+    if (!isinit) {
+	fprintf(stderr, "ERROR: fonts struct not initialised\n");
+	exit(1);
+    }
+    
     if (font_[style]) return font_[style];
 
     size_t len;
-    FILE* fp = fopen(mapping[style].c_str(), "rb");
+    string fpath = path + mapping[style];
+    FILE* fp = fopen(fpath.c_str(), "rb");
     if (fp) {
         fclose(fp);
+	string mpath;
         const char* metnam = NULL;
         if (metrics[style]) {
-            fp = fopen(metrics[style].c_str(), "rb");
+	    mpath = path + metrics[style];
+            fp = fopen(mpath.c_str(), "rb");
             if (fp) {
-                metnam = metrics[style].c_str();
+                metnam = mpath.c_str();
                 fclose(fp);
             }
         }
 
-        font_[style] = new Font(mapping[style].c_str(), metnam);
+        font_[style] = new Font(fpath.c_str(), metnam);
     }
     else if ((len = ScriptHandler::cBR->getFileLength(mapping[style]))) {
         Uint8 *data = new Uint8[len], *mdat = NULL;
@@ -121,9 +138,9 @@ Font* FontsStruct::font(int style)
 
     // Fall back on default.ttf if no font was specified and
     // face$STYLE.ttf was not found.
-    if (!font_[style] && (fp = fopen("default.ttf", "rb"))) {
+    if (!font_[style] && (fp = fopen(fallback.c_str(), "rb"))) {
 	fclose(fp);
-	font_[style] = new Font("default.ttf", NULL);
+	font_[style] = new Font(fallback.c_str(), NULL);
     }
 
     if (font_[style]) {

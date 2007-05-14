@@ -44,7 +44,7 @@ int NsaReader::open(const string& nsa_path, int archive_type)
     sar_flag = false;
 
     string archive_name = nsa_path + "arc." + nsa_archive_ext;
-    if ((archive_info.file_handle = fopen(archive_name, "rb")) == NULL) {
+    if ((archive_info.file_handle = fileopen(archive_name, "rb")) == NULL) {
         fprintf(stderr, "can't open file %s\n", archive_name.c_str());
         return -1;
     }
@@ -55,7 +55,7 @@ int NsaReader::open(const string& nsa_path, int archive_type)
     for (int i = 0; i < MAX_EXTRA_ARCHIVE; ++i) {
 	string arcname2("arc" + str(i + 1));
 	archive_name = nsa_path + arcname2 + "." + nsa_archive_ext;
-        if ((archive_info2[i].file_handle = fopen(archive_name, "rb")) == NULL)
+        if ((archive_info2[i].file_handle = fileopen(archive_name, "rb")) == NULL)
             return 0;
         archive_info2[i].file_name = arcname2;
         num_of_nsa_archives = i + 1;

@@ -151,7 +151,8 @@ int PonscripterLabel::playSound(const string& filename, int format,
     if (format & SOUND_MP3) {
         if (music_cmd) {
             FILE* fp;
-            if ((fp = fopen(TMP_MUSIC_FILE, "wb")) == NULL) {
+	    string writepath = script_h.save_path + TMP_MUSIC_FILE;
+            if ((fp = fopen(writepath.c_str(), "wb")) == NULL) {
                 fprintf(stderr, "can't open temporary Music file %s\n", TMP_MUSIC_FILE);
             }
             else {
@@ -181,8 +182,9 @@ int PonscripterLabel::playSound(const string& filename, int format,
 
     if (format & SOUND_MIDI) {
         FILE* fp;
-        if ((fp = fopen(TMP_MIDI_FILE, "wb")) == NULL) {
-            fprintf(stderr, "can't open temporaly MIDI file %s\n", TMP_MIDI_FILE);
+	string writepath = script_h.save_path + TMP_MIDI_FILE;
+        if ((fp = fopen(writepath.c_str(), "wb")) == NULL) {
+            fprintf(stderr, "can't open temporary MIDI file %s\n", TMP_MIDI_FILE);
         }
         else {
             fwrite(buffer, 1, length, fp);
@@ -306,7 +308,7 @@ int PonscripterLabel::playExternalMusic(bool loop_flag)
 
     Mix_SetMusicCMD(music_cmd.c_str());
 
-    string music_filename = archive_path + TMP_MUSIC_FILE;
+    string music_filename = script_h.save_path + TMP_MUSIC_FILE;
     if ((music_info = Mix_LoadMUS(music_filename.c_str())) == NULL) {
         fprintf(stderr, "can't load Music file %s\n", music_filename.c_str());
         return -1;
@@ -323,7 +325,7 @@ int PonscripterLabel::playMIDI(bool loop_flag)
 {
     Mix_SetMusicCMD(midi_cmd.c_str());
 
-    string midi_filename = archive_path + TMP_MIDI_FILE;
+    string midi_filename = script_h.save_path + TMP_MIDI_FILE;
     if ((midi_info = Mix_LoadMUS(midi_filename.c_str())) == NULL) return -1;
 
 #ifndef MACOSX

@@ -698,7 +698,8 @@ int ScriptHandler::readScript(const string& path)
 
     for (ScriptFilename::iterator ft = script_filenames.begin();
 	 ft != script_filenames.end(); ++ft) {
-	if ((fp = fopen(ft->filename.c_str(), "rb")) != NULL) {
+	string spath = path + ft->filename;
+	if ((fp = fopen(spath.c_str(), "rb")) != NULL) {
 	    encrypt_mode = ft->encryption;
 	    enc = ft->encoding;
 	    if (enc == UTF8) {
@@ -732,9 +733,11 @@ int ScriptHandler::readScript(const string& path)
     if (encrypt_mode == 0) {
         fclose(fp);
         for (int i = 1; i < 100; i++) {
-	    string filename = str(i) + (enc == UTF8 ? ".utf" : ".txt");
+	    string filename = archive_path + str(i) +
+		(enc == UTF8 ? ".utf" : ".txt");
             if ((fp = fopen(filename.c_str(), "rb")) == NULL) {
-		filename = "0" + filename;
+		filename = archive_path + "0" + str(i) +
+		    (enc == UTF8 ? ".utf" : ".txt");
                 fp = fopen(filename.c_str(), "rb");
             }
 
@@ -759,9 +762,11 @@ int ScriptHandler::readScript(const string& path)
     }
     else {
         for (int i = 0; i < 100; i++) {
-	    string filename = str(i) + (enc == UTF8 ? ".utf" : ".txt");
+	    string filename = archive_path + str(i) +
+		(enc == UTF8 ? ".utf" : ".txt");
             if ((fp = fopen(filename.c_str(), "rb")) == NULL) {
-		filename = "0" + filename;
+		filename = archive_path + "0" + str(i) +
+		    (enc == UTF8 ? ".utf" : ".txt");
                 fp = fopen(filename.c_str(), "rb");
             }
 

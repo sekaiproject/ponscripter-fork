@@ -35,6 +35,8 @@ extern int screen_ratio1, screen_ratio2;
 extern void MapFont(int id, const string& filename);
 extern void MapMetrics(int id, const string& filename);
 
+void InitialiseFontSystem(const string& basepath);
+
 class FontInfo {
     float indent;
     float pos_x; int pos_y; // Current position

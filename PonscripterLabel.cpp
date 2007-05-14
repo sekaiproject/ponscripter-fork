@@ -693,8 +693,7 @@ int PonscripterLabel::init()
 #ifdef MACOSX
     if (!archive_path) archive_path = MacOSX_SeekArchive();
 #endif
-    if (archive_path) chdir(archive_path.c_str());
-    
+   
     if (key_exe_file) {
         createKeyTable(key_exe_file);
         script_h.setKeyTable(key_table);
@@ -780,6 +779,8 @@ int PonscripterLabel::init()
     readToken();
 
     loadEnvData();
+
+    InitialiseFontSystem(archive_path);
 
     return 0;
 }

@@ -106,7 +106,10 @@ FontInternals::FontInternals(const Uint8* data, size_t len, const Uint8* mdat,
     met.memory_base = mdat;
     met.memory_size = mlen;
     FT_Error err = FT_Open_Face(freetype(), &args, 0, &face);
-    if (err) throw "Failed to open face.";
+    if (err) {
+	fprintf(stderr, "ERROR: Failed to open face.\n");
+	exit(1);
+    }
 
     if (mdat) FT_Attach_Stream(face, &met);
 }
@@ -117,7 +120,10 @@ Font::Font(const char* filename, const char* metrics)
     Uint8* data, * mdat;
     size_t len, mlen;
     FILE*  fp = fopen(filename, "rb");
-    if (!fp) throw "This should never happen.";
+    if (!fp) {
+	fprintf(stderr, "ERROR: This should never happen.\n");
+	exit(1);
+    }
 
     fseek(fp, 0, SEEK_END);
     len = ftell(fp);
@@ -127,7 +133,10 @@ Font::Font(const char* filename, const char* metrics)
     fclose(fp);
     if (metrics) {
         fp = fopen(metrics, "rb");
-        if (!fp) throw "This should never happen.";
+        if (!fp) {
+	    fprintf(stderr, "ERROR: This should never happen.\n");
+	    exit(1);
+	}
 
         fseek(fp, 0, SEEK_END);
         mlen = ftell(fp);
