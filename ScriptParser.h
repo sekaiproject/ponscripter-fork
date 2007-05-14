@@ -159,16 +159,16 @@ protected:
 	typedef vector::iterator iterator;
 	
         enum { LABEL = 0, FOR = 1 } nest_mode;
-        char* next_script; // used in gosub and for
+        const char* next_script; // used in gosub and for
 	Expression var; // used in for
         int to, step; // used in for
 
-        NestInfo(ScriptHandler& h, char* ns = 0)
+        NestInfo(ScriptHandler& h, const char* ns = 0)
 	    : nest_mode(LABEL), next_script(ns), var(h) {}
-	NestInfo(Expression e, char* ns = 0)
+	NestInfo(Expression e, const char* ns = 0)
 	    : nest_mode(FOR), next_script(ns), var(e) {}
     };
-    char* last_tilde;
+    const char* last_tilde;
     NestInfo::vector nest_infos;
     void deleteNestInfo() { nest_infos.clear(); }
 
@@ -233,7 +233,7 @@ protected:
     string version_str;
     int    underline_value;
 
-    void gosubReal(const string& label, char* next_script);
+    void gosubReal(const string& label, const char* next_script);
     void setCurrentLabel(const string& label);
     void readToken();
 

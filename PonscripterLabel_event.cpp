@@ -1072,7 +1072,7 @@ void PonscripterLabel::timerEvent(void)
         }
     }
     else if (event_mode & EFFECT_EVENT_MODE) {
-        char* current = script_h.getCurrent();
+        const char* current = script_h.getCurrent();
         ret = this->parseLine();
 
         if (ret & RET_CONTINUE) {

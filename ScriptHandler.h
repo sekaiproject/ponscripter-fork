@@ -62,8 +62,8 @@ public:
 	typedef vec::iterator iterator;
 	typedef dictionary<string, iterator>::t dic;
 	string name;
-        char* label_header;
-        char* start_address;
+        const char* label_header;
+        const char* start_address;
         int start_line;
         int num_of_lines;
 	LabelInfo() : start_address(NULL) {}
@@ -120,7 +120,7 @@ private:
     const char* readStr();
     int  readInt();
 public:    
-    int  parseInt(char** buf);
+    int  parseInt(const char** buf);
     void skipToken();
 
     // saner parser functions :)
@@ -139,19 +139,19 @@ public:
     void addStringBuffer(char ch) { string_buffer += ch; }
 
     // function for direct manipulation of script address
-    inline char* getCurrent() { return current_script; };
-    inline char* getNext() { return next_script; };
-    void setCurrent(char* pos);
-    void pushCurrent(char* pos);
+    inline const char* getCurrent() { return current_script; };
+    inline const char* getNext() { return next_script; };
+    void setCurrent(const char* pos);
+    void pushCurrent(const char* pos);
     void popCurrent();
 
     int getScriptBufferLength() const { return script_buffer_length; }
     
-    int  getOffset(char* pos);
-    char* getAddress(int offset);
-    int  getLineByAddress(char* address, bool absolute = false);
-    char* getAddressByLine(int line);
-    LabelInfo getLabelByAddress(char* address);
+    int getOffset(const char* pos);
+    const char* getAddress(int offset);
+    int getLineByAddress(const char* address, bool absolute = false);
+    const char* getAddressByLine(int line);
+    LabelInfo getLabelByAddress(const char* address);
     LabelInfo getLabelByLine(int line);
 
     bool isText();
@@ -165,13 +165,13 @@ public:
 
     // function for kidoku history
     bool isKidoku();
-    void markAsKidoku(char* address = NULL);
+    void markAsKidoku(const char* address = NULL);
     void setKidokuskip(bool kidokuskip_flag);
     void saveKidokuData();
     void loadKidokuData();
 
-    void addStrVariable(char** buf);
-    void addIntVariable(char** buf);
+    void addStrVariable(const char** buf);
+    void addIntVariable(const char** buf);
     void declareDim();
 
     void enableTextgosub(bool val);
@@ -261,13 +261,13 @@ private:
 
     LabelInfo::iterator findLabel(string label);
 
-    char* checkComma(char* buf);
-    string parseStr(char** buf);
-    int  parseIntExpression(char** buf);
-    void readNextOp(char** buf, int* op, int* num);
+    const char* checkComma(const char* buf);
+    string parseStr(const char** buf);
+    int  parseIntExpression(const char** buf);
+    void readNextOp(const char** buf, int* op, int* num);
     int  calcArithmetic(int num1, int op, int num2);
     typedef std::pair<int, index_t> array_ref;
-    array_ref parseArray(char** buf);
+    array_ref parseArray(const char** buf);
     
     /* ---------------------------------------- */
     /* Variable */
@@ -297,11 +297,11 @@ private:
     bool  textgosub_flag;
     std::set<wchar> clickstr_list;
 
-    char* current_script;
-    char* next_script;
+    const char* current_script;
+    const char* next_script;
 
-    char* pushed_current_script;
-    char* pushed_next_script;
+    const char* pushed_current_script;
+    const char* pushed_next_script;
 
     unsigned char key_table[256];
     bool key_table_flag;

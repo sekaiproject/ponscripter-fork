@@ -301,7 +301,7 @@ int PonscripterLabel::loadSaveFile(int no)
         current_label_info = script_h.lookupLabel(readStr());
 
         current_line = readInt() + 2;
-        char* buf = current_label_info.label_header;
+        const char* buf = current_label_info.label_header;
         while (buf < current_label_info.start_address) {
             if (*buf == 0x0a) current_line--;
 

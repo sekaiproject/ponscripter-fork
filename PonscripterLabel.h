@@ -629,7 +629,7 @@ private:
 	SelectElt(const string& t, const string& l) : text(t), label(l) {}
     };
     SelectElt::vector select_links, shelter_select_links;
-    char* select_label_next_script;
+    const char* select_label_next_script;
     ButtonElt::iterator shortcut_mouse_line;
 
     ButtonElt getSelectableSentence(const string& buffer, FontInfo* info,

@@ -237,7 +237,7 @@ Expression ScriptHandler::readExpr()
     // Currently this is based on the existing unsafe plumbing.  It
     // can be replaced with a safe implementation once everything is
     // going through a safe interface like this.
-    char* buf = next_script;
+    const char* buf = next_script;
     while (*buf == ' ' || *buf == '\t' || *buf == 0x0a || *buf == '(') ++buf;
     Expression e =
 	(*buf != '%' && *buf != '?' && (*buf < '0' || *buf > '9') &&
@@ -276,7 +276,7 @@ int ScriptHandler::readIntValue()
 
 char ScriptHandler::checkPtr()
 {
-    char* buf = current_script = next_script;
+    const char* buf = current_script = next_script;
     while (*buf == ' ' || *buf == '\t') ++buf;
     if (*buf == 'i' || *buf == 's') {
         next_script = buf + 1;

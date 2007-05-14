@@ -1107,8 +1107,8 @@ void PonscripterLabel::executeLabel()
         if (kidokuskip_flag && skip_flag && kidokumode_flag && !script_h.
             isKidoku()) skip_flag = false;
 
-        char* current = script_h.getCurrent();
-        int   ret = ScriptParser::parseLine();
+        const char* current = script_h.getCurrent();
+        int ret = ScriptParser::parseLine();
         if (ret == RET_NOMATCH) ret = this->parseLine();
 
         if (ret & RET_SKIP_LINE) {

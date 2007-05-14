@@ -189,7 +189,7 @@ int ScriptParser::skipCommand(const string& cmd)
     int line = current_label_info.start_line + current_line
 	     + script_h.readIntValue();
 
-    char* buf = script_h.getAddressByLine(line);
+    const char* buf = script_h.getAddressByLine(line);
     current_label_info = script_h.getLabelByAddress(buf);
     current_line = script_h.getLineByAddress(buf);
 
@@ -260,7 +260,7 @@ int ScriptParser::savenameCommand(const string& cmd)
 int ScriptParser::rubyonCommand(const string& cmd)
 {
     // disabled
-    char* buf = script_h.getNext();
+    const char* buf = script_h.getNext();
     if (buf[0] == 0x0a || buf[0] == ':' || buf[0] == ';') { }
     else {
         script_h.readIntValue();
@@ -317,7 +317,7 @@ int ScriptParser::returnCommand(const string& cmd)
     current_line =
 	script_h.getLineByAddress(nest_infos.back().next_script);
 
-    char *buf = script_h.getNext();
+    const char *buf = script_h.getNext();
     if (buf[0] == 0x0a || buf[0] == ':' || buf[0] == ';')
 	script_h.setCurrent(nest_infos.back().next_script);
     else
@@ -713,7 +713,7 @@ int ScriptParser::ifCommand(const string& cmd)
         else {
 	    Expression left = script_h.readExpr();
 
-	    char* op_buf = script_h.getNext();
+	    const char* op_buf = script_h.getNext();
 	    if ((op_buf[0] == '>' && op_buf[1] == '=') ||
 		(op_buf[0] == '<' && op_buf[1] == '=') ||
 		(op_buf[0] == '=' && op_buf[1] == '=') ||
@@ -749,7 +749,7 @@ int ScriptParser::ifCommand(const string& cmd)
 
         condition_flag &= if_flag ? f : !f;
 
-        char* op_buf = script_h.getNext();
+        const char* op_buf = script_h.getNext();
         if (op_buf[0] == '&') {
             while (*op_buf == '&') op_buf++;
             script_h.setCurrent(op_buf);
@@ -782,7 +782,7 @@ int ScriptParser::gotoCommand(const string& cmd)
 }
 
 
-void ScriptParser::gosubReal(const string& label, char* next_script)
+void ScriptParser::gosubReal(const string& label, const char* next_script)
 {
     nest_infos.push_back(NestInfo(script_h, next_script));
     setCurrentLabel(label);
@@ -1057,7 +1057,7 @@ int ScriptParser::breakCommand(const string& cmd)
     if (nest_infos.empty() || nest_infos.back().nest_mode != NestInfo::FOR)
         errorAndExit("break: not in for loop\n");
 
-    char* buf = script_h.getNext();
+    const char* buf = script_h.getNext();
     if (buf[0] == '*') {
         nest_infos.pop_back();
         setCurrentLabel(script_h.readStrValue());

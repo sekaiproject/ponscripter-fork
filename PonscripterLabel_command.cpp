@@ -722,7 +722,7 @@ int PonscripterLabel::selectCommand(const string& cmd)
                 comma_flag = script_h.hasMoreArgs();
             }
             else if (script_h.getNext()[0] == 0x0a) {
-                char* buf = script_h.getNext() + 1; // consume eol
+                const char* buf = script_h.getNext() + 1; // consume eol
                 while (*buf == ' ' || *buf == '\t') buf++;
 
                 if (comma_flag && *buf == ',')
@@ -1493,7 +1493,7 @@ int PonscripterLabel::ldCommand(const string& cmd)
 
 int PonscripterLabel::jumpfCommand(const string& cmd)
 {
-    char* buf = script_h.getNext();
+    const char* buf = script_h.getNext();
     while (*buf != '\0' && *buf != '~') buf++;
     if (*buf == '~') buf++;
 
@@ -1654,7 +1654,7 @@ int PonscripterLabel::gettagCommand(const string& cmd)
         errorAndExit("gettag: not in a subroutine, e.g. pretextgosub");
 
     bool end_flag = false;
-    char* buf = nest_infos.back().next_script;
+    const char* buf = nest_infos.back().next_script;
     while (*buf == ' ' || *buf == '\t') buf++;
     if (zenkakko_flag && encoding->Decode(buf) == 0x3010 /*y */)
         buf += encoding->CharacterBytes(buf);

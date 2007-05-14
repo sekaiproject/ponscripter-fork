@@ -120,7 +120,7 @@ void ScriptHandler::setKeyTable(const unsigned char* key_table)
 const char* ScriptHandler::readToken(bool no_kidoku)
 {
     current_script = next_script;
-    char* buf = current_script;
+    const char* buf = current_script;
     end_status = END_NONE;
     current_variable.type = VAR_NONE;
 
@@ -272,7 +272,7 @@ const char* ScriptHandler::readLabel()
 
     current_script = next_script;
     SKIP_SPACE(current_script);
-    char* buf = current_script;
+    const char* buf = current_script;
 
     string_buffer.clear();
     char ch = *buf;
@@ -313,7 +313,7 @@ const char* ScriptHandler::readStr()
 
     current_script = next_script;
     SKIP_SPACE(current_script);
-    char* buf = current_script;
+    const char* buf = current_script;
 
     string_buffer.clear();
 
@@ -339,7 +339,7 @@ int ScriptHandler::readInt()
 
     current_script = next_script;
     SKIP_SPACE(current_script);
-    char* buf = current_script;
+    const char* buf = current_script;
 
     int ret = parseIntExpression(&buf);
 
@@ -352,7 +352,7 @@ int ScriptHandler::readInt()
 void ScriptHandler::skipToken()
 {
     SKIP_SPACE(current_script);
-    char* buf = current_script;
+    const char* buf = current_script;
 
     bool quat_flag = false;
     bool text_flag = false;
@@ -376,13 +376,13 @@ void ScriptHandler::skipToken()
 
 
 // script address direct manipulation function
-void ScriptHandler::setCurrent(char* pos)
+void ScriptHandler::setCurrent(const char* pos)
 {
     current_script = next_script = pos;
 }
 
 
-void ScriptHandler::pushCurrent(char* pos)
+void ScriptHandler::pushCurrent(const char* pos)
 {
     pushed_current_script = current_script;
     pushed_next_script = next_script;
@@ -399,24 +399,24 @@ void ScriptHandler::popCurrent()
 }
 
 
-int ScriptHandler::getOffset(char* pos)
+int ScriptHandler::getOffset(const char* pos)
 {
     return pos - script_buffer;
 }
 
 
-char* ScriptHandler::getAddress(int offset)
+const char* ScriptHandler::getAddress(int offset)
 {
     return script_buffer + offset;
 }
 
 
-int ScriptHandler::getLineByAddress(char* address, bool absolute)
+int ScriptHandler::getLineByAddress(const char* address, bool absolute)
 {
     LabelInfo label = getLabelByAddress(address);
 
-    char* addr = label.label_header;
-    int   line = absolute ? label.start_line + 1 : 0;
+    const char* addr = label.label_header;
+    int line = absolute ? label.start_line + 1 : 0;
     while (address > addr) {
         if (*addr == 0x0a) line++;
 
@@ -426,12 +426,12 @@ int ScriptHandler::getLineByAddress(char* address, bool absolute)
 }
 
 
-char* ScriptHandler::getAddressByLine(int line)
+const char* ScriptHandler::getAddressByLine(int line)
 {
     LabelInfo label = getLabelByLine(line);
 
-    int   l    = line - label.start_line;
-    char* addr = label.label_header;
+    int l = line - label.start_line;
+    const char* addr = label.label_header;
     while (l > 0) {
         while (*addr != 0x0a) addr++;
         addr++;
@@ -441,7 +441,7 @@ char* ScriptHandler::getAddressByLine(int line)
 }
 
 
-ScriptHandler::LabelInfo ScriptHandler::getLabelByAddress(char* address)
+ScriptHandler::LabelInfo ScriptHandler::getLabelByAddress(const char* address)
 {
     LabelInfo::vec::size_type i;
     for (i = 0; i < label_info.size() - 1; i++) {
@@ -508,7 +508,7 @@ bool ScriptHandler::isKidoku()
 }
 
 
-void ScriptHandler::markAsKidoku(char* address)
+void ScriptHandler::markAsKidoku(const char* address)
 {
     if (!kidokuskip_flag) return;
 
@@ -560,13 +560,13 @@ void ScriptHandler::loadKidokuData()
 }
 
 
-void ScriptHandler::addIntVariable(char** buf)
+void ScriptHandler::addIntVariable(const char** buf)
 {
     string_buffer += stringFromInteger(parseInt(buf), -1);
 }
 
 
-void ScriptHandler::addStrVariable(char** buf)
+void ScriptHandler::addStrVariable(const char** buf)
 {
     (*buf)++;
     string_buffer += variable_data[parseInt(buf)].str;
@@ -748,11 +748,9 @@ int ScriptHandler::readScript(const string& path)
 
     if (script_buffer) delete[] script_buffer;
 
-    script_buffer = new char[estimated_buffer_length];
+    char* p_script_buffer = new char[estimated_buffer_length];
 
-    char* p_script_buffer;
-    current_script = p_script_buffer = script_buffer;
-
+    current_script = script_buffer = p_script_buffer;
     tmp_script_buf = new char[TMP_SCRIPT_BUF_LEN];
     if (encrypt_mode > 0) {
         fseek(fp, 0, SEEK_SET);
@@ -780,7 +778,7 @@ int ScriptHandler::readScript(const string& path)
 
     /* ---------------------------------------- */
     /* screen size and value check */
-    char* buf = script_buffer + 1;
+    const char* buf = script_buffer + 1;
     while (script_buffer[0] == ';') {
         if (!strncmp(buf, "mode", 4)) {
             buf += 4;
@@ -832,7 +830,7 @@ int ScriptHandler::readScript(const string& path)
 int ScriptHandler::labelScript()
 {
     int current_line = 0;
-    char* buf = script_buffer;
+    const char* buf = script_buffer;
     label_info.clear();
 
     while (buf < script_buffer + script_buffer_length) {
@@ -919,7 +917,7 @@ ScriptHandler::LabelInfo::iterator ScriptHandler::findLabel(string label)
 }
 
 
-char* ScriptHandler::checkComma(char* buf)
+const char* ScriptHandler::checkComma(const char* buf)
 {
     SKIP_SPACE(buf);
     if (*buf == ',') {
@@ -932,7 +930,7 @@ char* ScriptHandler::checkComma(char* buf)
 }
 
 
-string ScriptHandler::parseStr(char** buf)
+string ScriptHandler::parseStr(const char** buf)
 {
     SKIP_SPACE(*buf);
 
@@ -1073,7 +1071,7 @@ string ScriptHandler::parseStr(char** buf)
 }
 
 
-int ScriptHandler::parseInt(char** buf)
+int ScriptHandler::parseInt(const char** buf)
 {
     int ret = 0;
 
@@ -1111,7 +1109,7 @@ int ScriptHandler::parseInt(char** buf)
         bool hex_num_flag = (*buf)[0] == '0' & (*buf)[1] == 'x';
         if (hex_num_flag) *buf += 2;
 
-        char* buf_start = *buf;
+        const char* buf_start = *buf;
         while (1) {
             ch = **buf;
 
@@ -1173,7 +1171,7 @@ int ScriptHandler::parseInt(char** buf)
 }
 
 
-int ScriptHandler::parseIntExpression(char** buf)
+int ScriptHandler::parseIntExpression(const char** buf)
 {
     int num[3], op[2]; // internal buffer
 
@@ -1210,11 +1208,11 @@ int ScriptHandler::parseIntExpression(char** buf)
  * Then, the next op and num is read from the script.
  * Num is an immediate value, a variable or a bracketed expression.
  */
-void ScriptHandler::readNextOp(char** buf, int* op, int* num)
+void ScriptHandler::readNextOp(const char** buf, int* op, int* num)
 {
     bool minus_flag = false;
     SKIP_SPACE(*buf);
-    char* buf_start = *buf;
+    const char* buf_start = *buf;
 
     if (op) {
         if ((*buf)[0] == '+') *op = OP_PLUS;
@@ -1288,7 +1286,7 @@ int ScriptHandler::calcArithmetic(int num1, int op, int num2)
 }
 
 
-ScriptHandler::array_ref ScriptHandler::parseArray(char** buf)
+ScriptHandler::array_ref ScriptHandler::parseArray(const char** buf)
 {
     SKIP_SPACE(*buf);
 
@@ -1312,7 +1310,7 @@ ScriptHandler::array_ref ScriptHandler::parseArray(char** buf)
 void ScriptHandler::declareDim()
 {
     current_script = next_script;
-    char* buf = current_script;
+    const char* buf = current_script;
     array_ref arr = parseArray(&buf);
     arrays.insert(std::make_pair(arr.first, ArrayVariable(this, arr.second)));
     next_script = buf;

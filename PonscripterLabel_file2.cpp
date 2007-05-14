@@ -379,7 +379,7 @@ int PonscripterLabel::loadSaveFile2(int file_version)
     current_label_info = script_h.getLabelByLine(i);
     current_line = i - current_label_info.start_line;
     //printf("load %d:%d(%d-%d)\n", current_label_info.start_line, current_line, i, current_label_info.start_line);
-    char* buf = script_h.getAddressByLine(i);
+    const char* buf = script_h.getAddressByLine(i);
 
     j = readInt();
     for (i = 0; i < j; i++) {
@@ -639,7 +639,7 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
     writeInt(0, output_flag);
 
     writeInt(current_label_info.start_line + current_line, output_flag);
-    char* buf = script_h.getAddressByLine(current_label_info.start_line + current_line);
+    const char* buf = script_h.getAddressByLine(current_label_info.start_line + current_line);
     //printf("save %d:%d\n", current_label_info.start_line, current_line);
 
     i = 0;
