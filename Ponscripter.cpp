@@ -49,6 +49,8 @@ static void optionHelp()
     printf("      --window\t\tstart in window mode\n");
     printf("      --force-button-shortcut\tignore useescspc and getenter "
            "command\n");
+    printf("      --force-png-alpha\t\talways use PNG alpha channels\n");
+    printf("      --force-png-nscmask\talways use NScripter-style masks\n");
     printf("      --enable-wheeldown-advance\tadvance the text on mouse "
            "wheeldown event\n");
     printf("  -h, --help\t\tshow this help and exit\n");
@@ -145,6 +147,12 @@ int main(int argc, char** argv)
                 argv++;
                 ons.setKeyEXE(argv[0]);
             }
+	    else if (!strcmp(argv[0] + 1, "-force-png-alpha")) {
+		ons.setMaskType(1);
+	    }
+	    else if (!strcmp(argv[0] + 1, "-force-png-nscmask")) {
+		ons.setMaskType(2);
+	    }
             else {
                 printf(" unknown option %s\n", argv[0]);
             }

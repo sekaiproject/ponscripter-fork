@@ -1348,6 +1348,38 @@ SDL_Surface* PonscripterLabel::loadImage(const string& file_name,
     }
     SDL_FreeSurface(tmp);
 
+#ifndef BPP16
+    // Hack to detect when a PNG image is likely to have an old-style
+    // mask.  We assume that an old-style mask is intended if the
+    // image either has no alpha channel, or the alpha channel it has
+    // is completely opaque.  This behaviour can be overridden with
+    // the --force-png-alpha and --force-png-nscmask command-line
+    // options.
+    if (has_alpha && *has_alpha) {
+	if (png_mask_type == PNG_MASK_USE_NSCRIPTER)
+	    *has_alpha = false;
+	else if (png_mask_type == PNG_MASK_AUTODETECT) {	
+	    SDL_LockSurface(ret);
+	    const Uint32 aval = *(Uint32*)ret->pixels & ret->format->Amask;
+	    if (aval != 0xffUL << ret->format->Ashift) goto breakme;
+	    *has_alpha = false;
+	    for (int y=0; y<ret->h; ++y) {
+		Uint32* pixbuf = (Uint32*)((char*)ret->pixels + y * ret->pitch);
+		for (int x=0; x<ret->w; ++x, ++pixbuf) {
+		    if (*pixbuf & ret->format->Amask != aval) {
+			*has_alpha = true;
+			goto breakme;
+		    }
+		}
+	    }
+	breakme:
+	    SDL_UnlockSurface(ret);
+	}
+    }
+#else
+#warning "BPP16 defined: PNGs with NScripter-style masks will not work as expected"
+#endif
+    
     return ret;
 }
 
