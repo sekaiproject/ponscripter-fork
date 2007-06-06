@@ -49,7 +49,7 @@ $(EB)/sdl-config: $(SDLSRC)/Makefile
 	@echo Building internal SDL...
 	@$(MAKE) -C $(SDLSRC) $(REDSO)
 	@$(MAKE) -C $(SDLSRC) install $(REDSO)
-	@if $(WIN32); then \
+	@if [ -n $(WIN32) ]; then \
 	    mv $@ $@.tmp; \
 	    sed -e 's/\(-lmingw32 -lSDLmain.*\)$$/\1 -lwinmm/' $@.tmp > $@; \
 	    rm $@.tmp; \
