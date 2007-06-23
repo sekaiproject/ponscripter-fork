@@ -312,7 +312,6 @@ void PonscripterLabel::createSaveLoadMenu(bool is_save)
 			   / menu_font.StringAdvance("-"));
 	    // Avoid ugliness with ligatures
 	    while (nslw % 3 || nslw % 2) ++nslw;
-//            nslw -= nslw % 3;
             no_save_line[0] = '-';
             for (int i = 1; i < nslw; ++i) no_save_line[i] = '-';
 
