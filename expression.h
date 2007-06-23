@@ -52,7 +52,7 @@ public:
     Expression(ScriptHandler& sh);
     Expression(ScriptHandler& sh, type_t t, bool is_v, int val);
     Expression(ScriptHandler& sh, type_t t, bool is_v, int val,
-	       const index_t& idx);
+	       const h_index_t& idx);
     Expression(ScriptHandler& sh, type_t t, bool is_v, const string& val);
 
     Expression& operator=(const Expression& src);    
@@ -61,7 +61,7 @@ private:
     ScriptHandler& h;
     type_t type_;
     bool var_;
-    index_t index_;
+    h_index_t index_;
     string strval_;
     int intval_;
 };

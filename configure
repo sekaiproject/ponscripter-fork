@@ -6,16 +6,23 @@
 # ---------- Utility definitions ----------
 
 # Moderately portable echo
-case "$(echo 'x\c')" in
+case "`echo 'x\c'`" in
 'x\c') echo_n="echo -n"; nobr= ;;
 *)     echo_n="echo";    nobr="\c" ;;
 esac
+
+# Portable replacement for !
+not() {
+    if $1; then false; else true; fi
+}
 
 # ---------- Program begins here ----------
 
 # Default options
 PREFIX=/usr/local
-if [ -z "$MAKE" ]; then MAKE=make; fi
+if [ -z "$MAKE"   ]; then MAKE=make; fi
+if [ -z "$AR"     ]; then AR=ar; fi
+if [ -z "$RANLIB" ]; then RANLIB=ranlib; fi
 UNSUPPORTED_COMPILER=false
 INTERNAL_LIBS=false
 INTERNAL_SDL=false
@@ -44,98 +51,98 @@ do
   fi
   arg=`expr "x$opt" : 'x[^=]*=\(.*\)'`
   case $opt in
-    --prefix=* | -prefix=*)
-      PREFIX=$arg ;;
-    --prefix | -prefix)
-      prev=PREFIX
+      --prefix=* | -prefix=*)
+        PREFIX=$arg ;;
+      --prefix | -prefix)
+        prev=PREFIX
+        ;;
+      --platform=* | -platform=*)
+        PLATFORM=$arg ;;
+      --platform | -platform)
+        prev=PLATFORM
+        ;;
+      --make=* | -make=*)
+        MAKE=$arg ;;
+      --make | -make)
+        prev=MAKE
+        ;;
+      --unsupported-compiler | -unsupported-compiler)
+        UNSUPPORTED_COMPILER=true ;;
+      --unsupported-compiler=* | -unsupported-compiler=*)
+        UNSUPPORTED_COMPILER=$arg
+        ;;
+      --enable-internal-libs | -enable-internal-libs | --with-internal-libs | -with-internal-libs)
+        INTERNAL_LIBS=true ;;
+      --disable-internal-libs | -disable-internal-libs | --without-internal-libs | -without-internal-libs | --no-internal-libs | -no-internal-libs)
+        INTERNAL_LIBS=false ;;
+      --internal-libs=* | -internal-libs=*)
+        INTERNAL_LIBS=$arg ;;
+      --internal-libs | -internal-libs)
+        prev=INTERNAL_LIBS
+        ;;
+      --enable-internal-sdl | -enable-internal-sdl | --with-internal-sdl | -with-internal-sdl)
+        INTERNAL_SDL=true ;;
+      --disable-internal-sdl | -disable-internal-sdl | --without-internal-sdl | -without-internal-sdl | --no-internal-sdl | -no-internal-sdl)
+        INTERNAL_SDL=false ;;
+      --internal-sdl=* | -internal-sdl=*)
+        INTERNAL_SDL=$arg ;;
+      --internal-sdl | -internal-sdl)
+        prev=INTERNAL_SDL
+        ;;
+      --enable-internal-sdl?image | -enable-internal-sdl?image | --with-internal-sdl?image | -with-internal-sdl?image | --enable-internal-sdlimage  | -enable-internal-sdlimage  | --with-internal-sdlimage  | -with-internal-sdlimage)
+        INTERNAL_SDL_IMAGE=true ;;
+      --disable-internal-sdl?image | -disable-internal-sdl?image | --without-internal-sdl?image | -without-internal-sdl?image | --no-internal-sdl?image | -no-internal-sdl?image | --disable-internal-sdlimage  | -disable-internal-sdlimage  | --without-internal-sdlimage  | -without-internal-sdlimage  | --no-internal-sdlimage  | -no-internal-sdlimage)
+        INTERNAL_SDL_IMAGE=false ;;
+      --internal-sdl?image=* | -internal-sdl?image=* | --internal-sdlimage=* | -internal-sdlimage=*)
+        INTERNAL_SDL_IMAGE=$arg ;;
+      --internal-sdl?image | -internal-sdl?image | --internal-sdlimage | -internal-sdlimage)
+        prev=INTERNAL_SDL_IMAGE
+        ;;
+      --internal-all-images)
+        INTERNAL_SDL_IMAGE=true
+        INTERNAL_LIBPNG=true
+        INTERNAL_LIBJPEG=true
+        ;;
+      --enable-internal-sdl?mixer | -enable-internal-sdl?mixer | --with-internal-sdl?mixer | -with-internal-sdl?mixer | --enable-internal-sdlmixer  | -enable-internal-sdlmixer  | --with-internal-sdlmixer  | -with-internal-sdlmixer)
+        INTERNAL_SDL_MIXER=true ;;
+      --disable-internal-sdl?mixer | -disable-internal-sdl?mixer | --without-internal-sdl?mixer | -without-internal-sdl?mixer | --no-internal-sdl?mixer | -no-internal-sdl?mixer | --disable-internal-sdlmixer  | -disable-internal-sdlmixer  | --without-internal-sdlmixer  | -without-internal-sdlmixer  | --no-internal-sdlmixer  | -no-internal-sdlmixer)
+        INTERNAL_SDL_MIXER=false ;;
+      --internal-sdl?mixer=* | -internal-sdl?mixer=* | --internal-sdlmixer=* | -internal-sdlmixer=*)
+        INTERNAL_SDL_MIXER=$arg ;;
+      --internal-sdl?mixer | -internal-sdl?mixer | --internal-sdlmixer | -internal-sdlmixer)
+        prev=INTERNAL_SDL_MIXER
+        ;;
+      --internal-all-mixers)
+        INTERNAL_SDL_MIXER=true
+        INTERNAL_OGGLIBS=true
+        ;;
+      --enable-internal-bz* | -enable-internal-bz* | --with-internal-bz* | -with-internal-bz*)
+        INTERNAL_BZIP2=true ;;
+      --disable-internal-bz* | -disable-internal-bz* | --without-internal-bz* | -without-internal-bz* | --no-internal-bz* | -no-internal-bz*)
+        INTERNAL_BZIP2=false ;;
+      --internal-bz*=* | -internal-bz*=*)
+        INTERNAL_BZIP2=$arg ;;
+      --internal-bz* | -internal-bz*)
+        prev=INTERNAL_BZIP2
+        ;;
+      --enable-internal-smpeg | -enable-internal-smpeg | --with-internal-smpeg | -with-internal-smpeg)
+        INTERNAL_SMPEG=true ;;
+      --disable-internal-smpeg | -disable-internal-smpeg | --without-internal-smpeg | -without-internal-smpeg | --no-internal-smpeg | -no-internal-smpeg)
+        INTERNAL_SMPEG=false ;;
+      --internal-smpeg=* | -internal-smpeg=*)
+        INTERNAL_SMPEG=$arg ;;
+      --internal-smpeg | -internal-smpeg)
+        prev=INTERNAL_SMPEG
+        ;;
+      --enable-internal-freetype | -enable-internal-freetype | --with-internal-freetype | -with-internal-freetype)
+        INTERNAL_FREETYPE=true ;;
+      --disable-internal-freetype | -disable-internal-freetype | --without-internal-freetype | -without-internal-freetype | --no-internal-freetype | -no-internal-freetype)
+        INTERNAL_FREETYPE=false ;;
+      --internal-freetype=* | -internal-freetype=*)
+        INTERNAL_FREETYPE=$arg ;;
+      --internal-freetype | -internal-freetype)
+        prev=INTERNAL_FREETYPE
       ;;
-    --platform=* | -platform=*)
-      PLATFORM=$arg ;;
-    --platform | -platform)
-      prev=PLATFORM
-      ;;
-    --make=* | -make=*)
-      MAKE=$arg ;;
-    --make | -make)
-      prev=MAKE
-      ;;
-	--unsupported-compiler | -unsupported-compiler)
-	  UNSUPPORTED_COMPILER=true ;;
-	--unsupported-compiler=* | -unsupported-compiler=*)
-	  UNSUPPORTED_COMPILER=$arg
-	  ;;
-	--enable-internal-libs | -enable-internal-libs | --with-internal-libs | -with-internal-libs)
-	  INTERNAL_LIBS=true ;;
-	--disable-internal-libs | -disable-internal-libs | --without-internal-libs | -without-internal-libs | --no-internal-libs | -no-internal-libs)
-	  INTERNAL_LIBS=false ;;
-	--internal-libs=* | -internal-libs=*)
-	  INTERNAL_LIBS=$arg ;;
-	--internal-libs | -internal-libs)
-	  prev=INTERNAL_LIBS
-	  ;;
-	--enable-internal-sdl | -enable-internal-sdl | --with-internal-sdl | -with-internal-sdl)
-	  INTERNAL_SDL=true ;;
-	--disable-internal-sdl | -disable-internal-sdl | --without-internal-sdl | -without-internal-sdl | --no-internal-sdl | -no-internal-sdl)
-	  INTERNAL_SDL=false ;;
-	--internal-sdl=* | -internal-sdl=*)
-	  INTERNAL_SDL=$arg ;;
-	--internal-sdl | -internal-sdl)
-	  prev=INTERNAL_SDL
-	  ;;
-	--enable-internal-sdl?image | -enable-internal-sdl?image | --with-internal-sdl?image | -with-internal-sdl?image | --enable-internal-sdlimage  | -enable-internal-sdlimage  | --with-internal-sdlimage  | -with-internal-sdlimage)
-	  INTERNAL_SDL_IMAGE=true ;;
-	--disable-internal-sdl?image | -disable-internal-sdl?image | --without-internal-sdl?image | -without-internal-sdl?image | --no-internal-sdl?image | -no-internal-sdl?image | --disable-internal-sdlimage  | -disable-internal-sdlimage  | --without-internal-sdlimage  | -without-internal-sdlimage  | --no-internal-sdlimage  | -no-internal-sdlimage)
-	  INTERNAL_SDL_IMAGE=false ;;
-	--internal-sdl?image=* | -internal-sdl?image=* | --internal-sdlimage=* | -internal-sdlimage=*)
-	  INTERNAL_SDL_IMAGE=$arg ;;
-	--internal-sdl?image | -internal-sdl?image | --internal-sdlimage | -internal-sdlimage)
-	  prev=INTERNAL_SDL_IMAGE
-	  ;;
-	--internal-all-images)
-	  INTERNAL_SDL_IMAGE=true
-	  INTERNAL_LIBPNG=true
-	  INTERNAL_LIBJPEG=true
-	  ;;
-	--enable-internal-sdl?mixer | -enable-internal-sdl?mixer | --with-internal-sdl?mixer | -with-internal-sdl?mixer | --enable-internal-sdlmixer  | -enable-internal-sdlmixer  | --with-internal-sdlmixer  | -with-internal-sdlmixer)
-	  INTERNAL_SDL_MIXER=true ;;
-	--disable-internal-sdl?mixer | -disable-internal-sdl?mixer | --without-internal-sdl?mixer | -without-internal-sdl?mixer | --no-internal-sdl?mixer | -no-internal-sdl?mixer | --disable-internal-sdlmixer  | -disable-internal-sdlmixer  | --without-internal-sdlmixer  | -without-internal-sdlmixer  | --no-internal-sdlmixer  | -no-internal-sdlmixer)
-	  INTERNAL_SDL_MIXER=false ;;
-	--internal-sdl?mixer=* | -internal-sdl?mixer=* | --internal-sdlmixer=* | -internal-sdlmixer=*)
-	  INTERNAL_SDL_MIXER=$arg ;;
-	--internal-sdl?mixer | -internal-sdl?mixer | --internal-sdlmixer | -internal-sdlmixer)
-	  prev=INTERNAL_SDL_MIXER
-	  ;;
-	--internal-all-mixers)
-	  INTERNAL_SDL_MIXER=true
-	  INTERNAL_OGGLIBS=true
-	  ;;
-	--enable-internal-bz* | -enable-internal-bz* | --with-internal-bz* | -with-internal-bz*)
-	  INTERNAL_BZIP2=true ;;
-	--disable-internal-bz* | -disable-internal-bz* | --without-internal-bz* | -without-internal-bz* | --no-internal-bz* | -no-internal-bz*)
-	  INTERNAL_BZIP2=false ;;
-	--internal-bz*=* | -internal-bz*=*)
-	  INTERNAL_BZIP2=$arg ;;
-	--internal-bz* | -internal-bz*)
-	  prev=INTERNAL_BZIP2
-	  ;;
-	--enable-internal-smpeg | -enable-internal-smpeg | --with-internal-smpeg | -with-internal-smpeg)
-	  INTERNAL_SMPEG=true ;;
-	--disable-internal-smpeg | -disable-internal-smpeg | --without-internal-smpeg | -without-internal-smpeg | --no-internal-smpeg | -no-internal-smpeg)
-	  INTERNAL_SMPEG=false ;;
-	--internal-smpeg=* | -internal-smpeg=*)
-	  INTERNAL_SMPEG=$arg ;;
-	--internal-smpeg | -internal-smpeg)
-	  prev=INTERNAL_SMPEG
-	  ;;
-	--enable-internal-freetype | -enable-internal-freetype | --with-internal-freetype | -with-internal-freetype)
-	  INTERNAL_FREETYPE=true ;;
-	--disable-internal-freetype | -disable-internal-freetype | --without-internal-freetype | -without-internal-freetype | --no-internal-freetype | -no-internal-freetype)
-	  INTERNAL_FREETYPE=false ;;
-	--internal-freetype=* | -internal-freetype=*)
-	  INTERNAL_FREETYPE=$arg ;;
-	--internal-freetype | -internal-freetype)
-	  prev=INTERNAL_FREETYPE
-	  ;;
 
     -\? | -h | -help | --help)
       cat <<-__ENDHELP
@@ -145,7 +152,7 @@ do
 	  --help                   display this message
 	  --prefix=DIR             install in prefix DIR (default is /usr/local)
 	  --make=NAME              use GNU make executable with the given name
-	  --unsupported-compiler   don't insist on using GNU compilers
+	  --unsupported-compiler   don't insist on using known compilers
 	
 	Library options (force compilation of included dependencies):
 	  --with-internal-libs        don't check for any system libraries
@@ -197,66 +204,79 @@ fi
 $echo_n "Checking platform type... ${nobr}"
 if [ -n "$PLATFORM" ]
 then 
-    PLATFORM=$($echo_n "$PLATFORM${nobr}" | tr '[:upper:]' '[:lower:]')
-    if ./config.sub $PLATFORM >/dev/null 2>&1; then PLATFORM=$(./config.sub $PLATFORM); fi
+    PLATFORM=`$echo_n "$PLATFORM${nobr}" | tr '[:upper:]' '[:lower:]'`
+    if ./config.sub $PLATFORM >/dev/null 2>&1; then PLATFORM=`./config.sub $PLATFORM`; fi
 else
-    PLATFORM=$(./config.guess)
+    PLATFORM=`./config.guess`
 fi
-SYS=Linux
+SYS=Posix
 case "$PLATFORM" in
-*mingw*)  echo "MinGW";    SYS=MinGW ;;
-*darwin*) echo "Mac OS X"; SYS=MacOSX ;;
-*linux*)  echo "Linux" ;;
-*)        echo "$PLATFORM (unsupported; using Linux build instructions)" ;;
+*mingw*)   echo "MinGW";    SYS=MinGW ;;
+*darwin*)  echo "Mac OS X"; SYS=MacOSX ;;
+*linux*)   echo "Linux";    POSIX=Linux ;;
+*solaris*) echo "Solaris";  POSIX=Solaris ;;
+*freebsd*) echo "FreeBSD";  POSIX=FreeBSD ;;
+*netbsd*)  echo "NetBSD";   POSIX=NetBSD ;;
+*openbsd*) echo "OpenBSD";  POSIX=OpenBSD ;;
+*)         echo "$PLATFORM (unsupported; using vanilla Posix build instructions)" ;;
 esac
 
-# Compiler (gcc, g++)
+# Compiler (gcc, g++, icpc)
 if [ -z "$CC" ]; then CC=gcc; fi
 if $UNSUPPORTED_COMPILER
 then
     echo "Unsupported compiler requested; please don't complain if anything doesn't work!"
 else
     $echo_n "Checking C compiler... ${nobr}"
-    case "$($CC --version 2>/dev/null | head -1)" in
-    gcc*) echo gcc ;;
-    *apple*gcc*) echo gcc ;;
+    case "`$CC --version 2>/dev/null | head -1`" in
+    gcc* | *apple*gcc*) echo gcc ;;
+    icc*) echo icc ;;
     *)  echo "error"
         cat <<-_ERR
 
-	Compiler is not gcc, or no compiler found.
-	Please install gcc. If it's installed, try setting the environment variable CC appropriately.
-	If you want to use a different compiler, set CC appropriately and run configure with the --unsupported-compiler option; you will be on your own if anything doesn't work.
+	Compiler not recognised, or no compiler found.
+	Please install a supported C compiler (e.g. gcc). If you already have one installed, try setting the environment variable CC appropriately.
+	If you want to use an unsupported compiler, set CC appropriately and run configure with the --unsupported-compiler option; you will be on your own if anything doesn't work.
 	_ERR
         exit 1 ;;
     esac
 fi
 
-if [ -z "$CXX" -a "$CC" != "gcc" ]; then CXX=$CC; fi
-if [ -z "$CXX" ]; then CXX=g++; fi
-if ! $UNSUPPORTED_COMPILER
-then
+if [ -z "$CXX" ]
+then case "x$CC" in
+xgcc | x) CXX=g++ ;;
+xicc) CXX=icpc ;;
+*) CXX=$CC ;;
+esac
+fi
+
+if not $UNSUPPORTED_COMPILER; then
     $echo_n "Checking C++ compiler... ${nobr}"
-    case "$($CXX --version 2>/dev/null | head -1)" in
-    g++*) echo g++ ;;
-    *apple*g++*) echo g++ ;;
+    case "`$CXX --version 2>/dev/null | head -1`" in
+    g++* | *apple*g++*) echo g++ ;;
+    icpc*) echo icpc ;;
     *)  echo "error"
         cat <<-_ERR
 
-	Compiler is not g++, or no compiler found.
-	Please install g++. If it's installed, try setting the environment variable CXX appropriately.
-	If you want to use a different compiler, set CXX appropriately and run configure with the --unsupported-compiler option; you will be on your own if anything doesn't work.
+	Compiler not recognised, or no compiler found.
+	Please install a supported C++ compiler (e.g. g++). If you already have one installed, try setting the environment variable CXX appropriately.
+	If you want to use an unsupported compiler, set CXX appropriately and run configure with the --unsupported-compiler option; you will be on your own if anything doesn't work.
 	_ERR
         exit 1 ;;
     esac
 fi
+
+case "`($CXX --version) 2>/dev/null | head -1`" in
+g++* | *apple*g++*) CFLAGSEXTRA=-Wall ;;
+esac
 
 # Make (must be GNU)
-$echo_n "Checking for system GNU make... ${nobr}"
-case "$($MAKE -v 2>/dev/null | head -1)" in
+$echo_n "Checking for GNU make... ${nobr}"
+case "`($MAKE -v) 2>/dev/null | head -1`" in
 GNU?Make*)
     echo "$MAKE" ;;
 *)
-    case "$(gmake -v 2>/dev/null | head -1)" in
+    case "`(gmake -v) 2>/dev/null | head -1`" in
     GNU?Make*)
 	MAKE=gmake
 	echo "gmake" ;;
@@ -270,6 +290,39 @@ GNU?Make*)
     esac ;;
 esac
 
+# ar, ranlib (for simplicity's sake we assume that these are ar and
+# ranlib if make is make)
+if [ "x$MAKE" != "xmake" ]
+then
+    $echo_n "Checking for ar... ${nobr}"
+    if ($AR -V >/dev/null) 2>/dev/null
+    then
+	echo $AR
+    else
+	AR=gar
+	if ($AR -V >/dev/null) 2>/dev/null
+	then echo $AR
+	else echo "not found"
+	     echo "Unable to locate ar. If it's installed, try setting the environment variable AR appropriately."
+	     exit 1
+	fi
+    fi
+
+    $echo_n "Checking for ranlib... ${nobr}"
+    if ($RANLIB -V >/dev/null) 2>/dev/null
+    then
+	echo $RANLIB
+    else
+	RANLIB=granlib
+	if ($RANLIB -V >/dev/null) 2>/dev/null
+	then echo $RANLIB
+	else echo "not found"
+	     echo "Unable to locate ranlib. If it's installed, try setting the environment variable RANLIB appropriately. (If your platform does not need ranlib, just set RANLIB=true.)"
+	     exit 1
+	fi
+    fi
+fi
+
 # Libraries
 
 if $INTERNAL_SDL
@@ -277,10 +330,10 @@ then
     SDL_CONFIG=./extlib/bin/sdl-config
 else
     $echo_n "Checking for system SDL... ${nobr}"
-    VER=$($SDL_CONFIG --version 2>/dev/null)
+    VER=`($SDL_CONFIG --version) 2>/dev/null`
     if [ -n "$VER" ]
     then
-	eval $(echo $VER | awk -F. '{ print "MAJ=" $1 "; MIN=" $2 "; REL=" $3; }')
+	eval `echo $VER | awk -F. '{ print "MAJ=" $1 "; MIN=" $2 "; REL=" $3; }'`
 	if [ $MAJ -gt 1 -o $MAJ -eq 1 -a $MIN -gt 2 -o $MAJ -eq 1 -a $MIN -eq 2 -a $REL -ge 8 ]
 	then echo "yes"
 	else echo "too old"
@@ -296,7 +349,7 @@ rm -rf .configtest
 mkdir .configtest
 cd .configtest
 
-if ! $INTERNAL_SDL_IMAGE
+if not $INTERNAL_SDL_IMAGE
 then
     $echo_n "Checking for system SDL_image... ${nobr}"
     cat > test.cc <<-_EOF
@@ -307,7 +360,7 @@ then
 	int main(){bool j=IMG_Load_RW(SDL_RWFromConstMem(jpeg,309),1),p=IMG_Load_RW(SDL_RWFromConstMem(png,69),1);return j&&p?0:(j?1:(p?2:3));}
 	_EOF
     INTERNAL_SDL_IMAGE=true
-    $CXX $($SDL_CONFIG --cflags) $($SDL_CONFIG --libs) -lSDL_image test.cc -o itest >/dev/null 2>&1
+    $CXX `$SDL_CONFIG --cflags` `$SDL_CONFIG --libs` -lSDL_image test.cc -o itest >/dev/null 2>&1
     ./itest 2>/dev/null
     case $? in
     0) echo "yes"; INTERNAL_SDL_IMAGE=false ;;
@@ -316,7 +369,7 @@ then
     esac
 fi
 
-if $INTERNAL_SDL_IMAGE && ! $INTERNAL_LIBPNG
+if $INTERNAL_SDL_IMAGE && not $INTERNAL_LIBPNG
 then
     $echo_n "Checking for system libpng... ${nobr}"
     cat > test.cc <<-_EOF
@@ -333,7 +386,7 @@ then
     esac
 fi
 
-if $INTERNAL_SDL_IMAGE && ! $INTERNAL_LIBJPEG
+if $INTERNAL_SDL_IMAGE && not $INTERNAL_LIBJPEG
 then
     $echo_n "Checking for system libjpeg... ${nobr}"
     cat > test.cc <<-_EOF
@@ -382,7 +435,7 @@ write_ogg() {
 	_EOF
 }
 
-if ! $INTERNAL_SDL_MIXER
+if not $INTERNAL_SDL_MIXER
 then
     $echo_n "Checking for system SDL_mixer... ${nobr}"
     write_ogg
@@ -397,7 +450,7 @@ then
 	Mix_Music*m;bool ogg=m=Mix_LoadMUS("o.ogg");if(m)Mix_FreeMusic(m);bool mp3=m=Mix_LoadMUS("o.mp3");if(m)Mix_FreeMusic(m);return ogg&&mp3?0:(ogg?1:(mp3?2:3));}
 	_EOF
     INTERNAL_SDL_MIXER=true
-    $CXX $($SDL_CONFIG --cflags) $($SDL_CONFIG --libs) -lSDL_mixer test.cc -o mtest >/dev/null 2>&1
+    $CXX `$SDL_CONFIG --cflags` `$SDL_CONFIG --libs` -lSDL_mixer test.cc -o mtest >/dev/null 2>&1
     ./mtest 2>/dev/null
     case $? in
     0) echo "yes"; INTERNAL_SDL_MIXER=false ;;
@@ -406,7 +459,7 @@ then
     esac
 fi
 
-if $INTERNAL_SDL_MIXER && ! $INTERNAL_OGGLIBS
+if $INTERNAL_SDL_MIXER && not $INTERNAL_OGGLIBS
 then
     $echo_n "Checking for system Ogg Vorbis libs... ${nobr}"
     write_ogg
@@ -428,7 +481,7 @@ then
     esac
 fi
 
-if ! $INTERNAL_BZIP2
+if not $INTERNAL_BZIP2
 then
     $echo_n "Checking for system libbzip2... ${nobr}"
     cat > test.cc <<-_EOF
@@ -452,7 +505,7 @@ then
     SMPEG_CONFIG=./extlib/bin/smpeg-config
 else
     $echo_n "Checking for system libsmpeg... ${nobr}"
-    VER=$($SMPEG_CONFIG --version 2>/dev/null)
+    VER=`($SMPEG_CONFIG --version) 2>/dev/null`
     if [ -n "$VER" ]
     then echo "yes"
     else echo "no"
@@ -466,19 +519,19 @@ then
     FREETYPE_CONFIG=./extlib/bin/freetype-config
 else
     $echo_n "Checking for system Freetype... ${nobr}"
-    VER=$($FREETYPE_CONFIG --ftversion 2>/dev/null)
+    VER=`($FREETYPE_CONFIG --ftversion) 2>/dev/null`
     if [ -z "$VER" ]; then
 	FREETYPE_CONFIG=freetype2-config
-	VER=$($FREETYPE_CONFIG --ftversion 2>/dev/null)
+	VER=`($FREETYPE_CONFIG --ftversion) 2>/dev/null`
 	if [ -z "$VER" ]; then
 	    FREETYPE_CONFIG="pkg-config freetype2"
-	    VER=$($FREETYPE_CONFIG --modversion 2>/dev/null)
+	    VER=`($FREETYPE_CONFIG --modversion) 2>/dev/null`
 	    if [ -n "$VER" ]; then VER=2; fi
 	fi
     fi
     if [ -n "$VER" ]
     then
-	if [ $(echo $VER | awk -F. '{ print $1; }') -ge 2 ]
+	if [ `echo $VER | awk -F. '{ print $1; }'` -ge 2 ]
 	then echo "yes"
 	else echo "too old"
 	    INTERNAL_FREETYPE=true
@@ -530,15 +583,16 @@ fi
 $echo_n "Writing Makefile... ${nobr}"
 
 case "$SYS" in
+Posix)  EXE=     ; OBJ=.o ; LIB=.a ; W32=     ;;
+MacOSX) EXE=     ; OBJ=.o ; LIB=.a ; W32=
+        CFLAGSEXTRA="-fpascal-strings $CFLAGSEXTRA" ;;
 MinGW)  EXE=.exe ; OBJ=.o ; LIB=.a ; W32=true ;;
-MacOSX) EXE=     ; OBJ=.o ; LIB=.a ; W32=     ;;
-Linux)  EXE=     ; OBJ=.o ; LIB=.a ; W32=     ;;
 *) echo "error: unsupported system";
    exit 1 ;;
 esac
 
 cat > Makefile <<_EOF
-# -*- Makefile -*-
+# -*- makefile-gmake -*-
 #
 # THIS IS A GENERATED FILE - changes will not be kept if configure is
 # run again.  If you wish to customise it, please be sure to give your
@@ -550,6 +604,8 @@ WIN32=$W32
 OBJSUFFIX=$OBJ
 LIBSUFFIX=$LIB
 EXESUFFIX=$EXE
+
+PREFIX ?= $PREFIX
 
 # Extra handling for internal libraries.
 EXTRADEPS=$DEPS
@@ -564,10 +620,19 @@ export CFLAGS   := -I\$(shell pwd)/extlib/include \$(CFLAGS)
 export CPPFLAGS := -I\$(shell pwd)/extlib/include \$(CPPFLAGS)
 export LDFLAGS  := -L\$(shell pwd)/extlib/lib \$(LDFLAGS)
 
+export CC      := $CC
+export CXX     := $CXX
+export MAKE    := $MAKE
+export GNUMAKE := $MAKE
+export AR      := $AR
+export RANLIB  := $RANLIB
+
 # Ponscripter variables
+PSCFLAGS = $CFLAGSEXTRA
 INCS = -Iextlib/include \$(shell $SDL_CONFIG --cflags)      \\
                         \$(shell $SMPEG_CONFIG --cflags)    \\
-                        \$(shell $FREETYPE_CONFIG --cflags)
+                        \$(shell $FREETYPE_CONFIG --cflags) \\
+       \$(shell [ -d extlib/include/SDL ] && echo -Iextlib/include/SDL)
 _EOF
 case "$SYS" in 
 MinGW)
@@ -599,11 +664,16 @@ LIBS = -Lextlib/lib \\
 DEFS = -DMACOSX -DUTF8_FILESYSTEM -DUSE_OGG_VORBIS
 NO_DEFAULT_ICON = true
 
-PSCFLAGS = -fpascal-strings
-
 _EOF
 ;;
-Linux)
+Posix)
+case "$POSIX" in
+Linux)   INTERNAL_LDFLAGS="-ldl -lasound" ;;
+FreeBSD) INTERNAL_LDFLAGS="-L/usr/X11R6/lib -lX11 -lXi -lXrandr" ;;
+NetBSD)  INTERNAL_LDFLAGS="\$(foreach x,11 i randr ext render,/usr/X11R6/lib/libX\$(x).a) -lossaudio" ;;
+OpenBSD) INTERNAL_LDFLAGS="-L/usr/X11R6/lib -lX11 -lXi -lXrandr -lossaudio" ;;
+Solaris) INTERNAL_LDFLAGS="-lX11 -lXext" ;;
+esac
 cat >> Makefile <<-_EOF
 
 LIBS = -Lextlib/lib \\
@@ -612,24 +682,26 @@ LIBS = -Lextlib/lib \\
        \$(shell $SDL_CONFIG --libs)      \\
        \$(shell $SMPEG_CONFIG --libs)    \\
        \$(shell $FREETYPE_CONFIG --libs) \\
-       -lbz2 \$(if \$(findstring true,$INTERNAL_SDL),-ldl -lasound)
+       -lbz2 \$(if \$(findstring true,$INTERNAL_SDL),$INTERNAL_LDFLAGS)
 
 DEFS = -DLINUX -DUSE_OGG_VORBIS
 _EOF
 ;; esac
+if [ "$POSIX" = "Linux" ]
+then cat >> Makefile <<_EOF
+
+SDL_MIXER_FLAGS = --enable-music-native-midi-gpl
+_EOF
+fi
 cat >> Makefile <<_EOF
 
 .SUFFIXES:
 .SUFFIXES: $OBJ .cpp .h .c
 
-CC  = $CC
-CXX = $CXX
-LD  = \$(CXX) -o 
-
 ifdef DEBUG
 PSCFLAGS += -g -ggdb3 -O0 -Wall -Wpointer-arith -Werror
 else
-PSCFLAGS += -O3 -Wall -Wpointer-arith -Werror -fomit-frame-pointer -pipe 
+PSCFLAGS += -O3 -Wpointer-arith -Werror -fomit-frame-pointer -pipe 
 endif
 
 TARGET = ponscr$EXE
@@ -646,6 +718,8 @@ distclean: clean pdistclean \$(DISTCLEAN_TARGETS)
 	         extlib/share extlib/man
 	rm -f Makefile
 
+install:
+	./install-sh -c -s \$(TARGET) \$(PREFIX)/bin/\$(TARGET)
 _EOF
 
 if [ "$SYS" = "MinGW" ]

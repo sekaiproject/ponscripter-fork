@@ -1,5 +1,5 @@
-Ponscripter ("Proportional ONScripter") is a fork of ogapee's
-ONScripter, which in turn is an enhanced clone of NScripter.
+Ponscripter is a fork of ogapee's ONScripter, which in turn is an
+enhanced clone of NScripter.
 
 While ONScripter adds basic support for Western text to the NScripter
 system, it does so only insofar as is easily done while retaining
@@ -37,8 +37,7 @@ To put it another way, consider what you want:
 - If you are a developer who wants pretty Western text on Windows,
   MacOS X, or X11, and if you are willing to work to get it, then
   porting your game to Ponscripter is likely to be easier than
-  rewriting from scratch in Ren'Py, but don't expect it to be
-  effortless.
+  rewriting from scratch in Ren'Py.
 
 Note that Ponscripter is still very much a work in progress.  What
 little documentation there is can be found in the file
@@ -47,3 +46,27 @@ and Haeleth will not be held liable for any damage that ensues.
 
 Also, do NOT report bugs or problems you encounter to ogapee.  It is
 incredibly unlikely that they are anything to do with him.
+
+-----
+
+Ponscripter has been tested extensively on the following primary
+platforms:
+*********** THIS IS NOT TRUE. ! at bol indicates untested platforms.
+
+* Ubuntu 7.04	x86_64 (primary development platform)
+!* OS X 10.3	PPC
+!* Windows 2000
+
+It has also been tried on the following secondary platforms, which
+gives me confidence that it is at least reasonably portable:
+
+!* Ubuntu 7.04	i386
+!* Fedora 7	x86_64
+* Solaris 10	x86_64
+!* FreeBSD 6.2	x86_64
+!* OpenBSD 4.1	i386
+!* NetBSD 3.1	x86_64
+
+The only compiler that has been tested extensively is g++ (in the case
+of Windows, the MinGW version), though I have confirmed that icc is
+capable of building an executable that seems to work.

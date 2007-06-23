@@ -29,7 +29,7 @@ string Expression::debug_string() const
 	case String: return "$" + str(intval_);
 	case Array:
 	  { string rv = "?" + str(intval_);
-	    for (index_t::const_iterator it = index_.begin();
+	    for (h_index_t::const_iterator it = index_.begin();
 		 it != index_.end(); ++it)
 		rv += "[" + str(*it) + "]";
 	    return rv; }
@@ -131,7 +131,7 @@ void Expression::mutate(int newval, int offset, bool as_array)
     }
     else if (type_ == Array) {
 	require_variable();
-	index_t i = index_;
+	h_index_t i = index_;
 	if (offset != MAX_INT)
 	    if (as_array)
 		i.push_back(offset);
@@ -172,7 +172,7 @@ Expression::Expression(ScriptHandler& sh, type_t t, bool is_v, int val)
 }
 
 Expression::Expression(ScriptHandler& sh, type_t t, bool is_v, int val,
-		       const index_t& idx)
+		       const h_index_t& idx)
     : h(sh), type_(t), var_(is_v), index_(idx), strval_(""), intval_(val)
 {
     if (is_v && (val < 0 || val > VARIABLE_RANGE)) intval_ = VARIABLE_RANGE;

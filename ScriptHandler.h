@@ -74,21 +74,21 @@ public:
 	typedef std::map<int, ArrayVariable> map;
 	typedef map::iterator iterator;
 
-	int  getValue(const index_t& i)          { return getoffs(i); }
-	void setValue(const index_t& i, int val) { getoffs(i) = val; }
+	int  getValue(const h_index_t& i)          { return getoffs(i); }
+	void setValue(const h_index_t& i, int val) { getoffs(i) = val; }
 
-	index_t::size_type dimensions() const { return dim.size(); }
+	h_index_t::size_type dimensions() const { return dim.size(); }
 	int dimension_size(int depth)   const { return dim[depth]; }
 	
-	ArrayVariable(ScriptHandler* o, index_t sizes);
+	ArrayVariable(ScriptHandler* o, h_index_t sizes);
 
-	index_t::iterator begin() { return data.begin(); }
-	index_t::iterator end()   { return data.end(); }
+	h_index_t::iterator begin() { return data.begin(); }
+	h_index_t::iterator end()   { return data.end(); }
     private:
 	ScriptHandler* owner;
-        index_t dim;
-	index_t data;
-	int& getoffs(const index_t& indices);
+        h_index_t dim;
+	h_index_t data;
+	int& getoffs(const h_index_t& indices);
     };
     ArrayVariable::map arrays;
 
@@ -103,7 +103,7 @@ public:
     struct VariableInfo {
         int type;
         int var_no;   // for integer(%), array(?), string($) variable
-        index_t array; // for array(?)
+        h_index_t array; // for array(?)
 	VariableInfo() {}
     };
 
@@ -266,7 +266,7 @@ private:
     int  parseIntExpression(const char** buf);
     void readNextOp(const char** buf, int* op, int* num);
     int  calcArithmetic(int num1, int op, int num2);
-    typedef std::pair<int, index_t> array_ref;
+    typedef std::pair<int, h_index_t> array_ref;
     array_ref parseArray(const char** buf);
     
     /* ---------------------------------------- */

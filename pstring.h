@@ -261,7 +261,7 @@ public:
     wchar wback() const { return *(pred(wend())); }
 
     // Non-case-sensitive comparisons (encoding-aware)
-    int icompare(size_type pos, size_type n, const string& s,
+    int wicompare(size_type pos, size_type n, const string& s,
 		 size_type pos1, size_type n1) const {
 	const char *a1 = c.c_str() + pos,
 	           *a2 = c.c_str() + (n > c.size() ? c.size() : n),
@@ -279,15 +279,15 @@ public:
 	}
 	return 0;
     }
-    int icompare(const string& s) const
-	{ return icompare(0, npos, s, 0, npos); }
-    int icompare(size_type pos, size_type n, const string& s) const
-	{ return icompare(pos, n, s, pos, n); }
-    int icompare(const char* s) const
-	{ return icompare(0, npos, s, npos); }
-    int icompare(size_type pos, size_type n, const char* s,
+    int wicompare(const string& s) const
+	{ return wicompare(0, npos, s, 0, npos); }
+    int wicompare(size_type pos, size_type n, const string& s) const
+	{ return wicompare(pos, n, s, pos, n); }
+    int wicompare(const char* s) const
+	{ return wicompare(0, npos, s, npos); }
+    int wicompare(size_type pos, size_type n, const char* s,
 		size_type len = npos) const
-	{ return s ? icompare(pos, n, string(s), 0, len) : 1; }
+	{ return s ? wicompare(pos, n, string(s), 0, len) : 1; }
     
     // Perl-like stuff
     char pop() { char e = back(); c.resize(c.size() - 1); return e; }

@@ -1,8 +1,8 @@
 ONSCRICON ICON "default.ico"
 
 1 VERSIONINFO
-FILEVERSION 1, 0, 0, 0
-PRODUCTVERSION 1, 0, 0, 0
+FILEVERSION 2007, 6, 16, 0
+PRODUCTVERSION 2007, 6, 16, 0
 FILEFLAGS 32
 FILEOS 4
 FILETYPE 1
@@ -12,10 +12,10 @@ FILETYPE 1
            VALUE "FileDescription", "Proportional ONScripter"
            VALUE "OriginalFilename", "ponscr.exe"
            VALUE "CompanyName", "Studio OGA/insani/Haeleth"
-           VALUE "FileVersion", "2006-11-28"
-           VALUE "LegalCopyright", "Copyright (c) 1998-2005 Studio O.G.A, 2005-2006 insani, 2006 Haeleth."
+           VALUE "FileVersion", "2007-6-16"
+           VALUE "LegalCopyright", "Copyright (c) 1998-2005 Studio O.G.A, 2005-6 insani, 2006-7 Haeleth."
            VALUE "ProductName", "Ponscripter"
-           VALUE "ProductVersion", "1"
+           VALUE "ProductVersion", "2007-6-16"
            VALUE "SpecialBuild", "A fork of ONScripter with enhanced support for Western text."
            VALUE "Comments", "Ponscripter is a fork of Ogapee's ONScripter. It's licensed under the GNU General Public License: see GPL.txt for details."
        }

@@ -6,11 +6,25 @@ This is the usual
   make
   sudo make install
 
+This will use gcc by default; to use icc, start with
+  CC=icc ./configure
 
-* TO BUILD A REDISTRIBUTABLE PONSCRIPTER BINARY
+* TO BUILD A RELATIVELY REDISTRIBUTABLE PONSCRIPTER BINARY
 
   ./configure --with-internal-libs
   make
+
+This will statically link as many libraries as possible into the
+executable, which makes life better on systems with very primitive
+application installation methods, such as OS X and Windows.
+ 
+If you are compiling Ponscripter for a system with modern package
+management - for example, if you are creating a binary package for a
+specific Linux distribution - then it will make more sense to omit the
+--with-internal-libs, compile a dynamically linked executable, and
+have your package depend on the regular platform-specific packages for
+SDL, Freetype, and all the other dependencies.  This will simplify
+your life considerably.
 
 
 * NOTES

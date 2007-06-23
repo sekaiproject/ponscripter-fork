@@ -1,3 +1,20 @@
+2007-06-16
+
+  Merge recent portability enhancements from ONScripter-En: configure
+  now works properly on a wider range of Unixes, and generates an
+  `install' target as documented.
+
+
+2007-05-14
+
+  Improve path handling: all paths are now specified explicitly. 
+
+  Full file handling is partly rewritten in a higher-level manner as a
+  prelude to making things encoding-independent, but direct access to
+  files with non-ASCII filenames is still very much dependent on a
+  UTF-8 filesystem.
+
+
 2007-05-13
 
   The game identifier can now be derived from caption or versionstr

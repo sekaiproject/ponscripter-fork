@@ -118,6 +118,9 @@ DefaultLigatures(int which)
 }
 
 
+const string Encoding::which() const { return name; }
+
+
 int
 UTF8Encoding::CharacterBytes(const char* string)
 {
@@ -197,10 +200,10 @@ UTF8Encoding::Previous(const char* currpos, const char* strstart)
 }
 
 
-unsigned long int
+size_t
 Encoding::CharacterCount(const char* string)
 {
-    unsigned long int rv = 0;
+    size_t rv = 0;
     while (*string) {
         ++rv;
         string += CharacterBytes(string);

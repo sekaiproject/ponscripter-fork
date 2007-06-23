@@ -49,21 +49,20 @@ struct set {
     typedef std::set<T> t;
 #endif
 };
-
-typedef std::vector<int> index_t;
+typedef std::vector<int> h_index_t;
 
 inline string lstr(int i, int len, int min, int radix = 10)
 {
     char buf[1024];
-    sprintf(buf, radix == 16 ? "%*.*x" : "%*.*d", len, min, i);
+    snprintf(buf, 1024, radix == 16 ? "%*.*x" : "%*.*d", len, min, i);
     return string(buf);
 }
 
 inline string nstr(int i, int len, bool zero = false, int radix = 10)
 {
     char buf[1024];
-    sprintf(buf, radix == 16 ? (zero ? "%0*x" : "%*x")
-	                     : (zero ? "%0*d" : "%*d"), len, i);
+    snprintf(buf, 1024, radix == 16 ? (zero ? "%0*x" : "%*x")
+	                            : (zero ? "%0*d" : "%*d"), len, i);
     return string(buf);
 }
 
@@ -75,15 +74,17 @@ inline string str(int i, int radix = 10)
 inline string lstr(size_t i, int len, int min, int radix = 10)
 {
     char buf[1024];
-    sprintf(buf, radix == 16 ? "%*.*lx" : "%*.*lu", len, min, i);
+    snprintf(buf, 1024, radix == 16 ? "%*.*lx" : "%*.*lu",
+	     len, min, (unsigned long)i);
     return string(buf);
 }
 
 inline string nstr(size_t i, int len, bool zero = false, int radix = 10)
 {
     char buf[1024];
-    sprintf(buf, radix == 16 ? (zero ? "%0*lx" : "%*lx")
-	                     : (zero ? "%0*lu" : "%*lu"), len, i);
+    snprintf(buf, 1024, radix == 16 ? (zero ? "%0*lx" : "%*lx")
+	                            : (zero ? "%0*lu" : "%*lu"),
+	     len, (unsigned long)i);
     return string(buf);
 }
 
@@ -110,10 +111,14 @@ rgb_t {
 
 
 // Haeleth does not liek teh iostreams.
-inline FILE*& operator<<(FILE*& dst, const index_t& src)
+
+extern FILE* cout; // These are non-constant macros on OpenBSD, so we
+extern FILE* cerr; // have to bind them to variables for & to work.
+
+inline FILE*& operator<<(FILE*& dst, const h_index_t& src)
 {
     dst << string("{ ");
-    for (index_t::const_iterator it = src.begin(); it != src.end(); ++it) {
+    for (h_index_t::const_iterator it = src.begin(); it != src.end(); ++it) {
 	if (it != src.begin()) dst << string(", ");
 	dst << str(*it);
     }

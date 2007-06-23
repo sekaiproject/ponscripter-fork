@@ -4,9 +4,14 @@ to other titles.
 
 MAJOR BUGS
 
+* Movie playback doesn't work?
+
 * Default font style not saved/loaded - e.g. save outside the bonus
   stage and load from within the bonus stage, and the font will remain
   sans.
+
+* Some fades repeat randomly (doesn't happen in Linux, does in
+  Solaris) (can't duplicate this again - WTF was it?)
 
 
 MINOR BUGS

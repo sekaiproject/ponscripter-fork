@@ -230,12 +230,12 @@ int PonscripterLabel::enterTextDisplayMode(bool text_flag)
             return RET_WAIT | RET_REREAD;
         }
         else {
+            dirty_rect.clear();
+            dirty_rect.add(sentence_font_info.pos);
 	    SDL_BlitSurface(accumulation_comp_surface, NULL,
 			    effect_dst_surface, NULL);
             SDL_BlitSurface(accumulation_surface, NULL,
 			    accumulation_comp_surface, NULL);
-            dirty_rect.clear();
-            dirty_rect.add(sentence_font_info.pos);
 
             return setEffect(window_effect);
         }

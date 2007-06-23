@@ -68,7 +68,7 @@ DirectReader::DirectReader(const string& path, const unsigned char* key_table)
     }
     else {
         key_table_flag = false;
-        for (i = 0; i < 256; i++) this->key_table[i] = i;
+        for (i = 0; i < 256; i++) this->key_table[i] = (unsigned char) i;
     }
 
     read_buf = new unsigned char[READ_LENGTH];
@@ -137,7 +137,7 @@ FILE* DirectReader::fileopen(string path, const char* mode)
 	bool found = false;
 	while ((entry = readdir(dp))) {
 	    string item = entry->d_name; // FIXME: does this need decoding?
-	    if (it->icompare(item) == 0) {
+	    if (it->wicompare(item) == 0) {
 		found = true;
 		full_path += Delim;
 		full_path += item;
@@ -228,7 +228,7 @@ int DirectReader::getRegisteredCompressionType(string filename)
 DirectReader::FileInfo DirectReader::getFileByIndex(unsigned int index)
 {
     DirectReader::FileInfo fi;
-    memset(&fi, 0, sizeof fi);
+    memset(&fi, 0, sizeof(DirectReader::FileInfo));
     return fi;
 }
 

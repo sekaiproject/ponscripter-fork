@@ -88,10 +88,23 @@ int SarReader::readArchive(ArchiveInfo* ai, int archive_type)
     for (i = 0; i < ai->num_of_files; i++) {
         unsigned char ch;
 
-	ai->fi_list[i].name.clear();
-        while ((ch = key_table[fgetc(ai->file_handle)])) {
-            ai->fi_list[i].name.push_uchar(ch);
-        }
+	string name;
+        while ((ch = key_table[fgetc(ai->file_handle)]))
+            name.push_uchar(ch);
+
+	// Store names with the internal encoding
+	if (encoding->which() == "cp932") {
+	    ai->fi_list[i].name = name;
+	}
+	else {
+	    CP932Encoding cp932;
+	    const char* c = name.c_str();
+	    ai->fi_list[i].name.clear();
+	    while (*c) {
+		ai->fi_list[i].name += cp932.Decode(c);
+		c += cp932.CharacterBytes(c);
+	    }
+	}	
 
         if (archive_type >= ARCHIVE_TYPE_NSA)
             ai->fi_list[i].compression_type = readChar(ai->file_handle);
@@ -166,7 +179,7 @@ int SarReader::getIndexFromFile(ArchiveInfo* ai, string file_name)
     file_name.replace(wchar('/'), wchar('\\'));
     
     for (i = 0; i < ai->num_of_files; i++)
-	if (file_name.icompare(ai->fi_list[i].name) == 0) break;
+	if (file_name.wicompare(ai->fi_list[i].name) == 0) break;
 
     return i;
 }

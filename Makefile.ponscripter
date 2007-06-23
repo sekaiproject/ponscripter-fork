@@ -34,20 +34,20 @@ PARSER_HEADER = $(EXTRADEPS) BaseReader.h SarReader.h NsaReader.h	\
 PONSCR_HEADER = font.h PonscripterLabel.h $(PARSER_HEADER)
 
 ponscr$(EXESUFFIX): $(PONSCR_OBJS)
-	$(LD)$@ $(PONSCR_OBJS) $(LIBS)
+	$(CXX) -o $@ $(PONSCR_OBJS) $(LIBS)
 
-pclean: $(CLEAN_TARGETS)
+pclean:
 	-$(RM) *$(OBJSUFFIX) $(CLEANUP) resources.cpp
 
-pdistclean: clean $(DISTCLEAN_TARGETS)
+pdistclean: pclean
 	-$(RM) $(TARGET) embed$(EXESUFFIX)
 
 .cpp$(OBJSUFFIX):
 	$(CXX) -c $(PSCFLAGS) $(INCS) $(DEFS) $<
 
-SarReader$(OBJSUFFIX):    BaseReader.h SarReader.h 
-NsaReader$(OBJSUFFIX):    BaseReader.h SarReader.h NsaReader.h 
-DirectReader$(OBJSUFFIX): BaseReader.h DirectReader.h
+SarReader$(OBJSUFFIX): defs.h pstring.h encoding.h BaseReader.h SarReader.h 
+NsaReader$(OBJSUFFIX): defs.h pstring.h encoding.h BaseReader.h SarReader.h NsaReader.h 
+DirectReader$(OBJSUFFIX): defs.h pstring.h encoding.h BaseReader.h DirectReader.h
 ScriptHandler$(OBJSUFFIX): ScriptHandler.h encoding.h defs.h pstring.h expression.h
 ScriptParser$(OBJSUFFIX): $(PARSER_HEADER)
 ScriptParser_command$(OBJSUFFIX): $(PARSER_HEADER)
@@ -64,9 +64,9 @@ PonscripterLabel_sound$(OBJSUFFIX): $(PONSCR_HEADER)
 PonscripterLabel_file$(OBJSUFFIX): $(PONSCR_HEADER)
 PonscripterLabel_file2$(OBJSUFFIX): $(PONSCR_HEADER)
 PonscripterLabel_image$(OBJSUFFIX): $(PONSCR_HEADER) resize_image.h
-AnimationInfo$(OBJSUFFIX): AnimationInfo.h
+AnimationInfo$(OBJSUFFIX): AnimationInfo.h encoding.h defs.h pstring.h
 resources$(OBJSUFFIX): resources.h
-FontInfo$(OBJSUFFIX): FontInfo.h encoding.h resources.h font.h
+FontInfo$(OBJSUFFIX): FontInfo.h encoding.h pstring.h resources.h font.h
 DirtyRect$(OBJSUFFIX) : DirtyRect.h
 MadWrapper$(OBJSUFFIX): MadWrapper.h
 AVIWrapper$(OBJSUFFIX): AVIWrapper.h

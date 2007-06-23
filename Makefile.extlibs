@@ -1,3 +1,4 @@
+# -*- makefile-gmake -*-
 # Build rules for internal libraries.
 # Do not invoke this directly; these rules are used automatically when relevant.
 
@@ -49,7 +50,7 @@ $(EB)/sdl-config: $(SDLSRC)/Makefile
 	@echo Building internal SDL...
 	@$(MAKE) -C $(SDLSRC) $(REDSO)
 	@$(MAKE) -C $(SDLSRC) install $(REDSO)
-	@if [ -n $(WIN32) ]; then \
+	@if [ -n "$(WIN32)" ]; then \
 	    mv $@ $@.tmp; \
 	    sed -e 's/\(-lmingw32 -lSDLmain.*\)$$/\1 -lwinmm/' $@.tmp > $@; \
 	    rm $@.tmp; \
@@ -145,7 +146,7 @@ $(SDLMSRC)/Makefile: $(if $(INTERNAL_SDL),$(EB)/sdl-config) \
                      $(if $(INTERNAL_OGGLIBS),$(OGGLIBS))
 	@echo Configuring internal SDL_mixer...
 	@cd $(SDLMSRC) && \
-	./configure --prefix="$(LPREFIX)" --enable-music-native-midi-gpl \
+	./configure --prefix="$(LPREFIX)" $(SDL_MIXER_FLAGS) \
 	    $(addprefix --disable-,shared $(addprefix music-,cmd mod timidity-midi)) \
 	    $(REDIR)
 
@@ -199,7 +200,7 @@ $(SMPGSRC)/Makefile: $(if $(INTERNAL_SDL),$(EB)/sdl-config)
 $(EB)/smpeg-config: $(SMPGSRC)/Makefile
 	@echo Building internal smpeg...
 	@$(MAKE) -C $(SMPGSRC) $(REDSO)
-	@$(MAKE) -C $(SMPGSRC) install $(REDSO)
+	@$(MAKE) -C $(SMPGSRC) prefix="$(LPREFIX)" install $(REDSO)
 
 #-- Freetype ------------------------------------------------------------------
 

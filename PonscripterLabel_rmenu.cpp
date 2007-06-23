@@ -25,10 +25,9 @@
 
 #include "PonscripterLabel.h"
 
-#define MESSAGE_SAVE_EXIST "^%s%s    Date %s/%s    Time %s:%s"
-#define MESSAGE_SAVE_EMPTY "^%s%s    ------------------------"
-#define MESSAGE_SAVE_CONFIRM "^Save in slot %s%s?"
-#define MESSAGE_LOAD_CONFIRM "^Load from slot %s%s?"
+#define MESSAGE_SAVE_CONFIRM "^Save in "
+#define MESSAGE_LOAD_CONFIRM "^Load from "
+#define MESSAGE_CONFIRM_TAIL "?"
 #define MESSAGE_RESET_CONFIRM "^Return to Title Menu?"
 #define MESSAGE_END_CONFIRM "^Quit?"
 #define MESSAGE_YES "Yes"
@@ -298,7 +297,7 @@ void PonscripterLabel::createSaveLoadMenu(bool is_save)
         }
 
         if (max_dw < 1) {
-            strcpy(no_save_line, "------------------------");
+            strncpy(no_save_line, "------------------------", buf_sz);
             lw = ceil(max_ew + 24 + menu_font.StringAdvance(no_save_line) + 1);
             entry_offs_x = (sw - lw) / 2;
             entry_date_x = max_ew + 24;
@@ -311,7 +310,9 @@ void PonscripterLabel::createSaveLoadMenu(bool is_save)
             entry_time_x = lw - max_mw;
             int nslw = int((max_dw + 16 + max_hw + max_mw)
 			   / menu_font.StringAdvance("-"));
-            nslw -= nslw % 3;
+	    // Avoid ugliness with ligatures
+	    while (nslw % 3 || nslw % 2) ++nslw;
+//            nslw -= nslw % 3;
             no_save_line[0] = '-';
             for (int i = 1; i < nslw; ++i) no_save_line[i] = '-';
 
@@ -495,13 +496,15 @@ void PonscripterLabel::executeSystemYesNo()
             SaveFileInfo save_file_info;
             searchSaveFile(save_file_info, yesno_selected_file_no);
 	    name = MESSAGE_SAVE_CONFIRM
-		 + save_item_name + save_file_info.num_str;
+		 + save_item_name + save_file_info.num_str
+		 + MESSAGE_CONFIRM_TAIL;
         }
         else if (yesno_caller == SYSTEM_LOAD) {
             SaveFileInfo save_file_info;
             searchSaveFile(save_file_info, yesno_selected_file_no);
 	    name = MESSAGE_LOAD_CONFIRM
-		 + save_item_name + save_file_info.num_str;		
+		 + save_item_name + save_file_info.num_str
+		 + MESSAGE_CONFIRM_TAIL;		
         }
         else if (yesno_caller == SYSTEM_RESET)
             name = MESSAGE_RESET_CONFIRM;

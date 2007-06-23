@@ -44,9 +44,10 @@ void ClearLigatures();
 class Encoding {
     const char textchar;
     const bool usetags;
+    const char* name;
 public:
-    const char TextMarker() const { return textchar; }
-    const bool UseTags() const { return usetags; }
+    char TextMarker() const { return textchar; }
+    bool UseTags() const { return usetags; }
     virtual int CharacterBytes(const char* str) = 0;
     virtual wchar Decode(const char* str) = 0;
     virtual int Encode(wchar input, char* output) = 0;
@@ -57,7 +58,10 @@ public:
     void SetStyle(int& style, const char flag);
     string TranslateTag(const char* flags, int& in_len);
 
-    Encoding(char tc, bool ut) : textchar(tc), usetags(ut) {}
+    const string which() const;
+    
+    Encoding(char tc, bool ut, const char* n)
+	: textchar(tc), usetags(ut), name(n) {}
     virtual ~Encoding() {}
 };
 
@@ -69,7 +73,7 @@ public:
     string Encode(wchar input);
     const char* Previous(const char* str, const char* min = 0);
 
-    UTF8Encoding() : Encoding('^', true) {}
+    UTF8Encoding() : Encoding('^', true, "utf8") {}
 };
 
 class CP932Encoding : public Encoding {
@@ -80,7 +84,7 @@ public:
     string Encode(wchar input);
     const char* Previous(const char* str, const char* min = 0);
 
-    CP932Encoding() : Encoding('`', false) {}
+    CP932Encoding() : Encoding('`', false, "cp932") {}
 };
 
 extern Encoding* encoding; // Some uses of global state are less evil

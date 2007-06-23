@@ -404,7 +404,7 @@ private:
            REFRESH_SHADOW_MODE = 4,
            REFRESH_TEXT_MODE   = 8,
            REFRESH_CURSOR_MODE = 16,
-	   REFRESH_COMP_MODE   = 32 };
+           REFRESH_COMP_MODE   = 32 };
 
     int refresh_shadow_text_mode;
     int current_refresh_mode;
@@ -432,16 +432,16 @@ private:
       last_mouse_state, shelter_mouse_state;
 
     struct ButtonElt {
-	typedef std::map<int, ButtonElt> collection;
-	typedef collection::iterator iterator;
-	
+        typedef std::map<int, ButtonElt> collection;
+        typedef collection::iterator iterator;
+        
         enum BUTTON_TYPE {
-	    NORMAL_BUTTON     = 0,
-	    SPRITE_BUTTON     = 1,
-	    EX_SPRITE_BUTTON  = 2,
-	    LOOKBACK_BUTTON   = 3,
-	    TMP_SPRITE_BUTTON = 4
-	};
+            NORMAL_BUTTON     = 0,
+            SPRITE_BUTTON     = 1,
+            EX_SPRITE_BUTTON  = 2,
+            LOOKBACK_BUTTON   = 3,
+            TMP_SPRITE_BUTTON = 4
+        };
         BUTTON_TYPE button_type;
         int sprite_no;
         string exbtn_ctl;
@@ -450,42 +450,42 @@ private:
         AnimationInfo* anim[2];
         int show_flag; // 0: show nothing, 1: show anim[0], 2: show anim[1]
 
-	bool isSprite() { return button_type == SPRITE_BUTTON
-		              || button_type == EX_SPRITE_BUTTON; }
-	bool isTmpSprite() { return button_type == TMP_SPRITE_BUTTON; }
-	
+        bool isSprite() { return button_type == SPRITE_BUTTON
+                              || button_type == EX_SPRITE_BUTTON; }
+        bool isTmpSprite() { return button_type == TMP_SPRITE_BUTTON; }
+        
         ButtonElt() {
             button_type = NORMAL_BUTTON;
-	    anim[0] = anim[1] = 0;
-	    show_flag = 0;
+            anim[0] = anim[1] = 0;
+            show_flag = 0;
         }
         void destroy() {
             if ((button_type == NORMAL_BUTTON || isTmpSprite()) && anim[0]) {
-		delete anim[0];
-		anim[0] = 0;
-	    }
+                delete anim[0];
+                anim[0] = 0;
+            }
         }
     };
     ButtonElt::collection buttons, shelter_buttons;
     ButtonElt exbtn_d_button;
 
     void buttonsRemoveSprite(int no) {
-	ButtonElt::iterator it = buttons.begin();
-	while (it != buttons.end())
-	    if (it->second.sprite_no == no && it->second.isSprite()) {
-		it->second.destroy();
-		buttons.erase(it++);
-	    }
-	    else
-		++it;
+        ButtonElt::iterator it = buttons.begin();
+        while (it != buttons.end())
+            if (it->second.sprite_no == no && it->second.isSprite()) {
+                it->second.destroy();
+                buttons.erase(it++);
+            }
+            else
+                ++it;
     }
     
     void deleteButtons() {
-	for (ButtonElt::iterator it = buttons.begin(); it != buttons.end();
-	     ++it)
-	    it->second.destroy();
-	buttons.clear();
-	exbtn_d_button.exbtn_ctl.clear();
+        for (ButtonElt::iterator it = buttons.begin(); it != buttons.end();
+             ++it)
+            it->second.destroy();
+        buttons.clear();
+        exbtn_d_button.exbtn_ctl.clear();
     }
     
     int current_over_button;
@@ -503,11 +503,11 @@ private:
     void resetSentenceFont();
     void refreshMouseOverButton();
     void refreshSprite(int sprite_no, bool active_flag, int cell_no,
-		       SDL_Rect* check_src_rect, SDL_Rect* check_dst_rect);
+                       SDL_Rect* check_src_rect, SDL_Rect* check_dst_rect);
 
     void decodeExbtnControl(const string& ctl_string,
-			    SDL_Rect* check_src_rect = 0,
-			    SDL_Rect* check_dst_rect = 0);
+                            SDL_Rect* check_src_rect = 0,
+                            SDL_Rect* check_dst_rect = 0);
 
     void disableGetButtonFlag();
     int getNumberFromBuffer(const char** buf);
@@ -573,23 +573,23 @@ private:
     void setwindowCore();
 
     SDL_Surface* renderGlyph(Font* font, Uint16 text, int size,
-			     float x_fractional_part);
+                             float x_fractional_part);
     void drawGlyph(SDL_Surface* dst_surface, FontInfo* info, SDL_Color &color,
-		   wchar unicode, float x, int y, bool shadow_flag,
-		   AnimationInfo* cache_info, SDL_Rect* clip,
-		   SDL_Rect &dst_rect);
+                   wchar unicode, float x, int y, bool shadow_flag,
+                   AnimationInfo* cache_info, SDL_Rect* clip,
+                   SDL_Rect &dst_rect);
     void drawChar(const char* text, FontInfo* info, bool flush_flag,
-		  bool lookback_flag, SDL_Surface* surface,
-		  AnimationInfo* cache_info, SDL_Rect* clip = 0);
+                  bool lookback_flag, SDL_Surface* surface,
+                  AnimationInfo* cache_info, SDL_Rect* clip = 0);
     void drawString(const char* str, rgb_t color, FontInfo* info,
-		    bool flush_flag, SDL_Surface* surface, SDL_Rect* rect = 0,
-		    AnimationInfo* cache_info = 0);
+                    bool flush_flag, SDL_Surface* surface, SDL_Rect* rect = 0,
+                    AnimationInfo* cache_info = 0);
 
     void drawString(const string& str, rgb_t color, FontInfo* info,
-		    bool flush_flag, SDL_Surface* surface, SDL_Rect* rect = 0,
-		    AnimationInfo* cache_info = 0)
-	{ /* 取り敢えず */ drawString(str.c_str(), color, info, flush_flag,
-				      surface, rect, cache_info); }
+                    bool flush_flag, SDL_Surface* surface, SDL_Rect* rect = 0,
+                    AnimationInfo* cache_info = 0)
+        { /* for now */ drawString(str.c_str(), color, info, flush_flag,
+				   surface, rect, cache_info); }
     
     void restoreTextBuffer();
     int  enterTextDisplayMode(bool text_flag = true);
@@ -603,9 +603,9 @@ private:
     std::set<wchar> indent_chars;
     std::set<wchar> break_chars;
     bool is_indent_char(const wchar c) const
-	{ return indent_chars.find(c) != indent_chars.end(); }
+        { return indent_chars.find(c) != indent_chars.end(); }
     bool is_break_char(const wchar c) const
-	{ return break_chars.find(c) != break_chars.end(); }
+        { return break_chars.find(c) != break_chars.end(); }
     bool check_orphan_control();
 
     /* ---------------------------------------- */
@@ -618,32 +618,32 @@ private:
 
     int setEffect(const Effect& effect);
     int doEffect(Effect& effect, AnimationInfo* anim, int effect_image,
-		  bool clear_dirty_region = true);
+                  bool clear_dirty_region = true);
     void drawEffect(SDL_Rect* dst_rect, SDL_Rect* src_rect,
-		    SDL_Surface* surface);
+                    SDL_Surface* surface);
     void generateMosaic(SDL_Surface* src_surface, int level);
 
     /* ---------------------------------------- */
     /* Select related variables */
     enum {
-	SELECT_GOTO_MODE  = 0,
-	SELECT_GOSUB_MODE = 1,
-	SELECT_NUM_MODE   = 2,
-	SELECT_CSEL_MODE  = 3
+        SELECT_GOTO_MODE  = 0,
+        SELECT_GOSUB_MODE = 1,
+        SELECT_NUM_MODE   = 2,
+        SELECT_CSEL_MODE  = 3
     };
     struct SelectElt {
-	typedef std::vector<SelectElt> vector;
-	typedef vector::iterator iterator;
-	string text, label;
-	SelectElt(const string& t, const string& l) : text(t), label(l) {}
+        typedef std::vector<SelectElt> vector;
+        typedef vector::iterator iterator;
+        string text, label;
+        SelectElt(const string& t, const string& l) : text(t), label(l) {}
     };
     SelectElt::vector select_links, shelter_select_links;
     const char* select_label_next_script;
     ButtonElt::iterator shortcut_mouse_line;
 
     ButtonElt getSelectableSentence(const string& buffer, FontInfo* info,
-				    bool flush_flag = true,
-				    bool nofile_flag = false);
+                                    bool flush_flag = true,
+                                    bool nofile_flag = false);
 
     /* ---------------------------------------- */
     /* Sound related variables */
@@ -691,13 +691,13 @@ private:
     string midi_cmd;
 
     int playSound(const string& filename, int format, bool loop_flag,
-		  int channel = 0);
+                  int channel = 0);
     
     void playCDAudio();
     int playWave(Mix_Chunk* chunk, int format, bool loop_flag, int channel);
     int playMP3();
     int playOGG(int format, unsigned char* buffer, long length, bool loop_flag,
-		int channel);
+                int channel);
     int playExternalMusic(bool loop_flag);
     int playMIDI(bool loop_flag);
 
@@ -710,9 +710,9 @@ private:
     void stopBGM(bool continue_flag);
     void playClickVoice();
     void setupWaveHeader(unsigned char* buffer, int channels, int rate,
-			 unsigned long data_length);
+                         unsigned long data_length);
     OVInfo* openOggVorbis(unsigned char* buf, long len, int &channels,
-			  int &rate);
+                          int &rate);
     int  closeOggVorbis(OVInfo* ovi);
 
     /* ---------------------------------------- */
@@ -725,7 +725,7 @@ private:
     void newPage(bool next_flag);
 
     void flush(int refresh_mode, SDL_Rect* rect = 0,
-	       bool clear_dirty_flag = true, bool direct_flag = false);
+               bool clear_dirty_flag = true, bool direct_flag = false);
     void flushDirect(SDL_Rect &rect, int refresh_mode, bool updaterect = true);
     void executeLabel();
     SDL_Surface* loadImage(const string& file_name, bool* has_alpha = NULL);
@@ -741,7 +741,7 @@ private:
     void setupAnimationInfo(AnimationInfo* anim, FontInfo* info = NULL);
     void parseTaggedString(AnimationInfo* anim);
     void drawTaggedSurface(SDL_Surface* dst_surface, AnimationInfo* anim,
-			   SDL_Rect &clip);
+                           SDL_Rect &clip);
     void stopAnimation(int click);
 
     /* ---------------------------------------- */
@@ -762,14 +762,14 @@ private:
     int  resizeSurface(SDL_Surface* src, SDL_Surface* dst);
     void shiftCursorOnButton(int diff);
     void alphaBlend(SDL_Surface* mask_surface, int trans_mode,
-	     Uint32 mask_value = 255, SDL_Rect* clip = 0);
+             Uint32 mask_value = 255, SDL_Rect* clip = 0);
     void alphaBlend32(SDL_Surface* dst_surface, SDL_Rect dst_rect,
-	     SDL_Surface* src_surface, SDL_Color &color, SDL_Rect* clip,
-	     bool rotate_flag);
+             SDL_Surface* src_surface, SDL_Color &color, SDL_Rect* clip,
+             bool rotate_flag);
     void makeNegaSurface(SDL_Surface* surface, SDL_Rect &clip);
     void makeMonochromeSurface(SDL_Surface* surface, SDL_Rect &clip);
     void refreshSurface(SDL_Surface* surface, SDL_Rect* clip_src,
-	     int refresh_mode = REFRESH_NORMAL_MODE);
+             int refresh_mode = REFRESH_NORMAL_MODE);
     void createBackground();
 
     /* ---------------------------------------- */

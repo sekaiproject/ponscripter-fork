@@ -1006,14 +1006,14 @@ void PonscripterLabel::mouseOverCheck(int x, int y)
     }
 
     if (current_over_button != button) {
-	ButtonElt& curr_btn = buttons[current_over_button];
-	    
         DirtyRect dirty = dirty_rect;
         dirty_rect.clear();
 
         SDL_Rect check_src_rect = { 0, 0, 0, 0 };
         SDL_Rect check_dst_rect = { 0, 0, 0, 0 };
         if (current_over_button != 0) {
+	    ButtonElt& curr_btn = buttons[current_over_button];
+
             curr_btn.show_flag = 0;
             check_src_rect = curr_btn.image_rect;
             if (curr_btn.isSprite()) {
@@ -1314,7 +1314,7 @@ SDL_Surface* PonscripterLabel::loadImage(const string& file_name,
     ScriptHandler::cBR->getFile(file_name, buffer, &location);
     SDL_Surface* tmp = IMG_Load_RW(SDL_RWFromMem(buffer, length), 1);
 
-    if (!tmp && file_name.substr(file_name.rfind('.') + 1).icompare("jpg")) {
+    if (!tmp && file_name.substr(file_name.rfind('.') + 1).wicompare("jpg")) {
         fprintf(stderr, " *** force-loading a JPEG image [%s]\n",
 		file_name.c_str());
         SDL_RWops* src = SDL_RWFromMem(buffer, length);

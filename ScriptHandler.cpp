@@ -38,9 +38,12 @@
 
 BaseReader* ScriptHandler::cBR = NULL;
 
+FILE* cout = stdout;
+FILE* cerr = stderr;
+
 ScriptHandler::ScriptHandler()
     : variable_data(VARIABLE_RANGE + 1),
-      game_identifier("Ponscripter")
+      game_identifier()
 {
     script_buffer = NULL;
     kidoku_buffer = NULL;
@@ -53,16 +56,18 @@ ScriptHandler::ScriptHandler()
     screen_size = SCREEN_SIZE_640x480;
     global_variable_border = 200;
 
-    script_filenames.push_back(ScriptFilename("0.txt",        0, CP932));
+    // Prefer Ponscripter files over NScripter files, and prefer
+    // unencoded files over encoded files.
     script_filenames.push_back(ScriptFilename("0.utf",        0, UTF8));
-    script_filenames.push_back(ScriptFilename("00.txt",       0, CP932));
+    script_filenames.push_back(ScriptFilename("0.txt",        0, CP932));
     script_filenames.push_back(ScriptFilename("00.utf",       0, UTF8));
-    script_filenames.push_back(ScriptFilename("nscr_sec.dat", 2, CP932));
+    script_filenames.push_back(ScriptFilename("00.txt",       0, CP932));
     script_filenames.push_back(ScriptFilename("pscr_sec.dat", 2, UTF8));
-    script_filenames.push_back(ScriptFilename("nscript.___",  3, CP932));
+    script_filenames.push_back(ScriptFilename("nscr_sec.dat", 2, CP932));
     script_filenames.push_back(ScriptFilename("pscript.___",  3, UTF8));
-    script_filenames.push_back(ScriptFilename("nscript.dat",  1, CP932));
+    script_filenames.push_back(ScriptFilename("nscript.___",  3, CP932));
     script_filenames.push_back(ScriptFilename("pscript.dat",  1, UTF8));
+    script_filenames.push_back(ScriptFilename("nscript.dat",  1, CP932));
 }
 
 
@@ -693,8 +698,8 @@ int ScriptHandler::readScript(const string& path)
     archive_path = path;
 
     FILE* fp = NULL;
-    int encrypt_mode;
-    encoding_t enc;
+    int encrypt_mode = 0;
+    encoding_t enc = UTF8;
 
     for (ScriptFilename::iterator ft = script_filenames.begin();
 	 ft != script_filenames.end(); ++ft) {
@@ -722,7 +727,7 @@ int ScriptHandler::readScript(const string& path)
 		      "from a directory containing NScripter, ONScripter, "
 		      "or Ponscripter game data.", NULL, NULL);
 #else
-	stderr << string("Can't open any of ") << script_filenames << eol;
+	cerr << string("Can't open any of ") << script_filenames << eol;
 #endif
         return -1;
     }
@@ -805,7 +810,7 @@ int ScriptHandler::readScript(const string& path)
                 global_variable_border = global_variable_border * 10
 		                       + *buf++ - '0';
         }
-        else {
+	else {
             break;
         }
 
@@ -1300,7 +1305,7 @@ ScriptHandler::array_ref ScriptHandler::parseArray(const char** buf)
 
     SKIP_SPACE(*buf);
     
-    index_t indices;
+    h_index_t indices;
     
     while (**buf == '[') {
         (*buf)++;
@@ -1396,13 +1401,13 @@ void ScriptHandler::LogInfo::read(ScriptHandler& h)
 
 
 int&
-ScriptHandler::ArrayVariable::getoffs(const index_t& indices)
+ScriptHandler::ArrayVariable::getoffs(const h_index_t& indices)
 {
     if (indices.size() != dim.size())
 	owner->errorAndExit("Indexed " + str(indices.size()) + " deep into " +
 			    str(dim.size()) + "-dimensional array");
     int offs_idx = 0;
-    for (index_t::size_type i = 0; i < indices.size(); ++i) {
+    for (h_index_t::size_type i = 0; i < indices.size(); ++i) {
 	if (indices[i] > dim[i])
 	    owner->errorAndExit("array index out of range");
 	offs_idx *= dim[i];
@@ -1411,11 +1416,11 @@ ScriptHandler::ArrayVariable::getoffs(const index_t& indices)
     return data[offs_idx];
 }
 
-ScriptHandler::ArrayVariable::ArrayVariable(ScriptHandler* o, index_t sizes)
+ScriptHandler::ArrayVariable::ArrayVariable(ScriptHandler* o, h_index_t sizes)
     : owner(o), dim(sizes)
 {
     int sz = 1;
-    for (index_t::iterator i = dim.begin(); i != dim.end(); ++i) sz *= ++(*i);
+    for (h_index_t::iterator i = dim.begin(); i != dim.end(); ++i) sz *= ++(*i);
     data.assign(sz, 0);
 }
 
