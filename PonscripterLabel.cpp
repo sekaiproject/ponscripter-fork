@@ -29,10 +29,10 @@
 
 #ifdef MACOSX
 namespace Carbon {
+#include <sys/stat.h>
 #include <Carbon/Carbon.h>
 #include <CoreServices/CoreServices.h>
 }
-#include <sys/stat.h>
 #endif
 #ifdef WIN32
 #include <windows.h>
@@ -521,7 +521,7 @@ void PonscripterLabel::setKeyEXE(const char* filename)
 }
 
 #ifdef MACOSX
-string MacOSX_SeekArchive()
+string MacOSX_SeekArchive(ScriptHandler& script_h)
 {
     // Store archives etc in the application bundle by default, but
     // fall back to the application root directory if the bundle
@@ -564,7 +564,7 @@ string MacOSX_SeekArchive()
 	    if (app) {
 		Boolean valid =
 		    CFURLGetFileSystemRepresentation(app, true, path, max_path);
-		CFRelease(appurl);
+		CFRelease(app);
 		if (valid) return string(path) + '/';
 	    }
 	}
@@ -691,7 +691,7 @@ int PonscripterLabel::init()
     // that must be specified with the -r option; in all such cases we
     // assume the current directory if nothing else was specified.
 #ifdef MACOSX
-    if (!archive_path) archive_path = MacOSX_SeekArchive();
+    if (!archive_path) archive_path = MacOSX_SeekArchive(script_h);
 #endif
    
     if (key_exe_file) {
