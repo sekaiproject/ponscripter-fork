@@ -19,7 +19,7 @@ GUI_OBJS = PonscripterLabel$(OBJSUFFIX)					\
 	PonscripterLabel_file2$(OBJSUFFIX)				\
 	PonscripterLabel_image$(OBJSUFFIX)				\
 	PonscripterLabel_ext$(OBJSUFFIX) AnimationInfo$(OBJSUFFIX)	\
-	FontInfo$(OBJSUFFIX) DirtyRect$(OBJSUFFIX)			\
+	Fontinfo$(OBJSUFFIX) DirtyRect$(OBJSUFFIX)			\
 	resize_image$(OBJSUFFIX) encoding$(OBJSUFFIX)			\
 	font$(OBJSUFFIX) $(if $(NO_RESOURCES), ,resources$(OBJSUFFIX))  \
 	pstring$(OBJSUFFIX) cp932_encoding$(OBJSUFFIX) expression$(OBJSUFFIX)
@@ -30,7 +30,7 @@ PONSCR_OBJS = Ponscripter$(OBJSUFFIX) $(DECODER_OBJS)		\
 	ScriptParser_command$(OBJSUFFIX) $(GUI_OBJS) $(EXT_OBJS)
 PARSER_HEADER = $(EXTRADEPS) BaseReader.h SarReader.h NsaReader.h	\
 	DirectReader.h ScriptHandler.h ScriptParser.h AnimationInfo.h	\
-	FontInfo.h DirtyRect.h pstring.h defs.h expression.h encoding.h
+	Fontinfo.h DirtyRect.h pstring.h defs.h expression.h encoding.h
 PONSCR_HEADER = font.h PonscripterLabel.h $(PARSER_HEADER)
 
 ponscr$(EXESUFFIX): $(PONSCR_OBJS)
@@ -66,7 +66,7 @@ PonscripterLabel_file2$(OBJSUFFIX): $(PONSCR_HEADER)
 PonscripterLabel_image$(OBJSUFFIX): $(PONSCR_HEADER) resize_image.h
 AnimationInfo$(OBJSUFFIX): AnimationInfo.h encoding.h defs.h pstring.h
 resources$(OBJSUFFIX): resources.h
-FontInfo$(OBJSUFFIX): FontInfo.h encoding.h pstring.h resources.h font.h
+Fontinfo$(OBJSUFFIX): Fontinfo.h encoding.h pstring.h resources.h font.h
 DirtyRect$(OBJSUFFIX) : DirtyRect.h
 MadWrapper$(OBJSUFFIX): MadWrapper.h
 AVIWrapper$(OBJSUFFIX): AVIWrapper.h

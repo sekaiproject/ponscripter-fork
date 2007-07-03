@@ -43,7 +43,7 @@ PonscripterLabel::renderGlyph(Font* font, Uint16 text, int size,
 
 
 void
-PonscripterLabel::drawGlyph(SDL_Surface* dst_surface, FontInfo* info,
+PonscripterLabel::drawGlyph(SDL_Surface* dst_surface, Fontinfo* info,
 			    SDL_Color &color, unsigned short unicode,
 			    float x, int y, bool shadow_flag,
 			    AnimationInfo* cache_info, SDL_Rect* clip,
@@ -90,7 +90,7 @@ PonscripterLabel::drawGlyph(SDL_Surface* dst_surface, FontInfo* info,
 }
 
 
-void PonscripterLabel::drawChar(const char* text, FontInfo* info, bool flush_flag, bool lookback_flag, SDL_Surface* surface, AnimationInfo* cache_info, SDL_Rect* clip)
+void PonscripterLabel::drawChar(const char* text, Fontinfo* info, bool flush_flag, bool lookback_flag, SDL_Surface* surface, AnimationInfo* cache_info, SDL_Rect* clip)
 {
     int bytes = encoding->CharacterBytes(text);
 
@@ -140,7 +140,7 @@ void PonscripterLabel::drawChar(const char* text, FontInfo* info, bool flush_fla
 
 
 void
-PonscripterLabel::drawString(const char* str, rgb_t color, FontInfo* info,
+PonscripterLabel::drawString(const char* str, rgb_t color, Fontinfo* info,
 			     bool flush_flag, SDL_Surface* surface,
 			     SDL_Rect* rect, AnimationInfo* cache_info)
 {
@@ -190,7 +190,7 @@ void PonscripterLabel::restoreTextBuffer()
 {
     text_info.fill(0, 0, 0, 0);
 
-    FontInfo f_info = sentence_font;
+    Fontinfo f_info = sentence_font;
     f_info.clear();
     const char* buffer = current_text_buffer->contents.c_str();
     int buffer_count = current_text_buffer->contents.size();

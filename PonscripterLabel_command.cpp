@@ -276,7 +276,7 @@ int PonscripterLabel::strspCommand(const string& cmd)
     ai->removeTag();
     ai->file_name = script_h.readStrValue();
 
-    FontInfo fi;
+    Fontinfo fi;
     fi.is_newline_accepted = true;
     ai->pos.x = script_h.readIntValue();
     ai->pos.y = script_h.readIntValue();
@@ -2374,7 +2374,7 @@ int PonscripterLabel::cselbtnCommand(const string& cmd)
     int csel_no   = script_h.readIntValue();
     int button_no = script_h.readIntValue();
 
-    FontInfo csel_info = sentence_font;
+    Fontinfo csel_info = sentence_font;
     csel_info.top_x = script_h.readIntValue();
     csel_info.top_y = script_h.readIntValue();
 

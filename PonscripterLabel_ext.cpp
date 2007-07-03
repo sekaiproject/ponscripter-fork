@@ -36,7 +36,7 @@ int PonscripterLabel::haeleth_text_extentCommand(const string& cmd)
     string buf = script_h.readStrValue();
     if (buf[0] == encoding->TextMarker()) buf.shift();
 
-    FontInfo f = sentence_font;
+    Fontinfo f = sentence_font;
     if (script_h.hasMoreArgs()) {
         int s1 = script_h.readIntValue();
 	int s2 = script_h.readIntValue();
@@ -103,17 +103,17 @@ int PonscripterLabel::haeleth_font_styleCommand(const string& cmd)
     string s = script_h.readStrValue();
     if (s[0] == encoding->TextMarker()) s.shift();
 
-    FontInfo::default_encoding = 0;
+    Fontinfo::default_encoding = 0;
     const char* buf = s.c_str();
     while (*buf && *buf != encoding->TextMarker() && *buf != '"') {
         if (*buf == 'c') {
             ++buf;
             if (*buf >= '0' && *buf <= '7')
-                FontInfo::default_encoding = *buf++ - '0';
+                Fontinfo::default_encoding = *buf++ - '0';
         }
-        else encoding->SetStyle(FontInfo::default_encoding, *buf++);
+        else encoding->SetStyle(Fontinfo::default_encoding, *buf++);
     }
-    sentence_font.style = FontInfo::default_encoding;
+    sentence_font.style = Fontinfo::default_encoding;
     return RET_CONTINUE;
 }
 

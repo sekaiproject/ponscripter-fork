@@ -918,7 +918,7 @@ void PonscripterLabel::resetSub()
 
 void PonscripterLabel::resetSentenceFont()
 {
-    FontInfo::default_encoding = Default;
+    Fontinfo::default_encoding = Default;
     sentence_font.reset();
     sentence_font.top_x = 21;
     sentence_font.top_y = 16;
@@ -1471,7 +1471,7 @@ void PonscripterLabel::newPage(bool next_flag)
 
 
 PonscripterLabel::ButtonElt
-PonscripterLabel::getSelectableSentence(const string& buffer, FontInfo* info,
+PonscripterLabel::getSelectableSentence(const string& buffer, Fontinfo* info,
 					bool flush_flag, bool nofile_flag)
 {
     ButtonElt rv;

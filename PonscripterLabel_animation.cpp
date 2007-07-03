@@ -173,13 +173,13 @@ void downscale4x(SDL_Surface* src, SDL_Rect* srcpos, SDL_Surface* dst, SDL_Rect*
 }
 
 
-void PonscripterLabel::setupAnimationInfo(AnimationInfo* anim, FontInfo* info)
+void PonscripterLabel::setupAnimationInfo(AnimationInfo* anim, Fontinfo* info)
 {
     anim->deleteSurface();
     anim->abs_flag = true;
 
     if (anim->trans_mode == AnimationInfo::TRANS_STRING) {
-        FontInfo f_info = info ? *info : sentence_font;
+        Fontinfo f_info = info ? *info : sentence_font;
 
         // handle private-use encodings
 	anim->file_name = anim->file_name.parseTags();

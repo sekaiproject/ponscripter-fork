@@ -24,7 +24,7 @@
  */
 
 #include "ScriptHandler.h"
-#include "FontInfo.h"
+#include "Fontinfo.h"
 #include <ctype.h>
 
 #ifdef MACOSX
@@ -103,7 +103,7 @@ void ScriptHandler::reset()
     skip_enabled = false;
     clickstr_list.clear();
 
-    FontInfo::default_encoding = 0;
+    Fontinfo::default_encoding = 0;
 }
 
 

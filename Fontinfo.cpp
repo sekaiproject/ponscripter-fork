@@ -1,6 +1,6 @@
 /* -*- C++ -*-
  *
- *  FontInfo.cpp - Font information storage class of Ponscripter
+ *  Fontinfo.cpp - Font information storage class of Ponscripter
  *
  *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this
  *  is a fork).
@@ -26,7 +26,7 @@
  *  02111-1307 USA
  */
 
-#include "FontInfo.h"
+#include "Fontinfo.h"
 #include "encoding.h"
 #include "BaseReader.h"
 #include "ScriptHandler.h"
@@ -35,7 +35,7 @@
 
 int screen_ratio1 = 1, screen_ratio2 = 1;
 
-int FontInfo::default_encoding = 0;
+int Fontinfo::default_encoding = 0;
 
 static class FontsStruct {
     friend void MapFont(int, const string&);
@@ -153,13 +153,13 @@ Font* FontsStruct::font(int style)
 }
 
 
-Font* FontInfo::font()
+Font* Fontinfo::font()
 {
     return Fonts.font(style);
 }
 
 
-FontInfo::FontInfo()
+Fontinfo::Fontinfo()
 {
     on_color.set(0xff);
     off_color.set(0xaa);
@@ -168,7 +168,7 @@ FontInfo::FontInfo()
 }
 
 
-void FontInfo::reset()
+void Fontinfo::reset()
 {
     clear();
     font_size = 26;
@@ -180,7 +180,7 @@ void FontInfo::reset()
 }
 
 
-void FontInfo::clear()
+void Fontinfo::clear()
 {
     SetXY(0, 0);
     indent = 0;
@@ -189,21 +189,21 @@ void FontInfo::clear()
 }
 
 
-float FontInfo::em_width()
+float Fontinfo::em_width()
 {
     doSize();
     return font()->advance('M');
 }
 
 
-int FontInfo::line_space()
+int Fontinfo::line_space()
 {
     doSize();
     return font()->lineskip();
 }
 
 
-float FontInfo::GlyphAdvance(unsigned short unicode, unsigned short next)
+float Fontinfo::GlyphAdvance(unsigned short unicode, unsigned short next)
 {
     if (unicode >= 0x10 && unicode < 0x20) return 0;
 
@@ -227,7 +227,7 @@ int get_int(const char* text)
 }
 
 
-bool FontInfo::processCode(const char* text)
+bool Fontinfo::processCode(const char* text)
 {
     if (*text >= 0x10 && *text < 0x20) {
         switch (*text) {
@@ -258,7 +258,7 @@ bool FontInfo::processCode(const char* text)
 }
 
 
-float FontInfo::StringAdvance(const char* string)
+float Fontinfo::StringAdvance(const char* string)
 {
     doSize();
     wchar unicode, next;
@@ -283,7 +283,7 @@ float FontInfo::StringAdvance(const char* string)
 }
 
 
-void FontInfo::SetXY(float x, int y)
+void Fontinfo::SetXY(float x, int y)
 {
     if (x != -1) pos_x = x;
 
@@ -291,7 +291,7 @@ void FontInfo::SetXY(float x, int y)
 }
 
 
-void FontInfo::newLine()
+void Fontinfo::newLine()
 {
     doSize();
     pos_x  = indent;
@@ -299,7 +299,7 @@ void FontInfo::newLine()
 }
 
 
-void FontInfo::setLineArea(int num)
+void Fontinfo::setLineArea(int num)
 {
     doSize();
     area_x = num;
@@ -307,29 +307,29 @@ void FontInfo::setLineArea(int num)
 }
 
 
-bool FontInfo::isNoRoomFor(float margin)
+bool Fontinfo::isNoRoomFor(float margin)
 {
     return pos_x + margin > area_x;
 }
 
-bool FontInfo::isNoRoomForLines(int margin)
+bool Fontinfo::isNoRoomForLines(int margin)
 {
     return pos_y + (line_space() + pitch_y) * margin > area_y;
 }
 
-bool FontInfo::isLineEmpty()
+bool Fontinfo::isLineEmpty()
 {
     return pos_x == indent;
 }
 
 
-void FontInfo::advanceBy(float offset)
+void Fontinfo::advanceBy(float offset)
 {
     pos_x += offset;
 }
 
 
-SDL_Rect FontInfo::getFullArea(int ratio1, int ratio2)
+SDL_Rect Fontinfo::getFullArea(int ratio1, int ratio2)
 {
     SDL_Rect rect;
     rect.x = top_x * ratio1 / ratio2;
@@ -340,7 +340,7 @@ SDL_Rect FontInfo::getFullArea(int ratio1, int ratio2)
 }
 
 
-SDL_Rect FontInfo::calcUpdatedArea(float start_x, int start_y,
+SDL_Rect Fontinfo::calcUpdatedArea(float start_x, int start_y,
 				   int ratio1, int ratio2)
 {
     doSize();
@@ -369,7 +369,7 @@ SDL_Rect FontInfo::calcUpdatedArea(float start_x, int start_y,
 }
 
 
-void FontInfo::addShadeArea(SDL_Rect &rect, int shade_distance[2])
+void Fontinfo::addShadeArea(SDL_Rect &rect, int shade_distance[2])
 {
     if (is_shadow) {
         if (shade_distance[0] > 0)
@@ -389,7 +389,7 @@ void FontInfo::addShadeArea(SDL_Rect &rect, int shade_distance[2])
 }
 
 
-int FontInfo::doSize()
+int Fontinfo::doSize()
 {
     const int sz = size();
     font()->set_size(sz);

@@ -1,6 +1,6 @@
 /* -*- C++ -*-
  *
- *  FontInfo.h - Font information storage class of Ponscripter
+ *  Fontinfo.h - Font information storage class of Ponscripter
  *
  *  Copyright (c) 2001-2005 Ogapee (original ONScripter, of which this
  *  is a fork).
@@ -37,7 +37,7 @@ extern void MapMetrics(int id, const string& filename);
 
 void InitialiseFontSystem(const string& basepath);
 
-class FontInfo {
+class Fontinfo {
     float indent;
     float pos_x; int pos_y; // Current position
     int   font_size, font_size_mod;
@@ -82,7 +82,7 @@ public:
 
     void ClearIndent() { indent = 0; }
 
-    FontInfo();
+    Fontinfo();
     void reset();
 
     float GetXOffset() const { return pos_x; }

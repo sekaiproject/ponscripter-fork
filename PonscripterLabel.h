@@ -574,18 +574,18 @@ private:
 
     SDL_Surface* renderGlyph(Font* font, Uint16 text, int size,
                              float x_fractional_part);
-    void drawGlyph(SDL_Surface* dst_surface, FontInfo* info, SDL_Color &color,
+    void drawGlyph(SDL_Surface* dst_surface, Fontinfo* info, SDL_Color &color,
                    wchar unicode, float x, int y, bool shadow_flag,
                    AnimationInfo* cache_info, SDL_Rect* clip,
                    SDL_Rect &dst_rect);
-    void drawChar(const char* text, FontInfo* info, bool flush_flag,
+    void drawChar(const char* text, Fontinfo* info, bool flush_flag,
                   bool lookback_flag, SDL_Surface* surface,
                   AnimationInfo* cache_info, SDL_Rect* clip = 0);
-    void drawString(const char* str, rgb_t color, FontInfo* info,
+    void drawString(const char* str, rgb_t color, Fontinfo* info,
                     bool flush_flag, SDL_Surface* surface, SDL_Rect* rect = 0,
                     AnimationInfo* cache_info = 0);
 
-    void drawString(const string& str, rgb_t color, FontInfo* info,
+    void drawString(const string& str, rgb_t color, Fontinfo* info,
                     bool flush_flag, SDL_Surface* surface, SDL_Rect* rect = 0,
                     AnimationInfo* cache_info = 0)
         { /* for now */ drawString(str.c_str(), color, info, flush_flag,
@@ -641,7 +641,7 @@ private:
     const char* select_label_next_script;
     ButtonElt::iterator shortcut_mouse_line;
 
-    ButtonElt getSelectableSentence(const string& buffer, FontInfo* info,
+    ButtonElt getSelectableSentence(const string& buffer, Fontinfo* info,
                                     bool flush_flag = true,
                                     bool nofile_flag = false);
 
@@ -738,7 +738,7 @@ private:
     int  proceedAnimation();
     int  estimateNextDuration(AnimationInfo* anim, SDL_Rect &rect, int minimum);
     void resetRemainingTime(int t);
-    void setupAnimationInfo(AnimationInfo* anim, FontInfo* info = NULL);
+    void setupAnimationInfo(AnimationInfo* anim, Fontinfo* info = NULL);
     void parseTaggedString(AnimationInfo* anim);
     void drawTaggedSurface(SDL_Surface* dst_surface, AnimationInfo* anim,
                            SDL_Rect &clip);

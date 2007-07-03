@@ -36,7 +36,7 @@
 #include "NsaReader.h"
 #include "DirectReader.h"
 #include "AnimationInfo.h"
-#include "FontInfo.h"
+#include "Fontinfo.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -335,7 +335,7 @@ protected:
 
     /* ---------------------------------------- */
     /* Font related variables */
-    FontInfo* current_font, sentence_font, menu_font;
+    Fontinfo* current_font, sentence_font, menu_font;
     int shade_distance[2];
 
     /* ---------------------------------------- */
