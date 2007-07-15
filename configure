@@ -210,6 +210,7 @@ else
     PLATFORM=`./config.guess`
 fi
 SYS=Posix
+POSIX=Vanilla
 case "$PLATFORM" in
 *mingw*)   echo "MinGW";    SYS=MinGW ;;
 *darwin*)  echo "Mac OS X"; SYS=MacOSX ;;
@@ -228,7 +229,7 @@ then
     echo "Unsupported compiler requested; please don't complain if anything doesn't work!"
 else
     $echo_n "Checking C compiler... ${nobr}"
-    case "`$CC --version 2>/dev/null | head -1`" in
+    case "`($CC --version) 2>/dev/null | head -1`" in
     gcc* | *apple*gcc*) echo gcc ;;
     icc*) echo icc ;;
     *)  echo "error"
@@ -250,9 +251,10 @@ xicc) CXX=icpc ;;
 esac
 fi
 
-if not $UNSUPPORTED_COMPILER; then
+if not $UNSUPPORTED_COMPILER
+then
     $echo_n "Checking C++ compiler... ${nobr}"
-    case "`$CXX --version 2>/dev/null | head -1`" in
+    case "`($CXX --version) 2>/dev/null | head -1`" in
     g++* | *apple*g++*) echo g++ ;;
     icpc*) echo icpc ;;
     *)  echo "error"
@@ -357,7 +359,7 @@ then
 	#include "SDL_image.h"
 	unsigned char jpeg[]={255,216,255,224,0,16,74,70,73,70,0,1,1,1,0,72,0,72,0,0,255,225,0,22,69,120,105,102,0,0,77,77,0,42,0,0,0,8,0,0,0,0,0,0,255,219,0,67,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,255,219,0,67,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,255,192,0,17,8,0,1,0,1,3,1,34,0,2,17,1,
 	3,17,1,255,196,0,21,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,255,196,0,20,16,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,196,0,20,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,196,0,20,17,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,218,0,12,3,1,0,2,17,3,17,0,63,0,191,128,1,255,217};unsigned char png[]={137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,1,0,0,0,1,8,2,0,0,0,144,119,83,222,0,0,0,12,73,68,65,84,8,215,99,248,255,255,63,0,5,254,2,254,220,204,89,231,0,0,0,0,73,69,78,68,174,66,96,130};
-	int main(){bool j=IMG_Load_RW(SDL_RWFromConstMem(jpeg,309),1),p=IMG_Load_RW(SDL_RWFromConstMem(png,69),1);return j&&p?0:(j?1:(p?2:3));}
+	int main(int argc, char**argv){bool j=IMG_Load_RW(SDL_RWFromConstMem(jpeg,309),1),p=IMG_Load_RW(SDL_RWFromConstMem(png,69),1);return j&&p?0:(j?1:(p?2:3));}
 	_EOF
     INTERNAL_SDL_IMAGE=true
     $CXX `$SDL_CONFIG --cflags` `$SDL_CONFIG --libs` -lSDL_image test.cc -o itest >/dev/null 2>&1
@@ -374,7 +376,7 @@ then
     $echo_n "Checking for system libpng... ${nobr}"
     cat > test.cc <<-_EOF
 	#include <png.h>
-	unsigned char png[]={137,80,78,71,13,10,26,10};int main(){return png_sig_cmp(png,0,8);}
+	unsigned char png[]={137,80,78,71,13,10,26,10};int main(int argc, char**argv){return png_sig_cmp(png,0,8);}
 	_EOF
     INTERNAL_LIBPNG=true
     $CXX -lpng -lz test.cc -o ptest >/dev/null 2>&1
@@ -392,7 +394,7 @@ then
     cat > test.cc <<-_EOF
 	#include <stdio.h>
 	#include <jpeglib.h>
-	int main(){struct jpeg_decompress_struct cinfo;struct jpeg_error_mgr jerr;cinfo.err=jpeg_std_error(&jerr);jpeg_create_decompress(&cinfo);return 0;}
+	int main(int argc, char**argv){struct jpeg_decompress_struct cinfo;struct jpeg_error_mgr jerr;cinfo.err=jpeg_std_error(&jerr);jpeg_create_decompress(&cinfo);return 0;}
 	_EOF
     INTERNAL_LIBJPEG=true
     $CXX -ljpeg test.cc -o jtest >/dev/null 2>&1
@@ -446,7 +448,7 @@ then
 	unsigned char m[]={255,251,80,196,0,3,192,0,1,164,0,0,0,32,0,0,52,128,0,0,4,76,65,77,69,51,46,57,54,46,49,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,
 	85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,255,251,82,196,93,131,192,0,1,164,0,0,0,32,0,0,52,128,0,0,4,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,
 	85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85};const int ol=4008,ml=417;
-	int main(){using namespace std;FILE*f=fopen("o.ogg","wb");if(!f||fwrite(o,1,ol,f)!=ol)return 127;fclose(f);f=fopen("o.mp3","wb");if(!f||fwrite(m,1,ml,f)!=ml)return 127;fclose(f);
+	int main(int argc, char**argv){using namespace std;FILE*f=fopen("o.ogg","wb");if(!f||fwrite(o,1,ol,f)!=ol)return 127;fclose(f);f=fopen("o.mp3","wb");if(!f||fwrite(m,1,ml,f)!=ml)return 127;fclose(f);
 	Mix_Music*m;bool ogg=m=Mix_LoadMUS("o.ogg");if(m)Mix_FreeMusic(m);bool mp3=m=Mix_LoadMUS("o.mp3");if(m)Mix_FreeMusic(m);return ogg&&mp3?0:(ogg?1:(mp3?2:3));}
 	_EOF
     INTERNAL_SDL_MIXER=true
@@ -468,7 +470,7 @@ then
 	#include <vorbis/codec.h>
 	#include <vorbis/vorbisfile.h>
 	const int ol=4008;
-	int main(){using namespace std;FILE*f=fopen("o.ogg","wb");if(!f||fwrite(o,1,ol,f)!=ol)return 127;fclose(f);
+	int main(int argc, char**argv){using namespace std;FILE*f=fopen("o.ogg","wb");if(!f||fwrite(o,1,ol,f)!=ol)return 127;fclose(f);
 	OggVorbis_File vf;f=fopen("o.ogg","rb");int n=ov_open(f,&vf,0,0)<0;fclose(f);return n;}
 	_EOF
     INTERNAL_OGGLIBS=true
@@ -487,7 +489,7 @@ then
     cat > test.cc <<-_EOF
 	#include <bzlib.h>
 	unsigned char bz[]={66,90,104,57,49,65,89,38,83,89,41,212,246,171,0,0,0,16,0,64,0,32,0,33,24,70,130,238,72,167,10,18,5,58,158,213,96};
-	int main(){char out[2];unsigned int olen=2;out[0]='.';return(BZ2_bzBuffToBuffDecompress(out,&olen,(char*)bz,37,0,0)==BZ_OK&&olen==1&&out[0]==' ')?0:1;}
+	int main(int argc, char**argv){char out[2];unsigned int olen=2;out[0]='.';return(BZ2_bzBuffToBuffDecompress(out,&olen,(char*)bz,37,0,0)==BZ_OK&&olen==1&&out[0]==' ')?0:1;}
 	_EOF
     $CXX -lbz2 test.cc -o btest >/dev/null 2>&1
     if ./btest 2>/dev/null
@@ -564,6 +566,24 @@ require $INTERNAL_BZIP2     internal_bzip2     libbz2
 require $INTERNAL_SMPEG     internal_smpeg     libsmpeg
 require $INTERNAL_FREETYPE  internal_freetype  Freetype
 
+genlink() {
+    if $1
+    then
+        eval "LINK$2=\"extlib/lib/lib$2\\\$(LIBSUFFIX)\""
+    else
+        eval "LINK$2=-l$2"
+    fi
+}
+genlink $INTERNAL_LIBPNG    z
+genlink $INTERNAL_LIBPNG    png
+genlink $INTERNAL_LIBJPEG   jpeg
+genlink $INTERNAL_SDL_IMAGE SDL_image
+genlink $INTERNAL_OGGLIBS   ogg
+genlink $INTERNAL_OGGLIBS   vorbis
+genlink $INTERNAL_OGGLIBS   vorbisfile
+genlink $INTERNAL_SDL_MIXER SDL_mixer
+genlink $INTERNAL_BZIP2     bz2
+
 if [ -n "$MLIB" -a ! -d extlib ]
 then
     cat <<_EOF
@@ -580,6 +600,7 @@ _EOF
     exit
 fi
 
+
 $echo_n "Writing Makefile... ${nobr}"
 
 case "$SYS" in
@@ -590,6 +611,7 @@ MinGW)  EXE=.exe ; OBJ=.o ; LIB=.a ; W32=true ;;
 *) echo "error: unsupported system";
    exit 1 ;;
 esac
+
 
 cat > Makefile <<_EOF
 # -*- makefile-gmake -*-
@@ -642,9 +664,9 @@ LIBS = -Lextlib/lib \\
        -static -Wl,--start-group \\
        \$(filter-out -lSDLmain,\$(shell $SDL_CONFIG --static-libs)) \\
        \$(shell $SMPEG_CONFIG --libs) \$(shell $FREETYPE_CONFIG --libs) \\
-       -lSDL_image -ljpeg -lpng -lz             \\
-       -lSDL_mixer -logg -lvorbis -lvorbisfile  \\
-       -lbz2 -Wl,--end-group
+       $LINKSDL_image $LINKjpeg $LINKpng $LINKz \\
+       $LINKSDL_mixer $LINKogg $LINKvorbis $LINKvorbisfile \\
+       $LINKbz2 -Wl,--end-group
 
 DEFS = -DWIN32 -DUSE_OGG_VORBIS
 EXT_OBJS = SDL_win32_main.o win32rc.o
@@ -657,9 +679,9 @@ LIBS = -Lextlib/lib \\
        \$(shell $SDL_CONFIG --static-libs) \\
        \$(shell $SMPEG_CONFIG --libs)      \\
        \$(shell $FREETYPE_CONFIG --libs)   \\
-       -lSDL_image -ljpeg -lpng \\
-       -lSDL_mixer -logg -lvorbis -lvorbisfile \\
-       -lbz2 -lm -framework QuickTime -framework CoreFoundation
+       $LINKSDL_image $LINKjpeg $LINKpng              \\
+       $LINKSDL_mixer $LINKogg $LINKvorbis $LINKvorbisfile \\
+       $LINKbz2 -lm -framework QuickTime -framework CoreFoundation
 
 DEFS = -DMACOSX -DUTF8_FILESYSTEM -DUSE_OGG_VORBIS
 NO_DEFAULT_ICON = true
@@ -677,12 +699,12 @@ esac
 cat >> Makefile <<-_EOF
 
 LIBS = -Lextlib/lib \\
-       -lSDL_image \$(if \$(findstring true,$INTERNAL_SDL_IMAGE),-ljpeg -lpng -lz) \\
-       -lSDL_mixer \$(if \$(findstring true,$INTERNAL_SDL_MIXER),-lvorbisfile -lvorbis -logg) \\
+       $LINKSDL_image \$(if \$(findstring true,$INTERNAL_SDL_IMAGE),$LINKjpeg $LINKpng $LINKz) \\
+       $LINKSDL_mixer \$(if \$(findstring true,$INTERNAL_SDL_MIXER),$LINKvorbisfile $LINKvorbis $LINKogg) \\
        \$(shell $SDL_CONFIG --libs)      \\
        \$(shell $SMPEG_CONFIG --libs)    \\
        \$(shell $FREETYPE_CONFIG --libs) \\
-       -lbz2 \$(if \$(findstring true,$INTERNAL_SDL),$INTERNAL_LDFLAGS)
+       $LINKbz2 \$(if \$(findstring true,$INTERNAL_SDL),$INTERNAL_LDFLAGS)
 
 DEFS = -DLINUX -DUSE_OGG_VORBIS
 _EOF
@@ -701,7 +723,7 @@ cat >> Makefile <<_EOF
 ifdef DEBUG
 PSCFLAGS += -g -ggdb3 -O0 -Wall -Wpointer-arith -Werror
 else
-PSCFLAGS += -O3 -Wpointer-arith -Werror -fomit-frame-pointer -pipe 
+PSCFLAGS += -O3 -Wpointer-arith -Wno-uninitialized -Werror -fomit-frame-pointer -pipe 
 endif
 
 TARGET = ponscr$EXE
