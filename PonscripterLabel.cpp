@@ -607,8 +607,13 @@ string Platform_GetSavePath(string gameid) // MacOS X version
 		 &appsupport);
     char path[32768];
     FSRefMakePath(&appsupport, (UInt8*) path, 32768);
-    mkdir(path, 0755);
-    return string(path) + '/' + gameid + '/';
+    string rv = string(path) + '/' + gameid + '/';
+    if (mkdir(rv.c_str(), 0755) == 0 || errno == EEXIST) 
+	return rv;
+    // If that fails, die.
+    StandardAlert(kAlertStopAlert, "\pmkdir failure",
+		  "\pCould not create a directory for saved games.", NULL, NULL);
+    exit(1);
 }
 #elif defined LINUX
 string Platform_GetSavePath(string gameid) // POSIX version
