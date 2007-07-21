@@ -382,8 +382,8 @@ positioning:
 
 
 /---------------------------------------------------------------------
-|  h_textextent <ivar>,<string>,[size_x],[size_y],[pitch_x]                                       
-                                                                                                
+|  h_textextent <ivar>,<string>,[size_x],[size_y],[pitch_x]
+
 Sets <ivar> to the width, in pixels, of <string> as rendered in the
 current sentence font. If given, size_x, size_y, and pitch_x override
 the current window settings (useful for calculating the size of
