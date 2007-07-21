@@ -567,12 +567,12 @@ private:
     int  textgosub_clickstr_state;
     int  indent_offset;
     int  line_enter_status; // 0 ... no enter, 1 ... pretext, 2 ... body
-    SDL_Surface* glyph_surface;
+    Glyph current_glyph;
 
     int  refreshMode();
     void setwindowCore();
 
-    SDL_Surface* renderGlyph(Font* font, Uint16 text, int size,
+    Glyph renderGlyph(Font* font, Uint16 text, int size,
                              float x_fractional_part);
     void drawGlyph(SDL_Surface* dst_surface, Fontinfo* info, SDL_Color &color,
                    wchar unicode, float x, int y, bool shadow_flag,

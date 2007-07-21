@@ -432,13 +432,11 @@ PonscripterLabel::PonscripterLabel()
     fullscreen_mode = false;
     window_mode     = false;
     skip_to_wait    = 0;
-    glyph_surface   = 0;
 }
 
 
 PonscripterLabel::~PonscripterLabel()
 {
-    if (glyph_surface) SDL_FreeSurface(glyph_surface);
     reset();
 }
 

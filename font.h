@@ -1,4 +1,4 @@
-/*
+/* -*- c++ -*-
    C++ Freetype rendering code.
    Copyright 2006 Peter Jolly.
 
@@ -34,6 +34,30 @@ extern bool subpixel;
 
 struct FontInternals;
 
+struct Glyph {
+    SDL_Surface* bitmap;
+    float left, top;
+
+    Glyph() : bitmap(NULL), left(0), top(0) {}
+    
+    Glyph(const Glyph& other) :
+	bitmap(other.bitmap), left(other.left), top(other.top)
+    {
+	++bitmap->refcount;
+    }
+
+    Glyph& operator= (const Glyph& other) {
+	++other.bitmap->refcount;
+	if (bitmap) SDL_FreeSurface(bitmap);
+	bitmap = other.bitmap;
+	left = other.left;
+	top = other.top;
+	return *this;
+    }
+
+    ~Glyph() { if (bitmap) SDL_FreeSurface(bitmap); }
+};
+
 class Font {
     FontInternals* priv;
 public:
@@ -47,7 +71,7 @@ public:
     void get_metrics(Uint16 ch, float* minx, float* maxx, float* miny, float* maxy);
 
     void set_size(int val);
-    SDL_Surface* render_glyph(Uint16 ch, SDL_Color fg, SDL_Color bg, float x_fractional_part);
+    Glyph render_glyph(Uint16 ch, SDL_Color fg, SDL_Color bg, float x_fractional_part);
 
     int ascent();
     int lineskip();

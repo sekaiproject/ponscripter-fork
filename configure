@@ -40,6 +40,8 @@ SDL_CONFIG=sdl-config
 SMPEG_CONFIG=smpeg-config
 FREETYPE_CONFIG=freetype-config
 
+VERSION=`awk -F\" '/ONS_VERSION/ {print $2}' version.h`
+
 # Parse options
 prev=
 for opt
@@ -742,6 +744,26 @@ distclean: clean pdistclean \$(DISTCLEAN_TARGETS)
 
 install:
 	./install-sh -c -s \$(TARGET) \$(PREFIX)/bin/\$(TARGET)
+
+dist:
+	mkdir -p ~dist_temp/ponscripter-$VERSION
+	cp *.c *.cpp *.h BUGS CHANGES COPYING INSTALL README \
+	   Makefile.extlibs Makefile.ponscripter README.ponscripter.txt \
+	   default.ico default.png ponscr.rc config.ponscripter \
+	   configure config.guess config.sub install-sh \
+	   ~dist_temp/ponscripter-$VERSION/.
+	test -f config.ponscripter.dist && cp config.ponscripter.dist \
+	           ~dist_temp/ponscripter-$VERSION/config.ponscripter
+	test -f README.dist && cp README.dist \
+	           ~dist_temp/ponscripter-$VERSION/README
+	tar cf ponscripter-$VERSION-src.tar ~dist_temp/ponscripter-$VERSION
+	bzip2 -9 ponscripter-$VERSION-src.tar
+	if svn export extlib ~dist_temp/ponscripter-$VERSION/extlib ; then \
+	tar cf ponscripter-$VERSION-fullsrc.tar ~dist_temp/ponscripter-$VERSION; \
+	bzip2 -9 ponscripter-$VERSION-fullsrc.tar; \
+	fi
+	rm -rf ~dist_temp
+
 _EOF
 
 if [ "$SYS" = "MinGW" ]

@@ -1,0 +1,8 @@
+# Place extra settings for custom builds in this file, which is
+# included in the make process automatically.
+
+# Example settings:
+
+#RCFILE = your_replacement_file.rc
+#RESOURCES = your_replacement_icon.png =icon.png
+#PSCFLAGS = -your -custom -compilation -flags

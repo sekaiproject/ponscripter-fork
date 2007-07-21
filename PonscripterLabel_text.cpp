@@ -25,20 +25,14 @@
 
 #include "PonscripterLabel.h"
 
-SDL_Surface*
+Glyph
 PonscripterLabel::renderGlyph(Font* font, Uint16 text, int size,
 			      float x_fractional_part)
 {
-    if (glyph_surface) {
-        SDL_FreeSurface(glyph_surface);
-        glyph_surface = NULL;
-    }
-
     font->set_size(size);
     static SDL_Color fcol = { 0xff, 0xff, 0xff }, bcol = { 0, 0, 0 };
-    glyph_surface = font->render_glyph(text, fcol, bcol, x_fractional_part);
-
-    return glyph_surface;
+    current_glyph = font->render_glyph(text, fcol, bcol, x_fractional_part);
+    return current_glyph;
 }
 
 
@@ -55,35 +49,40 @@ PonscripterLabel::drawGlyph(SDL_Surface* dst_surface, Fontinfo* info,
 
     info->font()->get_metrics(unicode, &minx, NULL, NULL, &maxy);
 
-    SDL_Surface* tmp_surface = renderGlyph(info->font(), unicode, sz,
-					   x + minx - floor(x + minx));
+    Glyph g = renderGlyph(info->font(), unicode, sz,
+			  x + minx - floor(x + minx));
     bool rotate_flag = false;
 
-    dst_rect.x = int (floor(x + minx));
-    dst_rect.y = y + info->font()->ascent() - int (floor(maxy));
+    if (g.bitmap) {
+	minx = g.left;
+	maxy = g.top;
+    }
+    
+    dst_rect.x = int(floor(x + minx));
+    dst_rect.y = y + info->font()->ascent() - int(ceil(maxy));
 
     if (shadow_flag) {
         dst_rect.x += shade_distance[0];
         dst_rect.y += shade_distance[1];
     }
 
-    if (tmp_surface) {
-        dst_rect.w = tmp_surface->w;
-        dst_rect.h = tmp_surface->h;
+    if (g.bitmap) {
+        dst_rect.w = g.bitmap->w;
+        dst_rect.h = g.bitmap->h;
 
         if (cache_info == &text_info) {
             // When rendering text
-            cache_info->blendBySurface(tmp_surface, dst_rect.x, dst_rect.y,
+            cache_info->blendBySurface(g.bitmap, dst_rect.x, dst_rect.y,
 				       color, clip);
             cache_info->blendOnSurface(dst_surface, 0, 0, dst_rect);
         }
         else {
             if (cache_info)
-                cache_info->blendBySurface(tmp_surface, dst_rect.x, dst_rect.y,
+                cache_info->blendBySurface(g.bitmap, dst_rect.x, dst_rect.y,
 					   color, clip);
 
             if (dst_surface)
-                alphaBlend32(dst_surface, dst_rect, tmp_surface, color, clip,
+                alphaBlend32(dst_surface, dst_rect, g.bitmap, color, clip,
 			     rotate_flag);
         }
     }

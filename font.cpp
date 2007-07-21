@@ -189,12 +189,12 @@ void Font::get_metrics(Uint16 ch, float* minx, float* maxx, float* miny, float* 
     if (minx) *minx = hbx;
 
     if (maxx) {
-        *maxx = hbx + float (metrics.width) / 64.0;
+        *maxx = hbx + float(metrics.width) / 64.0;
         if (!subpixel) *maxx = ceil(*maxx);
     }
 
     if (miny) {
-        *miny = hby + float (metrics.height) / 64.0;
+        *miny = hby + float(metrics.height) / 64.0;
         if (!subpixel) *miny = ceil(*miny);
     }
 
@@ -247,27 +247,30 @@ void Font::set_size(int val)
 }
 
 
-SDL_Surface* Font::render_glyph(Uint16 ch, SDL_Color fg, SDL_Color bg, float x_fractional_part)
+Glyph Font::render_glyph(Uint16 ch, SDL_Color fg, SDL_Color bg, float x_fractional_part)
 {
+    Glyph rv;
     FT_Vector v;
     v.x = subpixel ? FT_Pos(x_fractional_part * 64.0) : 0;
     v.y = 0;
     FT_Set_Transform(priv->face, 0, &v);
 
     FT_GlyphSlot glyph = priv->load_glyph(ch);
-    if (priv->err) return NULL;
+    if (priv->err) return rv;
 
     FT_Error err = FT_Render_Glyph(glyph, render_mode());
-    if (err) return NULL;
+    if (err) return rv;
 
-    SDL_Surface* rv = SDL_CreateRGBSurface(SDL_SWSURFACE,
+    rv.bitmap = SDL_CreateRGBSurface(SDL_SWSURFACE,
                           glyph->bitmap.width, glyph->bitmap.rows,
                           8, 0, 0, 0, 0);
-    if (!rv) return NULL;
+    if (!rv.bitmap) return rv;
+    rv.left = glyph->bitmap_left;
+    rv.top = glyph->bitmap_top;
 
     // Fill palette with 256 shades interpolating between foreground
     // and background colours.
-    SDL_Palette* pal = rv->format->palette;
+    SDL_Palette* pal = rv.bitmap->format->palette;
     int dr = fg.r - bg.r;
     int dg = fg.g - bg.g;
     int db = fg.b - bg.b;
@@ -279,15 +282,15 @@ SDL_Surface* Font::render_glyph(Uint16 ch, SDL_Color fg, SDL_Color bg, float x_f
 
     // Copy the character from the pixmap
     Uint8* src = (Uint8*) glyph->bitmap.buffer;
-    SDL_LockSurface(rv);
-    Uint8* dst = (Uint8*) rv->pixels;
-    for (int row = 0; row < rv->h; ++row) {
+    SDL_LockSurface(rv.bitmap);
+    Uint8* dst = (Uint8*) rv.bitmap->pixels;
+    for (int row = 0; row < rv.bitmap->h; ++row) {
         memcpy(dst, src, glyph->bitmap.pitch);
         src += glyph->bitmap.pitch;
-        dst += rv->pitch;
+        dst += rv.bitmap->pitch;
     }
 
-    SDL_UnlockSurface(rv);
+    SDL_UnlockSurface(rv.bitmap);
 
     return rv;
 }

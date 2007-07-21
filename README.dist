@@ -1,8 +1,7 @@
 CONTENTS
 
 1. Overview
-2. Compatibility
-3. Acknowledgements
+2. Acknowledgements
 
 
 --- OVERVIEW
@@ -57,32 +56,6 @@ Also, do NOT report bugs or problems you encounter to ogapee.  I have
 fiddled around with the source code to the extent that many critical
 parts are unrecognisably changed.  It is incredibly unlikely that any
 bugs you find are anything to do with ogapee.
-
-
---- COMPATIBILITY
-
-Ponscripter has been tested extensively on the following primary
-platforms:
-*********** THIS IS NOT TRUE. ! at bol indicates untested platforms.
-
-* Ubuntu 7.04     x86_64 (primary development platform)
-!* OS X 10.3      PPC
-!* Windows 2000
-!* Windows Vista  i386
-
-It has also been tried on the following secondary platforms, which
-gives me confidence that it is at least reasonably portable:
-
-!* Ubuntu 7.04    i386
-!* Fedora 7       x86_64
-!* Solaris 10     x86_64
-!* FreeBSD 6.2    x86_64
-!* OpenBSD 4.1    i386
-!* NetBSD 3.1     x86_64
-
-The only compiler that has been tested extensively is g++ (in the case
-of Windows, the MinGW version), though I have confirmed that icc is
-capable of building an executable that seems to work.
 
 
 --- ACKNOWLEDGEMENTS

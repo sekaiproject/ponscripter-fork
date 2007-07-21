@@ -74,6 +74,7 @@ encoding$(OBJSUFFIX): defs.h pstring.h encoding.h
 cp932_encoding$(OBJSUFFIX): pstring.h encoding.h cp932_tables.h
 expression$(OBJSUFFIX): $(PONSCR_HEADER)
 pstring$(OBJSUFFIX): $(PONSCR_HEADER)
+font$(OBJSUFFIX): font.h
 
 ifndef NO_DEFAULT_ICON
 RESOURCES ?= default.png =icon.png

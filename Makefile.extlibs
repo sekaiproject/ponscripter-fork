@@ -82,8 +82,9 @@ $(SDLISRC)/Makefile: $(if $(INTERNAL_SDL),$(EB)/sdl-config) \
 	@echo Configuring internal SDL_image...
 	@cd $(SDLISRC) && \
 	./configure --prefix="$(LPREFIX)" \
-	    $(addprefix --disable-,shared lbm pcx pnm tga xcf xv \
-	    	                   $(if $(INTERNAL_LIBPNG),png-shared) $(if $(INTERNAL_LIBJPEG),jpg-shared)) \
+	    $(addprefix --disable-,shared lbm pcx pnm tga xcf xv tif \
+	    	                   $(if $(INTERNAL_LIBPNG),png-shared) \
+                                   $(if $(INTERNAL_LIBJPEG),jpg-shared)) \
 	    $(if $(REDIR),>/dev/null 2>temp.output)
 	@if [ -f temp.output ]; then \
 	    if grep -q 'PNG image loading disabled' temp.output; then exit 1; fi; \
