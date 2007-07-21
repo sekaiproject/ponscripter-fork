@@ -756,11 +756,14 @@ dist:
 	           ~dist_temp/ponscripter-$VERSION/config.ponscripter
 	test -f README.dist && cp README.dist \
 	           ~dist_temp/ponscripter-$VERSION/README
-	tar cf ponscripter-$VERSION-src.tar ~dist_temp/ponscripter-$VERSION
+	cd ~dist_temp; \
+	    tar cf ../ponscripter-$VERSION-src.tar ponscripter-$VERSION
 	bzip2 -9 ponscripter-$VERSION-src.tar
-	if svn export extlib ~dist_temp/ponscripter-$VERSION/extlib ; then \
-	tar cf ponscripter-$VERSION-fullsrc.tar ~dist_temp/ponscripter-$VERSION; \
-	bzip2 -9 ponscripter-$VERSION-fullsrc.tar; \
+	if svn export extlib ~dist_temp/ponscripter-$VERSION/extlib; then \
+	    cd ~dist_temp; \
+	    tar cf ../ponscripter-$VERSION-fullsrc.tar ponscripter-$VERSION; \
+	    cd ..; \
+	    bzip2 -9 ponscripter-$VERSION-fullsrc.tar; \
 	fi
 	rm -rf ~dist_temp
 
