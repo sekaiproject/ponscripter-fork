@@ -49,9 +49,9 @@ To put it another way, consider what you want:
   rewriting from scratch in Ren'Py.
 
 Note that Ponscripter is still very much a work in progress.  What
-little documentation there is can be found in the file
-"README.ponscripter".  If you use this, you do so at your own risk,
-and Haeleth will not be held liable for any damage that ensues.
+little documentation there is can be found in the file "MANUAL".  If
+you use this, you do so at your own risk, and Haeleth will not be held
+liable for any damage that ensues.
 
 Also, do NOT report bugs or problems you encounter to ogapee.  I have
 fiddled around with the source code to the extent that many critical

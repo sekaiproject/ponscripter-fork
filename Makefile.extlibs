@@ -148,7 +148,7 @@ $(SDLMSRC)/Makefile: $(if $(INTERNAL_SDL),$(EB)/sdl-config) \
 	@echo Configuring internal SDL_mixer...
 	@cd $(SDLMSRC) && \
 	./configure --prefix="$(LPREFIX)" $(SDL_MIXER_FLAGS) \
-	    $(addprefix --disable-,shared $(addprefix music-,cmd mod timidity-midi)) \
+	    $(addprefix --disable-,shared $(addprefix music-,cmd timidity-midi)) \
 	    $(REDIR)
 
 $(EL)/libSDL_mixer$(LIBSUFFIX): $(SDLMSRC)/Makefile

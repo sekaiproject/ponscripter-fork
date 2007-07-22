@@ -747,8 +747,8 @@ install:
 
 dist:
 	mkdir -p ~dist_temp/ponscripter-$VERSION
-	cp *.c *.cpp *.h BUGS CHANGES COPYING INSTALL README \
-	   Makefile.extlibs Makefile.ponscripter README.ponscripter.txt \
+	cp *.c *.cpp *.h BUGS CHANGES COPYING INSTALL README MANUAL \
+	   Makefile.extlibs Makefile.ponscripter \
 	   default.ico default.png ponscr.rc config.ponscripter \
 	   configure config.guess config.sub install-sh \
 	   ~dist_temp/ponscripter-$VERSION/.

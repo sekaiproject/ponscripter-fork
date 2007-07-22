@@ -116,24 +116,42 @@ Font* FontsStruct::font(int style)
 
         font_[style] = new Font(fpath.c_str(), metnam);
     }
-    else if ((len = ScriptHandler::cBR->getFileLength(mapping[style]))) {
-        Uint8 *data = new Uint8[len], *mdat = NULL;
-        ScriptHandler::cBR->getFile(mapping[style], data);
-        size_t mlen = 0;
-        if (metrics[style] &&
-	    (mlen = ScriptHandler::cBR->getFileLength(metrics[style]))) {
-            mdat = new Uint8[mlen];
-            ScriptHandler::cBR->getFile(metrics[style], mdat);
-        }
-
-        font_[style] = new Font(data, len, mdat, mlen);
-    }
     else {
-        const InternalResource *fres, *mres = NULL;
-        fres = getResource(mapping[style].c_str());
-        if (metrics[style]) mres = getResource(metrics[style].c_str());
-
-        if (fres) font_[style] = new Font(fres, mres);
+	fpath = path + "fonts" + DELIMITER + mapping[style];
+	fp = fopen(fpath.c_str(), "rb");
+	if (fp) {
+	    fclose(fp);
+	    string mpath;
+	    const char* metnam = NULL;
+	    if (metrics[style]) {
+		mpath = path + "fonts" + DELIMITER + metrics[style];
+		fp = fopen(mpath.c_str(), "rb");
+		if (fp) {
+		    metnam = mpath.c_str();
+		    fclose(fp);
+		}
+	    }
+	    font_[style] = new Font(fpath.c_str(), metnam);
+	}
+	else if ((len = ScriptHandler::cBR->getFileLength(mapping[style]))) {
+	    Uint8 *data = new Uint8[len], *mdat = NULL;
+	    ScriptHandler::cBR->getFile(mapping[style], data);
+	    size_t mlen = 0;
+	    if (metrics[style] &&
+		(mlen = ScriptHandler::cBR->getFileLength(metrics[style]))) {
+		mdat = new Uint8[mlen];
+		ScriptHandler::cBR->getFile(metrics[style], mdat);
+	    }
+	    
+	    font_[style] = new Font(data, len, mdat, mlen);
+	}
+	else {
+	    const InternalResource *fres, *mres = NULL;
+	    fres = getResource(mapping[style].c_str());
+	    if (metrics[style]) mres = getResource(metrics[style].c_str());
+	    
+	    if (fres) font_[style] = new Font(fres, mres);
+	}
     }
 
     // Fall back on default.ttf if no font was specified and
