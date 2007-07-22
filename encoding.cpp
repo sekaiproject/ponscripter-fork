@@ -133,6 +133,9 @@ UTF8Encoding::CharacterBytes(const char* string)
         // size codes
         if (c == 0x1f) return 2;
 
+	// tags disabled?
+	if (!UseTags()) return 1;
+	
         // extended codes
         if (c == '|') return t[1] == '|' ? 2 : 1 + CharacterBytes(string + 1);
 
@@ -160,6 +163,9 @@ UTF8Encoding::Decode(const char* string)
     const unsigned char* t = (const unsigned char*) string;
     const unsigned char  c = t[0];
     if (c < 0x80) {
+	// tags disabled?
+	if (!UseTags()) return c;
+
         if (c == '|') return (t[1] == '|') ? '|' : Decode(string + 1);
 
         const ligature& lig = GetLigatureRef(string);

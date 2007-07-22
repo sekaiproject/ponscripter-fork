@@ -325,6 +325,7 @@ public:
     size_type wsize() { return encoding->CharacterCount(c_str()); }
 
     // witerator: encoding-aware const iterator
+    // FIXME: by default this will expand ligatures in UTF-8 strings
     class witerator {
 	friend class string;
 	const char *min, *max, *pos;

@@ -1297,7 +1297,7 @@ int PonscripterLabel::parseLine()
 
 SDL_Surface* PonscripterLabel::loadImage(const string& file_name,
 					 bool* has_alpha)
-{
+{  
     if (!file_name) return 0;
     unsigned long length = ScriptHandler::cBR->getFileLength(file_name);
     if (length == 0) {

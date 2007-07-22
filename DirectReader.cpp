@@ -111,7 +111,7 @@ FILE* DirectReader::fileopen(string path, const char* mode)
     // How is <archive_path> encoded?  Probably in the OS filename encoding?
 
     string full_path = archive_path + path;
-
+    
     // If the file is trivially found, open it and return the handle.
     FILE* fp = fopen(full_path.c_str(), mode);
     if (fp) return fp;
@@ -127,8 +127,10 @@ FILE* DirectReader::fileopen(string path, const char* mode)
     if (full_path.back() == Delim) full_path.pop();
     
     // Get the constituent parts of the file path.
+    encoding->PushTagMode(false);
     string::vector parts = path.wsplit(Delim);
-
+    encoding->PopTagMode();
+    
     // Correct the case of each.
     for (string::vector::iterator it = parts.begin(); it != parts.end(); ++it) {
 	DIR* dp = opendir(full_path.c_str());
@@ -238,8 +240,10 @@ FILE* DirectReader::getFileHandle(string filename, int& compression_type,
 {
     FILE* fp;
     compression_type = NO_COMPRESSION;
+    encoding->PushTagMode(false);
     filename.replace(wchar('/'), encoding->Decode(DELIMITER));
     filename.replace(wchar('\\'), encoding->Decode(DELIMITER));
+    encoding->PopTagMode();
     *length = 0;
     if ((fp = fileopen(filename, "rb")) != NULL && filename.size() >= 3) {
         compression_type = getRegisteredCompressionType(filename);

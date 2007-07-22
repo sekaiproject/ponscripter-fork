@@ -26,6 +26,7 @@
 
 typedef unsigned short wchar;
 
+#include <stack>
 #include "stdio.h"
 #include "pstring.h"
 
@@ -43,11 +44,15 @@ void ClearLigatures();
 
 class Encoding {
     const char textchar;
-    const bool usetags;
     const char* name;
+    std::stack<bool> usetags;
 public:
     char TextMarker() const { return textchar; }
-    bool UseTags() const { return usetags; }
+    bool UseTags() const { return usetags.top(); }
+
+    void PushTagMode(bool ut) { usetags.push(ut); }
+    void PopTagMode() { usetags.pop(); }
+    
     virtual int CharacterBytes(const char* str) = 0;
     virtual wchar Decode(const char* str) = 0;
     virtual int Encode(wchar input, char* output) = 0;
@@ -61,7 +66,7 @@ public:
     const string which() const;
     
     Encoding(char tc, bool ut, const char* n)
-	: textchar(tc), usetags(ut), name(n) {}
+	: textchar(tc), name(n) { usetags.push(ut); }
     virtual ~Encoding() {}
 };
 
