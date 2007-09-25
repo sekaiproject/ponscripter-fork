@@ -527,45 +527,37 @@ int PonscripterLabel::sevolCommand(const string& cmd)
 }
 
 
-void PonscripterLabel::setwindowCore()
+void PonscripterLabel::DoSetwindow(PonscripterLabel::WindowDef& def)
 {
-    sentence_font.top_x  = script_h.readIntValue();
-    sentence_font.top_y  = script_h.readIntValue();
-    sentence_font.area_x = script_h.readIntValue();
-    sentence_font.area_y = script_h.readIntValue();
-    int s1 = script_h.readIntValue(), s2 = script_h.readIntValue();
-    sentence_font.set_size(s1 > s2 ? s1 : s2);
+    sentence_font.top_x  = def.left;
+    sentence_font.top_y  = def.top;
+    sentence_font.area_x = def.width;
+    sentence_font.area_y = def.height;
+    sentence_font.set_size(def.font_size);
     sentence_font.set_mod_size(0);
-    sentence_font.pitch_x   = script_h.readIntValue();
-    sentence_font.pitch_y   = script_h.readIntValue();
-    sentence_font.wait_time = script_h.readIntValue();
-    sentence_font.is_bold   = script_h.readIntValue();
-    sentence_font.is_shadow = script_h.readIntValue();
+    sentence_font.pitch_x   = def.pitch_x;
+    sentence_font.pitch_y   = def.pitch_y;
+    sentence_font.wait_time = def.speed;
+    sentence_font.is_bold   = def.bold;
+    sentence_font.is_shadow = def.shadow;
 
-    // Handle NScripter games: window size defined in characters
-    if (!script_h.is_ponscripter) {
-	sentence_font.area_x *= s1 + sentence_font.pitch_x;
-	sentence_font.area_y *= s2 + sentence_font.pitch_y;
-    }
-
-    string back = script_h.readStrValue();
     dirty_rect.add(sentence_font_info.pos);
     float r = float(screen_ratio1) / float(screen_ratio2);
-    if (back[0] == '#') {
+    if (def.backdrop[0] == '#') {
         sentence_font.is_transparent = true;
-        sentence_font.window_color = readColour(back);
-        sentence_font_info.pos.x = int(script_h.readIntValue() * r);
-        sentence_font_info.pos.y = int(script_h.readIntValue() * r);
-        sentence_font_info.pos.w = int(script_h.readIntValue() * r);
-        sentence_font_info.pos.h = int(script_h.readIntValue() * r);
+        sentence_font.window_color = readColour(def.backdrop);
+        sentence_font_info.pos.x = int(def.w_left   * r);
+        sentence_font_info.pos.y = int(def.w_top    * r);
+        sentence_font_info.pos.w = int(def.w_width  * r);
+        sentence_font_info.pos.h = int(def.w_height * r);
     }
     else {
         sentence_font.is_transparent = false;
-        sentence_font_info.setImageName(back);
+        sentence_font_info.setImageName(def.backdrop);
         parseTaggedString(&sentence_font_info);
         setupAnimationInfo(&sentence_font_info);
-        sentence_font_info.pos.x = int(script_h.readIntValue() * r);
-	sentence_font_info.pos.y = int(script_h.readIntValue() * r);
+        sentence_font_info.pos.x = int(def.w_left   * r);
+	sentence_font_info.pos.y = int(def.w_height * r);
 #if 0
         if (sentence_font_info.image_surface) {
             sentence_font_info.pos.w = int(sentence_font_info.image_surface->w * r);
@@ -575,6 +567,38 @@ void PonscripterLabel::setwindowCore()
 #endif
         sentence_font.window_color.set(0xff);
     }
+}
+
+
+void PonscripterLabel::setwindowCore()
+{
+    WindowDef wind;
+    string name    = script_h.readStrValue();
+    wind.left      = script_h.readIntValue();
+    wind.top       = script_h.readIntValue();
+    wind.width     = script_h.readIntValue();
+    wind.height    = script_h.readIntValue();
+    int size_1     = script_h.readIntValue();
+    int size_2     = script_h.readIntValue();
+    wind.font_size = size_1 > size_2 ? size_1 : size_2;
+    wind.pitch_x   = script_h.readIntValue();
+    wind.pitch_y   = script_h.readIntValue();
+    wind.speed     = script_h.readIntValue();
+    wind.bold      = script_h.readIntValue();
+    wind.shadow    = script_h.readIntValue();
+    wind.backdrop  = script_h.readStrValue();
+    wind.w_left    = script_h.readIntValue();
+    wind.w_top     = script_h.readIntValue(); 
+    wind.w_width   = script_h.hasMoreArgs() ? script_h.readIntValue() : 0;
+    wind.w_height  = script_h.hasMoreArgs() ? script_h.readIntValue() : 0;
+  
+    // Handle NScripter games: window size defined in characters
+    if (!script_h.is_ponscripter) {
+	wind.width  *= size_1 + wind.pitch_x;
+	wind.height *= size_2 + wind.pitch_y;
+    }
+
+    DoSetwindow(wind);
 }
 
 

@@ -124,6 +124,9 @@ public:
     /* ---------------------------------------- */
     /* Commands */
     // my extensions
+    int haeleth_speedpercentCommand(const string& cmd);
+    int haeleth_defwindowCommand(const string& cmd);
+    int haeleth_usewindowCommand(const string& cmd);
     int haeleth_text_extentCommand(const string& cmd);
     int haeleth_centre_lineCommand(const string& cmd);
     int haeleth_char_setCommand(const string& cmd);
@@ -558,6 +561,18 @@ private:
     AnimationInfo lookback_info[4];
 
     /* ---------------------------------------- */
+    /* Stored window related variables */
+    struct WindowDef {
+	typedef dictionary<string, WindowDef>::t dic;
+	int left, top, width, height,
+	    font_size, pitch_x, pitch_y,
+	    speed, bold, shadow;
+	string backdrop;
+	int w_left, w_top, w_width, w_height;
+    };
+    WindowDef::dic stored_windows;
+    
+    /* ---------------------------------------- */
     /* Text related variables */
     AnimationInfo text_info;
     AnimationInfo sentence_font_info;
@@ -567,9 +582,11 @@ private:
     int  textgosub_clickstr_state;
     int  indent_offset;
     int  line_enter_status; // 0 ... no enter, 1 ... pretext, 2 ... body
+    int  global_speed_modifier;
     Glyph current_glyph;
 
     int  refreshMode();
+    void DoSetwindow(WindowDef& def);
     void setwindowCore();
 
     Glyph renderGlyph(Font* font, Uint16 text, int size,

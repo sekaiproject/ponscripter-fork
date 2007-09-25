@@ -1,3 +1,12 @@
+2007-09-25
+
+  Implement h_defwindow, h_usewindow, h_usewindow3: create and use
+  predefined sets of window settings.
+
+  Implement h_speedpercent: adjust all font speed settings
+  proportionately with a single convenient command.
+
+
 2007-07-15
 
   Fix glyph positioning and a number of OS X build bugs.

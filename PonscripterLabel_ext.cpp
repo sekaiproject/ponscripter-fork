@@ -2,7 +2,7 @@
  *
  *  PonscripterLabel_ext.cpp - Ponscripter extensions to the NScripter API
  *
- *  Copyright (c) 2006 Peter Jolly
+ *  Copyright (c) 2006-7 Peter Jolly
  *
  *  haeleth@haeleth.net
  *
@@ -23,6 +23,79 @@
  */
 
 #include "PonscripterLabel.h"
+
+/* h_speedpercent <percent>
+ *
+ * Globally adjust all text speeds by <percent>; this conceptually
+ * operates on _output speed_, while text speeds are given as _delay
+ * times_, so the effect of this is that
+ *
+ *   h_speedpercent 50
+ *   !s10
+ *
+ * means
+ *
+ *   !s20
+ */
+int PonscripterLabel::haeleth_speedpercentCommand(const string& cmd)
+{
+    global_speed_modifier = script_h.readIntValue();
+    return RET_CONTINUE;
+}
+    
+/* h_defwindow <name>, <left>,<top>,<width>,<height>,<fontsize>,
+ *             <pitch_x>,<pitch_y>,<wait_time>,<bold>,<shadow>,
+ *             <background>,<bg_x>,<bg_y>[,<bg_w>,<bg_h>]
+ * h_usewindow <name>
+ * h_usewindow3 <name>
+ *
+ * h_defwindow defines <name> as a stored window style; the remaining
+ * parameters are the same as for the setwindow command, except that
+ * only one font size is given.
+ *
+ * h_usewindow* selects the stored style <name>, as though a setwindow*
+ * command with the given parameters had been issued.
+ */
+int PonscripterLabel::haeleth_defwindowCommand(const string& cmd)
+{
+    WindowDef wind;
+    string name    = script_h.readStrValue();
+    wind.left      = script_h.readIntValue();
+    wind.top       = script_h.readIntValue();
+    wind.width     = script_h.readIntValue();
+    wind.height    = script_h.readIntValue();
+    wind.font_size = script_h.readIntValue();
+    wind.pitch_x   = script_h.readIntValue();
+    wind.pitch_y   = script_h.readIntValue();
+    wind.speed     = script_h.readIntValue();
+    wind.bold      = script_h.readIntValue();
+    wind.shadow    = script_h.readIntValue();
+    wind.backdrop  = script_h.readStrValue();
+    wind.w_left    = script_h.readIntValue();
+    wind.w_top     = script_h.readIntValue(); 
+    wind.w_width   = script_h.hasMoreArgs() ? script_h.readIntValue() : 0;
+    wind.w_height  = script_h.hasMoreArgs() ? script_h.readIntValue() : 0;
+    stored_windows[name] = wind;
+    return RET_CONTINUE;
+}
+int PonscripterLabel::haeleth_usewindowCommand(const string& cmd)
+{
+    string name = script_h.readStrValue();
+    DoSetwindow(stored_windows[name]);
+
+    if (cmd == "h_usewindow") {
+	lookbackflushCommand("lookbackflush");
+    }
+    else /* h_usewindow3 */ {
+	clearCurrentTextBuffer();
+    }
+    indent_offset = 0;
+    line_enter_status = 0;
+    display_mode = NORMAL_DISPLAY_MODE;
+    flush(refreshMode(), &sentence_font_info.pos);
+
+    return RET_CONTINUE;
+}
 
 /* h_textextent <ivar>,<string>,[size_x],[size_y],[pitch_x]
  *

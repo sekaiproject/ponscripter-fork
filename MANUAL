@@ -435,7 +435,7 @@ text output window with the command
 
   setwindow 180,358,35,17,17,17,0,3,1,1,5,#ffffff,0,0,799,599
 
-In the English version using Ponscripter, this becomes
+In the English version using Ponscripter, this would become
 
   setwindow 150,358,540,240,19,19,0,0,1,1,5,#ffffff,0,0,799,599
 
@@ -443,6 +443,36 @@ The pertinent parts are the third and fourth numbers.  In the Japanese
 version, the third number is the width of the window in full-width
 characters, and the fourth is its height in lines.  In the English
 version, both width and height are specified in pixels.
+
+For the specific case of setwindow, however, there is now a better way
+to do this:
+
+/---------------------------------------------------------------------
+|  h_defwindow <name>, (definition)
+|  h_usewindow <name>
+
+Instead of defining the full window every time it changes, you should
+define your windows only once, and then refer back to those central
+definitions as appropriate.
+
+h_defwindow takes a name followed by the same parameters as setwindow,
+EXCEPT THAT only one font size parameter is given.  h_usewindow then
+refers back to this name.
+
+Currently no validation is performed on the name, so attempting to use
+a window that has not been defined will probably cause a horrible
+crash.  So don't do that.
+
+In other words, the way Narcissu 2 actually handles the setwindow
+example above is to include the line
+
+  h_defwindow "main", 150,358,540,240,19,0,0,1,1,5,#ffffff,0,0,799,599
+
+in the *define section, and then instead of setwindow commands, simply
+
+  h_usewindow "main"
+
+suffices.
 
 
 /---------------------------------------------------------------------

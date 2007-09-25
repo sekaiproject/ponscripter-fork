@@ -166,6 +166,10 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["h_mapfont"]        = &PonscripterLabel::haeleth_map_fontCommand;
     dict["h_rendering"]      = &PonscripterLabel::haeleth_hinting_modeCommand;
     dict["h_textextent"]     = &PonscripterLabel::haeleth_text_extentCommand;
+    dict["h_defwindow"]      = &PonscripterLabel::haeleth_defwindowCommand;
+    dict["h_usewindow"]      = &PonscripterLabel::haeleth_usewindowCommand;
+    dict["h_usewindow3"]     = &PonscripterLabel::haeleth_usewindowCommand;
+    dict["h_speedpercent"]   = &PonscripterLabel::haeleth_speedpercentCommand;
     dict["humanorder"]       = &PonscripterLabel::humanorderCommand;
     dict["indent"]           = &PonscripterLabel::indentCommand;
     dict["input"]            = &PonscripterLabel::inputCommand;
@@ -432,6 +436,7 @@ PonscripterLabel::PonscripterLabel()
     fullscreen_mode = false;
     window_mode     = false;
     skip_to_wait    = 0;
+    global_speed_modifier = 100;
 }
 
 

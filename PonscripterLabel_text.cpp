@@ -589,12 +589,14 @@ int PonscripterLabel::processText()
         }
         else {
             event_mode = WAIT_SLEEP_MODE;
+	    int wait_time;
             if (skip_to_wait == 1)
-                advancePhase(0);
+                wait_time = 0;
             else if (sentence_font.wait_time == -1)
-                advancePhase(default_text_speed[text_speed_no]);
+                wait_time = default_text_speed[text_speed_no];
             else
-                advancePhase(sentence_font.wait_time);
+                wait_time = sentence_font.wait_time;
+	    advancePhase(wait_time * 100 / global_speed_modifier);
 
             return RET_WAIT | RET_NOREAD;
         }
