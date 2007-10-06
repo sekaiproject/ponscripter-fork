@@ -337,7 +337,7 @@ int PonscripterLabel::loadSaveFile2(SaveFileType file_type, int file_version)
 		  false, MIX_LOOPBGM_CHANNEL0);
     }
 
-    if (file_version >= 201) {
+    if (file_type != Ponscripter && file_version >= 201) {
 	// Ruby support has been stripped out.
 	readInt();
 	readInt();
@@ -390,7 +390,6 @@ int PonscripterLabel::loadSaveFile2(SaveFileType file_type, int file_version)
     i = readInt();
     current_label_info = script_h.getLabelByLine(i);
     current_line = i - current_label_info.start_line;
-    //printf("load %d:%d(%d-%d)\n", current_label_info.start_line, current_line, i, current_label_info.start_line);
     const char* buf = script_h.getAddressByLine(i);
 
     j = readInt();
@@ -622,10 +621,10 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
     writeStr(loop_bgm_name[1], output_flag);
 
     // Ruby is gone, gone, gone.
-    writeInt(0, output_flag);
-    writeInt(0, output_flag);
-    writeInt(0, output_flag);
-    writeStr("", output_flag);
+    //writeInt(0, output_flag);
+    //writeInt(0, output_flag);
+    //writeInt(0, output_flag);
+    //writeStr("", output_flag);
 
     writeInt(0, output_flag);
 
@@ -672,8 +671,8 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
     writeInt(0, output_flag);
 
     writeInt(current_label_info.start_line + current_line, output_flag);
-    const char* buf = script_h.getAddressByLine(current_label_info.start_line + current_line);
-    //printf("save %d:%d\n", current_label_info.start_line, current_line);
+    const char* buf = script_h.getAddressByLine(current_label_info.start_line +
+						current_line);
 
     i = 0;
     if (!script_h.isText()) {
