@@ -4,6 +4,8 @@ to other titles.
 
 MAJOR BUGS
 
+* @ mid-line doesn't work (and I could've sworn I tested it! ;_;)
+
 * Movie playback doesn't work?
 
 * Some fades repeat randomly (doesn't happen in Linux, does in
