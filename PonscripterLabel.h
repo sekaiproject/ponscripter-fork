@@ -763,12 +763,14 @@ private:
 
     /* ---------------------------------------- */
     /* File I/O */
+    enum SaveFileType { NScripter, ONScripter, Ponscripter };
+    
     void searchSaveFile(SaveFileInfo &info, int no);
     int  loadSaveFile(int no);
     void saveMagicNumber(bool output_flag);
     int  saveSaveFile(int no);
 
-    int  loadSaveFile2(int file_version);
+    int  loadSaveFile2(SaveFileType file_type, int file_version);
     void saveSaveFile2(bool output_flag);
 
     /* ---------------------------------------- */

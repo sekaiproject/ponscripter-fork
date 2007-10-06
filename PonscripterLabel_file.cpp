@@ -41,9 +41,8 @@ extern "C" void c2pstrcpy(Str255 dst, const char* src);
 #include <pspiofilemgr.h>
 #endif
 
-#define SAVEFILE_MAGIC_NUMBER "ONS"
 #define SAVEFILE_VERSION_MAJOR 2
-#define SAVEFILE_VERSION_MINOR 4
+#define SAVEFILE_VERSION_MINOR 5
 
 #define READ_LENGTH 4096
 
@@ -127,15 +126,19 @@ int PonscripterLabel::loadSaveFile(int no)
         return -1;
     }
 
-    int i, j, k, address;
     int file_version;
 
     /* ---------------------------------------- */
     /* Load magic number */
-    for (i = 0; i < (int) strlen(SAVEFILE_MAGIC_NUMBER); i++)
-        if (readChar() != SAVEFILE_MAGIC_NUMBER[i]) break;
-
-    if (i != (int) strlen(SAVEFILE_MAGIC_NUMBER)) { // if not ONS save file
+    SaveFileType file_type = NScripter;
+    int c = readChar();
+    if (c == 'O' || c == 'P') {
+	int d = readChar();
+	if (d == 'N' && readChar() == 'S')
+	    file_type = c == 'O' ? ONScripter : Ponscripter;
+    }
+    
+    if (file_type == NScripter) { // if not ONS save file
         file_io_buf_ptr = 0;
         // check for ONS version 0
         bool ons_ver0_flag = readInt() != 1;
@@ -153,9 +156,11 @@ int PonscripterLabel::loadSaveFile(int no)
 
         file_io_buf_ptr = 0;
         if (!ons_ver0_flag) {
-            return loadSaveFile2(SAVEFILE_VERSION_MAJOR * 100 + SAVEFILE_VERSION_MINOR);
+            return loadSaveFile2(file_type, SAVEFILE_VERSION_MAJOR * 100 +
+				 SAVEFILE_VERSION_MINOR);
         }
 
+	file_type = ONScripter;
         file_version = 0;
     }
     else {
@@ -169,331 +174,19 @@ int PonscripterLabel::loadSaveFile(int no)
     }
 
     if (file_version >= 200)
-        return loadSaveFile2(file_version);
+        return loadSaveFile2(file_type, file_version);
 
-    deleteNestInfo();
-
-    /* ---------------------------------------- */
-    /* Load text history */
-    sentence_font.setTateYoko(file_version >= 107 ? readInt() : 0);
-
-    int text_history_num = readInt();
-    for (i = 0; i < text_history_num; i++) {
-        int num_xy[2];
-        num_xy[0] = readInt();
-        num_xy[1] = readInt();
-        int xy[2];
-        xy[0] = readInt();
-        xy[1] = readInt();
-        current_text_buffer->clear();
-
-        char ch1, ch2;
-        for (j = 0, k = 0; j < num_xy[0] * num_xy[1]; j++) {
-            ch1 = readChar();
-            ch2 = readChar();
-            if ((unsigned char) ch1 == 0x81 && (unsigned char) ch2 == 0x40) {
-                k += 2;
-            }
-            else {
-                if (ch1) {
-                    current_text_buffer->addBuffer(ch1);
-                    k++;
-                }
-
-                if (ch1 & 0x80 || ch2) {
-                    current_text_buffer->addBuffer(ch2);
-                    k++;
-                }
-            }
-
-            if (k >= num_xy[0] * 2) {
-                current_text_buffer->addBuffer(0x0a);
-                k = 0;
-            }
-        }
-
-        current_text_buffer = current_text_buffer->next;
-        if (i == 0) {
-            for (j = 0; j < max_text_buffer - text_history_num; j++)
-                current_text_buffer = current_text_buffer->next;
-
-            start_text_buffer = current_text_buffer;
-        }
-    }
-
-    /* ---------------------------------------- */
-    /* Load sentence font */
-    j = readInt();
-    sentence_font.set_size(readInt());
-    if (file_version >= 100) {
-        sentence_font.set_mod_size(readInt());
-    }
-    else {
-        sentence_font.set_mod_size(0);
-    }
-
-    sentence_font.top_x  = readInt();
-    sentence_font.top_y  = readInt();
-    sentence_font.area_x = readInt();
-    sentence_font.area_y = readInt();
-    const int px = readInt();
-    sentence_font.SetXY(px, readInt());
-    sentence_font.pitch_x   = readInt();
-    sentence_font.pitch_y   = readInt();
-    sentence_font.wait_time = readInt();
-    sentence_font.is_bold   = readInt() == 1;
-    sentence_font.is_shadow = readInt() == 1;
-    sentence_font.is_transparent = readInt() == 1;
-
-// FIXME: not sure what this does, but it'll be broken.
-// Actually, looking at it, it doesn't appear to be essential...?
-//    const char *buffer = current_text_buffer->contents.c_str();
-//    int count = current_text_buffer->contents.size();
-//    for (j=0, k=0, i=0 ; i<count ; i++){
-//        if (j == sentence_font.pos_y &&
-//            (k > sentence_font.pos_x ||
-//             buffer[i] == 0x0a)) break;
-//
-//        if (buffer[i] == 0x0a){
-//            j+=2;
-//            k=0;
-//        }
-//        else
-//            k++;
-//    }
-//    current_text_buffer->buffer2_count = i;
-
-    /* Dummy, must be removed later !! */
-    for (i = 0; i < 8; i++) {
-        j = readInt();
-        //sentence_font.window_color[i] = j;
-    }
-
-    /* Should be char, not integer !! */
-    sentence_font.window_color.r = readInt();
-    sentence_font.window_color.g = readInt();
-    sentence_font.window_color.b = readInt();
-    
-    sentence_font_info.image_name = readStr();
-
-    sentence_font_info.pos.x = readInt() * screen_ratio1 / screen_ratio2;
-    sentence_font_info.pos.y = readInt() * screen_ratio1 / screen_ratio2;
-    sentence_font_info.pos.w = readInt() * screen_ratio1 / screen_ratio2;
-    sentence_font_info.pos.h = readInt() * screen_ratio1 / screen_ratio2;
-
-    if (!sentence_font.is_transparent) {
-        parseTaggedString(&sentence_font_info);
-        setupAnimationInfo(&sentence_font_info);
-    }
-
-    clickstr_state = readInt();
-    new_line_skip_flag = readInt() == 1;
-    if (file_version >= 103) {
-        erase_text_window_mode = readInt();
-    }
-
-    /* ---------------------------------------- */
-    /* Load link label info */
-
-    int offset = 0;
-    while (1) {
-        current_label_info = script_h.lookupLabel(readStr());
-
-        current_line = readInt() + 2;
-        const char* buf = current_label_info.label_header;
-        while (buf < current_label_info.start_address) {
-            if (*buf == 0x0a) current_line--;
-
-            buf++;
-        }
-
-        offset = readInt();
-
-        script_h.setCurrent(current_label_info.label_header);
-        script_h.skipLine(current_line);
-
-        if (file_version <= 104) {
-            if (file_version >= 102)
-                readInt();
-
-            address = readInt();
-        }
-        else {
-            offset += readInt();
-        }
-
-        if (readChar() == 0) break;
-
-	nest_infos.push_back(NestInfo(script_h,
-				      script_h.getCurrent() + offset));
-    }
-    script_h.setCurrent(script_h.getCurrent() + offset);
-
-    int tmp_event_mode = readChar();
-
-    /* ---------------------------------------- */
-    /* Load variables */
-    readVariables(0, 200);
-
-    /* ---------------------------------------- */
-    /* Load monocro flag */
-    monocro_flag = readChar() == 1;
-    if (file_version >= 101) {
-        monocro_flag = readChar() == 1;
-    }
-
-    monocro_color.r = readChar();
-    monocro_color.g = readChar();
-    monocro_color.b = readChar();
-    
-    if (file_version >= 101) {
-	monocro_color.r = readChar();
-	monocro_color.g = readChar();
-	monocro_color.b = readChar();
-
-        readChar(); // obsolete, need_refresh_flag
-    }
-
-    for (i = 0; i < 256; i++) {
-        monocro_color_lut[i].r = (monocro_color.r * i) >> 8;
-        monocro_color_lut[i].g = (monocro_color.g * i) >> 8;
-        monocro_color_lut[i].b = (monocro_color.b * i) >> 8;
-    }
-
-    /* Load nega flag */
-    if (file_version >= 104) {
-        nega_mode = (unsigned char) readChar();
-    }
-
-    /* ---------------------------------------- */
-    /* Load current images */
-    bg_info.remove();
-    bg_info.color.r = (unsigned char) readChar();
-    bg_info.color.g = (unsigned char) readChar();
-    bg_info.color.b = (unsigned char) readChar();
-    bg_info.num_of_cells = 1;
-    bg_info.file_name = readStr();
-    setupAnimationInfo(&bg_info);
-    bg_effect_image = (EFFECT_IMAGE) readChar();
-
-    if (bg_effect_image == COLOR_EFFECT_IMAGE) {
-        bg_info.allocImage(screen_width, screen_height);
-        bg_info.fill(bg_info.color, 0xff);
-        bg_info.pos.x = 0;
-        bg_info.pos.y = 0;
-    }
-
-    bg_info.trans_mode = AnimationInfo::TRANS_COPY;
-
-    for (i = 0; i < 3; i++)
-        tachi_info[i].remove();
-
-    for (i = 0; i < MAX_SPRITE_NUM; i++)
-        sprite_info[i].remove();
-
-    /* ---------------------------------------- */
-    /* Load Tachi image and Sprite */
-    for (i = 0; i < 3; i++) {
-        tachi_info[i].image_name = readStr();
-        if (tachi_info[i].image_name) {
-            parseTaggedString(&tachi_info[i]);
-            setupAnimationInfo(&tachi_info[i]);
-            tachi_info[i].pos.x = screen_width * (i + 1) / 4 - tachi_info[i].pos.w / 2;
-            tachi_info[i].pos.y = underline_value - tachi_info[i].image_surface->h + 1;
-        }
-    }
-
-    /* ---------------------------------------- */
-    /* Load current sprites */
-    for (i = 0; i < 256; i++) {
-        sprite_info[i].visible = readInt() == 1;
-        sprite_info[i].pos.x = readInt() * screen_ratio1 / screen_ratio2;
-        sprite_info[i].pos.y = readInt() * screen_ratio1 / screen_ratio2;
-        sprite_info[i].trans = readInt();
-        sprite_info[i].image_name = readStr();
-        if (sprite_info[i].image_name) {
-            parseTaggedString(&sprite_info[i]);
-            setupAnimationInfo(&sprite_info[i]);
-        }
-    }
-
-    /* ---------------------------------------- */
-    /* Load current playing CD track */
-    stopCommand("stop");
-    loopbgmstopCommand("loopbgmstop");
-
-    current_cd_track = (Sint8) readChar();
-    bool play_once_flag = readChar() == 1;
-    if (current_cd_track == -2) {
-        midi_file_name = readStr();
-        midi_play_loop_flag = !play_once_flag;
-        music_file_name.clear();
-        music_play_loop_flag = false;
-    }
-    else {
-        music_file_name = readStr();
-        if (music_file_name) {
-            music_play_loop_flag = !play_once_flag;
-            cd_play_loop_flag = false;
-        }
-        else {
-            music_play_loop_flag = false;
-            cd_play_loop_flag = !play_once_flag;
-        }
-
-        midi_file_name.clear();
-        midi_play_loop_flag = false;
-    }
-
-    if (current_cd_track >= 0) {
-        playCDAudio();
-    }
-    else if (midi_file_name && midi_play_loop_flag) {
-        playSound(midi_file_name, SOUND_MIDI, midi_play_loop_flag);
-    }
-    else if (music_file_name && music_play_loop_flag) {
-        playSound(music_file_name,
-            SOUND_WAVE | SOUND_OGG_STREAMING | SOUND_MP3,
-            music_play_loop_flag, MIX_BGM_CHANNEL);
-    }
-
-    /* ---------------------------------------- */
-    /* Load rmode flag */
-    rmode_flag = readChar() == 1;
-
-    /* ---------------------------------------- */
-    /* Load text on flag */
-    text_on_flag = readChar() == 1;
-
-    restoreTextBuffer();
-    num_chars_in_sentence = 0;
-    cached_text_buffer = current_text_buffer;
-
-    display_mode = shelter_display_mode = TEXT_DISPLAY_MODE;
-
-    event_mode = tmp_event_mode;
-    if (event_mode & WAIT_BUTTON_MODE) event_mode = WAIT_SLEEP_MODE;
-
-    // Re-execute the selectCommand, etc.
-
-    if (event_mode & WAIT_SLEEP_MODE)
-        event_mode &= ~WAIT_SLEEP_MODE;
-    else
-        event_mode |= WAIT_TIMER_MODE;
-
-    if (event_mode & WAIT_INPUT_MODE) event_mode |= WAIT_TEXT_MODE;
-
-    draw_cursor_flag = clickstr_state != CLICK_NONE;
-
-    return 0;
+    fprintf(stderr, "Old ONScripter save files are not supported. Please use "
+	    "ONScripter to finish your game, or start over.\n");
+    return -1;
 }
 
 
 void PonscripterLabel::saveMagicNumber(bool output_flag)
 {
-    for (unsigned int i = 0; i < strlen(SAVEFILE_MAGIC_NUMBER); i++)
-        writeChar(SAVEFILE_MAGIC_NUMBER[i], output_flag);
-
+    writeChar('P', output_flag);
+    writeChar('N', output_flag);
+    writeChar('S', output_flag);
     writeChar(SAVEFILE_VERSION_MAJOR, output_flag);
     writeChar(SAVEFILE_VERSION_MINOR, output_flag);
 }
@@ -524,7 +217,7 @@ int PonscripterLabel::saveSaveFile(int no)
             return -1;
         }
 
-        size_t magic_len = strlen(SAVEFILE_MAGIC_NUMBER) + 2;
+        size_t magic_len = 5;
 	filename = "sav";
 	filename += DELIMITER;
 	filename += "save" + str(no) + ".dat";
