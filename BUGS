@@ -5,6 +5,7 @@ to other titles.
 MAJOR BUGS
 
 * @ mid-line doesn't work (and I could've sworn I tested it! ;_;)
+  Ah, probably a textgosub issue.
 
 * Movie playback doesn't work?
 
