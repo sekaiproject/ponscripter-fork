@@ -181,13 +181,19 @@ readTokenTop:
                 }
 
                 if (ch >= '0' && ch <= '9' &&
-		    (*buf == ' ' || *buf == '\t' || *buf == encoding->TextMarker()) &&
+		    (*buf == ' ' || *buf == '\t' ||
+		     *buf == encoding->TextMarker()) &&
 		    string_buffer.size() % 2)
+		{
 		    string_buffer += ' ';
+		}
 
                 ch = *buf;
-                if (ch == 0x0a || ch == '\0' || !loop_flag || ch == encoding->TextMarker())
+                if (ch == 0x0a || ch == '\0' || !loop_flag ||
+		    ch == encoding->TextMarker())
+		{
 		    break;
+		}
 
                 SKIP_SPACE(buf);
                 ch = *buf;
@@ -209,7 +215,7 @@ readTokenTop:
                 ch = *buf;
                 break;
             }
-
+   
             if (encoding->UseTags() && ch == '~' && (ch = *++buf) != '~') {
                 while (ch != '~') {
                     int l;

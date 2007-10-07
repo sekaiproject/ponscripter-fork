@@ -46,12 +46,13 @@ class Encoding {
     const char textchar;
     const char* name;
     std::stack<bool> usetags;
+    bool tagscurr;
 public:
     char TextMarker() const { return textchar; }
-    bool UseTags() const { return usetags.top(); }
+    bool UseTags() const { return tagscurr; }
 
-    void PushTagMode(bool ut) { usetags.push(ut); }
-    void PopTagMode() { usetags.pop(); }
+    void PushTagMode(bool ut) { usetags.push(tagscurr = ut); }
+    void PopTagMode() { usetags.pop(); tagscurr = usetags.top(); }
     
     virtual int CharacterBytes(const char* str) = 0;
     virtual wchar Decode(const char* str) = 0;

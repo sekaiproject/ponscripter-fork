@@ -985,7 +985,6 @@ int PonscripterLabel::puttextCommand(const string& cmd)
     string s = script_h.readStrValue() + "\n";
     if (s[0] == encoding->TextMarker()) s.shift();
 
-    // FIXME: processText() should take the text to process as a parameter
     script_h.getStringBuffer() = s;
     string_buffer_offset = 0;
     ret = processText();

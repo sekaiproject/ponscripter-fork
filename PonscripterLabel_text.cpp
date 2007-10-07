@@ -486,8 +486,9 @@ int PonscripterLabel::processText()
                     string_buffer_offset++;
                 }
                 sentence_font.wait_time = t;
-                while (script_h.getStringBuffer()[string_buffer_offset] == ' '
-                       || script_h.getStringBuffer()[string_buffer_offset] == '\t') string_buffer_offset++;
+                while (script_h.getStringBuffer()[string_buffer_offset] == ' '||
+                       script_h.getStringBuffer()[string_buffer_offset] == '\t')
+		    string_buffer_offset++;
             }
         }
         else if (script_h.getStringBuffer()[string_buffer_offset] == 'w'
