@@ -262,11 +262,13 @@ public:
 
     // Non-case-sensitive comparisons (encoding-aware)
     int wicompare(size_type pos, size_type n, const string& s,
-		 size_type pos1, size_type n1) const {
+		  size_type pos1, size_type n1) const {
+	const size_t len = n > c.size() ? c.size() : n,
+	             len1 = n1 > s.c.size() ? s.c.size() : n1;
 	const char *a1 = c.c_str() + pos,
-	           *a2 = c.c_str() + (n > c.size() ? c.size() : n),
+	           *a2 = c.c_str() + len,
 		   *b1 = s.c.c_str() + pos1,
-		   *b2 = s.c.c_str() + (n1 > s.c.size() ? s.c.size() : n1);
+		   *b2 = s.c.c_str() + len1;
 	while (a1 < a2 && b1 < b2) {
 	    wchar ac = encoding->Decode(a1);
 	    wchar bc = encoding->Decode(b1);
@@ -277,7 +279,7 @@ public:
 	    a1 += encoding->CharacterBytes(a1);
 	    b1 += encoding->CharacterBytes(b1);
 	}
-	return 0;
+	return len - len1;
     }
     int wicompare(const string& s) const
 	{ return wicompare(0, npos, s, 0, npos); }

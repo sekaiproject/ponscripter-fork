@@ -184,6 +184,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["locate"]           = &PonscripterLabel::locateCommand;
     dict["logsp"]            = &PonscripterLabel::logspCommand;
     dict["logsp2"]           = &PonscripterLabel::logspCommand;
+    dict["logsp2utf"]        = &PonscripterLabel::logspCommand;
     dict["lookbackbutton"]   = &PonscripterLabel::lookbackbuttonCommand;
     dict["lookbackflush"]    = &PonscripterLabel::lookbackflushCommand;
     dict["loopbgm"]          = &PonscripterLabel::loopbgmCommand;

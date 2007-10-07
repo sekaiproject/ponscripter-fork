@@ -7,6 +7,13 @@ MAJOR BUGS
 * @ mid-line doesn't work (and I could've sworn I tested it! ;_;)
   Ah, probably a textgosub issue.
 
+* The whole program is fundamentally broken in many ways.  For
+  example, Narcissu 2's text display is unexpectedly incredibly slow,
+  with a 2-second pause before some lines that doesn't happen in older
+  versions -- possibly introduced unwittingly during the STL
+  makeover.  It's not clear exactly where the problem lies, or whether
+  it can be fixed at all...
+
 * Movie playback doesn't work?
 
 * Some fades repeat randomly (doesn't happen in Linux, does in

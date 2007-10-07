@@ -174,13 +174,16 @@ int SarReader::getNumFiles()
 
 int SarReader::getIndexFromFile(ArchiveInfo* ai, string file_name)
 {
+    encoding->PushTagMode(false);
     unsigned int i;
 
     file_name.replace(wchar('/'), wchar('\\'));
     
-    for (i = 0; i < ai->num_of_files; i++)
+    for (i = 0; i < ai->num_of_files; i++) {
 	if (file_name.wicompare(ai->fi_list[i].name) == 0) break;
+    }
 
+    encoding->PopTagMode();
     return i;
 }
 

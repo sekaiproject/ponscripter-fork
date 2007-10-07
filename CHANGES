@@ -1,3 +1,11 @@
+2007-10-06
+
+  Fix interaction between default styles and saved games.
+
+  Remove support for obsolete ONScripter-format saved games.
+
+  Add command logsp2utf -- equivalent to logsp2, but for UTF-8 text.
+
 2007-09-25
 
   Implement h_defwindow, h_usewindow, h_usewindow3: create and use
@@ -6,18 +14,15 @@
   Implement h_speedpercent: adjust all font speed settings
   proportionately with a single convenient command.
 
-
 2007-07-15
 
   Fix glyph positioning and a number of OS X build bugs.
-
 
 2007-06-16
 
   Merge recent portability enhancements from ONScripter-En: configure
   now works properly on a wider range of Unixes, and generates an
   `install' target as documented.
-
 
 2007-05-14
 
@@ -28,12 +33,10 @@
   files with non-ASCII filenames is still very much dependent on a
   UTF-8 filesystem.
 
-
 2007-05-13
 
   The game identifier can now be derived from caption or versionstr
   commands if the ;gameid directive is absent.
-
 
 2007-04-28
 

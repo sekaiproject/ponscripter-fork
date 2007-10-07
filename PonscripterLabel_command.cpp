@@ -573,7 +573,6 @@ void PonscripterLabel::DoSetwindow(PonscripterLabel::WindowDef& def)
 void PonscripterLabel::setwindowCore()
 {
     WindowDef wind;
-    string name    = script_h.readStrValue();
     wind.left      = script_h.readIntValue();
     wind.top       = script_h.readIntValue();
     wind.width     = script_h.readIntValue();
@@ -1381,7 +1380,8 @@ int PonscripterLabel::logspCommand(const string& cmd)
     if (si.visible) dirty_rect.add(si.pos);
 
     si.remove();
-    si.file_name = script_h.readStrValue();
+    si.file_name = cmd == "logsp2utf" ? "^" : "";
+    si.file_name += script_h.readStrValue();
 
     si.pos.x = script_h.readIntValue();
     si.pos.y = script_h.readIntValue();
@@ -1391,6 +1391,12 @@ int PonscripterLabel::logspCommand(const string& cmd)
         si.font_size_x = script_h.readIntValue();
         si.font_size_y = script_h.readIntValue();
         si.font_pitch  = script_h.readIntValue() + si.font_size_x;
+        script_h.readIntValue(); // dummy read for y pitch
+    }
+    else if (cmd == "logsp2utf") {
+        si.font_size_x = script_h.readIntValue();
+        si.font_size_y = script_h.readIntValue();
+	si.font_pitch = script_h.readIntValue();
         script_h.readIntValue(); // dummy read for y pitch
     }
     else {
