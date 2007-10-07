@@ -1,14 +1,12 @@
 2007-10-07
 
-  Fix interaction between default styles and saved games.
+  Various bug fixes: interaction between default styles and saved
+  games, ludicrously inefficient ligature searching, handling of
+  overlapping sprite-buttons.
 
   Remove support for obsolete ONScripter-format saved games.
 
   Add command logsp2utf -- equivalent to logsp2, but for UTF-8 text.
-
-  Fix a crazy inefficiency where dozens of string objects were being
-  allocated and immediately freed for every single text character
-  parsed.  (Oops.)
 
 2007-09-25
 

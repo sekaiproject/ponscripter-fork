@@ -437,6 +437,7 @@ private:
     struct ButtonElt {
         typedef std::map<int, ButtonElt> collection;
         typedef collection::iterator iterator;
+	typedef collection::reverse_iterator reverse_iterator;
         
         enum BUTTON_TYPE {
             NORMAL_BUTTON     = 0,
