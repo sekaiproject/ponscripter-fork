@@ -37,12 +37,18 @@ CP932Encoding::CharacterBytes(const char* string)
 
 
 wchar
-CP932Encoding::Decode(const char* string)
+CP932Encoding::Decode(const char* string, int& bytes)
 {
+    bytes = 0;
     if (!string) return 0;
     unsigned char* us = (unsigned char*) string;
     leading character = fmcp932_tbl[us[0]];
-    return character.tbl ? character.tbl[us[1]] : character.sbc;
+    if (character.tbl) {
+	bytes = 2;
+	return character.tbl[us[1]];
+    }
+    bytes = 1;
+    return character.sbc;
 }
 
 

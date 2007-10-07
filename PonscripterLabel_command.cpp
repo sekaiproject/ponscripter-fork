@@ -471,10 +471,7 @@ int PonscripterLabel::spclclkCommand(const string& cmd)
 
 int PonscripterLabel::spbtnCommand(const string& cmd)
 {
-    bool cellcheck_flag = false;
-
-    if (cmd == "cellcheckspbtn")
-        cellcheck_flag = true;
+    bool cellcheck_flag = cmd == "cellcheckspbtn";
 
     int sprite_no = script_h.readIntValue();
     int no = script_h.readIntValue();
@@ -491,13 +488,14 @@ int PonscripterLabel::spbtnCommand(const string& cmd)
     button.sprite_no = sprite_no;
 
     if (sprite_info[sprite_no].image_surface
-        || sprite_info[sprite_no].trans_mode == AnimationInfo::TRANS_STRING) {
+        || sprite_info[sprite_no].trans_mode == AnimationInfo::TRANS_STRING)
+    {
         button.image_rect = button.select_rect = sprite_info[sprite_no].pos;
         sprite_info[sprite_no].visible = true;
     }
 
     buttons[no] = button;
-
+    
     return RET_CONTINUE;
 }
 
@@ -1685,8 +1683,9 @@ int PonscripterLabel::gettagCommand(const string& cmd)
     bool end_flag = false;
     const char* buf = nest_infos.back().next_script;
     while (*buf == ' ' || *buf == '\t') buf++;
-    if (zenkakko_flag && encoding->Decode(buf) == 0x3010 /*Åy */)
-        buf += encoding->CharacterBytes(buf);
+    int bytes;
+    if (zenkakko_flag && encoding->Decode(buf, bytes) == 0x3010 /*Åy */)
+        buf += bytes;
     else if (*buf == '[')
         buf++;
     else
@@ -1703,10 +1702,11 @@ int PonscripterLabel::gettagCommand(const string& cmd)
 	    e.mutate("");
 	else {
 	    const char* buf_start = buf;
+	    int bytes;
 	    while (*buf != '/' &&
-		   (!zenkakko_flag || encoding->Decode(buf) != 0x3011) &&
+		   (!zenkakko_flag || encoding->Decode(buf, bytes) != 0x3011) &&
 		   *buf != ']')
-		buf += encoding->CharacterBytes(buf);
+		buf += bytes;
 	    e.mutate(string(buf_start, buf - buf_start));
 	}
         if (*buf == '/')
@@ -1716,8 +1716,8 @@ int PonscripterLabel::gettagCommand(const string& cmd)
     }
     while (more_args);
 
-    if (zenkakko_flag && encoding->Decode(buf) == 0x3010 /*Åy */)
-	buf += encoding->CharacterBytes(buf);
+    if (zenkakko_flag && encoding->Decode(buf, bytes) == 0x3010 /*Åy */)
+	buf += bytes;
     else if (*buf == ']') buf++;
 
     while (*buf == ' ' || *buf == '\t') buf++;
@@ -2529,13 +2529,15 @@ int PonscripterLabel::btnwaitCommand(const string& cmd)
 
     Expression e = script_h.readIntExpr();
 
-    if (event_mode & WAIT_BUTTON_MODE
-        || (textbtn_flag && (skip_flag || (draw_one_page_flag && clickstr_state == CLICK_WAIT) || ctrl_pressed_status))) {
+    bool skipping = skip_flag
+                 || (draw_one_page_flag && clickstr_state == CLICK_WAIT)
+                 || ctrl_pressed_status;
+    if (event_mode & WAIT_BUTTON_MODE || (textbtn_flag && skipping)) {
         btnwait_time  = SDL_GetTicks() - internal_button_timer;
         btntime_value = 0;
         num_chars_in_sentence = 0;
 
-        if (textbtn_flag && (skip_flag || (draw_one_page_flag && clickstr_state == CLICK_WAIT) || ctrl_pressed_status))
+        if (textbtn_flag && skipping)
             current_button_state.button = 0;
 
 	e.mutate(current_button_state.button);

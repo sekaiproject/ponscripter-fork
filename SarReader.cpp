@@ -101,8 +101,9 @@ int SarReader::readArchive(ArchiveInfo* ai, int archive_type)
 	    const char* c = name.c_str();
 	    ai->fi_list[i].name.clear();
 	    while (*c) {
-		ai->fi_list[i].name += cp932.Decode(c);
-		c += cp932.CharacterBytes(c);
+		int b;
+		ai->fi_list[i].name += cp932.Decode(c, b);
+		c += b;
 	    }
 	}	
 

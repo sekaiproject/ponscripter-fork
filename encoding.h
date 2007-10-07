@@ -55,7 +55,7 @@ public:
     void PopTagMode() { usetags.pop(); tagscurr = usetags.top(); }
     
     virtual int CharacterBytes(const char* str) = 0;
-    virtual wchar Decode(const char* str) = 0;
+    virtual wchar Decode(const char* str, int& bytes) = 0;
     virtual int Encode(wchar input, char* output) = 0;
     virtual string Encode(wchar input) = 0;
     // Previous is O(1) for UTF-8, but may be O(n) for encodings like CP932.
@@ -74,7 +74,7 @@ public:
 class UTF8Encoding : public Encoding {
 public:
     int CharacterBytes(const char* str);
-    wchar Decode(const char* str);
+    wchar Decode(const char* str, int& bytes);    
     int Encode(wchar input, char* output);
     string Encode(wchar input);
     const char* Previous(const char* str, const char* min = 0);
@@ -85,7 +85,7 @@ public:
 class CP932Encoding : public Encoding {
 public:
     int CharacterBytes(const char* str);
-    wchar Decode(const char* str);
+    wchar Decode(const char* str, int& bytes);
     int Encode(wchar input, char* output);
     string Encode(wchar input);
     const char* Previous(const char* str, const char* min = 0);

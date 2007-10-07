@@ -280,17 +280,17 @@ float Fontinfo::StringAdvance(const char* string)
 {
     doSize();
     wchar unicode, next;
+    int cb, nextcb;
     float orig_x   = pos_x;
     int   orig_mod = font_size_mod, orig_style = style, orig_y = pos_y;
-    unicode = encoding->Decode(string);
+    unicode = encoding->Decode(string, cb);
     while (*string) {
-        int cb = encoding->CharacterBytes(string);
-        next = encoding->Decode(string + cb);
+        next = encoding->Decode(string + cb, nextcb);
 	if (!processCode(string))
 	    pos_x += GlyphAdvance(unicode, next);
-
-        unicode = next;
         string += cb;
+        unicode = next;
+	cb = nextcb;
     }
     float rv = pos_x - orig_x;
     font_size_mod = orig_mod;

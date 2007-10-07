@@ -1160,8 +1160,9 @@ bool PonscripterLabel::check_orphan_control()
     // stranded at the end of a line.
     if (string_buffer_offset < 5) return false;
     const char* c = script_h.getStringBuffer().c_str();
+    int l;
     const wchar p =
-	encoding->Decode(encoding->Previous(c + string_buffer_offset, c));
+	encoding->Decode(encoding->Previous(c + string_buffer_offset, c), l);
     return p == '.' || p == 0xff0e || p == ',' || p == 0xff0c
         || p == ':' || p == 0xff1a || p == ';' || p == 0xff1b
         || p == '!' || p == 0xff01 || p == '?' || p == 0xff1f;
@@ -1199,9 +1200,10 @@ int PonscripterLabel::parseLine()
 
 //--------INDENT ROUTINE--------------------------------------------------------
     if (sentence_font.GetXOffset() == 0 && sentence_font.GetYOffset() == 0) {
+	int l;
         const wchar first_ch =
 	    encoding->Decode(script_h.getStringBuffer().c_str() +
-			     string_buffer_offset);
+			     string_buffer_offset, l);
         if (is_indent_char(first_ch))
             sentence_font.SetIndent(first_ch);
         else
@@ -1212,19 +1214,21 @@ int PonscripterLabel::parseLine()
     ret = textCommand();
 
 //--------LINE BREAKING ROUTINE-------------------------------------------------
+    int l;
     const wchar first_ch =
 	encoding->Decode(script_h.getStringBuffer().c_str() +
-			 string_buffer_offset);
+			 string_buffer_offset, l);
     if (is_break_char(first_ch) && !new_line_skip_flag) {
         const char* it = script_h.getStringBuffer().c_str() + string_buffer_offset
 	    + encoding->CharacterBytes(script_h.getStringBuffer().c_str() +
 				       string_buffer_offset);
-        float len = sentence_font.GlyphAdvance(first_ch, encoding->Decode(it));
+        float len = sentence_font.GlyphAdvance(first_ch,
+					       encoding->Decode(it, l));
         while (1) {
             // For each character (not char!) before a break is found,
             // get unicode.
-            wchar ch = encoding->Decode(it);
-            it += encoding->CharacterBytes(it);
+            wchar ch = encoding->Decode(it, l);
+            it += l;
 
             // Check for token breaks.
             if (!ch || ch == '\n' || ch == '@' || ch == '\\'
@@ -1254,7 +1258,8 @@ int PonscripterLabel::parseLine()
             }
 
             // No inline command?  Use the glyph metrics, then!
-            len += sentence_font.GlyphAdvance(ch, encoding->Decode(it));
+	    int l;
+            len += sentence_font.GlyphAdvance(ch, encoding->Decode(it, l));
         }
         if (check_orphan_control()) {
             // If this is the start of a sentence, or follows some

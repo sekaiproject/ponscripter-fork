@@ -6,12 +6,9 @@
 
   Add command logsp2utf -- equivalent to logsp2, but for UTF-8 text.
 
-  The text parsing system, and the whole string class and all UTF-8
-  handling, is a fundamentally broken pile of hacks (and I say this as
-  the misguided soul who wrote it!).  This update speeds up text
-  parsing by several orders of magnitude (!) by caching the current
-  tag-parsing status, instead of querying the top of the stack several
-  times for every character.
+  Fix a crazy inefficiency where dozens of string objects were being
+  allocated and immediately freed for every single text character
+  parsed.  (Oops.)
 
 2007-09-25
 

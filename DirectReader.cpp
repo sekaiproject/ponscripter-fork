@@ -122,7 +122,8 @@ FILE* DirectReader::fileopen(string path, const char* mode)
     // until we either find the file or show that it doesn't exist.
 
     // Get the archive path sans final delimiter.
-    const wchar Delim = encoding->Decode(DELIMITER);
+    int l;
+    const wchar Delim = encoding->Decode(DELIMITER, l);
     full_path = archive_path ? archive_path : ".";
     if (full_path.back() == Delim) full_path.pop();
     
@@ -241,8 +242,9 @@ FILE* DirectReader::getFileHandle(string filename, int& compression_type,
     FILE* fp;
     compression_type = NO_COMPRESSION;
     encoding->PushTagMode(false);
-    filename.replace(wchar('/'), encoding->Decode(DELIMITER));
-    filename.replace(wchar('\\'), encoding->Decode(DELIMITER));
+    int l;
+    filename.replace(wchar('/'), encoding->Decode(DELIMITER, l));
+    filename.replace(wchar('\\'), encoding->Decode(DELIMITER, l));
     encoding->PopTagMode();
     *length = 0;
     if ((fp = fileopen(filename, "rb")) != NULL && filename.size() >= 3) {

@@ -227,9 +227,9 @@ readTokenTop:
                 continue;
             }
 
-            const wchar uc = encoding->Decode(buf);
-            buf += encoding->CharacterBytes(buf);
-            string_buffer += encoding->Encode(uc);
+	    int bytes;
+            string_buffer += encoding->Encode(encoding->Decode(buf, bytes));
+            buf += bytes;
             ch = *buf;
         }
         if (ch == encoding->TextMarker()) ++buf;
@@ -603,8 +603,8 @@ void ScriptHandler::setClickstr(string values)
 int ScriptHandler::checkClickstr(const char* buf, bool recursive_flag)
 {
     if (buf[0] == '@' || buf[0] == '\\') return 1;
-    wchar c = encoding->Decode(buf);
-    int bytes = encoding->CharacterBytes(buf);
+    int bytes;
+    wchar c = encoding->Decode(buf, bytes);
     if (clickstr_list.find(c) != clickstr_list.end()) {
 	if (!recursive_flag && checkClickstr(buf + bytes, true)) return 0;
 	return bytes;
@@ -1009,9 +1009,9 @@ string ScriptHandler::parseStr(const char** buf)
                 continue;
             }
 
-            const wchar uc = encoding->Decode(*buf);
-            *buf += encoding->CharacterBytes(*buf);
-            s += encoding->Encode(uc);
+	    int bytes;
+            s += encoding->Encode(encoding->Decode(*buf, bytes));
+            *buf += bytes;
             ch = **buf;
         }
 

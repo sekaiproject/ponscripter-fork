@@ -39,15 +39,17 @@ static ligature::map ligs;
 const ligature ligature::undef("", 0);
 
 const ligature&
-GetLigatureRef(const string& string)
+GetLigatureRef(const char* string)
 {
     ligature::vec& v = ligs[string[0]];
     for (ligature::iterator it = v.begin(); it != v.end(); ++it) {
-	if (string.compare(0, it->in.size(), it->in) == 0) return *it;
+	int is = it->in.size();
+	const char* in = it->in.c_str();
+	while (--is && in[is] == string[is]);
+	if (is == 0) return *it;
     }
     return ligature::undef;
 }
-
 
 void
 AddLigature(const string& in, wchar out)
@@ -59,7 +61,7 @@ AddLigature(const string& in, wchar out)
 	    return;
 	}
     }
-    v.push_back(ligature(in, out));
+    v.insert(v.begin(), ligature(in, out));
 }
 
 void
@@ -146,46 +148,63 @@ UTF8Encoding::CharacterBytes(const char* string)
         if ((c & 0xc0) == 0x80)
             fprintf(stderr, "Warning: CharacterBytes called on incomplete "
                             "character\n");
-
+        // ZWNJ
         if (c == 0xe2 && t[1] == 0x80 && t[2] == 0x8c)
             return 3 + CharacterBytes(string + 3);
 
-        // ZWNJ
         return c < 0xe0 ? 2 : (c < 0xf0 ? 3 : 4);
     }
 }
 
 
 wchar
-UTF8Encoding::Decode(const char* string)
+UTF8Encoding::Decode(const char* string, int& bytes)
 {
+    bytes = 0;
     if (!string) return 0;
     const unsigned char* t = (const unsigned char*) string;
     const unsigned char  c = t[0];
     if (c < 0x80) {
 	// tags disabled?
-	if (!UseTags()) return c;
+	if (!UseTags()) { bytes = 1; return c; }
 
-        if (c == '|') return (t[1] == '|') ? '|' : Decode(string + 1);
+        if (c == '|' && t[1] == '|') { bytes = 2; return '|'; }
+	if (c == '|') {
+	    wchar c = Decode(string + 1, bytes);
+	    ++bytes;
+	    return c;
+	}
 
         const ligature& lig = GetLigatureRef(string);
-        return lig.out ? lig.out : c;
+	if (lig.out) {
+	    bytes = lig.in.size();
+	    return lig.out;
+	}
+	bytes = 1;
+        return c;
     }
     else {
         if ((c & 0xc0) == 0x80)
             fprintf(stderr, "Warning: UnicodeOfUTF8 called on incomplete "
                             "character\n");
 
-        if (c < 0xe0)
+        if (c < 0xe0) {
+	    bytes = 2;
             return (c - 0xc0) << 6 | t[1] & 0x7f;
+	}
         else if (c < 0xf0) {
-            if (c == 0xe2 && t[1] == 0x80 && t[2] == 0x8c)
-                return Decode(string + 3);
-
             // ZWNJ
+            if (c == 0xe2 && t[1] == 0x80 && t[2] == 0x8c) {
+		wchar c = Decode(string + 3, bytes);
+                bytes += 3;
+		return c;
+	    }
+
+	    bytes = 3;
             return ((c - 0xe0) << 6 | t[1] & 0x7f) << 6 | t[2] & 0x7f;
         }
 
+	bytes = 4;
         return (((c - 0xe0) << 6
                  | t[1] & 0x7f) << 6
                 | t[2] & 0x7f) << 6

@@ -270,14 +270,15 @@ public:
 		   *b1 = s.c.c_str() + pos1,
 		   *b2 = s.c.c_str() + len1;
 	while (a1 < a2 && b1 < b2) {
-	    wchar ac = encoding->Decode(a1);
-	    wchar bc = encoding->Decode(b1);
+	    int al, bl;
+	    wchar ac = encoding->Decode(a1, al);
+	    wchar bc = encoding->Decode(b1, bl);
 	    if (ac >= 'A' && ac <= 'Z') ac += 32;
 	    if (bc >= 'A' && bc <= 'Z') bc += 32;
 	    if (ac < bc) return -1;
 	    if (ac > bc) return 1;
-	    a1 += encoding->CharacterBytes(a1);
-	    b1 += encoding->CharacterBytes(b1);
+	    a1 += al;
+	    b1 += bl;
 	}
 	return len - len1;
     }
@@ -305,14 +306,16 @@ public:
 
     wchar wpop()
 	{ const char* p = encoding->Previous(c.c_str() + c.size(), c.c_str());
-	  wchar e = encoding->Decode(p);
+	  int l;
+	  wchar e = encoding->Decode(p, l);
 	  c.erase(p - c.c_str());
 	  return e; }
     string& wpush(wchar e)
 	{ append(e); return *this; }
     wchar wshift()
-	{ char e = encoding->Decode(c_str());
-	  c.erase(encoding->CharacterBytes(c_str()));
+	{ int l;
+          char e = encoding->Decode(c_str(), l);
+	  c.erase(l);
 	  return e; }
     string& wunshift(wchar e)
 	{ char buf[32];
@@ -351,7 +354,7 @@ public:
 	bool operator>(const witerator& i) const
 	    { return !i.pos ? false : (!pos ? true : pos > i.pos); }
 	wchar operator*() const
-	    { return encoding->Decode(pos); }
+	    { int l; return encoding->Decode(pos, l); }
 	witerator& operator++()
 	    { pos += encoding->CharacterBytes(pos); if (pos > max) pos = 0;
 	      return *this;}
@@ -399,11 +402,12 @@ public:
 	size_type spos = 0, epos = 0;
 	while (--max && spos < size()) {
 	    const char* c = c_str();
-	    while (epos < size() && encoding->Decode(c + epos) != delimiter)
-		epos += encoding->CharacterBytes(c + epos);
+	    int l;
+	    while (epos < size() && encoding->Decode(c + epos, l) != delimiter)
+		epos += l;
 	    if (epos >= size()) break;
 	    rv.push_back(substr(spos, epos - spos));
-	    spos = epos += encoding->CharacterBytes(c + epos);
+	    spos = epos += l;
 	}
 	rv.push_back(substr(spos, size() - spos));
 	return rv;

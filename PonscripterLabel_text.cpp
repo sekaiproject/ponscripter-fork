@@ -91,13 +91,14 @@ PonscripterLabel::drawGlyph(SDL_Surface* dst_surface, Fontinfo* info,
 
 void PonscripterLabel::drawChar(const char* text, Fontinfo* info, bool flush_flag, bool lookback_flag, SDL_Surface* surface, AnimationInfo* cache_info, SDL_Rect* clip)
 {
-    int bytes = encoding->CharacterBytes(text);
+    int bytes;
+    wchar unicode = encoding->Decode(text, bytes);
 
     if (!info->processCode(text)) {
         // info->doSize() called in GlyphAdvance
-
-        wchar unicode = encoding->Decode(text);
-        float adv = info->GlyphAdvance(unicode, encoding->Decode(text + bytes));
+	int b;
+        float adv = info->GlyphAdvance(unicode,
+				       encoding->Decode(text + bytes, b));
 
         if (info->isNoRoomFor(adv)) info->newLine();
 
@@ -194,7 +195,8 @@ void PonscripterLabel::restoreTextBuffer()
     const char* buffer = current_text_buffer->contents.c_str();
     int buffer_count = current_text_buffer->contents.size();
 
-    const wchar first_ch = encoding->Decode(buffer);
+    int bytes;
+    const wchar first_ch = encoding->Decode(buffer, bytes);
     if (is_indent_char(first_ch)) f_info.SetIndent(first_ch);
 
     for (int i = 0; i < buffer_count; ++i) {
@@ -388,11 +390,12 @@ int PonscripterLabel::clickNewPage(bool display_char)
 
 int PonscripterLabel::textCommand()
 {
+    int bytes;
     if (pretextgosub_label
         && (line_enter_status == 0
             || (line_enter_status == 1
                 && (script_h.getStringBuffer()[string_buffer_offset] == '['
-                    || zenkakko_flag && encoding->Decode(script_h.getStringBuffer().c_str() + string_buffer_offset) == 0x3010 /*Åy */)))) {
+                    || zenkakko_flag && encoding->Decode(script_h.getStringBuffer().c_str() + string_buffer_offset, bytes) == 0x3010 /*Åy */)))) {
         gosubReal(pretextgosub_label, script_h.getCurrent());
         line_enter_status = 1;
         return RET_CONTINUE;
