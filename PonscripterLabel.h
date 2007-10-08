@@ -90,6 +90,14 @@ public:
     PonscripterLabel();
     ~PonscripterLabel();
 
+    struct Subtitle {
+	typedef std::vector<Subtitle> vec;
+	string text;
+	float start_time, end_time;
+	Subtitle(string t, float s, float e)
+	    : text(t), start_time(s), end_time(e) {}
+    };
+    
     // ----------------------------------------
     // start-up options
     void enableCDAudio();
@@ -719,7 +727,8 @@ private:
     int playExternalMusic(bool loop_flag);
     int playMIDI(bool loop_flag);
 
-    int playMPEG(const string& filename, bool click_flag);
+    int playMPEG(const string& filename, bool click_flag,
+		 Subtitle::vec& subtitles);
     void playAVI(const string& filename, bool click_flag);
 
     enum { WAVE_PLAY        = 0,

@@ -364,8 +364,24 @@ int PonscripterLabel::playMIDI(bool loop_flag)
     return 0;
 }
 
+// We assume only one MPEG video will ever play at a time.
+AnimationInfo* overlay = NULL;
+SDL_Surface *offscreen = NULL, *screenptr = NULL;
+int overlay_x = 0, overlay_y = 0;
+void UpdateMPEG(SDL_Surface* surface, int x, int y,
+		unsigned int w, unsigned int h)
+{
+    SDL_Rect r;
+    r.x = 0; r.y = 0; r.w = 800; r.h = 600;
+    SDL_BlitSurface(offscreen, &r, screenptr, &r);
+    if (overlay) {
+	overlay->blendOnSurface(screenptr, overlay_x, overlay_y, r);
+    }
+    SDL_UpdateRect(screenptr, 0, 0, 800, 600);
+}
 
-int PonscripterLabel::playMPEG(const string& filename, bool click_flag)
+int PonscripterLabel::playMPEG(const string& filename, bool click_flag,
+			       Subtitle::vec& subtitles)
 {
     int ret = 0;
 #ifndef MP3_MAD
@@ -383,25 +399,49 @@ int PonscripterLabel::playMPEG(const string& filename, bool click_flag)
         }
 
         SMPEG_enablevideo(mpeg_sample, 1);
-        SMPEG_setdisplay(mpeg_sample, screen_surface, NULL, NULL);
+
+	screenptr = screen_surface;
+	if (!offscreen) {
+	    offscreen = SDL_CreateRGBSurface(SDL_SWSURFACE, 800, 600, 32,
+					     0xff0000, 0xff00, 255, 0xff000000);
+	    SDL_SetAlpha(offscreen, 0, 255);
+	}
+	if (subtitles.empty())
+	    SMPEG_setdisplay(mpeg_sample, screen_surface, NULL, NULL);
+	else
+	    SMPEG_setdisplay(mpeg_sample, offscreen, NULL, &UpdateMPEG);
+
         SMPEG_setvolume(mpeg_sample, music_volume);
 
+	if (!subtitles.empty()) {
+	    // TODO: make subtitles pretty & do stuff with them
+	    overlay = new AnimationInfo();
+	    overlay->setImageName(":S/30,30,1;#EEFCFD#99CCFB"
+				  + subtitles[0].text);
+	    overlay->pos.x = screen_width / 2;
+	    overlay->pos.y = screen_height / 2;
+	    overlay->trans = 256;
+	    parseTaggedString(overlay);
+	    setupAnimationInfo(overlay);
+	}
+	
         Mix_HookMusic(mp3callback, mpeg_sample);
         SMPEG_play(mpeg_sample);
 
         bool done_flag = false;
-        while (!(done_flag & click_flag) && SMPEG_status(mpeg_sample) == SMPEG_PLAYING) {
+        while (!(done_flag & click_flag) &&
+	       SMPEG_status(mpeg_sample) == SMPEG_PLAYING)
+	{
             SDL_Event event;
 
             while (SDL_PollEvent(&event)) {
                 switch (event.type) {
-                case SDL_KEYDOWN:
-                    if (((SDL_KeyboardEvent*) &event)->keysym.sym == SDLK_RETURN
-                        || ((SDL_KeyboardEvent*) &event)->keysym.sym == SDLK_SPACE
-                        || ((SDL_KeyboardEvent*) &event)->keysym.sym == SDLK_ESCAPE)
+                case SDL_KEYDOWN: {
+		    int s = ((SDL_KeyboardEvent*) &event)->keysym.sym;
+                    if (s == SDLK_RETURN || s == SDLK_SPACE || s == SDLK_ESCAPE)
                         done_flag = true;
-
                     break;
+		}
                 case SDL_QUIT:
                     ret = 1;
                 case SDL_MOUSEBUTTONDOWN:

@@ -1142,8 +1142,17 @@ int PonscripterLabel::mspCommand(const string& cmd)
 int PonscripterLabel::mpegplayCommand(const string& cmd)
 {
     string name = script_h.readStrValue();
+    bool cancel = script_h.readIntValue() == 1;
+    Subtitle::vec subtitles;
+    while (script_h.hasMoreArgs()) {
+	// read subtitles
+	string text = script_h.readStrValue();
+	float start = script_h.readIntValue() / 100; // is 1/100s enough?
+	float end   = script_h.readIntValue() / 100;
+	subtitles.push_back(Subtitle(text, start, end));
+    }
     stopBGM(false);
-    if (playMPEG(name, script_h.readIntValue() == 1)) endCommand("end");
+    if (playMPEG(name, cancel, subtitles)) endCommand("end");
     return RET_CONTINUE;
 }
 

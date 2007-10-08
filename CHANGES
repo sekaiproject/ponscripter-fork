@@ -1,12 +1,15 @@
-2007-10-07
+2007-10-08
+
+  Support for soft subtitles in MPEG playback (but not, at present, in
+  AVI playback).
+
+  Add command logsp2utf -- equivalent to logsp2, but for UTF-8 text.
 
   Various bug fixes: interaction between default styles and saved
   games, ludicrously inefficient ligature searching, handling of
   overlapping sprite-buttons.
 
   Remove support for obsolete ONScripter-format saved games.
-
-  Add command logsp2utf -- equivalent to logsp2, but for UTF-8 text.
 
 2007-09-25
 
