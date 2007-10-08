@@ -1139,18 +1139,32 @@ int PonscripterLabel::mspCommand(const string& cmd)
 }
 
 
+Subtitle::s parseSubtitles(string file)
+{
+    Subtitle::s commands;
+    string::vector lines = ScriptHandler::cBR->getFile(file).split(0x0a);
+    for (string::vector::iterator it = lines.begin(); it != lines.end(); ++it) {
+	it->chomp(); it->ltrim();
+	if (!*it || (*it)[0] == ';') continue;
+	string::vector elts = it->split(',', 3);
+	if (elts.size() != 3)
+	    cerr << "Subtitle lines should be of the form "
+		    "start-time,end-time,text" + eol;
+	else {
+	    commands.push(Subtitle(atof(elts[0].c_str()), elts[2]));
+	    commands.push(Subtitle(atof(elts[1].c_str()), ""));	    
+	}
+    }
+    return commands;
+}
+
 int PonscripterLabel::mpegplayCommand(const string& cmd)
 {
     string name = script_h.readStrValue();
     bool cancel = script_h.readIntValue() == 1;
-    Subtitle::vec subtitles;
-    while (script_h.hasMoreArgs()) {
-	// read subtitles
-	string text = script_h.readStrValue();
-	float start = script_h.readIntValue() / 100; // is 1/100s enough?
-	float end   = script_h.readIntValue() / 100;
-	subtitles.push_back(Subtitle(text, start, end));
-    }
+    Subtitle::s subtitles;
+    if (script_h.hasMoreArgs())
+	subtitles = parseSubtitles(script_h.readStrValue());
     stopBGM(false);
     if (playMPEG(name, cancel, subtitles)) endCommand("end");
     return RET_CONTINUE;

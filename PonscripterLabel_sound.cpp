@@ -365,31 +365,40 @@ int PonscripterLabel::playMIDI(bool loop_flag)
 }
 
 // We assume only one MPEG video will ever play at a time.
-AnimationInfo* overlay = NULL;
-SDL_Surface *offscreen = NULL, *screenptr = NULL;
-int overlay_x = 0, overlay_y = 0;
+// This bit is messy, but it seems we cannot use a method here, so we
+// simply must shift all this stuff into plain C variables.
+static AnimationInfo* overlay = NULL;
+static SDL_Surface *offscreen = NULL, *screenptr = NULL;
 void UpdateMPEG(SDL_Surface* surface, int x, int y,
 		unsigned int w, unsigned int h)
 {
     SDL_Rect r;
-    r.x = 0; r.y = 0; r.w = 800; r.h = 600;
+    r.x = 0; r.y = 0; r.w = screenptr->w; r.h = screenptr->h;
     SDL_BlitSurface(offscreen, &r, screenptr, &r);
-    if (overlay) {
-	overlay->blendOnSurface(screenptr, overlay_x, overlay_y, r);
-    }
-    SDL_UpdateRect(screenptr, 0, 0, 800, 600);
+    if (overlay)
+	overlay->blendOnSurface(screenptr, overlay->pos.x, overlay->pos.y, r);
+    SDL_UpdateRect(screenptr, r.x, r.y, r.w, r.h);
+}
+
+void PonscripterLabel::SetSubtitle(const string& text)
+{
+    if (overlay) delete overlay;
+    overlay = new AnimationInfo();
+    overlay->setImageName(text);
+    overlay->pos.x = screen_width / 2;
+    overlay->pos.y = screen_height / 2;
+    overlay->trans = 255;
+    parseTaggedString(overlay);
+    setupAnimationInfo(overlay);
 }
 
 int PonscripterLabel::playMPEG(const string& filename, bool click_flag,
-			       Subtitle::vec& subtitles)
+			       Subtitle::s& subtitles)
 {
     int ret = 0;
 #ifndef MP3_MAD
-    unsigned long  length = ScriptHandler::cBR->getFileLength(filename);
-    unsigned char* mpeg_buffer = new unsigned char[length];
-    ScriptHandler::cBR->getFile(filename, mpeg_buffer);
-    SMPEG* mpeg_sample = SMPEG_new_rwops(SDL_RWFromMem(mpeg_buffer, length), NULL, 0);
-
+    string mpeg_dat = ScriptHandler::cBR->getFile(filename);
+    SMPEG* mpeg_sample = SMPEG_new_rwops(mpeg_dat.rwops(), 0, 0);
     if (!SMPEG_error(mpeg_sample)) {
         SMPEG_enableaudio(mpeg_sample, 0);
 
@@ -400,40 +409,28 @@ int PonscripterLabel::playMPEG(const string& filename, bool click_flag,
 
         SMPEG_enablevideo(mpeg_sample, 1);
 
-	screenptr = screen_surface;
-	if (!offscreen) {
-	    offscreen = SDL_CreateRGBSurface(SDL_SWSURFACE, 800, 600, 32,
-					     0xff0000, 0xff00, 255, 0xff000000);
-	    SDL_SetAlpha(offscreen, 0, 255);
-	}
 	if (subtitles.empty())
 	    SMPEG_setdisplay(mpeg_sample, screen_surface, NULL, NULL);
-	else
+	else {
+	    screenptr = screen_surface;
+	    offscreen = SDL_CreateRGBSurface(SDL_SWSURFACE,
+					     screenptr->w, screenptr->h, 32,
+					     0xff0000, 0xff00, 255, 0xff000000);
+	    SDL_SetAlpha(offscreen, 0, 255);
 	    SMPEG_setdisplay(mpeg_sample, offscreen, NULL, &UpdateMPEG);
+	}
 
         SMPEG_setvolume(mpeg_sample, music_volume);
 
-	if (!subtitles.empty()) {
-	    // TODO: make subtitles pretty & do stuff with them
-	    overlay = new AnimationInfo();
-	    overlay->setImageName(":S/30,30,1;#EEFCFD#99CCFB"
-				  + subtitles[0].text);
-	    overlay->pos.x = screen_width / 2;
-	    overlay->pos.y = screen_height / 2;
-	    overlay->trans = 256;
-	    parseTaggedString(overlay);
-	    setupAnimationInfo(overlay);
-	}
-	
         Mix_HookMusic(mp3callback, mpeg_sample);
         SMPEG_play(mpeg_sample);
 
         bool done_flag = false;
+	Uint32 zero_time = SDL_GetTicks();
         while (!(done_flag & click_flag) &&
 	       SMPEG_status(mpeg_sample) == SMPEG_PLAYING)
 	{
             SDL_Event event;
-
             while (SDL_PollEvent(&event)) {
                 switch (event.type) {
                 case SDL_KEYDOWN: {
@@ -451,15 +448,29 @@ int PonscripterLabel::playMPEG(const string& filename, bool click_flag,
                     break;
                 }
             }
+
+	    if (!subtitles.empty()) {
+		float time = (SDL_GetTicks() - zero_time) / 1000;
+		if (time >= subtitles.front().time) {
+		    SetSubtitle(subtitles.front().text);
+		    subtitles.pop();
+		}
+	    }
+	    
             SDL_Delay(10);
         }
 
         SMPEG_stop(mpeg_sample);
         Mix_HookMusic(NULL, NULL);
         SMPEG_delete(mpeg_sample);
+	if (offscreen) {
+	    SDL_FreeSurface(offscreen);
+	    offscreen = NULL;
+	    screenptr = NULL;
+	}
+	if (overlay) delete overlay;
     }
 
-    delete[] mpeg_buffer;
 #else
     fprintf(stderr, "mpegplay command is disabled.\n");
 #endif

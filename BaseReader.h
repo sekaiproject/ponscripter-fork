@@ -97,6 +97,19 @@ struct BaseReader {
 
     virtual size_t getFile(const string& file_name, unsigned char* buffer,
 			   int* location = NULL) = 0;
+
+    string getFile(const string& file_name, int* location = NULL);
 };
+
+
+inline string
+BaseReader::getFile(const string& file_name, int* location)
+{
+    size_t length = getFileLength(file_name);
+    if (!length) return string();
+    unsigned char* buf = new unsigned char[length];
+    length = getFile(file_name, buf, location);
+    return string(buf, length);
+}
 
 #endif // __BASE_READER_H__

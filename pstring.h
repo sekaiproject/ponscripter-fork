@@ -25,6 +25,8 @@
 #define PSTRING_H
 
 class string;
+
+#include <SDL.h>
 #include "encoding.h"
 
 template<typename T> inline T pred(T t) { return --t; }
@@ -71,6 +73,8 @@ public:
 	{ return (const unsigned char*) c.c_str(); }
     const unsigned char* udata() const
 	{ return (const unsigned char*) c.data(); }    
+    SDL_RWops* rwops()
+	{ return SDL_RWFromMem((void*) c.data(), c.size()); }
 
     string() {}
     string(const string& s) : c(s.c) {}
@@ -299,7 +303,8 @@ public:
     string& unshift(char e) { c.insert(0, 1, e); return *this; }
     size_type chomp() {
 	size_type rv = 0, back = c.size();
-	while (back > 0 && c[back - 1] == 0x0a) ++rv, --back;
+	while (back > 0 && (c[back - 1] == 0x0a || c[back - 1] == 0x0d))
+	    ++rv, --back;
 	c.resize(back);
 	return rv;
     }
@@ -393,6 +398,8 @@ public:
 	rv.push_back(substr(spos, size() - spos));
 	return rv;
     }
+    vector split(char delimiter, int max = 0)
+	{ return split(string(1, delimiter), max); }
 
     // Split string on every instance of delimiter, taking encoding
     // into account, up to max items.

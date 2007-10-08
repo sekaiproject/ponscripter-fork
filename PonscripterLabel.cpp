@@ -1314,8 +1314,10 @@ SDL_Surface* PonscripterLabel::loadImage(const string& file_name,
 					 bool* has_alpha)
 {  
     if (!file_name) return 0;
-    unsigned long length = ScriptHandler::cBR->getFileLength(file_name);
-    if (length == 0) {
+
+    int location;
+    string dat = ScriptHandler::cBR->getFile(file_name, &location);
+    if (!dat) {
         if (file_name != DEFAULT_LOOKBACK_NAME0 &&
             file_name != DEFAULT_LOOKBACK_NAME1 &&
             file_name != DEFAULT_LOOKBACK_NAME2 &&
@@ -1327,21 +1329,16 @@ SDL_Surface* PonscripterLabel::loadImage(const string& file_name,
     }
     if (filelog_flag) script_h.file_log.add(file_name);
 
-    unsigned char* buffer = new unsigned char[length];
-    int location;
-    ScriptHandler::cBR->getFile(file_name, buffer, &location);
-    SDL_Surface* tmp = IMG_Load_RW(SDL_RWFromMem(buffer, length), 1);
-
+    SDL_Surface* tmp = IMG_Load_RW(dat.rwops(), 1);
     if (!tmp && file_name.substr(file_name.rfind('.') + 1).wicompare("jpg")) {
         fprintf(stderr, " *** force-loading a JPEG image [%s]\n",
 		file_name.c_str());
-        SDL_RWops* src = SDL_RWFromMem(buffer, length);
+        SDL_RWops* src = dat.rwops();
         tmp = IMG_LoadJPG_RW(src);
         SDL_RWclose(src);
     }
     if (tmp && has_alpha) *has_alpha = tmp->format->Amask;
 
-    delete[] buffer;
     if (!tmp) {
         fprintf(stderr, " *** can't load file [%s] ***\n", file_name.c_str());
         return 0;

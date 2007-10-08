@@ -11,6 +11,7 @@
 #include <limits>
 #include <string>
 #include <vector>
+#include <queue>
 #include <map>
 #include <set>
 
@@ -27,8 +28,6 @@ namespace __gnu_cxx {
     };
 }
 #endif
-
-#include <SDL.h>
 
 const int MAX_INT = std::numeric_limits<int>::max();
 

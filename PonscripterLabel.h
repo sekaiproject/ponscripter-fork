@@ -83,21 +83,21 @@ struct OVInfo {
 #endif
 };
 
+struct Subtitle {
+    typedef std::queue<Subtitle> s;
+    float time;
+    string text;
+    Subtitle(float t, string x)
+	: time(t), text(x) {}
+};
+
 class PonscripterLabel : public ScriptParser {
 public:
     typedef AnimationInfo::ONSBuf ONSBuf;
 
     PonscripterLabel();
     ~PonscripterLabel();
-
-    struct Subtitle {
-	typedef std::vector<Subtitle> vec;
-	string text;
-	float start_time, end_time;
-	Subtitle(string t, float s, float e)
-	    : text(t), start_time(s), end_time(e) {}
-    };
-    
+   
     // ----------------------------------------
     // start-up options
     void enableCDAudio();
@@ -727,8 +727,9 @@ private:
     int playExternalMusic(bool loop_flag);
     int playMIDI(bool loop_flag);
 
+    void SetSubtitle(const string& text);
     int playMPEG(const string& filename, bool click_flag,
-		 Subtitle::vec& subtitles);
+		 Subtitle::s& subtitles);
     void playAVI(const string& filename, bool click_flag);
 
     enum { WAVE_PLAY        = 0,

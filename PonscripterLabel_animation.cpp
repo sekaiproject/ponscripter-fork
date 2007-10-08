@@ -284,8 +284,12 @@ void PonscripterLabel::parseTaggedString(AnimationInfo* anim)
 
                 script_h.pushCurrent((char*) buffer); // FIXME: unsafe
                 anim->font_size_x = script_h.readIntValue();
-                anim->font_size_y = script_h.readIntValue();
-                anim->font_pitch  = script_h.readIntValue();
+                anim->font_size_y = script_h.hasMoreArgs()
+		                  ? script_h.readIntValue()
+		                  : anim->font_size_x;
+                anim->font_pitch  = script_h.hasMoreArgs()
+		                  ? script_h.readIntValue()
+		                  : 0;
                 if (script_h.hasMoreArgs())
                     script_h.readIntValue(); // 0 ... normal, 1 ... no anti-aliasing, 2 ... Fukuro
 
@@ -300,16 +304,25 @@ void PonscripterLabel::parseTaggedString(AnimationInfo* anim)
 
             while (buffer[0] != '#' && buffer[0] != '\0') buffer++;
             i = 0;
-            while (buffer[i] == '#') {
-                anim->num_of_cells++;
-                i += 7;
-            }
-            anim->color_list.clear();
-            for (i = 0; i < anim->num_of_cells; i++) {
-                anim->color_list.push_back(readColour(buffer));
-                buffer += 7;
-            }
-        }
+	    if (buffer[i] == '#' && buffer[i + 1] == '#') {
+		buffer += 2;
+		anim->num_of_cells = 2;
+		anim->color_list.clear();
+		anim->color_list.push_back(readColour("#FFFFFF"));	
+		anim->color_list.push_back(readColour("#000000"));	
+	    }
+	    else {
+		while (buffer[i] == '#') {
+		    anim->num_of_cells++;
+		    i += 7;
+		}
+		anim->color_list.clear();
+		for (i = 0; i < anim->num_of_cells; i++) {
+		    anim->color_list.push_back(readColour(buffer));
+		    buffer += 7;
+		}
+	    }
+	}
         else if (buffer[0] == 'm') {
             anim->trans_mode = AnimationInfo::TRANS_MASK;
             const char* start = ++buffer;

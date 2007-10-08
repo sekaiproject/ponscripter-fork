@@ -485,11 +485,44 @@ definition string like
 
   ":s/[xsize],[ysize],[pitch];#FORECOLOUR#BACKCOLOUR`text"
 
-There are two changes in Ponscripter.  Firstly, obviously the ` is
-replaced with ^ and text tags are permitted after it.  Secondly, if
-":S/" is used in place of ":s/", the x position of the sprite is
-measured relative to its centre, rather than to the left edge.  This
-makes it easier to create centered dialog buttons and the like.
+There are three changes in Ponscripter.
+
+* Firstly, obviously the ` is replaced with ^ and text tags are
+  permitted after it.
+
+* Secondly, if ":S/" is used in place of ":s/", the x position of the
+  sprite is measured relative to its centre, rather than to the left
+  edge; this makes it easier to create centered dialog buttons and the
+  like.
+
+* Thirdly, the ysize, pitch, and colour parameters become optional.
+  If pitch is not given, it defaults to 0.  If ysize is not given, it
+  defaults to xsize.  The colours can be omitted by giving them as ##
+  instead, in which case they default to white and black respectively.
+
+
+/---------------------------------------------------------------------
+|  Soft subtitles
+
+An easy method to subtitle an MPEG video is provided by extending the
+plaympeg command to take an additional optional argument, which gives
+the name of a file containing subtitle definitions.  Each line of this
+file is either blank (ignored), begins with a semicolon (ignored), or
+holds a subtitle definition, which is of the form
+
+  float,float,arbitrary text
+
+where the first number gives the time to display the subtitle, the
+second the time to remove it, and the remainder of the line is
+interpreted as a text sprite definition which is overlaid on the video
+during the given times.
+
+Support is currently incomplete, in that as yet there's no way to
+specify little details like where on the screen the subtitle should
+appear.  I also intend to allow for multiple subtitles at once, etc.
+
+Note further that none of this applies to AVI files -- only MPEG files
+can be soft-subbed at present.
 
 
 /---------------------------------------------------------------------
