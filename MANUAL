@@ -506,23 +506,36 @@ There are three changes in Ponscripter.
 
 An easy method to subtitle an MPEG video is provided by extending the
 plaympeg command to take an additional optional argument, which gives
-the name of a file containing subtitle definitions.  Each line of this
-file is either blank (ignored), begins with a semicolon (ignored), or
-holds a subtitle definition, which is of the form
+the name of a file containing subtitle definitions.  Within this file,
+whole-line comments are permitted with ;.
 
-  float,float,arbitrary text
+There are two types of line.  One defines layouts:
+
+  define <number>,<pos>,[colour],[alpha]
+
+where "number" is a zero-based one-up reference, "colour" is an
+NScripter-style colour definition ("#RRGGBB"), "pos" is the vertical
+location of subtitles with this number, and "alpha" is its opacity (0
+= transparent, 255 = opaque).  Both colour and alpha are optional; if
+they default to white and opaque respectively.
+
+The other type of line defines subtitles themselves:
+
+  <float>,<float>,<integer>,<arbitrary text>
 
 where the first number gives the time to display the subtitle, the
-second the time to remove it, and the remainder of the line is
-interpreted as a text sprite definition which is overlaid on the video
-during the given times.
+second the time to remove it, the third indicates which subtitle to
+change, and the remainder of the line is interpreted as a text sprite
+definition which is overlaid on the video during the given times.
 
-Support is currently incomplete, in that as yet there's no way to
-specify little details like where on the screen the subtitle should
-appear.  I also intend to allow for multiple subtitles at once, etc.
+The order of these lines is irrelevant; only the times are meaningful.
+If two subtitles with the same number have overlapping time spans,
+then the second will replace the first at its given start time, but
+will disappear at the earlier of the two end times.  To display
+multiple subtitles at the same time, use different numbers.
 
-Note further that none of this applies to AVI files -- only MPEG files
-can be soft-subbed at present.
+Note that none of this applies to AVI files -- only MPEG files can be
+soft-subbed at present.
 
 
 /---------------------------------------------------------------------

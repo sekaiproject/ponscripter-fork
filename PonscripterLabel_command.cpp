@@ -1138,31 +1138,86 @@ int PonscripterLabel::mspCommand(const string& cmd)
     return RET_CONTINUE;
 }
 
-
-Subtitle::s parseSubtitles(string file)
+void SubtitleDefs::add(int n, float t, string x)
 {
-    Subtitle::s commands;
+    sorted = false;
+    Subtitle sub;
+    sub.number = n;
+    sub.time = t;
+    sub.text = x;
+    text.push_back(sub);
+}
+
+void SubtitleDefs::define(int n, rgb_t colour, int pos, int alpha)
+{
+    if (subs.size() < (unsigned) n + 1) subs.resize(n + 1);
+    subs[n].colour = colour;
+    subs[n].pos = pos;
+    subs[n].alpha = alpha;
+}
+
+float SubtitleDefs::next()
+{
+    if (!sorted) sort();
+    if (text.empty()) return -1;
+    return text.front().time;
+}
+
+Subtitle SubtitleDefs::pop()
+{
+    if (!sorted) sort();
+    Subtitle rv;
+    if (!text.empty()) {
+	rv = text.front();
+	text.pop_front();
+    }
+    return rv;
+}
+
+bool sublessthan(const Subtitle& a, const Subtitle& b)
+{
+    return a.time < b.time;
+}
+
+void SubtitleDefs::sort()
+{
+    sorted = true;
+    std::sort(text.begin(), text.end(), sublessthan);
+}
+
+SubtitleDefs PonscripterLabel::parseSubtitles(string file)
+{
+    SubtitleDefs defs;
     string::vector lines = ScriptHandler::cBR->getFile(file).split(0x0a);
     for (string::vector::iterator it = lines.begin(); it != lines.end(); ++it) {
 	it->chomp(); it->ltrim();
 	if (!*it || (*it)[0] == ';') continue;
-	string::vector elts = it->split(',', 3);
-	if (elts.size() != 3)
-	    cerr << "Subtitle lines should be of the form "
-		    "start-time,end-time,text" + eol;
+	if (it->substr(0, 7) == "define ") {
+	    string::vector e = it->substr(7).split(',');
+	    if (e.size() > 2) {
+		int alpha = e.size() > 3 ? e[3].to_int() : 255;
+		rgb_t col = readColour(e.size() > 2 ? e[2] : "#FFFFFF");
+		defs.define(e[0].to_int(), col, e[1].to_int(), alpha);
+	    }
+	    else cerr << "Bad line in subtitle file: " + *it + eol;
+	}
 	else {
-	    commands.push(Subtitle(atof(elts[0].c_str()), elts[2]));
-	    commands.push(Subtitle(atof(elts[1].c_str()), ""));	    
+	    string::vector e = it->split(',', 4);
+	    if (e.size() == 4) {
+		defs.add(e[2].to_int(), e[0].to_float(), e[3]);
+		defs.add(e[2].to_int(), e[1].to_float(), "");
+	    }
+	    else cerr << "Bad line in subtitle file: " + *it + eol;
 	}
     }
-    return commands;
+    return defs;
 }
 
 int PonscripterLabel::mpegplayCommand(const string& cmd)
 {
     string name = script_h.readStrValue();
     bool cancel = script_h.readIntValue() == 1;
-    Subtitle::s subtitles;
+    SubtitleDefs subtitles;
     if (script_h.hasMoreArgs())
 	subtitles = parseSubtitles(script_h.readStrValue());
     stopBGM(false);

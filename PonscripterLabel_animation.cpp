@@ -291,7 +291,7 @@ void PonscripterLabel::parseTaggedString(AnimationInfo* anim)
 		                  ? script_h.readIntValue()
 		                  : 0;
                 if (script_h.hasMoreArgs())
-                    script_h.readIntValue(); // 0 ... normal, 1 ... no anti-aliasing, 2 ... Fukuro
+                    script_h.readIntValue(); // antialiasing mode (ignored)
 
                 buffer = script_h.getNext();
                 script_h.popCurrent();

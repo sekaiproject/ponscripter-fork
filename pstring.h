@@ -76,6 +76,9 @@ public:
     SDL_RWops* rwops()
 	{ return SDL_RWFromMem((void*) c.data(), c.size()); }
 
+    float to_float() const { return atof(c.c_str()); }
+    int to_int() const { return atoi(c.c_str()); }
+    
     string() {}
     string(const string& s) : c(s.c) {}
     string(const string& s, size_type p, size_type n) : c(s.c, p, n) {}

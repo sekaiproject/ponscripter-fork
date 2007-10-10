@@ -84,11 +84,31 @@ struct OVInfo {
 };
 
 struct Subtitle {
-    typedef std::queue<Subtitle> s;
+    int number;
     float time;
     string text;
-    Subtitle(float t, string x)
-	: time(t), text(x) {}
+};
+
+class SubtitleDefs {
+    struct Def {
+	rgb_t colour;
+	int pos;
+	int alpha;
+    };
+    std::vector<Def> subs;
+    std::deque<Subtitle> text;
+    bool sorted;
+    void sort();
+public:
+    operator bool() const { return !text.empty(); }
+    int numdefs() const { return subs.size(); }
+    void define(int n, rgb_t colour, int pos, int alpha);
+    void add(int n, float t, string x);
+    float next();
+    Subtitle pop();
+    rgb_t colour(int no) { return subs[no].colour; }
+    int pos(int no) { return subs[no].pos; }
+    int alpha(int no) { return subs[no].alpha; }
 };
 
 class PonscripterLabel : public ScriptParser {
@@ -727,9 +747,9 @@ private:
     int playExternalMusic(bool loop_flag);
     int playMIDI(bool loop_flag);
 
-    void SetSubtitle(const string& text);
+    SubtitleDefs parseSubtitles(string file);
     int playMPEG(const string& filename, bool click_flag,
-		 Subtitle::s& subtitles);
+		 SubtitleDefs& subtitles);
     void playAVI(const string& filename, bool click_flag);
 
     enum { WAVE_PLAY        = 0,

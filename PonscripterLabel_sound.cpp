@@ -367,7 +367,8 @@ int PonscripterLabel::playMIDI(bool loop_flag)
 // We assume only one MPEG video will ever play at a time.
 // This bit is messy, but it seems we cannot use a method here, so we
 // simply must shift all this stuff into plain C variables.
-static AnimationInfo* overlay = NULL;
+typedef std::vector<AnimationInfo*> olvec;
+static olvec overlays;
 static SDL_Surface *offscreen = NULL, *screenptr = NULL;
 void UpdateMPEG(SDL_Surface* surface, int x, int y,
 		unsigned int w, unsigned int h)
@@ -375,25 +376,15 @@ void UpdateMPEG(SDL_Surface* surface, int x, int y,
     SDL_Rect r;
     r.x = 0; r.y = 0; r.w = screenptr->w; r.h = screenptr->h;
     SDL_BlitSurface(offscreen, &r, screenptr, &r);
-    if (overlay)
-	overlay->blendOnSurface(screenptr, overlay->pos.x, overlay->pos.y, r);
+    for (olvec::iterator it = overlays.begin(); it != overlays.end(); ++it)
+	if (*it)
+	    (*it)->blendOnSurface(screenptr, (*it)->pos.x, (*it)->pos.y, r,
+		                  (*it)->trans);
     SDL_UpdateRect(screenptr, r.x, r.y, r.w, r.h);
 }
 
-void PonscripterLabel::SetSubtitle(const string& text)
-{
-    if (overlay) delete overlay;
-    overlay = new AnimationInfo();
-    overlay->setImageName(text);
-    overlay->pos.x = screen_width / 2;
-    overlay->pos.y = screen_height / 2;
-    overlay->trans = 255;
-    parseTaggedString(overlay);
-    setupAnimationInfo(overlay);
-}
-
 int PonscripterLabel::playMPEG(const string& filename, bool click_flag,
-			       Subtitle::s& subtitles)
+			       SubtitleDefs& subtitles)
 {
     int ret = 0;
 #ifndef MP3_MAD
@@ -409,16 +400,17 @@ int PonscripterLabel::playMPEG(const string& filename, bool click_flag,
 
         SMPEG_enablevideo(mpeg_sample, 1);
 
-	if (subtitles.empty())
-	    SMPEG_setdisplay(mpeg_sample, screen_surface, NULL, NULL);
-	else {
+	if (subtitles) {
 	    screenptr = screen_surface;
 	    offscreen = SDL_CreateRGBSurface(SDL_SWSURFACE,
 					     screenptr->w, screenptr->h, 32,
 					     0xff0000, 0xff00, 255, 0xff000000);
 	    SDL_SetAlpha(offscreen, 0, 255);
 	    SMPEG_setdisplay(mpeg_sample, offscreen, NULL, &UpdateMPEG);
+	    overlays.assign(subtitles.numdefs(), NULL);
 	}
+	else
+	    SMPEG_setdisplay(mpeg_sample, screen_surface, NULL, NULL);
 
         SMPEG_setvolume(mpeg_sample, music_volume);
 
@@ -449,11 +441,23 @@ int PonscripterLabel::playMPEG(const string& filename, bool click_flag,
                 }
             }
 
-	    if (!subtitles.empty()) {
+	    if (subtitles) {
 		float time = (SDL_GetTicks() - zero_time) / 1000;
-		if (time >= subtitles.front().time) {
-		    SetSubtitle(subtitles.front().text);
-		    subtitles.pop();
+		if (time >= subtitles.next()) {
+		    Subtitle s = subtitles.pop();
+		    AnimationInfo* overlay = 0;
+		    if (s.text) {
+			overlay = new AnimationInfo();
+			overlay->setImageName(s.text);
+			overlay->pos.x = screen_width / 2;
+			overlay->pos.y = subtitles.pos(s.number);
+			parseTaggedString(overlay);
+			overlay->color_list[0] = subtitles.colour(s.number);
+			setupAnimationInfo(overlay);
+			overlay->trans = subtitles.alpha(s.number);
+		    }
+		    if (overlays[s.number]) delete overlays[s.number];
+		    overlays[s.number] = overlay;
 		}
 	    }
 	    
@@ -468,7 +472,9 @@ int PonscripterLabel::playMPEG(const string& filename, bool click_flag,
 	    offscreen = NULL;
 	    screenptr = NULL;
 	}
-	if (overlay) delete overlay;
+	for (olvec::iterator it = overlays.begin(); it != overlays.end(); ++it)
+	    if (*it) delete *it;
+	overlays.clear();
     }
 
 #else
