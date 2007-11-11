@@ -196,7 +196,7 @@ protected:
            CLICK_WAIT    = 1,
            CLICK_NEWPAGE = 2,
            CLICK_IGNORE  = 3,
-           CLICK_EOL     = 4 };
+           CLICK_WAITEOL = 4 };
     enum { NORMAL_MODE, DEFINE_MODE };
     int current_mode;
     int debug_level;

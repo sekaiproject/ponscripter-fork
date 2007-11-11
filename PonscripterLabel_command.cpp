@@ -193,7 +193,7 @@ int PonscripterLabel::texecCommand(const string& cmd)
         newPage(true);
         clickstr_state = CLICK_NONE;
     }
-    else if (textgosub_clickstr_state == (CLICK_WAIT | CLICK_EOL)) {
+    else if (textgosub_clickstr_state == CLICK_WAITEOL) {
         if (!sentence_font.isLineEmpty() && !new_line_skip_flag) {
             indent_offset = 0;
             line_enter_status = 0;
@@ -1196,7 +1196,7 @@ SubtitleDefs PonscripterLabel::parseSubtitles(string file)
 	    string::vector e = it->substr(7).split(',');
 	    if (e.size() > 2) {
 		int alpha = e.size() > 3 ? e[3].to_int() : 255;
-		rgb_t col = readColour(e.size() > 2 ? e[2] : "#FFFFFF");
+		rgb_t col = readColour(e.size() > 2 ? e[2].trim() : "#FFFFFF");
 		defs.define(e[0].to_int(), col, e[1].to_int(), alpha);
 	    }
 	    else cerr << "Bad line in subtitle file: " + *it + eol;
@@ -1204,7 +1204,7 @@ SubtitleDefs PonscripterLabel::parseSubtitles(string file)
 	else {
 	    string::vector e = it->split(',', 4);
 	    if (e.size() == 4) {
-		defs.add(e[2].to_int(), e[0].to_float(), e[3]);
+		defs.add(e[2].to_int(), e[0].to_float(), e[3].ltrim());
 		defs.add(e[2].to_int(), e[1].to_float(), "");
 	    }
 	    else cerr << "Bad line in subtitle file: " + *it + eol;

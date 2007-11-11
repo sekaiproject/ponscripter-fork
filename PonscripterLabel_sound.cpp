@@ -407,7 +407,7 @@ int PonscripterLabel::playMPEG(const string& filename, bool click_flag,
 					     0xff0000, 0xff00, 255, 0xff000000);
 	    SDL_SetAlpha(offscreen, 0, 255);
 	    SMPEG_setdisplay(mpeg_sample, offscreen, NULL, &UpdateMPEG);
-	    overlays.assign(subtitles.numdefs(), NULL);
+	    overlays.assign(size_t(subtitles.numdefs()), NULL);
 	}
 	else
 	    SMPEG_setdisplay(mpeg_sample, screen_surface, NULL, NULL);

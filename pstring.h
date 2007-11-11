@@ -425,27 +425,29 @@ public:
 
     // Trim spaces and tabs.
     
-    void ltrim()
+    string& ltrim()
     {
 	size_type end = c.find_first_not_of(" \t\r\n");
 	if (end == npos)
 	    c.clear();
 	else
 	    c.erase(0, end);
+	return *this;
     }
 
-    void rtrim()
+    string& rtrim()
     {
 	size_type end = c.find_last_not_of(" \t\r\n");
 	if (end == npos)
 	    c.clear();
 	else
 	    c.erase(end + 1);
+	return *this;
     }
     
-    void trim()
+    string& trim()
     {
-	rtrim(); ltrim();
+	return rtrim().ltrim();
     }
 
     // Case folding (ASCII only; FIXME: NOT encoding-aware!)

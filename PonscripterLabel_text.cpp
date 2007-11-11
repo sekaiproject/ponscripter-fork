@@ -328,9 +328,8 @@ int PonscripterLabel::clickWait(bool display_char)
         if (textgosub_label) {
             saveoffCommand("saveoff");
 
-            textgosub_clickstr_state = CLICK_WAIT;
-            if (script_h.getNext()[0] == 0x0a)
-                textgosub_clickstr_state |= CLICK_EOL;
+            textgosub_clickstr_state =
+		(script_h.getNext()[0] == 0x0a) ? CLICK_WAITEOL : CLICK_WAIT;
 
             gosubReal(textgosub_label, script_h.getNext());
             indent_offset = 0;
