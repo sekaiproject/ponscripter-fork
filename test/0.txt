@@ -35,6 +35,10 @@ setwindow 8,16,30,23,20,20,0,2,20,1,1,#999999,0,0,639,479
 mov %testnum,0
 mov $teststr,"Test"
 
+;; TEMP
+mpegplay "umineko_op.mpg",1
+;; end TEMP
+
 ; Test itoa, itoa2, atoi, mid, split, and various `if' statements
 ; Correct output: ›››››
 test
