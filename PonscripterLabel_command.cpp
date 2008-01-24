@@ -589,11 +589,14 @@ void PonscripterLabel::setwindowCore()
     wind.w_width   = script_h.hasMoreArgs() ? script_h.readIntValue() : 0;
     wind.w_height  = script_h.hasMoreArgs() ? script_h.readIntValue() : 0;
   
-    // Handle NScripter games: window size defined in characters
-    if (!script_h.is_ponscripter) {
-	wind.width  *= size_1 + wind.pitch_x;
-	wind.height *= size_2 + wind.pitch_y;
-    }
+    // Window size is defined in characters
+    // (this used to be just for non-Ponscripter games, but as of
+    // 20080122 we revert to the NScripter behaviour; new code should
+    // really be using h_defwindow and h_usewindow anyway!)    
+    // if (!script_h.is_ponscripter) {
+    wind.width  *= size_1 + wind.pitch_x;
+    wind.height *= size_2 + wind.pitch_y;
+    //}
 
     DoSetwindow(wind);
 }
@@ -1506,7 +1509,10 @@ int PonscripterLabel::locateCommand(const string& cmd)
 {
     int x = script_h.readIntValue();
     int y = script_h.readIntValue();
-    if (!script_h.is_ponscripter) {
+    // As of 20080122, pixel-oriented behaviour is provided with the
+    // command name "h_locate", not with a UTF-8 script.
+    //if (!script_h.is_ponscripter) {
+    if (cmd == "locate") {
 	x *= sentence_font.size() + sentence_font.pitch_x;
 	y *= sentence_font.line_space() + sentence_font.pitch_y;
     }
@@ -1748,7 +1754,7 @@ int PonscripterLabel::gettextCommand(const string& cmd)
 		current_text_buffer->contents.end(),
 		buf.begin(),
 		0x0a);
-    script_h.readStrExpr().mutate(buf);
+    script_h.readStrExpr(true).mutate(buf);
     return RET_CONTINUE;
 }
 

@@ -52,11 +52,7 @@
 #include <stdlib.h>
 #include <sys/soundcard.h>
 #include <sys/ioctl.h>
-#ifdef linux
-#include <linux/awe_voice.h>
-#else
-#include <awe_voice.h>
-#endif
+#include "awe_voice.h"
 
 struct chanstate {
     int program;

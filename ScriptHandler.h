@@ -129,7 +129,7 @@ public:
     string readStrValue();
     string readBareword();
     int readIntValue();
-    Expression readStrExpr();
+    Expression readStrExpr(bool trace = false);
     Expression readIntExpr();
     Expression readExpr();
     char checkPtr();

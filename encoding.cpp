@@ -186,7 +186,7 @@ UTF8Encoding::Decode(const char* string, int& bytes)
     else {
         if ((c & 0xc0) == 0x80)
             fprintf(stderr, "Warning: UnicodeOfUTF8 called on incomplete "
-                            "character\n");
+		    "character (string: %s)\n", string);
 
         if (c < 0xe0) {
 	    bytes = 2;

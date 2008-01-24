@@ -85,10 +85,11 @@ $(SDLISRC)/Makefile: $(if $(INTERNAL_SDL),$(EB)/sdl-config) \
 	    $(addprefix --disable-,shared lbm pcx pnm tga xcf xv tif \
 	    	                   $(if $(INTERNAL_LIBPNG),png-shared) \
                                    $(if $(INTERNAL_LIBJPEG),jpg-shared)) \
-	    $(if $(REDIR),>/dev/null 2>temp.output)
-	@if [ -f temp.output ]; then \
-	    if grep -q 'PNG image loading disabled' temp.output; then exit 1; fi; \
-	    rm -f temp.output; \
+	    $(REDIR)
+	@if grep -q 'PNG image loading disabled' $(SDLISRC)/config.log; then \
+	    echo "PNG error - check $(SDLISRC)/config.log for details"; \
+	    rm Makefile; \
+	    exit 1; \
 	fi
 
 $(EL)/libSDL_image$(LIBSUFFIX): $(SDLISRC)/Makefile

@@ -199,14 +199,15 @@ Expression& Expression::operator=(const Expression& src)
 
 // ScriptHandler expression handling
 
-Expression ScriptHandler::readStrExpr()
+Expression ScriptHandler::readStrExpr(bool trace)
 {
     // Currently this is a sane wrapper around the existing unsafe
     // plumbing.  It can be replaced with a safe implementation once
     // everything is going through a safe interface like this.
     string s = readStr();
     if (current_variable.type == VAR_STR)
-	return Expression(*this, Expression::String, 1,current_variable.var_no);
+	return Expression(*this, Expression::String, 1,
+			  current_variable.var_no);
     else if (current_variable.type & VAR_LABEL) {
 	s.shift();
 	return Expression(*this, Expression::Label, 0, s);

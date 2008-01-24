@@ -4,6 +4,10 @@
 #ifndef __DEFS_H__
 #define __DEFS_H__
 
+//#ifdef __GNUC__
+//#define USE_HASH
+//#endif
+
 #include <stdio.h>
 
 #include <algorithm>
@@ -16,7 +20,7 @@
 #include <set>
 
 #include "pstring.h"
-#ifdef __GNUC__
+#ifdef USE_HASH
 #include <ext/hash_map>
 #include <ext/hash_set>
 namespace __gnu_cxx {
@@ -33,7 +37,7 @@ const int MAX_INT = std::numeric_limits<int>::max();
 
 template <typename KT, typename VT>
 struct dictionary {
-#ifdef __GNUC__
+#ifdef USE_HASH
     typedef __gnu_cxx::hash_map<KT, VT> t;
 #else
     typedef std::map<KT, VT> t;
@@ -42,7 +46,7 @@ struct dictionary {
 
 template <typename T>
 struct set {
-#ifdef __GNUC__
+#ifdef USE_HASH
     typedef __gnu_cxx::hash_set<T> t;
 #else
     typedef std::set<T> t;

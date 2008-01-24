@@ -1,3 +1,12 @@
+2008-01-22
+
+  Revert setwindow and locate commands to the NScripter behaviour
+  (sizes defined in characters not pixels) in all cases, to simplify
+  porting.  A new h_locate command is provided as a pixel-oriented
+  replacement for locate, while a much improved pixel-oriented
+  setwindow replacement is already available in the form of
+  h_usewindow.
+
 2007-10-08
 
   Support for soft subtitles in MPEG playback (but not, at present, in

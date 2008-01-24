@@ -66,7 +66,9 @@ public:
     reference operator[](size_type n) { return c[n]; }
     const_reference operator[](size_type n) const { return c[n]; }
 
-    const char* c_str() const { return c.c_str(); }
+    const char* c_str() const {
+	return c.c_str();
+    }
     const char* data() const { return c.data(); }
     
     const unsigned char* u_str() const

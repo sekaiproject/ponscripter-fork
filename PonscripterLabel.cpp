@@ -163,6 +163,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["h_fontstyle"]      = &PonscripterLabel::haeleth_font_styleCommand;
     dict["h_indentstr"]      = &PonscripterLabel::haeleth_char_setCommand;
     dict["h_ligate"]         = &PonscripterLabel::haeleth_ligate_controlCommand;
+    dict["h_locate"]         = &PonscripterLabel::locateCommand;
     dict["h_mapfont"]        = &PonscripterLabel::haeleth_map_fontCommand;
     dict["h_rendering"]      = &PonscripterLabel::haeleth_hinting_modeCommand;
     dict["h_textextent"]     = &PonscripterLabel::haeleth_text_extentCommand;
@@ -1178,11 +1179,9 @@ int PonscripterLabel::parseLine()
     int ret = 0;
     string cmd = script_h.getStringBuffer();
     if (cmd[0] == '_') cmd.shift();
-
+    
     if (!script_h.isText()) {
-	PonscrFun f = func_lut.get(cmd);
-	if (f) return (this->*f)(cmd);
-
+	
         if (cmd[0] == 0x0a)
             return RET_CONTINUE;
         else if (cmd[0] == 'v' && cmd[1] >= '0' && cmd[1] <= '9')
@@ -1190,6 +1189,11 @@ int PonscripterLabel::parseLine()
         else if (cmd[0] == 'd' && cmd[1] == 'v' && cmd[2] >= '0' &&
                  cmd[2] <= '9')
             return dvCommand(cmd);
+
+	fprintf(stderr, "PonscripterLabel::parseLine - %s\n", cmd.c_str());
+	
+	PonscrFun f = func_lut.get(cmd);
+	if (f) return (this->*f)(cmd);
 
         fprintf(stderr, " command [%s] is not supported yet!!\n", cmd.c_str());
 
@@ -1218,10 +1222,12 @@ int PonscripterLabel::parseLine()
     ret = textCommand();
 
 //--------LINE BREAKING ROUTINE-------------------------------------------------
+
     int l;
     const wchar first_ch =
 	encoding->Decode(script_h.getStringBuffer().c_str() +
 			 string_buffer_offset, l);
+
     if (is_break_char(first_ch) && !new_line_skip_flag) {
         const char* it = script_h.getStringBuffer().c_str() + string_buffer_offset
 	    + encoding->CharacterBytes(script_h.getStringBuffer().c_str() +
@@ -1233,9 +1239,9 @@ int PonscripterLabel::parseLine()
             // get unicode.
             wchar ch = encoding->Decode(it, l);
             it += l;
-
+	    
             // Check for token breaks.
-            if (!ch || ch == '\n' || ch == '@' || ch == '\\'
+            if (ch <= 0x1f || ch == '\n' || ch == '@' || ch == '\\'
 		|| is_break_char(ch))
                 break;
 
@@ -1314,6 +1320,7 @@ SDL_Surface* PonscripterLabel::loadImage(const string& file_name,
 					 bool* has_alpha)
 {  
     if (!file_name) return 0;
+    string ext = file_name.substr(file_name.rfind('.') + 1);
 
     int location;
     string dat = ScriptHandler::cBR->getFile(file_name, &location);
@@ -1330,22 +1337,24 @@ SDL_Surface* PonscripterLabel::loadImage(const string& file_name,
     if (filelog_flag) script_h.file_log.add(file_name);
 
     SDL_Surface* tmp = IMG_Load_RW(dat.rwops(), 1);
-    if (!tmp && file_name.substr(file_name.rfind('.') + 1).wicompare("jpg")) {
+    if (!tmp && ext.wicompare("jpg") == 0) {
         fprintf(stderr, " *** force-loading a JPEG image [%s]\n",
 		file_name.c_str());
         SDL_RWops* src = dat.rwops();
         tmp = IMG_LoadJPG_RW(src);
         SDL_RWclose(src);
     }
-    if (tmp && has_alpha) *has_alpha = tmp->format->Amask;
-
+	
     if (!tmp) {
-        fprintf(stderr, " *** can't load file [%s] ***\n", file_name.c_str());
-        return 0;
+        fprintf(stderr, " *** can't load file [%s] : %s ***\n",
+		file_name.c_str(), IMG_GetError());
+	return 0;
     }
 
+    if (tmp && has_alpha) *has_alpha = tmp->format->Amask;
+
     SDL_Surface* ret = SDL_ConvertSurface(tmp, image_surface->format,
-                           SDL_SWSURFACE);
+					  SDL_SWSURFACE);
     if (ret
         && screen_ratio2 != screen_ratio1
         && (!disable_rescale_flag ||

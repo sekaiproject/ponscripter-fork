@@ -133,7 +133,7 @@ const char* ScriptHandler::readToken(bool no_kidoku)
 
     SKIP_SPACE(buf);
     if (!no_kidoku) markAsKidoku(buf);
-
+    
 readTokenTop:
     string_buffer.clear();
     char ch = *buf;
@@ -208,6 +208,9 @@ readTokenTop:
         text_flag = true;
     }
     else if (ch == encoding->TextMarker()) {
+//if (buf[1] == '~') {
+//    cerr << "Text: " + string(buf, 20) << eol;
+//}
         ch = *++buf;
         while (ch != encoding->TextMarker() && ch != 0x0a && ch != '\0') {
             if ((ch == '\\' || ch == '@') && (buf[1] == 0x0a || buf[1] == 0)) {

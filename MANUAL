@@ -1,5 +1,5 @@
 Herewith a brief explanation of the key points wherein Ponscripter
-differs from the ONScripter you know and love.
+differs from the ONScripter-En you know and love.
 
 
 In no particular order, I'm afraid.
@@ -426,26 +426,15 @@ NScripter.
 /---------------------------------------------------------------------
 |  Command changes 1: size and position
 
-All text and window sizing and positioning commands now operate in
-pixels, not zenkaku characters as before.  This breaks every single
-instance of locate, setwindow, and so forth.
+Earlier versions of Ponscripter modified locate and setwindow to
+operate in pixels rather than characters.  This has now been reverted,
+and instead alternative pixel-based commands are provided; locate and
+setwindow are retained for compatibility, but they are deprecated.
 
-For example, the Japanese version of Narcissu 2 defines its standard
-text output window with the command
+/---------------------------------------------------------------------
+|  h_locate <x>, <y>
 
-  setwindow 180,358,35,17,17,17,0,3,1,1,5,#ffffff,0,0,799,599
-
-In the English version using Ponscripter, this would become
-
-  setwindow 150,358,540,240,19,19,0,0,1,1,5,#ffffff,0,0,799,599
-
-The pertinent parts are the third and fourth numbers.  In the Japanese
-version, the third number is the width of the window in full-width
-characters, and the fourth is its height in lines.  In the English
-version, both width and height are specified in pixels.
-
-For the specific case of setwindow, however, there is now a better way
-to do this:
+A pixel-based replacement for locate.  It works just how you'd expect.
 
 /---------------------------------------------------------------------
 |  h_defwindow <name>, (definition)
@@ -463,8 +452,12 @@ Currently no validation is performed on the name, so attempting to use
 a window that has not been defined will probably cause a horrible
 crash.  So don't do that.
 
-In other words, the way Narcissu 2 actually handles the setwindow
-example above is to include the line
+In other words, instead of defining an ad-hoc window at the point of
+use with a command like
+
+  setwindow 150,358,35,17,17,17,0,3,1,1,5,#ffffff,0,0,799,599
+
+you should define the window once with
 
   h_defwindow "main", 150,358,540,240,19,0,0,1,1,5,#ffffff,0,0,799,599
 
@@ -604,12 +597,11 @@ considerably.
 /---------------------------------------------------------------------
 |  Builds
 
-Insani's ONScripter builds are all-in-one megalithic constructions
+Insani's ONScripter builds were all-in-one megalithic constructions
 designed to play any game on the market.  To give more polished
 Windows and OS X packages, Ponscripter is designed to be built
 specifically for each game that will use it. This way, unneeded
-functionality can be omitted from a build and the file size kept
-down.
+functionality can be omitted from a build and the file size kept down.
 
 Additionally, fonts and icons can be embedded in the game executable.
 This is primarily useful on Windows, since OS X's bundles already

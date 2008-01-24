@@ -375,7 +375,8 @@ int ScriptParser::parseLine()
     string cmd = script_h.getStringBuffer();
     if (debug_level > 0) printf("ScriptParser::Parseline %s\n", cmd.c_str());
 
-    if (cmd[0] == ';' || cmd[0] == '*' || cmd[0] == ':') return RET_CONTINUE;
+    if (cmd[0] == ';' || cmd[0] == '*' || cmd[0] == ':' || cmd[0] == 0x0a)
+	return RET_CONTINUE;
 
     if (script_h.isText()) return RET_NOMATCH;
 
@@ -628,6 +629,9 @@ void ScriptParser::setCurrentLabel(const string& label)
 {
     current_label_info = script_h.lookupLabel(label);
     current_line = script_h.getLineByAddress(current_label_info.start_address);
+//cerr << "Jump to *" + label + " ("
+//  + nstr(script_h.getOffset(current_label_info.start_address), 8, 1, 16)
+//  + ")" << eol;
     script_h.setCurrent(current_label_info.start_address);
 }
 

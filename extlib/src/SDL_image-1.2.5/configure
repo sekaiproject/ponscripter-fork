@@ -22001,7 +22001,7 @@ if test "${ac_cv_lib_png_png_create_read_struct+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lpng  $LIBS"
+LIBS="-lpng -lm $LIBS"
 cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
