@@ -22,6 +22,7 @@
  */
 
 #include "defs.h"
+#include "Fontinfo.h"
 
 Encoding* encoding = 0; // initialised in ScriptHandler::readScript
 
@@ -117,6 +118,16 @@ DefaultLigatures(int which)
         AddLigature("ffi", 0xfb03);
         AddLigature("ffl", 0xfb04);
     }
+}
+
+wchar
+Encoding::DecodeWithLigatures(const char* str, const Fontinfo& info, int& bytes)
+{
+    wchar rv = Decode_impl(str, bytes, true);
+    // If likely a ligature, check for its presence in the target font.
+    if (bytes == 1 || info.font()->has_char(rv)) return rv;
+    // If the character wasn't found, try again discounting ligatures.
+    return Decode_impl(str, bytes, false);
 }
 
 

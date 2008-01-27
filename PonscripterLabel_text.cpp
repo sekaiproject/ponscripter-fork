@@ -96,13 +96,13 @@ PonscripterLabel::drawChar(const char* text, Fontinfo* info, bool flush_flag,
 	SDL_Rect* clip)
 {
     int bytes;
-    wchar unicode = encoding->DecodeWithLigatures(text, bytes);
+    wchar unicode = encoding->DecodeWithLigatures(text, *info, bytes);
 
     bool code = info->processCode(text);
     if (!code) {
         // info->doSize() called in GlyphAdvance
-        float adv = info->GlyphAdvance(unicode,
-			       encoding->DecodeWithLigatures(text + bytes));
+	wchar next = encoding->DecodeWithLigatures(text + bytes, *info);
+        float adv = info->GlyphAdvance(unicode, next);
 
         if (info->isNoRoomFor(adv)) info->newLine();
 
@@ -200,7 +200,7 @@ void PonscripterLabel::restoreTextBuffer()
     const char* buffer = current_text_buffer->contents;
     int buffer_count = current_text_buffer->contents.length();
 
-    const wchar first_ch = encoding->DecodeWithLigatures(buffer);
+    const wchar first_ch = encoding->DecodeWithLigatures(buffer, f_info);
     if (is_indent_char(first_ch)) f_info.SetIndent(first_ch);
 
     int i = 0;

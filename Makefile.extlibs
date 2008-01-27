@@ -170,7 +170,7 @@ $(EL)/libogg$(LIBSUFFIX): $(OGGSRC)/Makefile
 	@echo Building internal libogg...
 	@$(MAKE) -C $(OGGSRC) $(REDSO)
 	@$(MAKE) -C $(OGGSRC) install $(REDSO)
-	
+
 $(VORBSRC)/Makefile:
 	@echo Configuring internal libvorbis...
 	@cd $(VORBSRC) && \

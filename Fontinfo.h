@@ -45,7 +45,7 @@ class Fontinfo {
 public:
     static int default_encoding;
 
-    Font* font();
+    Font* font() const;
 
     rgb_t color;
     rgb_t on_color, off_color, nofile_color;
@@ -59,9 +59,9 @@ public:
     bool  is_newline_accepted;
     rgb_t window_color;
 
-    int size() { return font_size_mod ? font_size_mod : font_size; }
-    int base_size() { return font_size; }
-    int mod_size() { return font_size_mod; }
+    int size() const { return font_size_mod ? font_size_mod : font_size; }
+    int base_size() const { return font_size; }
+    int mod_size() const { return font_size_mod; }
     void set_size(int val) { font_size = val; }
     void set_mod_size(int val) { font_size_mod = val; }
 

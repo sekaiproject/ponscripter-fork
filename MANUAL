@@ -197,13 +197,13 @@ currently recognised, not even in NScripter mode.
 Additional shortcuts/ligatures can be defined (or existing shortcuts
 undefined) using the h_ligate command.  As text is rendered, it's
 checked for known character sequences, which are replaced with a
-single character.
+single character if a suitable glyph is available in the current font.
 
 The first two forms of this command define shortcuts/ligatures: the
 first <string> is the text to replace, and the second argument is
 either the Unicode number of the character to use instead, or a string
 of which the first character is taken to be the desired replacement.
-For example, to define the standard fi/fl ligatures, use
+For example, to define the standard fi/fl ligatures, you could use
 
   h_ligate "fi", 0xfb01
   h_ligate "fl", 0xfb02
@@ -245,21 +245,12 @@ Defines the following shortcuts:
 
 * h_ligate f_ligatures
 
-Defines the fi, fl, ff, ffi, and ffl ligatures. The latter three do
-not appear in most fonts, so you should normally define fi and fl
-ligatures manually as described above instead.
+Defines the fi, fl, ff, ffi, and ffl ligatures.
 
-Note that Ponscripter does not currently check whether a given
-character actually exists in the fonts you are using.  You are
-responsible for ensuring that appropriate glyphs will exist in the
-relevant fonts.  (Originally this was a technical limitation; as of
-20080127 it is feasible and on the TODO list, but pending
-implementation.)
-
-Note also that these shortcuts are not processed in clickstr, and I
-doubt they're processed in clickstr tests either.  Write your scripts
-in full UTF-8 if you want to use the clickstr feature.  (But
-preferably just don't use it; it's nasty.)
+Note that these shortcuts are not processed in clickstr, and I doubt
+they're processed in clickstr tests either.  Write your scripts in
+full UTF-8 if you want to use the clickstr feature.  (But preferably
+just don't use it; it's nasty.)
 
 
 /---------------------------------------------------------------------

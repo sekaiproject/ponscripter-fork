@@ -29,6 +29,7 @@ typedef unsigned short wchar;
 #include <stack>
 #include "stdio.h"
 #include "pstring.h"
+class Fontinfo;
 
 // Style bits
 const int Default = 0;
@@ -65,10 +66,10 @@ public:
 	{ int bytes; return Decode_impl(str, bytes, withligs); }
     wchar DecodeChar(const char* str, int& bytes, bool withligs = false)
 	{ return Decode_impl(str, bytes, withligs); }
-    wchar DecodeWithLigatures(const char* str, int& bytes)
-	{ return Decode_impl(str, bytes, true); }
-    wchar DecodeWithLigatures(const char* str)
-	{ int bytes; return Decode_impl(str, bytes, true); }
+    wchar DecodeWithLigatures(const char* str, const Fontinfo& info,
+			      int& bytes);
+    wchar DecodeWithLigatures(const char* str, const Fontinfo& info)
+	{ int bytes; return DecodeWithLigatures(str, info, bytes); }
     
     // Previous is O(1) for UTF-8, but may be O(n) for encodings like CP932.
     // It never takes ligatures into account.

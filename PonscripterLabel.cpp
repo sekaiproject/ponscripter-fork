@@ -1221,7 +1221,7 @@ int PonscripterLabel::parseLine()
 //--------INDENT ROUTINE--------------------------------------------------------
     if (sentence_font.GetXOffset() == 0 && sentence_font.GetYOffset() == 0) {
         const wchar first_ch = encoding->DecodeWithLigatures
-	    (script_h.getStrBuf(string_buffer_offset));
+	    (script_h.getStrBuf(string_buffer_offset), sentence_font);
         if (is_indent_char(first_ch))
             sentence_font.SetIndent(first_ch);
         else
@@ -1236,16 +1236,16 @@ int PonscripterLabel::parseLine()
     int l;
     const wchar first_ch =
 	encoding->DecodeWithLigatures(script_h.getStrBuf(string_buffer_offset),
-				      l);
+				      sentence_font, l);
 
     if (is_break_char(first_ch) && !new_line_skip_flag) {
         const char* it = script_h.getStrBuf(string_buffer_offset) + l;
-        float len = sentence_font.GlyphAdvance(first_ch,
-				       encoding->DecodeWithLigatures(it, l));
+	wchar next_ch = encoding->DecodeWithLigatures(it, sentence_font, l);
+        float len = sentence_font.GlyphAdvance(first_ch, next_ch);
         while (1) {
             // For each character (not char!) before a break is found,
             // get unicode.
-            wchar ch = encoding->DecodeWithLigatures(it, l);
+            wchar ch = encoding->DecodeWithLigatures(it, sentence_font, l);
       cont: it += l;
 
             // Check for token breaks.
@@ -1276,9 +1276,9 @@ int PonscripterLabel::parseLine()
             }
 
             // No inline command?  Use the glyph metrics, then!
-	    wchar next = encoding->DecodeWithLigatures(it, l);
-            len += sentence_font.GlyphAdvance(ch, next);
-	    ch = next;
+	    next_ch = encoding->DecodeWithLigatures(it, sentence_font, l);
+            len += sentence_font.GlyphAdvance(ch, next_ch);
+	    ch = next_ch;
 	    goto cont;
         }
         if (check_orphan_control()) {

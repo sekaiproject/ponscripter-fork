@@ -11,40 +11,47 @@ enhanced clone of NScripter.
 
 While ONScripter adds basic support for Western text to the NScripter
 system, it does so only insofar as is easily done while retaining
-compatibility with unmodified Japanese games.  Ponscripter builds on
-the ONScripter source code, but removes many Japanese-specific
-features (vertical text, ruby), and makes some fundamental
-architectural changes to better support Western games (proportionally
-spaced text, scripts encoded as UTF-8 rather than Shift_JIS).
+compatibility with unmodified Japanese games.  ONScripter-En takes
+things slightly further, but good English support requires fundamental
+changes.  Hence Ponscripter, which builds on the ONScripter source
+code, but removes many Japanese-specific features (vertical text,
+ruby), makes some fundamental architectural changes to better support
+Western games (proportionally spaced text, scripts encoded as UTF-8
+rather than Shift_JIS), and adds some generally nice features like
+support for multiple fonts and text styles in the process.
 
 The end result is a somewhat less stable and VASTLY less compatible
 engine -- but it sure does look a lot better when it works.
 
-I must repeat this for emphasis: unlike ONScripter, this engine is NOT
-designed for playing NScripter or ONScripter games!  While it is
+I must repeat this for emphasis: unlike ONScripter-En, this engine is
+NOT designed for playing NScripter or ONScripter games!  While it is
 generally capable of running them to some extent, it is not fully
 compatible, and problems are very likely to occur.  Non-Ponscripter
-games may be considered unsupported, and fixing bugs in them will be a
-very low priority indeed.
+games may be considered essentially unsupported, and fixing bugs in
+them will be a very low priority indeed.
 
 To put it another way, consider what you want:
 
-- If you are a user or developer who wants a portable game engine that
-  works well with both Japanese and English games, and that strives to
-  implement an NScripter-compatible system conforming to all the games
-  and technical documentation out there, then avoid Ponscripter like
-  the plague and stick with ONScripter, which does an admirable job at
-  that.
+Q. Are you are a user or developer who wants a portable game engine
+  that works well with both Japanese and English games, and that
+  strives to implement an NScripter-compatible system conforming to
+  all the games and technical documentation out there?
 
-- If you are an adventurous user who wants to experiment with an
+A. Avoid Ponscripter like the plague and stick with ONScripter, or
+  ONScripter-En if you want slightly better English support.
+
+Q. Are you an adventurous user who wants to experiment with an
   unstable system that might in some circumstances be able to enhance
-  your gaming experience, then feel free to try Ponscripter.  But
-  back up your saved games first, and don't be at all surprised if it
-  doesn't work.
+  your gaming experience, or might break it in unexpected ways?
 
-- If you are a developer who wants pretty Western text on Windows,
-  MacOS X, or X11, and if you are willing to work to get it, then
-  porting your game to Ponscripter is likely to be easier than
+A. Feel free to try Ponscripter on NScripter/ONScripter games.  But
+  back up your saved games first, and don't be at all surprised if it
+  doesn't work at all.
+
+Q. Are you a translator or developer who wants pretty Western text on
+  Windows, MacOS X, and X11, and is willing to work to get it?
+
+A. Porting your game to Ponscripter is likely to be easier than
   rewriting from scratch in Ren'Py.
 
 Note that Ponscripter is still very much a work in progress.  What
@@ -52,10 +59,11 @@ little documentation there is can be found in the file "MANUAL".  If
 you use this, you do so at your own risk, and Haeleth will not be held
 liable for any damage that ensues.
 
-Also, do NOT report bugs or problems you encounter to ogapee.  I have
-fiddled around with the source code to the extent that many critical
-parts are unrecognisably changed.  It is incredibly unlikely that any
-bugs you find are anything to do with ogapee.
+Also, do NOT bother ogapee with any bugs or problems you encounter.
+This is a heavily modified fork.  I have fiddled around with the
+source code to the extent that many critical parts have been changed
+beyond all recognition.  It is incredibly unlikely that any bugs you
+find are anything to do with ogapee.
 
 
 --- ACKNOWLEDGEMENTS
@@ -73,6 +81,7 @@ to the NScripter world in the first place.
 The following people (in alphabetical order) have contributed patches
 and bug reports that have enhanced Ponscripter:
 
+  Mion of Sonozaki Futago-tachi
   Roine Gustafsson
   Roto
   Starchanchan

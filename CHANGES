@@ -20,7 +20,9 @@
   Fixed some other architectural oddities, notably the far-too-early
   substitution of ligatures; this now doesn't take place until we're
   actually trying to access glyphs, and consequentially we can stop
-  worrying about ligature substitution mangling filenames.
+  worrying about ligature substitution mangling filenames, and we can
+  ignore ligature definitions where there's no suitable glyph in the
+  active font.
 
 2007-10-08
 
