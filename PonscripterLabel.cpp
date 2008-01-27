@@ -526,13 +526,13 @@ void PonscripterLabel::setKeyEXE(const char* filename)
 }
 
 #ifdef MACOSX
-string MacOSX_SeekArchive(ScriptHandler& script_h)
+pstring MacOSX_SeekArchive(ScriptHandler& script_h)
 {
     // Store archives etc in the application bundle by default, but
     // fall back to the application root directory if the bundle
     // doesn't contain any script files.
     using namespace Carbon;
-    string rv;
+    pstring rv;
     CFURLRef url;
     const CFIndex max_path = 32768;
     UInt8 path[max_path];
@@ -540,7 +540,7 @@ string MacOSX_SeekArchive(ScriptHandler& script_h)
     if (bundle) {
 	if ((url = CFBundleCopyResourcesDirectoryURL(bundle))) {
 	    if (CFURLGetFileSystemRepresentation(url, true, path, max_path))
-		rv = string(path) + '/';
+		rv = pstring((char*) path) + '/';
             CFRelease(url);
 	}
 	if (rv) {
@@ -549,11 +549,11 @@ string MacOSX_SeekArchive(ScriptHandler& script_h)
 	    ScriptHandler::ScriptFilename::iterator it =
 		script_h.script_filenames.begin();
 	    for (; it != script_h.script_filenames.end(); ++it) {
-		string s = rv + it->filename;
+		pstring s = rv + it->filename;
 		FSRef ref;
 		// If we've found a script file, we've found the archive
 		// path, so return it.
-		if (FSPathMakeRef(s.u_str(), &ref, 0) == noErr &&
+		if (FSPathMakeRef(s, &ref, 0) == noErr &&
 		    FSGetCatalogInfo(&ref, kFSCatInfoNone, 0, 0, 0, 0) == noErr)
 		    return rv;
 	    }
@@ -570,7 +570,7 @@ string MacOSX_SeekArchive(ScriptHandler& script_h)
 		Boolean valid =
 		    CFURLGetFileSystemRepresentation(app, true, path, max_path);
 		CFRelease(app);
-		if (valid) return string(path) + '/';
+		if (valid) return pstring((char*) path) + '/';
 	    }
 	}
     }
