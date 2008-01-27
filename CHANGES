@@ -1,4 +1,4 @@
-2008-01-22
+2008-01-27
 
   Revert setwindow and locate commands to the NScripter behaviour
   (sizes defined in characters not pixels) in all cases, to simplify
@@ -6,6 +6,21 @@
   replacement for locate, while a much improved pixel-oriented
   setwindow replacement is already available in the form of
   h_usewindow.
+
+  Filenames are now checked for non-ASCII text; finding any is
+  considered an error.  Life's too short to implement a fully general
+  cross-platform encoding-independent file access mechanism.
+
+  Games were randomly segfaulting on my computer, and the problem
+  seemed to be related to string handling, so I've taken the
+  opportunity to get rid of the horrid pstring interface and replace
+  it with something a little saner, based on bstrlib.  Now it doesn't
+  segfault any more.
+
+  Fixed some other architectural oddities, notably the far-too-early
+  substitution of ligatures; this now doesn't take place until we're
+  actually trying to access glyphs, and consequentially we can stop
+  worrying about ligature substitution mangling filenames.
 
 2007-10-08
 

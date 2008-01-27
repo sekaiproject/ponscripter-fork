@@ -66,93 +66,93 @@ public:
     void saveGlobalData();
 
     /* Command */
-    int zenkakkoCommand(const string& cmd);
-    int windowbackCommand(const string& cmd);
-    int versionstrCommand(const string& cmd);
-    int usewheelCommand(const string& cmd);
-    int useescspcCommand(const string& cmd);
-    int underlineCommand(const string& cmd);
-    int transmodeCommand(const string& cmd);
-    int timeCommand(const string& cmd);
-    int textgosubCommand(const string& cmd);
-    int tanCommand(const string& cmd);
-    int subCommand(const string& cmd);
-    int straliasCommand(const string& cmd);
-    int soundpressplginCommand(const string& cmd);
-    int skipCommand(const string& cmd);
-    int sinCommand(const string& cmd);
-    int shadedistanceCommand(const string& cmd);
-    int selectvoiceCommand(const string& cmd);
-    int selectcolorCommand(const string& cmd);
-    int savenumberCommand(const string& cmd);
-    int savenameCommand(const string& cmd);
-    int rubyonCommand(const string& cmd);
-    int rubyoffCommand(const string& cmd);
-    int roffCommand(const string& cmd);
-    int rmenuCommand(const string& cmd);
-    int returnCommand(const string& cmd);
-    int pretextgosubCommand(const string& cmd);
-    int numaliasCommand(const string& cmd);
-    int nsadirCommand(const string& cmd);
-    int nsaCommand(const string& cmd);
-    int nextCommand(const string& cmd);
-    int mulCommand(const string& cmd);
-    int movCommand(const string& cmd);
-    int mode_sayaCommand(const string& cmd);
-    int mode_extCommand(const string& cmd);
-    int modCommand(const string& cmd);
-    int midCommand(const string& cmd);
-    int menusetwindowCommand(const string& cmd);
-    int menuselectvoiceCommand(const string& cmd);
-    int menuselectcolorCommand(const string& cmd);
-    int maxkaisoupageCommand(const string& cmd);
-    int lookbackspCommand(const string& cmd);
-    int lookbackcolorCommand(const string& cmd);
+    int zenkakkoCommand(const pstring& cmd);
+    int windowbackCommand(const pstring& cmd);
+    int versionstrCommand(const pstring& cmd);
+    int usewheelCommand(const pstring& cmd);
+    int useescspcCommand(const pstring& cmd);
+    int underlineCommand(const pstring& cmd);
+    int transmodeCommand(const pstring& cmd);
+    int timeCommand(const pstring& cmd);
+    int textgosubCommand(const pstring& cmd);
+    int tanCommand(const pstring& cmd);
+    int subCommand(const pstring& cmd);
+    int straliasCommand(const pstring& cmd);
+    int soundpressplginCommand(const pstring& cmd);
+    int skipCommand(const pstring& cmd);
+    int sinCommand(const pstring& cmd);
+    int shadedistanceCommand(const pstring& cmd);
+    int selectvoiceCommand(const pstring& cmd);
+    int selectcolorCommand(const pstring& cmd);
+    int savenumberCommand(const pstring& cmd);
+    int savenameCommand(const pstring& cmd);
+    int rubyonCommand(const pstring& cmd);
+    int rubyoffCommand(const pstring& cmd);
+    int roffCommand(const pstring& cmd);
+    int rmenuCommand(const pstring& cmd);
+    int returnCommand(const pstring& cmd);
+    int pretextgosubCommand(const pstring& cmd);
+    int numaliasCommand(const pstring& cmd);
+    int nsadirCommand(const pstring& cmd);
+    int nsaCommand(const pstring& cmd);
+    int nextCommand(const pstring& cmd);
+    int mulCommand(const pstring& cmd);
+    int movCommand(const pstring& cmd);
+    int mode_sayaCommand(const pstring& cmd);
+    int mode_extCommand(const pstring& cmd);
+    int modCommand(const pstring& cmd);
+    int midCommand(const pstring& cmd);
+    int menusetwindowCommand(const pstring& cmd);
+    int menuselectvoiceCommand(const pstring& cmd);
+    int menuselectcolorCommand(const pstring& cmd);
+    int maxkaisoupageCommand(const pstring& cmd);
+    int lookbackspCommand(const pstring& cmd);
+    int lookbackcolorCommand(const pstring& cmd);
 
-    //int lookbackbuttonCommand(const string& cmd);
-    int loadgosubCommand(const string& cmd);
-    int linepageCommand(const string& cmd);
-    int lenCommand(const string& cmd);
-    int labellogCommand(const string& cmd);
-    int kidokuskipCommand(const string& cmd);
-    int kidokumodeCommand(const string& cmd);
-    int itoaCommand(const string& cmd);
-    int intlimitCommand(const string& cmd);
-    int incCommand(const string& cmd);
-    int ifCommand(const string& cmd);
-    int humanzCommand(const string& cmd);
-    int gotoCommand(const string& cmd);
-    int gosubCommand(const string& cmd);
-    int globalonCommand(const string& cmd);
-    int getparamCommand(const string& cmd);
+    //int lookbackbuttonCommand(const pstring& cmd);
+    int loadgosubCommand(const pstring& cmd);
+    int linepageCommand(const pstring& cmd);
+    int lenCommand(const pstring& cmd);
+    int labellogCommand(const pstring& cmd);
+    int kidokuskipCommand(const pstring& cmd);
+    int kidokumodeCommand(const pstring& cmd);
+    int itoaCommand(const pstring& cmd);
+    int intlimitCommand(const pstring& cmd);
+    int incCommand(const pstring& cmd);
+    int ifCommand(const pstring& cmd);
+    int humanzCommand(const pstring& cmd);
+    int gotoCommand(const pstring& cmd);
+    int gosubCommand(const pstring& cmd);
+    int globalonCommand(const pstring& cmd);
+    int getparamCommand(const pstring& cmd);
 
-    //int gameCommand(const string& cmd);
-    int forCommand(const string& cmd);
-    int filelogCommand(const string& cmd);
-    int effectcutCommand(const string& cmd);
-    int effectblankCommand(const string& cmd);
-    int effectCommand(const string& cmd);
-    int divCommand(const string& cmd);
-    int dimCommand(const string& cmd);
-    int defvoicevolCommand(const string& cmd);
-    int defsubCommand(const string& cmd);
-    int defsevolCommand(const string& cmd);
-    int defmp3volCommand(const string& cmd);
-    int defaultspeedCommand(const string& cmd);
-    int defaultfontCommand(const string& cmd);
-    int decCommand(const string& cmd);
-    int dateCommand(const string& cmd);
-    int cosCommand(const string& cmd);
-    int cmpCommand(const string& cmd);
-    int clickvoiceCommand(const string& cmd);
-    int clickstrCommand(const string& cmd);
-    int breakCommand(const string& cmd);
-    int atoiCommand(const string& cmd);
-    int arcCommand(const string& cmd);
-    int addCommand(const string& cmd);
+    //int gameCommand(const pstring& cmd);
+    int forCommand(const pstring& cmd);
+    int filelogCommand(const pstring& cmd);
+    int effectcutCommand(const pstring& cmd);
+    int effectblankCommand(const pstring& cmd);
+    int effectCommand(const pstring& cmd);
+    int divCommand(const pstring& cmd);
+    int dimCommand(const pstring& cmd);
+    int defvoicevolCommand(const pstring& cmd);
+    int defsubCommand(const pstring& cmd);
+    int defsevolCommand(const pstring& cmd);
+    int defmp3volCommand(const pstring& cmd);
+    int defaultspeedCommand(const pstring& cmd);
+    int defaultfontCommand(const pstring& cmd);
+    int decCommand(const pstring& cmd);
+    int dateCommand(const pstring& cmd);
+    int cosCommand(const pstring& cmd);
+    int cmpCommand(const pstring& cmd);
+    int clickvoiceCommand(const pstring& cmd);
+    int clickstrCommand(const pstring& cmd);
+    int breakCommand(const pstring& cmd);
+    int atoiCommand(const pstring& cmd);
+    int arcCommand(const pstring& cmd);
+    int addCommand(const pstring& cmd);
 
 protected:
-    set<string>::t user_func_lut;
+    set<pstring>::t user_func_lut;
 
     struct NestInfo {
 	typedef std::vector<NestInfo> vector;
@@ -183,7 +183,7 @@ protected:
 		   SYSTEM_YESNO       = 8,
 		   SYSTEM_AUTOMODE    = 9,
 		   SYSTEM_END         = 10 };
-    typedef dictionary<string, syscall>::t syscall_dict_t;
+    typedef dictionary<pstring, syscall>::t syscall_dict_t;
     syscall_dict_t syscall_dict;
     
     enum { RET_NOMATCH   = 0,
@@ -201,8 +201,8 @@ protected:
     int current_mode;
     int debug_level;
 
-    string archive_path;
-    string nsa_path;
+    pstring archive_path;
+    pstring nsa_path;
 
     bool globalon_flag;
     bool labellog_flag;
@@ -230,11 +230,11 @@ protected:
     int    screen_width, screen_height;
     int    screen_texture_width, screen_texture_height;
     int    screen_bpp;
-    string version_str;
+    pstring version_str;
     int    underline_value;
 
-    void gosubReal(const string& label, const char* next_script);
-    void setCurrentLabel(const string& label);
+    void gosubReal(const pstring& label, const char* next_script);
+    void setCurrentLabel(const pstring& label);
     void readToken();
 
     /* ---------------------------------------- */
@@ -276,12 +276,12 @@ protected:
     struct SaveFileInfo {
         bool valid;
         int month, day, hour, minute;
-	string num_str;
+	pstring num_str;
     };
     unsigned int num_save_file;
-    string save_menu_name;
-    string load_menu_name;
-    string save_item_name;
+    pstring save_menu_name;
+    pstring load_menu_name;
+    pstring save_item_name;
 
     unsigned char* save_data_buf;
     unsigned char* file_io_buf;
@@ -291,15 +291,19 @@ protected:
 
     /* ---------------------------------------- */
     /* Text related variables */
-    string default_env_font;
+    pstring default_env_font;
     int default_text_speed[3];
     struct TextBuffer {
         TextBuffer *next, *previous;
-        string contents;
-        int addBuffer(char ch) { contents += ch; return 0; }
-        void clear() { contents.clear(); }
-        bool empty() { return contents.empty(); }
+        pstring contents;
+        void addBuffer(char ch) { contents += ch; }
+	void addBuffer(const pstring& s) { contents += s; }
+	void addBytes(const char* c, int num) { contents.add(c, num);}
+        void clear() { contents.trunc(0); }
+        bool empty() { return !contents; }
+	void dumpstate(int = -1);
     } *text_buffer, *start_text_buffer, *current_text_buffer; // ring buffer
+    void TextBuffer_dumpstate(int = 0);
     int max_text_buffer;
     int clickstr_line;
     int clickstr_state;
@@ -315,13 +319,13 @@ protected:
     enum { CLICKVOICE_NORMAL  = 0,
            CLICKVOICE_NEWPAGE = 1,
            CLICKVOICE_NUM     = 2 };
-    string clickvoice_file_name[CLICKVOICE_NUM];
+    pstring clickvoice_file_name[CLICKVOICE_NUM];
 
     enum { SELECTVOICE_OPEN   = 0,
            SELECTVOICE_OVER   = 1,
            SELECTVOICE_SELECT = 2,
            SELECTVOICE_NUM    = 3 };
-    string selectvoice_file_name[SELECTVOICE_NUM];
+    pstring selectvoice_file_name[SELECTVOICE_NUM];
 
     enum { MENUSELECTVOICE_OPEN   = 0,
            MENUSELECTVOICE_CANCEL = 1,
@@ -331,7 +335,7 @@ protected:
            MENUSELECTVOICE_YES    = 5,
            MENUSELECTVOICE_NO     = 6,
            MENUSELECTVOICE_NUM    = 7 };
-    string menuselectvoice_file_name[MENUSELECTVOICE_NUM];
+    pstring menuselectvoice_file_name[MENUSELECTVOICE_NUM];
 
     /* ---------------------------------------- */
     /* Font related variables */
@@ -343,32 +347,30 @@ protected:
     struct RMenuElt {
 	typedef std::vector<RMenuElt> vec;
 	typedef vec::iterator iterator;
-        string label;
+        pstring label;
         int system_call_no;
-	RMenuElt(string& l, int s) : label(l), system_call_no(s) {}
+	RMenuElt(pstring& l, int s) : label(l), system_call_no(s) {}
     };
     RMenuElt::vec rmenu;
     unsigned int rmenu_link_width;
 
-    int getSystemCallNo(const string& buffer);
+    int getSystemCallNo(const pstring& buffer);
     unsigned char convHexToDec(char ch);
     rgb_t readColour(const char* buf);
-    rgb_t readColour(const string& buf)
-	{ return readColour(buf.c_str()); }
 
-    void errorAndExit(string why, string reason = "");
-    void errorAndCont(string why, string reason = "");
+    void errorAndExit(const char* why, const char* reason = NULL);
+    void errorAndCont(const char* why, const char* reason = NULL);
 
     void allocFileIOBuf();
-    int saveFileIOBuf(const string& filename, int offset = 0);
-    int loadFileIOBuf(const string& filename);
+    int saveFileIOBuf(const pstring& filename, int offset = 0);
+    int loadFileIOBuf(const pstring& filename);
 
     void writeChar(char c, bool output_flag);
     char readChar();
     void writeInt(int i, bool output_flag);
     int readInt();
-    void writeStr(const string& s, bool output_flag);
-    string readStr();
+    void writeStr(const pstring& s, bool output_flag);
+    pstring readStr();
     void writeVariables(int from, int to, bool output_flag);
     void readVariables(int from, int to);
     void writeArrayVariable(bool output_flag);
@@ -376,15 +378,15 @@ protected:
 
     /* ---------------------------------------- */
     /* System customize related variables */
-    string textgosub_label;
-    string pretextgosub_label;
-    string loadgosub_label;
+    pstring textgosub_label;
+    pstring pretextgosub_label;
+    pstring loadgosub_label;
 
     ScriptHandler script_h;
 
     unsigned char* key_table;
 
-    void createKeyTable(const string& key_exe);
+    void createKeyTable(const pstring& key_exe);
 };
 
 #endif // __SCRIPT_PARSER_H__

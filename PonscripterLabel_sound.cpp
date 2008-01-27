@@ -124,7 +124,7 @@ extern long decodeOggVorbis(OVInfo* ovi, unsigned char* buf_dst, long len, bool 
 }
 
 
-int PonscripterLabel::playSound(const string& filename, int format,
+int PonscripterLabel::playSound(const pstring& filename, int format,
 				bool loop_flag, int channel)
 {
     if (!filename || !audio_open_flag) return SOUND_NONE;
@@ -150,10 +150,10 @@ int PonscripterLabel::playSound(const string& filename, int format,
 
     if (format & SOUND_MP3) {
         if (music_cmd) {
-            FILE* fp;
-	    string writepath = script_h.save_path + TMP_MUSIC_FILE;
-            if ((fp = fopen(writepath.c_str(), "wb")) == NULL) {
-                fprintf(stderr, "can't open temporary Music file %s\n", TMP_MUSIC_FILE);
+            FILE* fp = fopen(script_h.save_path + TMP_MUSIC_FILE, "wb");
+            if (fp == NULL) {
+                fprintf(stderr, "can't open temporary music file %s\n",
+			TMP_MUSIC_FILE);
             }
             else {
                 fwrite(buffer, 1, length, fp);
@@ -181,10 +181,10 @@ int PonscripterLabel::playSound(const string& filename, int format,
     }
 
     if (format & SOUND_MIDI) {
-        FILE* fp;
-	string writepath = script_h.save_path + TMP_MIDI_FILE;
-        if ((fp = fopen(writepath.c_str(), "wb")) == NULL) {
-            fprintf(stderr, "can't open temporary MIDI file %s\n", TMP_MIDI_FILE);
+        FILE* fp = fopen(script_h.save_path + TMP_MIDI_FILE, "wb");
+        if (fp == NULL) {
+            fprintf(stderr, "can't open temporary MIDI file %s\n",
+		    TMP_MIDI_FILE);
         }
         else {
             fwrite(buffer, 1, length, fp);
@@ -213,21 +213,24 @@ void PonscripterLabel::playCDAudio()
         }
     }
     else {
-	string filename = "cd/track" + lstr(current_cd_track, 2, 2) + ".mp3";
+	pstring filename;
+	filename.format("cd/track%2.2d.mp3", current_cd_track);
         int ret = playSound(filename, SOUND_MP3, cd_play_loop_flag);
         if (ret == SOUND_MP3) return;
 
-	filename = "cd/track" + lstr(current_cd_track, 2, 2) + ".ogg";
+	filename.format("cd/track%2.2d.ogg", current_cd_track);
         ret = playSound(filename, SOUND_OGG_STREAMING, cd_play_loop_flag);
         if (ret == SOUND_OGG_STREAMING) return;
 
-	filename = "cd/track" + lstr(current_cd_track, 2, 2) + ".wav";
-        ret = playSound(filename, SOUND_WAVE, cd_play_loop_flag, MIX_BGM_CHANNEL);
+	filename.format("cd/track%2.2d.wav", current_cd_track);
+        ret = playSound(filename, SOUND_WAVE, cd_play_loop_flag,
+			MIX_BGM_CHANNEL);
     }
 }
 
 
-int PonscripterLabel::playWave(Mix_Chunk* chunk, int format, bool loop_flag, int channel)
+int PonscripterLabel::playWave(Mix_Chunk* chunk, int format, bool loop_flag,
+			       int channel)
 {
     if (!chunk) return -1;
 
@@ -306,11 +309,12 @@ int PonscripterLabel::playExternalMusic(bool loop_flag)
 
 #endif
 
-    Mix_SetMusicCMD(music_cmd.c_str());
+    Mix_SetMusicCMD(music_cmd);
 
-    string music_filename = script_h.save_path + TMP_MUSIC_FILE;
-    if ((music_info = Mix_LoadMUS(music_filename.c_str())) == NULL) {
-        fprintf(stderr, "can't load Music file %s\n", music_filename.c_str());
+    pstring music_filename = script_h.save_path + TMP_MUSIC_FILE;
+    if ((music_info = Mix_LoadMUS(music_filename)) == NULL) {
+        fprintf(stderr, "can't load Music file %s\n",
+		(const char*) music_filename);
         return -1;
     }
 
@@ -323,10 +327,10 @@ int PonscripterLabel::playExternalMusic(bool loop_flag)
 
 int PonscripterLabel::playMIDI(bool loop_flag)
 {
-    Mix_SetMusicCMD(midi_cmd.c_str());
+    Mix_SetMusicCMD(midi_cmd);
 
-    string midi_filename = script_h.save_path + TMP_MIDI_FILE;
-    if ((midi_info = Mix_LoadMUS(midi_filename.c_str())) == NULL) return -1;
+    pstring midi_filename = script_h.save_path + TMP_MIDI_FILE;
+    if ((midi_info = Mix_LoadMUS(midi_filename)) == NULL) return -1;
 
 #ifndef MACOSX
     int midi_looping = loop_flag ? -1 : 0;
@@ -383,13 +387,13 @@ void UpdateMPEG(SDL_Surface* surface, int x, int y,
     SDL_UpdateRect(screenptr, r.x, r.y, r.w, r.h);
 }
 
-int PonscripterLabel::playMPEG(const string& filename, bool click_flag,
+int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
 			       SubtitleDefs& subtitles)
 {
     int ret = 0;
 #ifndef MP3_MAD
-    string mpeg_dat = ScriptHandler::cBR->getFile(filename);
-    SMPEG* mpeg_sample = SMPEG_new_rwops(mpeg_dat.rwops(), 0, 0);
+    pstring mpeg_dat = ScriptHandler::cBR->getFile(filename);
+    SMPEG* mpeg_sample = SMPEG_new_rwops(rwops(mpeg_dat), 0, 0);
     if (!SMPEG_error(mpeg_sample)) {
         SMPEG_enableaudio(mpeg_sample, 0);
 
@@ -485,18 +489,17 @@ int PonscripterLabel::playMPEG(const string& filename, bool click_flag,
 }
 
 
-void PonscripterLabel::playAVI(const string& filename, bool click_flag)
+void PonscripterLabel::playAVI(const pstring& filename, bool click_flag)
 {
 #ifdef USE_AVIFILE
-    string abs_fname = archive_path + filename;
-    for (string::size_type i = 0; i < abs_fname.size(); i++)
-        if (abs_fname[i] == '/' || abs_fname[i] == '\\')
-            abs_fname[i] = DELIMITER;
+    pstring abs_fname = archive_path + filename;
+    replace_ascii(abs_fname, '/', DELIMITER[0]);
+    replace_ascii(abs_fname, '\\', DELIMITER[0]);
 
     if (audio_open_flag) Mix_CloseAudio();
 
     AVIWrapper* avi = new AVIWrapper();
-    if (avi->init(abs_fname.c_str(), false) == 0
+    if (avi->init(abs_fname, false) == 0
         && avi->initAV(screen_surface, audio_open_flag) == 0) {
         if (avi->play(click_flag)) endCommand();
     }
@@ -561,7 +564,7 @@ void PonscripterLabel::stopBGM(bool continue_flag)
     }
 
     if (!continue_flag) {
-        music_file_name.clear();
+        music_file_name = "";
         music_play_loop_flag = false;
     }
 
@@ -581,7 +584,7 @@ void PonscripterLabel::stopBGM(bool continue_flag)
     }
 
     if (!continue_flag) {
-        midi_file_name.clear();
+        midi_file_name = "";
         midi_play_loop_flag = false;
     }
 
@@ -609,7 +612,8 @@ void PonscripterLabel::playClickVoice()
 }
 
 
-void PonscripterLabel::setupWaveHeader(unsigned char* buffer, int channels, int rate, unsigned long data_length)
+void PonscripterLabel::setupWaveHeader(unsigned char* buffer, int channels,
+				       int rate, unsigned long data_length)
 {
     memcpy(header.chunk_riff, "RIFF", 4);
     int riff_length = sizeof(WAVE_HEADER) + data_length - 8;
@@ -649,7 +653,8 @@ void PonscripterLabel::setupWaveHeader(unsigned char* buffer, int channels, int 
 
 
 #ifdef USE_OGG_VORBIS
-static size_t oc_read_func(void* ptr, size_t size, size_t nmemb, void* datasource)
+static size_t oc_read_func(void* ptr, size_t size, size_t nmemb,
+			   void* datasource)
 {
     OVInfo* ogg_vorbis_info = (OVInfo*) datasource;
 
@@ -699,7 +704,8 @@ static long oc_tell_func(void* datasource)
 
 
 #endif
-OVInfo* PonscripterLabel::openOggVorbis(unsigned char* buf, long len, int &channels, int &rate)
+OVInfo* PonscripterLabel::openOggVorbis(unsigned char* buf, long len,
+					int &channels, int &rate)
 {
     OVInfo* ovi = NULL;
 

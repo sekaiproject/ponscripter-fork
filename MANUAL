@@ -16,7 +16,9 @@ names, as follows:
   nscr_sec.dat -> pscr_sec.dat
 
 Ponscripter can still play NScripter games, though it is not as
-compatible as ONScripter in this regard.
+compatible as ONScripter in this regard; NScripter mode has not been
+extensively tested.  In general, if you're using Ponscripter, you
+should make the effort to port it.  Unicode is a Good Thing.
 
 (If you wish to adapt an NScripter game to behave differently with
 Ponscripter while still working with NScripter and ONScripter, you can
@@ -27,6 +29,25 @@ execute code conditionally depending on the interpreter in use.  Note
 however that most of the features described below are not available in
 compatibility mode.  This might actually be most useful for displaying
 an error message in games known NOT to work with Ponscripter... ^^;)
+
+---//---
+
+An additional point to note is that while ONScripter makes some feeble
+and generally unreliable attempts to access files with Japanese names,
+Ponscripter deliberately restricts filenames to ASCII.  (You can
+probably still access files with Japanese names if those files are
+within archives, since the .nsa and .sar formats specify CP932 for
+filename encodings; but you can't if they're sitting there in the
+filesystem, since the filesystem could be encoded in any of a
+bazillion different incompatible ways, and we don't even try to
+guess.)
+
+If this is really, really a problem for you, and you have a really,
+REALLY good reason why you absolutely HAVE to use special characters
+in your filenames and there is simply NO possibility that you could
+just take a deep breath and rename the files to something sensible,
+then feel free to either implement this feature yourself, or show me
+how important it is to you in Euros.  :)
 
 
 /---------------------------------------------------------------------
@@ -162,6 +183,10 @@ you might use a line like
 
   ^``He told me he'd `never leave me,'|'' she sobbed.\
 
+Some recent versions of NScripter have a limited form of ASCII text
+support with lines introduced by the > character.  This syntax is not
+currently recognised, not even in NScripter mode.
+  
 
 /---------------------------------------------------------------------
 |  h_ligate <string>, <int>
@@ -170,7 +195,9 @@ you might use a line like
 |  h_ligate <predefined set>
 
 Additional shortcuts/ligatures can be defined (or existing shortcuts
-undefined) using the h_ligate command.
+undefined) using the h_ligate command.  As text is rendered, it's
+checked for known character sequences, which are replaced with a
+single character.
 
 The first two forms of this command define shortcuts/ligatures: the
 first <string> is the text to replace, and the second argument is
@@ -222,11 +249,17 @@ Defines the fi, fl, ff, ffi, and ffl ligatures. The latter three do
 not appear in most fonts, so you should normally define fi and fl
 ligatures manually as described above instead.
 
-Note that Ponscripter does not check whether a given character
-actually exists in the fonts you are using: substitutions take place
-at the parsing stage, before it is known which font will be used. The
-user is responsible for ensuring that appropriate glyphs will exist in
-the relevant fonts.
+Note that Ponscripter does not currently check whether a given
+character actually exists in the fonts you are using.  You are
+responsible for ensuring that appropriate glyphs will exist in the
+relevant fonts.  (Originally this was a technical limitation; as of
+20080127 it is feasible and on the TODO list, but pending
+implementation.)
+
+Note also that these shortcuts are not processed in clickstr, and I
+doubt they're processed in clickstr tests either.  Write your scripts
+in full UTF-8 if you want to use the clickstr feature.  (But
+preferably just don't use it; it's nasty.)
 
 
 /---------------------------------------------------------------------
@@ -237,12 +270,8 @@ delimited by ~tildes~, and contains any number of tags, which may
 optionally be separated with spaces.  Use ~~ to insert a literal
 tilde.
 
-This syntax was chosen for convenience of implementation, not for
-elegance; the author apologises for the similarity of complex
-formatting commands to perl scripts.
-
 Where a tag block appears in display text, its effects last until the
-end of thecurrent screen; to apply a style to multiple screens, use
+end of the current screen; to apply a style to multiple screens, use
 h_fontstyle (see below). Tag blocks can also be embedded to style text
 buttons, menu items, etc., in which case they last to the end of the
 string in which they appear.
@@ -317,6 +346,10 @@ block selects italic text, 120% of the regular font size, and shifts
 the output position up and to the left.  The second tag block cancels
 the italic effect and resets the font size to normal.
 
+This syntax was chosen for convenience of implementation, not for
+elegance; the author apologises for the similarity of complex
+formatting commands to Perl scripts.
+
 
 INDENTATION TAGS
 
@@ -370,15 +403,15 @@ hinting:
 
   The optimum setting very much depends on the fonts in question and
   on the precise settings with which Freetype was compiled.  In
-  general, Type 1 fonts are more likely to look better with hinting
-  than TrueType fonts are.
+  general, Freetype hinting makes TrueType fonts look hideous, but it
+  does sometimes help with Type 1 fonts.
 
 positioning:
   integer = character positions are aligned to whole pixels (default)
   float = character positions use subpixel precision
 
   Theoretically the float mode should give better spacing, but it's
-  broken and normally looks awful. Feel free to try it if you feel
+  broken and normally looks awful.  Feel free to try it if you feel
   adventurous, though.
 
 
@@ -413,8 +446,8 @@ Sample usage:
 
 In NScripter, the "br" command inserts a blank line of the same height
 as a regular line of text.  In Ponscripter, it inserts precisely half
-that amount of space, so paragraphs will be spaced somewhat tighter by
-default.
+that amount of space, so paragraphs will not be so crazily far apart
+by default.
 
 Additionally, a new command "br2" is introduced.  The given <amount>
 is the height of the blank space as a percentage of the height of a
@@ -597,25 +630,20 @@ considerably.
 /---------------------------------------------------------------------
 |  Builds
 
-Insani's ONScripter builds were all-in-one megalithic constructions
-designed to play any game on the market.  To give more polished
-Windows and OS X packages, Ponscripter is designed to be built
-specifically for each game that will use it. This way, unneeded
-functionality can be omitted from a build and the file size kept down.
-
-Additionally, fonts and icons can be embedded in the game executable.
-This is primarily useful on Windows, since OS X's bundles already
-provide this functionality.  For icons, embed the file "icon.png".
-(Note that this will not give the file a Windows icon resource, which
-must be provided separately.)
+Fonts and icons can be embedded in the game executable.  This is
+primarily useful on Windows, since OS X's bundles already provide this
+functionality.  For icons, embed the file "icon.png".  (Note that this
+will not give the file a Windows icon resource, which must be provided
+separately.)
 
 Other platforms (primarily Linux) are harder to provide binary
 packages for.  It is recommended that you cater for such platforms by
 providing a package containing just the data files and a basic
 installation script which installs those data files and creates a
 launcher script; Ponscripter itself should be considered an external
-dependency which is to be satisfied by the user him/herself compiling
-it from source.
+dependency which is to be satisfied by the user him/herself, either by
+compiling it from source or by installing a platform-specific binary
+package.
 
 For example, your tarball might contain simply
   
@@ -628,25 +656,28 @@ instructions to run "sudo sh install.sh" or equivalent.  install.sh in
 turn could be something as simple as
 
   #! /bin/sh
-  PREFIX=/usr/local
-  DAT=$PREFIX/share/games/mygame
-  BIN=$PREFIX/bin/mygame
+  WHERE=${PREFIX:-/usr/local}
+  DAT=$WHERE/share/games/mygame
+  BIN=$WHERE/bin
   mkdir -p $DAT
+  mkdir -p $BIN
   cp -r mygame/* $DAT
   echo "#! /bin/sh
-  ponscr -r $DAT" > $BIN
-  chmod 755 $BIN
+  ponscr -r $DAT" > $BIN/mygame
+  chmod 755 $BIN/mygame
 
 ...though you might want to take some time to improve the interface
 and fix the numerous portability issues in the above, or even to
-provide binary packages for popular free operating systems.  ;)
+provide binary packages for popular free operating systems.  (With
+dependencies on a binary Ponscripter package, of course, which you're
+welcome to provide yourself.)
 
 
 /---------------------------------------------------------------------
-|  Source code
+|  Support
 
 ONScripter is GPL software, and so Ponscripter is as well.  Source
 code is therefore available.
 
 I cannot guarantee support beyond that, but naturally I will do my
-best to fix any bugs you find.
+best to fix any bugs you find, if time permits.

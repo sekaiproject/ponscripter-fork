@@ -26,7 +26,7 @@
 #include "SarReader.h"
 #define WRITE_LENGTH 4096
 
-SarReader::SarReader(const string& path, const unsigned char* key_table)
+SarReader::SarReader(const pstring& path, const unsigned char* key_table)
     : DirectReader(path, key_table),
       num_of_sar_archives(0)
 {
@@ -40,7 +40,7 @@ SarReader::~SarReader()
 }
 
 
-int SarReader::open(const string& name, int archive_type)
+int SarReader::open(const pstring& name, int archive_type)
 {
     ArchiveInfo* info = new ArchiveInfo();
 
@@ -88,21 +88,22 @@ int SarReader::readArchive(ArchiveInfo* ai, int archive_type)
     for (i = 0; i < ai->num_of_files; i++) {
         unsigned char ch;
 
-	string name;
+	pstring name;
         while ((ch = key_table[fgetc(ai->file_handle)]))
-            name.push_uchar(ch);
+            name += ch;
 
-	// Store names with the internal encoding
+	// Store names with the internal encoding -- transliterate to
+	// UTF-8 if necessary.
 	if (encoding->which() == "cp932") {
 	    ai->fi_list[i].name = name;
 	}
 	else {
 	    CP932Encoding cp932;
-	    const char* c = name.c_str();
-	    ai->fi_list[i].name.clear();
+	    const char* c = name;
+	    ai->fi_list[i].name.trunc(0);
 	    while (*c) {
 		int b;
-		ai->fi_list[i].name += cp932.Decode(c, b);
+		ai->fi_list[i].name += encoding->Encode(cp932.DecodeChar(c, b));
 		c += b;
 	    }
 	}	
@@ -173,23 +174,20 @@ int SarReader::getNumFiles()
 }
 
 
-int SarReader::getIndexFromFile(ArchiveInfo* ai, string file_name)
+int SarReader::getIndexFromFile(ArchiveInfo* ai, pstring file_name)
 {
-    encoding->PushTagMode(false);
-    unsigned int i;
-
-    file_name.replace(wchar('/'), wchar('\\'));
+    replace_ascii(file_name, '/', '\\');
     
+    unsigned int i;
     for (i = 0; i < ai->num_of_files; i++) {
-	if (file_name.wicompare(ai->fi_list[i].name) == 0) break;
+	if (file_name.caselessEqual(ai->fi_list[i].name)) break;
     }
 
-    encoding->PopTagMode();
     return i;
 }
 
 
-size_t SarReader::getFileLength(const string& file_name)
+size_t SarReader::getFileLength(const pstring& file_name)
 {
     size_t ret;
     if ((ret = DirectReader::getFileLength(file_name))) return ret;
@@ -216,7 +214,7 @@ size_t SarReader::getFileLength(const string& file_name)
 }
 
 
-size_t SarReader::getFileSub(ArchiveInfo* ai, const string& file_name,
+size_t SarReader::getFileSub(ArchiveInfo* ai, const pstring& file_name,
 			     unsigned char* buf)
 {
     unsigned int i = getIndexFromFile(ai, file_name);
@@ -243,7 +241,7 @@ size_t SarReader::getFileSub(ArchiveInfo* ai, const string& file_name,
 }
 
 
-size_t SarReader::getFile(const string& file_name, unsigned char* buf,
+size_t SarReader::getFile(const pstring& file_name, unsigned char* buf,
 			  int* location)
 {
     size_t ret;
@@ -273,7 +271,8 @@ SarReader::FileInfo SarReader::getFileByIndex(unsigned int index)
         info = info->next;
     }
 
-    fprintf(stderr, "SarReader::getFileByIndex  Index %d is out of range\n", index);
+    fprintf(stderr, "SarReader::getFileByIndex  Index %d is out of range\n",
+	    index);
 
     return archive_info.fi_list[index];
 }

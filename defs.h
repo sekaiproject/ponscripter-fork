@@ -4,16 +4,16 @@
 #ifndef __DEFS_H__
 #define __DEFS_H__
 
-//#ifdef __GNUC__
-//#define USE_HASH
-//#endif
+#ifdef __GNUC__
+#define USE_HASH
+#endif
 
 #include <stdio.h>
 
 #include <algorithm>
 #include <utility>
 #include <limits>
-#include <string>
+//#include <string>
 #include <vector>
 #include <deque>
 #include <map>
@@ -25,9 +25,9 @@
 #include <ext/hash_set>
 namespace __gnu_cxx {
     template<>
-    struct hash<string> {
-        size_t operator()(const string& s) const {
-            return __stl_hash_string(s.c_str());
+    struct hash<pstring> {
+        size_t operator()(const pstring& s) const {
+            return __stl_hash_string(s);
         }
     };
 }
@@ -54,48 +54,6 @@ struct set {
 };
 typedef std::vector<int> h_index_t;
 
-inline string lstr(int i, int len, int min, int radix = 10)
-{
-    char buf[1024];
-    snprintf(buf, 1024, radix == 16 ? "%*.*x" : "%*.*d", len, min, i);
-    return string(buf);
-}
-
-inline string nstr(int i, int len, bool zero = false, int radix = 10)
-{
-    char buf[1024];
-    snprintf(buf, 1024, radix == 16 ? (zero ? "%0*x" : "%*x")
-	                            : (zero ? "%0*d" : "%*d"), len, i);
-    return string(buf);
-}
-
-inline string str(int i, int radix = 10)
-{
-    return nstr(i, 1, false, radix);
-}
-
-inline string lstr(size_t i, int len, int min, int radix = 10)
-{
-    char buf[1024];
-    snprintf(buf, 1024, radix == 16 ? "%*.*lx" : "%*.*lu",
-	     len, min, (unsigned long)i);
-    return string(buf);
-}
-
-inline string nstr(size_t i, int len, bool zero = false, int radix = 10)
-{
-    char buf[1024];
-    snprintf(buf, 1024, radix == 16 ? (zero ? "%0*lx" : "%*lx")
-	                            : (zero ? "%0*lu" : "%*lu"),
-	     len, (unsigned long)i);
-    return string(buf);
-}
-
-inline string str(size_t i, int radix = 10)
-{
-    return nstr(i, 1, false, radix);
-}
-
 struct __attribute__((__packed__))
 rgb_t {
     unsigned char r, g, b;
@@ -112,32 +70,40 @@ rgb_t {
     rgb_t& operator=(const SDL_Color& c) { set(c.r, c.g, c.b); return *this; }
 };
 
-
-// Haeleth does not liek teh iostreams.
-
-extern FILE* cout; // These are non-constant macros on OpenBSD, so we
-extern FILE* cerr; // have to bind them to variables for & to work.
-
-inline FILE*& operator<<(FILE*& dst, const h_index_t& src)
+// Print a Unicode character with C-style escaping.
+inline
+void wputc_escaped(int what, FILE* where = stdout)
 {
-    dst << string("{ ");
-    for (h_index_t::const_iterator it = src.begin(); it != src.end(); ++it) {
-	if (it != src.begin()) dst << string(", ");
-	dst << str(*it);
+    if (what < 0) {
+	fputs("{END}", where);
     }
-    return dst << string(" }");
+    else if (what == '\n') {
+	fputs("\\n", where);
+    }
+    else if (what < 0x20) {
+	fprintf(where, "\\x%02x", what);
+    }
+    else if (what == '\\' || what == '"') {
+	fprintf(where, "\\%c", (char) what);
+    }
+    else {
+	UTF8Encoding enc;
+	fputs(enc.Encode(what), where);
+    }
 }
 
-template <class T>
-inline FILE*& operator<<(FILE*& dst, const std::vector<T> src)
+// Print an encoded string with C-style escaping.
+inline
+void print_escaped(const pstring& what, FILE* where = stdout, bool newline = 0)
 {
-    dst << string("{ ");
-    for (typename std::vector<T>::const_iterator it = src.begin();
-	 it != src.end(); ++it) {
-	if (it != src.begin()) dst << string(", ");
-	dst << it->to_string();
+    fputc('"', where);
+    for (pstrIter it(what); it.get() >= 0; it.next())
+	wputc_escaped(it.get());
+    fputc('"', where);
+    if (newline) {
+	fputc('\n', where);
+	fflush(where);
     }
-    return dst << string(" }");
 }
 
 #endif

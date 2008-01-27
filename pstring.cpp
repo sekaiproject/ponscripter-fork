@@ -1,7 +1,50 @@
 #include "defs.h"
 
-const string::size_type string::npos = std::string::npos;
-const string eol("\n");
+pstring parseTags(const pstring& src)
+{
+//fputs("parseTags: ", stdout);
+//print_escaped(src, stdout, true);
+    pstring rv;
+    pstrIter it(src);
+    if (it.get() == encoding->TextMarker()) {
+//puts("TextMarker");
+	rv += encoding->TextMarker();
+	it.next();
+    }
+    while (it.get() >= 0) {
+//fputs("  Char \"", stdout);
+//wputc_escaped(it.get());
+//putchar('"');
+	if (encoding->UseTags() && it.get() == '~') {
+	    // If end of string, or next char is also ~, treat as literal.
+	    it.next();
+	    if (it.get() < 0 || it.get() == '~') {
+//puts(" is literal");
+		rv += '~';
+	    }
+	    // Otherwise treat as tag group.
+	    else {
+//puts(" opens tag block:");
+		// Parse all elements in group
+		while (it.get() != '~') {
+//fputs("    Tag starting \"", stdout);
+//wputc_escaped(it.get());
+//printf(" (%c)\n", *(it.getptr()));
+		    int len;
+		    rv += encoding->TranslateTag(it.getptr(), len);
+		    it.forward(len);
+		}
+	    }
+	}
+	else {
+//puts("");
+	    rv += it.getstr();
+	}
+	it.next();
+    }
+//puts("  => return " + rv);
+    return rv;
+}
 
 // Character width conversions stolen from rlvm
 
@@ -32,32 +75,35 @@ static const wchar zen2han_table[] = {
     0x65, 0x70
 };
 
-void string::hantozen()
+pstring hantozen(const pstring& str)
 {
-    string conv;
-    for (witerator wi = wbegin(); wi != wend(); ++wi)
-	if (*wi == 0x2000)
-	    conv += wchar(0x3000);
-	else if (*wi >= '!' && *wi <= '~')
-	    conv += wchar(*wi + 0xfee0);
-        else if (*wi >= 0xff65 && *wi <= 0xff9f)
-	    conv += wchar(0x3000 | han2zen_table[*wi - 0xff65]);
-        else
-	    conv += *wi;
-    swap(conv);
+    pstring rv;
+    for (pstrIter it(str); it.get() >= 0; it.next()) {
+	if (it.get() == ' ')
+	    rv += encoding->Encode(0x3000);
+	else if (it.get() >= '!' && it.get() <= '~')
+	    rv += encoding->Encode(it.get() + 0xfee0);
+	else if (it.get() >= 0xff65 && it.get() <= 0xff9f)
+	    rv += encoding->Encode(0x3000 | han2zen_table[it.get() - 0xff65]);
+	else
+	    rv += it.getstr();
+    }
+    return rv;
 }
 
-void string::zentohan()
+pstring zentohan(const pstring& str)
 {
-    string conv;
-    for (witerator wi = wbegin(); wi != wend(); ++wi)
-	if (*wi >= 0xff01 && *wi <= 0xff5e)
-	    conv += wchar(*wi - 0xfee0);
-	else if (*wi == 0x3000)
-	    conv += wchar(0x0020);
-	else if (*wi >= 0x309b && *wi <= 0x30fc && zen2han_table[*wi - 0x309b])
-	    conv += wchar(0xff00 | zen2han_table[*wi - 0x309b]);
+    pstring rv;
+    for (pstrIter it(str); it.get() >= 0; it.next()) {
+	if (it.get() >= 0xff01 && it.get() <= 0xff5e)
+	    rv += encoding->Encode(it.get() - 0xfee0);
+	else if (it.get() == 0x3000)
+	    rv += ' ';
+	else if (it.get() >= 0x309b && it.get() <= 0x30fc &&
+		 zen2han_table[it.get() - 0x309b])
+	    rv += encoding->Encode(0xff00 | zen2han_table[it.get() - 0x309b]);
 	else
-	    conv += *wi;
-    swap(conv);
+	    rv += it.getstr();
+    }
+    return rv;
 }

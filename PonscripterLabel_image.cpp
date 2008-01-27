@@ -355,7 +355,7 @@ PonscripterLabel::refreshSurface(SDL_Surface* surface, SDL_Rect* clip_src,
 	is_drawable = true;
     }
 
-    if (refresh_mode & REFRESH_CURSOR_MODE && textgosub_label.empty()) {
+    if (refresh_mode & REFRESH_CURSOR_MODE && !textgosub_label) {
         if (clickstr_state == CLICK_WAIT)
             drawTaggedSurface(surface, &cursor_info[CURSOR_WAIT_NO], clip);
         else if (clickstr_state == CLICK_NEWPAGE)

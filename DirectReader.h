@@ -32,26 +32,26 @@
 
 class DirectReader : public BaseReader {
 public:
-    DirectReader(const string& path = "", const unsigned char* key_table = 0);
+    DirectReader(const pstring& path = "", const unsigned char* key_table = 0);
     ~DirectReader();
 
-    int open(const string& name = "", int archive_type = ARCHIVE_TYPE_NONE);
+    int open(const pstring& name = "", int archive_type = ARCHIVE_TYPE_NONE);
     int close();
 
-    string getArchiveName() const { return "direct"; }
+    pstring getArchiveName() const { return "direct"; }
     int getNumFiles();
-    void registerCompressionType(const string& ext, int type);
+    void registerCompressionType(const pstring& ext, int type);
 
     FileInfo getFileByIndex(unsigned int index);
-    size_t getFileLength(const string& file_name);
-    size_t getFile(const string& file_name, unsigned char* buffer,
+    size_t getFileLength(const pstring& file_name);
+    size_t getFile(const pstring& file_name, unsigned char* buffer,
 		   int* location = NULL);
 
 //    static string convertFromSJISToEUC(string buf);
 //    static string convertFromSJISToUTF8(string src_buf);
 
 protected:
-    string archive_path;
+    pstring archive_path;
     unsigned char key_table[256];
     bool   key_table_flag;
     int    getbit_mask;
@@ -63,21 +63,21 @@ protected:
     // TODO: replace with map
     struct RegisteredCompressionType {
         RegisteredCompressionType* next;
-        string ext;
+        pstring ext;
         int type;
         RegisteredCompressionType() {
             next = NULL;
         };
-        RegisteredCompressionType(string new_ext, int type)
+        RegisteredCompressionType(pstring new_ext, int type)
 	    : ext(new_ext)
 	{
-	    ext.uppercase();
+	    ext.toupper();
             this->type = type;
             this->next = NULL;
         };
     } root_registered_compression_type, *last_registered_compression_type;
 
-    FILE* fileopen(string path, const char* mode);
+    FILE* fileopen(pstring path, const char* mode);
     unsigned char readChar(FILE* fp);
     unsigned short readShort(FILE* fp);
     unsigned long readLong(FILE* fp);
@@ -85,11 +85,11 @@ protected:
     int getbit(FILE* fp, int n);
     size_t decodeSPB(FILE* fp, size_t offset, unsigned char* buf);
     size_t decodeLZSS(ArchiveInfo* ai, int no, unsigned char* buf);
-    int getRegisteredCompressionType(string filename);
+    int getRegisteredCompressionType(pstring filename);
     size_t getDecompressedFileLength(int type, FILE* fp, size_t offset);
 
 private:
-    FILE* getFileHandle(string filename, int& compression_type, size_t* length);
+    FILE* getFileHandle(pstring filename, int& compression_type, size_t* length);
 };
 
 #endif // __DIRECT_READER_H__

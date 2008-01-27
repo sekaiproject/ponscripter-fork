@@ -90,7 +90,7 @@ void AnimationInfo::deleteSurface()
 
 void AnimationInfo::remove()
 {
-    image_name.clear();
+    image_name = "";
     deleteSurface();
     removeTag();
 }
@@ -100,9 +100,9 @@ void AnimationInfo::removeTag()
 {
     duration_list.clear();
     color_list.clear();
-    file_name.clear();
-    mask_file_name.clear();    
-
+    
+    file_name        = "";
+    mask_file_name   = "";
     current_cell     = 0;
     num_of_cells     = 0;
     remaining_time   = 0;

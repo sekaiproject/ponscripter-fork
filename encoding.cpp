@@ -29,9 +29,9 @@ struct ligature {
     typedef std::vector<ligature> vec;
     typedef vec::iterator iterator;
     typedef std::map<char, vec> map;
-    string in;
+    pstring in;
     wchar out;
-    ligature(string i, wchar o) : in(i), out(o) {}
+    ligature(pstring i, wchar o) : in(i), out(o) {}
 
     static const ligature undef;
 };
@@ -43,8 +43,8 @@ GetLigatureRef(const char* string)
 {
     ligature::vec& v = ligs[string[0]];
     for (ligature::iterator it = v.begin(); it != v.end(); ++it) {
-	int is = it->in.size();
-	const char* in = it->in.c_str();
+	int is = it->in.length();
+	const char* in = it->in;
 	while (--is && in[is] == string[is]);
 	if (is == 0) return *it;
     }
@@ -52,7 +52,7 @@ GetLigatureRef(const char* string)
 }
 
 void
-AddLigature(const string& in, wchar out)
+AddLigature(const pstring& in, wchar out)
 {
     ligature::vec& v = ligs[in[0]];
     for (ligature::iterator it = v.begin(); it != v.end(); ++it) {
@@ -72,7 +72,7 @@ ClearLigatures()
 
 
 void
-DeleteLigature(const string& in)
+DeleteLigature(const pstring& in)
 {
     ligature::map::iterator lit = ligs.find(in[0]);
     if (lit == ligs.end()) return;
@@ -120,37 +120,36 @@ DefaultLigatures(int which)
 }
 
 
-const string Encoding::which() const { return name; }
-
+const pstring Encoding::which() const { return name; }
 
 int
-UTF8Encoding::CharacterBytes(const char* string)
+UTF8Encoding::Charsz_impl(const char* string, bool withligs)
 {
     if (!string) return 0;
     const unsigned char* t = (const unsigned char*) string;
     const unsigned char  c = t[0];
     if (c < 0x80) {
-        if (c >= 0x17 && c <= 0x1e) return 3;
-
-        // size codes
+        if (c >= 0x17 && c <= 0x1e) return 3; // size codes
         if (c == 0x1f) return 2;
 
 	// tags disabled?
-	if (!UseTags()) return 1;
+	if (!withligs)
+	    return 1;
 	
         // extended codes
-        if (c == '|') return t[1] == '|' ? 2 : 1 + CharacterBytes(string + 1);
+        if (c == '|')
+	    return t[1] == '|' ? 2 : 1 + Charsz_impl(string + 1, true);
 
         const ligature& lig = GetLigatureRef(string);
-        return lig.out ? lig.in.size() : 1;
+        return lig.out ? lig.in.length() : 1;
     }
     else {
         if ((c & 0xc0) == 0x80)
-            fprintf(stderr, "Warning: CharacterBytes called on incomplete "
+            fprintf(stderr, "Warning: NextCharSize called on incomplete "
                             "character\n");
         // ZWNJ
         if (c == 0xe2 && t[1] == 0x80 && t[2] == 0x8c)
-            return 3 + CharacterBytes(string + 3);
+            return 3 + Charsz_impl(string + 3, withligs);
 
         return c < 0xe0 ? 2 : (c < 0xf0 ? 3 : 4);
     }
@@ -158,35 +157,56 @@ UTF8Encoding::CharacterBytes(const char* string)
 
 
 wchar
-UTF8Encoding::Decode(const char* string, int& bytes)
+UTF8Encoding::Decode_impl(const char* string, int& bytes, bool withligs)
 {
     bytes = 0;
     if (!string) return 0;
     const unsigned char* t = (const unsigned char*) string;
     const unsigned char  c = t[0];
     if (c < 0x80) {
-	// tags disabled?
-	if (!UseTags()) { bytes = 1; return c; }
+	// Encoded tags.  Return the tag ID and skip the payload; it's
+	// up to callers to extract that if they want it.
+	// (pstrIter::getstr() will return complete tags.)
+        if (c >= 0x17 && c <= 0x1e) {
+	    bytes = 3;
+	    return c;
+	}
+        if (c == 0x1f) {
+	    bytes = 2;
+	    return c;
+	}
+	
+	// If ligatures are disabled, all other ASCII characters are
+	// treated as themselves.
+	if (!withligs) {
+	    bytes = 1;
+	    return c;
+	}
 
         if (c == '|' && t[1] == '|') { bytes = 2; return '|'; }
 	if (c == '|') {
-	    wchar c = Decode(string + 1, bytes);
+	    wchar c = Decode_impl(string + 1, bytes, true);
 	    ++bytes;
 	    return c;
 	}
 
         const ligature& lig = GetLigatureRef(string);
 	if (lig.out) {
-	    bytes = lig.in.size();
+	    bytes = lig.in.length();
 	    return lig.out;
 	}
 	bytes = 1;
         return c;
     }
     else {
-        if ((c & 0xc0) == 0x80)
-            fprintf(stderr, "Warning: UnicodeOfUTF8 called on incomplete "
-		    "character (string: %s)\n", string);
+        if ((c & 0xc0) == 0x80) {
+	    size_t len = strlen(string);
+	    int save = -1;
+	    if (len > 128) { save = string[128]; *(char*)(string + 128) = 0; }
+            fprintf(stderr, "Warning: UTF8Encoding::Decode called on "
+		    "incomplete character (string: %s)\n", string);
+	    if (save) *(char*)(string + 128) = save;
+	}
 
         if (c < 0xe0) {
 	    bytes = 2;
@@ -195,7 +215,7 @@ UTF8Encoding::Decode(const char* string, int& bytes)
         else if (c < 0xf0) {
             // ZWNJ
             if (c == 0xe2 && t[1] == 0x80 && t[2] == 0x8c) {
-		wchar c = Decode(string + 3, bytes);
+		wchar c = Decode_impl(string + 3, bytes, withligs);
                 bytes += 3;
 		return c;
 	    }
@@ -226,12 +246,12 @@ UTF8Encoding::Previous(const char* currpos, const char* strstart)
 
 
 size_t
-Encoding::CharacterCount(const char* string)
+Encoding::CharacterCount(const char* string, bool withligs)
 {
     size_t rv = 0;
     while (*string) {
         ++rv;
-        string += CharacterBytes(string);
+        string += NextCharSize(string, withligs);
     }
     return rv;
 }
@@ -261,21 +281,21 @@ UTF8Encoding::Encode(wchar ch, char* out)
     }
 }
 
-string
+pstring
 UTF8Encoding::Encode(wchar ch)
 {
-    string rv;
+    pstring rv;
     if (ch <= 0x80) {
-        rv.push_uchar(ch);
+        rv += (unsigned char) ch;
     }
     else if (ch < 0x800) {
-	rv.push_uchar(0xc0 | ch >> 6);
-	rv.push_uchar(0x80 | ch & 0x3f);
+	rv += (unsigned char)(0xc0 | ch >> 6);
+	rv += (unsigned char)(0x80 | ch & 0x3f);
     }
     else {
-	rv.push_uchar(0xe0 | ch >> 12);
-	rv.push_uchar(0x80 | ch >> 6 & 0x3f);
-        rv.push_uchar(0x80 | ch & 0x3f);
+	rv += (unsigned char)(0xe0 | ch >> 12);
+	rv += (unsigned char)(0x80 | ch >> 6 & 0x3f);
+        rv += (unsigned char)(0x80 | ch & 0x3f);
     }
     return rv;
 }
@@ -296,7 +316,7 @@ Encoding::SetStyle(int& style, const char flag)
     case '+': case '-':   case '*': case '/':
     case 'x': case 'y': case 'n': case 'u':
         fprintf(stderr, "Warning: tag ~%c~ cannot be used in this context\n",
-            flag);
+		flag);
         return;
     case 'c':
     case 0:
@@ -308,10 +328,10 @@ Encoding::SetStyle(int& style, const char flag)
 }
 
 
-inline string
+pstring
 set_int(char val, const char* src, int& in_len, int mulby = 1, int offset = 0)
 {
-    string rv(1, val);
+    pstring rv(val);
     ++src;
     int i = 0;
     while (*src >= '0' && *src <= '9') {
@@ -319,26 +339,27 @@ set_int(char val, const char* src, int& in_len, int mulby = 1, int offset = 0)
         i = i * 10 + *src++ - '0';
     }
     i = i * mulby + offset;
-    const char c1 = i & 0x7f, c2 = (i >> 7) & 0x7f;
-    rv.push(c1 ? c1 : -1);
-    rv.push(c2 ? c2 : -1);
+    char c1 = i & 0x7f,
+	 c2 = (i >> 7) & 0x7f;
+    rv += char(c1 ? c1 : -1);
+    rv += char(c2 ? c2 : -1);
     return rv;
 }
 
 
-string
+pstring
 Encoding::TranslateTag(const char* flag, int& in_len)
 {
     in_len = 1;
     switch (*flag) {
-    case ' ': return string();
-    case 'd': return string(1, 0x10);
-    case 'r': return string(1, 0x11);
-    case 'i': return string(1, 0x12);
-    case 't': return string(1, 0x13);
-    case 'b': return string(1, 0x14);
-    case 'f': return string(1, 0x15);
-    case 's': return string(1, 0x16);
+    case ' ': return "";
+    case 'd': return "\x10";
+    case 'r': return "\x11";
+    case 'i': return "\x12";
+    case 't': return "\x13";
+    case 'b': return "\x14";
+    case 'f': return "\x15";
+    case 's': return "\x16";
     case '=': return set_int(0x17, flag, in_len);
     case '+': return set_int(0x18, flag, in_len, -1, 8192);
     case '-': return set_int(0x18, flag, in_len, 1, 8192);
@@ -359,13 +380,13 @@ Encoding::TranslateTag(const char* flag, int& in_len)
         else return set_int(0x1d, flag, in_len);
 
     case 'c': return set_int(0x1e, flag, in_len);
-    case 'n': return string("\x1f\x10");
-    case 'u': return string("\x1f\x11");
+    case 'n': return "\x1f\x10";
+    case 'u': return "\x1f\x11";
     case 0:
         fprintf(stderr, "Error: non-matching ~tags~\n");
         exit(1);
     default:
         fprintf(stderr, "Warning: unknown tag ~%c~\n", *flag);
-        return string();
+        return "";
     }
 }

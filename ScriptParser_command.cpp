@@ -29,7 +29,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-int ScriptParser::zenkakkoCommand(const string& cmd)
+int ScriptParser::zenkakkoCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit(cmd, "not in the define section");
@@ -40,7 +40,7 @@ int ScriptParser::zenkakkoCommand(const string& cmd)
 }
 
 
-int ScriptParser::windowbackCommand(const string& cmd)
+int ScriptParser::windowbackCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit(cmd, "not in the define section");
@@ -51,7 +51,7 @@ int ScriptParser::windowbackCommand(const string& cmd)
 }
 
 
-int ScriptParser::versionstrCommand(const string& cmd)
+int ScriptParser::versionstrCommand(const pstring& cmd)
 {
     version_str = script_h.readStrValue() + '\n';
     version_str += script_h.readStrValue() + '\n';
@@ -59,7 +59,7 @@ int ScriptParser::versionstrCommand(const string& cmd)
 }
 
 
-int ScriptParser::usewheelCommand(const string& cmd)
+int ScriptParser::usewheelCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("usewheel: not in the define section");
@@ -70,7 +70,7 @@ int ScriptParser::usewheelCommand(const string& cmd)
 }
 
 
-int ScriptParser::useescspcCommand(const string& cmd)
+int ScriptParser::useescspcCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("useescspc: not in the define section");
@@ -82,7 +82,7 @@ int ScriptParser::useescspcCommand(const string& cmd)
 }
 
 
-int ScriptParser::underlineCommand(const string& cmd)
+int ScriptParser::underlineCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("underline: not in the define section");
@@ -93,12 +93,12 @@ int ScriptParser::underlineCommand(const string& cmd)
 }
 
 
-int ScriptParser::transmodeCommand(const string& cmd)
+int ScriptParser::transmodeCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("transmode: not in the define section");
 
-    string l = script_h.readStrValue();
+    pstring l = script_h.readStrValue();
     
     if (l == "leftup")
 	trans_mode = AnimationInfo::TRANS_TOPLEFT;
@@ -113,7 +113,7 @@ int ScriptParser::transmodeCommand(const string& cmd)
 }
 
 
-int ScriptParser::timeCommand(const string& cmd)
+int ScriptParser::timeCommand(const pstring& cmd)
 {
     time_t t = time(NULL);
     struct tm* tm = localtime(&t);
@@ -124,7 +124,7 @@ int ScriptParser::timeCommand(const string& cmd)
 }
 
 
-int ScriptParser::textgosubCommand(const string& cmd)
+int ScriptParser::textgosubCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("textgosub: not in the define section");
@@ -138,7 +138,7 @@ int ScriptParser::textgosubCommand(const string& cmd)
 }
 
 
-int ScriptParser::tanCommand(const string& cmd)
+int ScriptParser::tanCommand(const pstring& cmd)
 {
     Expression e = script_h.readIntExpr();
     e.mutate(int(tan(M_PI * script_h.readIntValue() / 180.0) * 1000.0));
@@ -146,7 +146,7 @@ int ScriptParser::tanCommand(const string& cmd)
 }
 
 
-int ScriptParser::subCommand(const string& cmd)
+int ScriptParser::subCommand(const pstring& cmd)
 {
     Expression e = script_h.readIntExpr();
     e.mutate(e.as_int() - script_h.readIntValue());
@@ -154,28 +154,28 @@ int ScriptParser::subCommand(const string& cmd)
 }
 
 
-int ScriptParser::straliasCommand(const string& cmd)
+int ScriptParser::straliasCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("stralias: not in the define section");
-    string label = script_h.readStrValue();
+    pstring label = script_h.readStrValue();
     script_h.addStrAlias(label, script_h.readStrValue());
     return RET_CONTINUE;
 }
 
 
-int ScriptParser::soundpressplginCommand(const string& cmd)
+int ScriptParser::soundpressplginCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("soundpressplgin: not in the define section");
 
-    string::vector opts = script_h.readStrValue().split("|", 2);
+    CBStringList opts = script_h.readStrValue().split('|', 2);
     
     // only nbzplgin.dll is supported
-    opts[0].lowercase();
+    opts[0].tolower();
     if (opts[0] != "nbzplgin.dll")
         fprintf(stderr, " *** plugin %s is not available, ignored. ***\n",
-		opts[0].c_str());
+		(const char*) opts[0]);
     else
 	ScriptHandler::cBR->
 	    registerCompressionType(opts[1], BaseReader::NBZ_COMPRESSION);
@@ -184,7 +184,7 @@ int ScriptParser::soundpressplginCommand(const string& cmd)
 }
 
 
-int ScriptParser::skipCommand(const string& cmd)
+int ScriptParser::skipCommand(const pstring& cmd)
 {
     int line = current_label_info.start_line + current_line
 	     + script_h.readIntValue();
@@ -199,7 +199,7 @@ int ScriptParser::skipCommand(const string& cmd)
 }
 
 
-int ScriptParser::sinCommand(const string& cmd)
+int ScriptParser::sinCommand(const pstring& cmd)
 {
     Expression e = script_h.readIntExpr();
     e.mutate(int(sin(M_PI * script_h.readIntValue() / 180.0) * 1000.0));
@@ -207,7 +207,7 @@ int ScriptParser::sinCommand(const string& cmd)
 }
 
 
-int ScriptParser::shadedistanceCommand(const string& cmd)
+int ScriptParser::shadedistanceCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("shadedistance: not in the define section");
@@ -219,7 +219,7 @@ int ScriptParser::shadedistanceCommand(const string& cmd)
 }
 
 
-int ScriptParser::selectvoiceCommand(const string& cmd)
+int ScriptParser::selectvoiceCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("selectvoice: not in the define section");
@@ -231,7 +231,7 @@ int ScriptParser::selectvoiceCommand(const string& cmd)
 }
 
 
-int ScriptParser::selectcolorCommand(const string& cmd)
+int ScriptParser::selectcolorCommand(const pstring& cmd)
 {
     sentence_font.on_color = readColour(script_h.readStrValue());
     sentence_font.off_color = readColour(script_h.readStrValue());
@@ -240,7 +240,7 @@ int ScriptParser::selectcolorCommand(const string& cmd)
 }
 
 
-int ScriptParser::savenumberCommand(const string& cmd)
+int ScriptParser::savenumberCommand(const pstring& cmd)
 {
     num_save_file = script_h.readIntValue();
 
@@ -248,7 +248,7 @@ int ScriptParser::savenumberCommand(const string& cmd)
 }
 
 
-int ScriptParser::savenameCommand(const string& cmd)
+int ScriptParser::savenameCommand(const pstring& cmd)
 {
     save_menu_name = script_h.readStrValue();
     load_menu_name = script_h.readStrValue();
@@ -257,7 +257,7 @@ int ScriptParser::savenameCommand(const string& cmd)
 }
 
 
-int ScriptParser::rubyonCommand(const string& cmd)
+int ScriptParser::rubyonCommand(const pstring& cmd)
 {
     // disabled
     const char* buf = script_h.getNext();
@@ -275,14 +275,14 @@ int ScriptParser::rubyonCommand(const string& cmd)
 }
 
 
-int ScriptParser::rubyoffCommand(const string& cmd)
+int ScriptParser::rubyoffCommand(const pstring& cmd)
 {
     // disabled
     return RET_CONTINUE;
 }
 
 
-int ScriptParser::roffCommand(const string& cmd)
+int ScriptParser::roffCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("roff: not in the define section");
@@ -293,13 +293,13 @@ int ScriptParser::roffCommand(const string& cmd)
 }
 
 
-int ScriptParser::rmenuCommand(const string& cmd)
+int ScriptParser::rmenuCommand(const pstring& cmd)
 {
     rmenu.clear();
     rmenu_link_width = 0;
 
     do {
-	string s = script_h.readStrValue();
+	pstring s = script_h.readStrValue();
 	rmenu.push_back(RMenuElt(s, getSystemCallNo(script_h.readStrValue())));
     } while (script_h.hasMoreArgs());
 
@@ -307,7 +307,7 @@ int ScriptParser::rmenuCommand(const string& cmd)
 }
 
 
-int ScriptParser::returnCommand(const string& cmd)
+int ScriptParser::returnCommand(const pstring& cmd)
 {
     if (nest_infos.empty() || nest_infos.back().nest_mode != NestInfo::LABEL)
         errorAndExit("return: not in gosub");
@@ -329,7 +329,7 @@ int ScriptParser::returnCommand(const string& cmd)
 }
 
 
-int ScriptParser::pretextgosubCommand(const string& cmd)
+int ScriptParser::pretextgosubCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("pretextgosub: not in the define section");
@@ -342,12 +342,12 @@ int ScriptParser::pretextgosubCommand(const string& cmd)
 }
 
 
-int ScriptParser::numaliasCommand(const string& cmd)
+int ScriptParser::numaliasCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("numalias: numalias: not in the define section");
-    string label = script_h.readStrValue();
-    label.lowercase();
+    pstring label = script_h.readStrValue();
+    label.tolower();
     int no = script_h.readIntValue();
     // Extension: allow detection of Ponscripter in compatibility mode
     // by allowing the user to define an alias "ponscripter, 0" that
@@ -358,7 +358,7 @@ int ScriptParser::numaliasCommand(const string& cmd)
 }
 
 
-int ScriptParser::nsadirCommand(const string& cmd)
+int ScriptParser::nsadirCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("nsadir: not in the define section");
@@ -368,7 +368,7 @@ int ScriptParser::nsadirCommand(const string& cmd)
 }
 
 
-int ScriptParser::nsaCommand(const string& cmd)
+int ScriptParser::nsaCommand(const pstring& cmd)
 {
     int archive_type = NsaReader::ARCHIVE_TYPE_NSA;
 
@@ -388,7 +388,7 @@ int ScriptParser::nsaCommand(const string& cmd)
 }
 
 
-int ScriptParser::nextCommand(const string& cmd)
+int ScriptParser::nextCommand(const pstring& cmd)
 {
     if (nest_infos.empty() || nest_infos.back().nest_mode != NestInfo::FOR)
         errorAndExit("next: not in for loop\n");
@@ -418,7 +418,7 @@ int ScriptParser::nextCommand(const string& cmd)
 }
 
 
-int ScriptParser::mulCommand(const string& cmd)
+int ScriptParser::mulCommand(const pstring& cmd)
 {
     Expression e = script_h.readIntExpr();
     e.mutate(e.as_int() * script_h.readIntValue());
@@ -426,12 +426,12 @@ int ScriptParser::mulCommand(const string& cmd)
 }
 
 
-int ScriptParser::movCommand(const string& cmd)
+int ScriptParser::movCommand(const pstring& cmd)
 {
     Expression e = script_h.readExpr();
     int limit = cmd == "mov" ? 1
 	      : cmd == "movl" ? e.dim()
-	      : atoi(cmd.c_str() + 3);
+	      : atoi(((const char*) cmd) + 3);
 
     // ONScripter has been a bit permissive in the past.
     if (!script_h.is_ponscripter && e.is_array() &&
@@ -459,7 +459,7 @@ int ScriptParser::movCommand(const string& cmd)
 }
 
 
-int ScriptParser::mode_sayaCommand(const string& cmd)
+int ScriptParser::mode_sayaCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("mode_saya: not in the define section");
@@ -470,7 +470,7 @@ int ScriptParser::mode_sayaCommand(const string& cmd)
 }
 
 
-int ScriptParser::mode_extCommand(const string& cmd)
+int ScriptParser::mode_extCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("mode_ext: not in the define section");
@@ -481,7 +481,7 @@ int ScriptParser::mode_extCommand(const string& cmd)
 }
 
 
-int ScriptParser::modCommand(const string& cmd)
+int ScriptParser::modCommand(const pstring& cmd)
 {
     Expression e = script_h.readIntExpr();
     e.mutate(e.as_int() % script_h.readIntValue());
@@ -489,24 +489,18 @@ int ScriptParser::modCommand(const string& cmd)
 }
 
 
-int ScriptParser::midCommand(const string& cmd)
+int ScriptParser::midCommand(const pstring& cmd)
 {
-    Expression e = script_h.readStrExpr();
-    string src = script_h.readStrValue();
+    Expression e       = script_h.readStrExpr();
+    pstring src        = script_h.readStrValue();
     unsigned int start = script_h.readIntValue();
-    unsigned int len = script_h.readIntValue();
-    if (start >= src.size()) {
-        e.mutate("");
-    }
-    else {
-        if (start + len > src.size()) len = src.size() - start;
-	e.mutate(src.substr(start, len));
-    }
+    unsigned int len   = script_h.readIntValue();
+    e.mutate(src.midstr(start, len));
     return RET_CONTINUE;
 }
 
 
-int ScriptParser::menusetwindowCommand(const string& cmd)
+int ScriptParser::menusetwindowCommand(const pstring& cmd)
 {
     int s1 = script_h.readIntValue();
     int s2 = script_h.readIntValue();
@@ -517,7 +511,7 @@ int ScriptParser::menusetwindowCommand(const string& cmd)
     menu_font.is_bold   = script_h.readIntValue();
     menu_font.is_shadow = script_h.readIntValue();
 
-    string buf = script_h.readStrValue();
+    pstring buf = script_h.readStrValue();
     if (buf) { // Comma may or may not appear in this case.
         menu_font.window_color = readColour(buf);
     }
@@ -529,7 +523,7 @@ int ScriptParser::menusetwindowCommand(const string& cmd)
 }
 
 
-int ScriptParser::menuselectvoiceCommand(const string& cmd)
+int ScriptParser::menuselectvoiceCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("menuselectvoice: not in the define section");
@@ -541,7 +535,7 @@ int ScriptParser::menuselectvoiceCommand(const string& cmd)
 }
 
 
-int ScriptParser::menuselectcolorCommand(const string& cmd)
+int ScriptParser::menuselectcolorCommand(const pstring& cmd)
 {
     menu_font.on_color = readColour(script_h.readStrValue());
     menu_font.off_color = readColour(script_h.readStrValue());    
@@ -551,7 +545,7 @@ int ScriptParser::menuselectcolorCommand(const string& cmd)
 }
 
 
-int ScriptParser::maxkaisoupageCommand(const string& cmd)
+int ScriptParser::maxkaisoupageCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("maxkaisoupage: not in the define section");
@@ -562,7 +556,7 @@ int ScriptParser::maxkaisoupageCommand(const string& cmd)
 }
 
 
-int ScriptParser::lookbackspCommand(const string& cmd)
+int ScriptParser::lookbackspCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("lookbacksp: not in the define section");
@@ -581,7 +575,7 @@ int ScriptParser::lookbackspCommand(const string& cmd)
 }
 
 
-int ScriptParser::lookbackcolorCommand(const string& cmd)
+int ScriptParser::lookbackcolorCommand(const pstring& cmd)
 {
     lookback_color = readColour(script_h.readStrValue());
 
@@ -589,7 +583,7 @@ int ScriptParser::lookbackcolorCommand(const string& cmd)
 }
 
 
-int ScriptParser::loadgosubCommand(const string& cmd)
+int ScriptParser::loadgosubCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("loadgosub: not in the define section");
@@ -602,7 +596,7 @@ int ScriptParser::loadgosubCommand(const string& cmd)
 }
 
 
-int ScriptParser::linepageCommand(const string& cmd)
+int ScriptParser::linepageCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("linepage: not in the define section");
@@ -620,15 +614,15 @@ int ScriptParser::linepageCommand(const string& cmd)
 }
 
 
-int ScriptParser::lenCommand(const string& cmd)
+int ScriptParser::lenCommand(const pstring& cmd)
 {
     Expression e = script_h.readIntExpr();
-    e.mutate(script_h.readStrValue().size());
+    e.mutate(script_h.readStrValue().length());
     return RET_CONTINUE;
 }
 
 
-int ScriptParser::labellogCommand(const string& cmd)
+int ScriptParser::labellogCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("labellog: not in the define section");
@@ -639,7 +633,7 @@ int ScriptParser::labellogCommand(const string& cmd)
 }
 
 
-int ScriptParser::kidokuskipCommand(const string& cmd)
+int ScriptParser::kidokuskipCommand(const pstring& cmd)
 {
     kidokuskip_flag = true;
     kidokumode_flag = true;
@@ -649,22 +643,23 @@ int ScriptParser::kidokuskipCommand(const string& cmd)
 }
 
 
-int ScriptParser::kidokumodeCommand(const string& cmd)
+int ScriptParser::kidokumodeCommand(const pstring& cmd)
 {
     kidokumode_flag = script_h.readIntValue() == 1;
     return RET_CONTINUE;
 }
 
 
-int ScriptParser::itoaCommand(const string& cmd)
+int ScriptParser::itoaCommand(const pstring& cmd)
 {
     Expression e = script_h.readStrExpr();
-    string v = str(script_h.readIntValue());
+    pstring v;
+    v.format("%d", script_h.readIntValue());
     if (!script_h.is_ponscripter && cmd == "itoa2") {
 	// Handle zenkaku output in compatibility mode
 	e.mutate("");
-	for (string::witerator it = v.wbegin(); it != v.wend(); ++it)
-	    e.append(*it - 0x0030 + 0xff10);
+	for (pstrIter it(v); it.get() >= 0; it.next())
+	    e.append(it.get() - 0x0030 + 0xff10);
     }
     else
 	e.mutate(v);
@@ -673,7 +668,7 @@ int ScriptParser::itoaCommand(const string& cmd)
 }
 
 
-int ScriptParser::intlimitCommand(const string& cmd)
+int ScriptParser::intlimitCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("intlimit: not in the define section");
@@ -688,7 +683,7 @@ int ScriptParser::intlimitCommand(const string& cmd)
 }
 
 
-int ScriptParser::incCommand(const string& cmd)
+int ScriptParser::incCommand(const pstring& cmd)
 {
     Expression e = script_h.readIntExpr();
     e.mutate(e.as_int() + 1);
@@ -696,7 +691,7 @@ int ScriptParser::incCommand(const string& cmd)
 }
 
 
-int ScriptParser::ifCommand(const string& cmd)
+int ScriptParser::ifCommand(const pstring& cmd)
 {
     bool condition_flag = true, f = false;
     bool if_flag = cmd != "notif";
@@ -733,7 +728,7 @@ int ScriptParser::ifCommand(const string& cmd)
 		         : left.as_int() > right.as_int() ? 1
 		         : 0;
 	    else if (left.is_textual() && right.is_textual())
-		comp_val = left.as_string().compare(right.as_string());
+		comp_val = left.as_string().cmp(right.as_string());
 	    else
 		errorAndExit("comparison operands are different types");
 	    
@@ -766,7 +761,7 @@ int ScriptParser::ifCommand(const string& cmd)
 }
 
 
-int ScriptParser::humanzCommand(const string& cmd)
+int ScriptParser::humanzCommand(const pstring& cmd)
 {
     z_order = script_h.readIntValue();
 
@@ -774,7 +769,7 @@ int ScriptParser::humanzCommand(const string& cmd)
 }
 
 
-int ScriptParser::gotoCommand(const string& cmd)
+int ScriptParser::gotoCommand(const pstring& cmd)
 {
     setCurrentLabel(script_h.readStrValue());
 
@@ -782,23 +777,23 @@ int ScriptParser::gotoCommand(const string& cmd)
 }
 
 
-void ScriptParser::gosubReal(const string& label, const char* next_script)
+void ScriptParser::gosubReal(const pstring& label, const char* next_script)
 {
     nest_infos.push_back(NestInfo(script_h, next_script));
     setCurrentLabel(label);
 }
 
 
-int ScriptParser::gosubCommand(const string& cmd)
+int ScriptParser::gosubCommand(const pstring& cmd)
 {
-    string buf = script_h.readStrValue();
+    pstring buf = script_h.readStrValue();
     gosubReal(buf, script_h.getNext());
 
     return RET_CONTINUE;
 }
 
 
-int ScriptParser::globalonCommand(const string& cmd)
+int ScriptParser::globalonCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("globalon: not in the define section");
@@ -809,7 +804,7 @@ int ScriptParser::globalonCommand(const string& cmd)
 }
 
 
-int ScriptParser::getparamCommand(const string& cmd)
+int ScriptParser::getparamCommand(const pstring& cmd)
 {
     if (nest_infos.empty() || nest_infos.back().nest_mode != NestInfo::LABEL)
         errorAndExit("getparam: not in a subroutine");
@@ -842,7 +837,7 @@ int ScriptParser::getparamCommand(const string& cmd)
 }
 
 
-int ScriptParser::forCommand(const string& cmd)
+int ScriptParser::forCommand(const pstring& cmd)
 {
     NestInfo ni(script_h.readIntExpr());
 
@@ -877,7 +872,7 @@ int ScriptParser::forCommand(const string& cmd)
 }
 
 
-int ScriptParser::filelogCommand(const string& cmd)
+int ScriptParser::filelogCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("filelog: not in the define section");
@@ -889,7 +884,7 @@ int ScriptParser::filelogCommand(const string& cmd)
 }
 
 
-int ScriptParser::effectcutCommand(const string& cmd)
+int ScriptParser::effectcutCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("effectcut: not in the define section.");
@@ -900,7 +895,7 @@ int ScriptParser::effectcutCommand(const string& cmd)
 }
 
 
-int ScriptParser::effectblankCommand(const string& cmd)
+int ScriptParser::effectblankCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("effectblank: not in the define section");
@@ -911,7 +906,7 @@ int ScriptParser::effectblankCommand(const string& cmd)
 }
 
 
-int ScriptParser::effectCommand(const string& cmd)
+int ScriptParser::effectCommand(const pstring& cmd)
 {
     if (cmd == "windoweffect") {
         readEffect(window_effect);
@@ -930,7 +925,7 @@ int ScriptParser::effectCommand(const string& cmd)
 }
 
 
-int ScriptParser::divCommand(const string& cmd)
+int ScriptParser::divCommand(const pstring& cmd)
 {
     Expression e = script_h.readIntExpr();
     e.mutate(e.as_int() / script_h.readIntValue());
@@ -938,7 +933,7 @@ int ScriptParser::divCommand(const string& cmd)
 }
 
 
-int ScriptParser::dimCommand(const string& cmd)
+int ScriptParser::dimCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("dim: not in the define section");
@@ -947,35 +942,35 @@ int ScriptParser::dimCommand(const string& cmd)
 }
 
 
-int ScriptParser::defvoicevolCommand(const string& cmd)
+int ScriptParser::defvoicevolCommand(const pstring& cmd)
 {
     voice_volume = script_h.readIntValue();
     return RET_CONTINUE;
 }
 
 
-int ScriptParser::defsubCommand(const string& cmd)
+int ScriptParser::defsubCommand(const pstring& cmd)
 {
     user_func_lut.insert(script_h.readBareword());
     return RET_CONTINUE;
 }
 
 
-int ScriptParser::defsevolCommand(const string& cmd)
+int ScriptParser::defsevolCommand(const pstring& cmd)
 {
     se_volume = script_h.readIntValue();
     return RET_CONTINUE;
 }
 
 
-int ScriptParser::defmp3volCommand(const string& cmd)
+int ScriptParser::defmp3volCommand(const pstring& cmd)
 {
     music_volume = script_h.readIntValue();
     return RET_CONTINUE;
 }
 
 
-int ScriptParser::defaultspeedCommand(const string& cmd)
+int ScriptParser::defaultspeedCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("defaultspeed: not in the define section");
@@ -985,7 +980,7 @@ int ScriptParser::defaultspeedCommand(const string& cmd)
 }
 
 
-int ScriptParser::defaultfontCommand(const string& cmd)
+int ScriptParser::defaultfontCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("defaultfont: not in the define section");
@@ -994,7 +989,7 @@ int ScriptParser::defaultfontCommand(const string& cmd)
 }
 
 
-int ScriptParser::decCommand(const string& cmd)
+int ScriptParser::decCommand(const pstring& cmd)
 {
     Expression e = script_h.readIntExpr();
     e.mutate(e.as_int() - 1);
@@ -1002,7 +997,7 @@ int ScriptParser::decCommand(const string& cmd)
 }
 
 
-int ScriptParser::dateCommand(const string& cmd)
+int ScriptParser::dateCommand(const pstring& cmd)
 {
     time_t t = time(NULL);
     struct tm* tm = localtime(&t);
@@ -1013,7 +1008,7 @@ int ScriptParser::dateCommand(const string& cmd)
 }
 
 
-int ScriptParser::cosCommand(const string& cmd)
+int ScriptParser::cosCommand(const pstring& cmd)
 {
     Expression e = script_h.readIntExpr();
     e.mutate(int(cos(M_PI * script_h.readIntValue() / 180.0) * 1000.0));
@@ -1021,12 +1016,12 @@ int ScriptParser::cosCommand(const string& cmd)
 }
 
 
-int ScriptParser::cmpCommand(const string& cmd)
+int ScriptParser::cmpCommand(const pstring& cmd)
 {
     Expression e = script_h.readIntExpr();
-    string buf1 = script_h.readStrValue();
-    string buf2 = script_h.readStrValue();
-    int val = buf1.compare(buf2);
+    pstring buf1 = script_h.readStrValue();
+    pstring buf2 = script_h.readStrValue();
+    int val = buf1.cmp(buf2);
     if (val > 0) val = 1;
     else if (val < 0) val = -1;
     e.mutate(val);
@@ -1034,7 +1029,7 @@ int ScriptParser::cmpCommand(const string& cmd)
 }
 
 
-int ScriptParser::clickvoiceCommand(const string& cmd)
+int ScriptParser::clickvoiceCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
 	errorAndExit("clickvoice: not in the define section");
@@ -1044,7 +1039,7 @@ int ScriptParser::clickvoiceCommand(const string& cmd)
 }
 
 
-int ScriptParser::clickstrCommand(const string& cmd)
+int ScriptParser::clickstrCommand(const pstring& cmd)
 {
     script_h.setClickstr(script_h.readStrValue());
     clickstr_line = script_h.readIntValue();
@@ -1052,7 +1047,7 @@ int ScriptParser::clickstrCommand(const string& cmd)
 }
 
 
-int ScriptParser::breakCommand(const string& cmd)
+int ScriptParser::breakCommand(const pstring& cmd)
 {
     if (nest_infos.empty() || nest_infos.back().nest_mode != NestInfo::FOR)
         errorAndExit("break: not in for loop\n");
@@ -1070,31 +1065,31 @@ int ScriptParser::breakCommand(const string& cmd)
 }
 
 
-int ScriptParser::atoiCommand(const string& cmd)
+int ScriptParser::atoiCommand(const pstring& cmd)
 {
     Expression e = script_h.readIntExpr();
-    e.mutate(atoi(script_h.readStrValue().c_str()));
+    e.mutate(atoi(script_h.readStrValue()));
     return RET_CONTINUE;
 }
 
 
-int ScriptParser::arcCommand(const string& cmd)
+int ScriptParser::arcCommand(const pstring& cmd)
 {
     // arc "filename|archive reader DLL"
     // We ignore the DLL, and assume the archive is SAR.
-    string buf = script_h.readStrValue();
-    buf.erase(buf.find('|', 0));
+    pstring buf = script_h.readStrValue();
+    buf.trunc(buf.find('|', 0)); // TODO: check this removes the |
     if (ScriptHandler::cBR->getArchiveName() == "direct") {
         delete ScriptHandler::cBR;
         ScriptHandler::cBR = new SarReader(archive_path, key_table);
         if (ScriptHandler::cBR->open(buf))
             fprintf(stderr, " *** failed to open archive %s, ignored.  ***\n",
-		    buf.c_str());
+		    (const char*) buf);
     }
     else if (ScriptHandler::cBR->getArchiveName() == "sar") {
         if (ScriptHandler::cBR->open(buf)) {
             fprintf(stderr, " *** failed to open archive %s, ignored.  ***\n",
-		    buf.c_str());
+		    (const char*) buf);
         }
     }
     // skip "arc" commands after "ns?" command
@@ -1102,7 +1097,7 @@ int ScriptParser::arcCommand(const string& cmd)
 }
 
 
-int ScriptParser::addCommand(const string& cmd)
+int ScriptParser::addCommand(const pstring& cmd)
 {
     Expression e = script_h.readExpr();
     if (!script_h.is_ponscripter && e.is_array())

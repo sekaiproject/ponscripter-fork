@@ -38,13 +38,13 @@
 
 #define MAX_TEXT_BUFFER 17
 
-typedef int (ScriptParser::*ParserFun)(const string&);
+typedef int (ScriptParser::*ParserFun)(const pstring&);
 static class func_lut_t {
-    typedef dictionary<string, ParserFun>::t dic_t;
+    typedef dictionary<pstring, ParserFun>::t dic_t;
     dic_t dict;
 public:
     func_lut_t();
-    ParserFun get(string what) const {
+    ParserFun get(pstring what) const {
 	dic_t::const_iterator it = dict.find(what);
 	if (it == dict.end()) return 0;
 	return it->second;
@@ -194,7 +194,7 @@ void ScriptParser::reset()
     user_func_lut.clear();
 
     // reset misc variables
-    nsa_path.clear();
+    nsa_path.trunc(0);
 
     globalon_flag   = false;
     labellog_flag   = false;
@@ -216,9 +216,9 @@ void ScriptParser::reset()
     version_str = VERSION_STR1 "\n" VERSION_STR2 "\n";
     z_order = 499;
 
-    textgosub_label.clear();
-    pretextgosub_label.clear();
-    loadgosub_label.clear();
+    textgosub_label.trunc(0);
+    pretextgosub_label.trunc(0);
+    loadgosub_label.trunc(0);
 
     /* ---------------------------------------- */
     /* Lookback related variables */
@@ -261,11 +261,11 @@ void ScriptParser::reset()
     /* Sound related variables */
     int i;
     for (i = 0; i < CLICKVOICE_NUM; i++)
-	clickvoice_file_name[i].clear();
+	clickvoice_file_name[i].trunc(0);
     for (i = 0; i < SELECTVOICE_NUM; i++)
-	selectvoice_file_name[i].clear();
+	selectvoice_file_name[i].trunc(0);
     for (i = 0; i < MENUSELECTVOICE_NUM; i++)
-	menuselectvoice_file_name[i].clear();
+	menuselectvoice_file_name[i].trunc(0);
 
     /* ---------------------------------------- */
     /* Menu related variables */
@@ -372,8 +372,9 @@ rgb_t ScriptParser::readColour(const char* buf)
 
 int ScriptParser::parseLine()
 {
-    string cmd = script_h.getStringBuffer();
-    if (debug_level > 0) printf("ScriptParser::Parseline %s\n", cmd.c_str());
+    pstring cmd = script_h.getStrBuf();
+    if (debug_level > 0)
+	printf("ScriptParser::Parseline %s\n", (const char*) cmd);
 
     if (cmd[0] == ';' || cmd[0] == '*' || cmd[0] == ':' || cmd[0] == 0x0a)
 	return RET_CONTINUE;
@@ -387,21 +388,21 @@ int ScriptParser::parseLine()
 	}
     }
     else {
-	cmd.shift();
+	cmd.remove(0, 1);
     }
     ParserFun f = func_lut.get(cmd);
     return f ? (this->*f)(cmd) : RET_NOMATCH;
 }
 
 
-int ScriptParser::getSystemCallNo(const string& buffer)
+int ScriptParser::getSystemCallNo(const pstring& buffer)
 {
     syscall_dict_t::iterator e = syscall_dict.find(buffer);
     if (e != syscall_dict.end()) {
 	return e->second;
     }
     else {
-        printf("Unsupported system call %s\n", buffer.c_str());
+        printf("Unsupported system call %s\n", (const char*) buffer);
         return -1;
     }
 }
@@ -444,11 +445,11 @@ void ScriptParser::allocFileIOBuf()
 }
 
 
-int ScriptParser::saveFileIOBuf(const string& filename, int offset)
+int ScriptParser::saveFileIOBuf(const pstring& filename, int offset)
 {
     FILE* fp;
-    string fnam = script_h.save_path + filename;
-    if ((fp = fopen(fnam.c_str(), "wb")) == NULL) return -1;
+    if ((fp = fopen(script_h.save_path + filename, "wb")) == NULL)
+	return -1;
 
     size_t ret = fwrite(file_io_buf + offset, 1, file_io_buf_ptr - offset, fp);
     fclose(fp);
@@ -459,11 +460,10 @@ int ScriptParser::saveFileIOBuf(const string& filename, int offset)
 }
 
 
-int ScriptParser::loadFileIOBuf(const string& filename)
+int ScriptParser::loadFileIOBuf(const pstring& filename)
 {
     FILE* fp;
-    string fnam = script_h.save_path + filename;
-    if ((fp = fopen(fnam.c_str(), "rb")) == NULL)
+    if ((fp = fopen(script_h.save_path + filename, "rb")) == NULL)
         return -1;
 
     fseek(fp, 0, SEEK_END);
@@ -526,23 +526,23 @@ int ScriptParser::readInt()
     return i;
 }
 
-void ScriptParser::writeStr(const string& s, bool output_flag)
+void ScriptParser::writeStr(const pstring& s, bool output_flag)
 {
     if (s) {
 	if (output_flag)
-	    memcpy(file_io_buf + file_io_buf_ptr, s.c_str(), s.size());
+	    memcpy(file_io_buf + file_io_buf_ptr, (const char*) s, s.length());
 
-	file_io_buf_ptr += s.size();
+	file_io_buf_ptr += s.length();
     }
 
     writeChar(0, output_flag);
 }
 
 
-string ScriptParser::readStr()
+pstring ScriptParser::readStr()
 {
-    string rv((char*)file_io_buf + file_io_buf_ptr);
-    file_io_buf_ptr += rv.size() + 1;
+    pstring rv((const char*) file_io_buf + file_io_buf_ptr);
+    file_io_buf_ptr += rv.length() + 1;
     return rv;
 }
 
@@ -607,25 +607,22 @@ void ScriptParser::readArrayVariable()
 }
 
 
-void ScriptParser::errorAndCont(string why, string reason)
+void ScriptParser::errorAndCont(const char* why, const char* reason)
 {
-    why = "Parse error at line "
-	+ str(script_h.getLineByAddress(script_h.getCurrent(), true))
-	+ ": " + why;
-    if (reason)
-	why += "; " + reason;
-    why += "\n(*" + current_label_info.name
-	+ " line " + str(current_line) + ")\n";
-    fprintf(stderr, why.c_str());
+    fprintf(stderr, "Parse error at line %d: %s",
+	    script_h.getLineByAddress(script_h.getCurrent(), true), why);
+    if (reason) fprintf(stderr, "; %s", reason);
+    fprintf(stderr, "\n(*%s line %d)\n",
+	    (const char*) current_label_info.name, current_line);
 }
 
-void ScriptParser::errorAndExit(string why, string reason)
+void ScriptParser::errorAndExit(const char* why, const char* reason)
 {
     errorAndCont(why, reason);
     exit(-1);
 }
 
-void ScriptParser::setCurrentLabel(const string& label)
+void ScriptParser::setCurrentLabel(const pstring& label)
 {
     current_label_info = script_h.lookupLabel(label);
     current_line = script_h.getLineByAddress(current_label_info.start_address);
@@ -645,13 +642,12 @@ void ScriptParser::readToken()
         char ch = (linepage_mode == 1) ? '\\' : '@';
 
         // ugly work around
-	string& s = script_h.getStringBuffer();
-	if (s && s.back() == '\n') {
-	    s.back() = ch;
-	    s.push_back('\n');
+	pstring& s = script_h.getStrBuf();
+	if (s && s[s.length() - 1] == '\n') {
+	    s.insertchrs(s.length() - 1, 1, ch);
 	}
 	else {
-	    s.push_back(ch);
+	    s += ch;
 	}
     }
 }
@@ -698,15 +694,15 @@ ScriptParser::Effect& ScriptParser::parseEffect(bool init_flag)
 }
 
 
-void ScriptParser::createKeyTable(const string& key_exe)
+void ScriptParser::createKeyTable(const pstring& key_exe)
 {
     if (!key_exe) return;
 
-    string path = archive_path + DELIMITER + key_exe;
-    FILE* fp = fopen(path.c_str(), "rb");
+    pstring path = archive_path + DELIMITER + key_exe;
+    FILE* fp = fopen(path, "rb");
     if (fp == NULL) {
         fprintf(stderr, "createKeyTable: can't open EXE file %s\n",
-		path.c_str());
+		(const char*) path);
         return;
     }
 
@@ -745,3 +741,29 @@ void ScriptParser::createKeyTable(const string& key_exe)
     for (i = 0; i < 256; i++)
         key_table[ring_buffer[(ring_start + i) % 256]] = i;
 }
+
+void ScriptParser::TextBuffer_dumpstate(int num)
+{
+    if (num == 0) num = MAX_INT;
+    TextBuffer* t_buf = current_text_buffer;
+    int n = 0;
+    while (t_buf != start_text_buffer) {
+        t_buf = t_buf->previous;
+	++n;
+    }
+    puts("Text buffer status:");
+    t_buf = 0;
+    while (t_buf != start_text_buffer && num--) {
+        t_buf = t_buf ? t_buf->previous : current_text_buffer;
+	t_buf->dumpstate(n--);
+    }
+}
+
+void ScriptParser::TextBuffer::dumpstate(int n)
+{
+    if (n >= 0) printf(" %d:", n);
+    printf("%3d [", contents.length());
+    print_escaped(contents);
+    puts("]");
+}
+

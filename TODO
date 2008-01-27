@@ -1,1 +1,16 @@
+* Tags
+
+Tags are processed when text is read, i.e. in a display text block or
+when constructing a sprite.  Text that is not obviously going to be
+displayed simply doesn't get tags processed. This may be a limitation
+that should be revisited.
+
+* Ligatures
+
+It should now be feasible to ignore ligature definitions where the
+substitute character isn't present in the selected font.  So we should
+probably do that, really, shouldn't we?
+
+* Not gonna happen any time soon
+
 Kill pushed_variable, current_variable, and so forth

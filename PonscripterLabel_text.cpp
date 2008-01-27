@@ -38,10 +38,9 @@ PonscripterLabel::renderGlyph(Font* font, Uint16 text, int size,
 
 void
 PonscripterLabel::drawGlyph(SDL_Surface* dst_surface, Fontinfo* info,
-			    SDL_Color &color, unsigned short unicode,
-			    float x, int y, bool shadow_flag,
-			    AnimationInfo* cache_info, SDL_Rect* clip,
-			    SDL_Rect &dst_rect)
+        SDL_Color &color, unsigned short unicode, float x, int y,
+	bool shadow_flag, AnimationInfo* cache_info, SDL_Rect* clip,
+	SDL_Rect &dst_rect)
 {
     float minx, maxy;
 
@@ -89,16 +88,21 @@ PonscripterLabel::drawGlyph(SDL_Surface* dst_surface, Fontinfo* info,
 }
 
 
-void PonscripterLabel::drawChar(const char* text, Fontinfo* info, bool flush_flag, bool lookback_flag, SDL_Surface* surface, AnimationInfo* cache_info, SDL_Rect* clip)
+// Returns character bytes.
+// This is where we process ligatures for display text!
+int
+PonscripterLabel::drawChar(const char* text, Fontinfo* info, bool flush_flag,
+        bool lookback_flag, SDL_Surface* surface, AnimationInfo* cache_info,
+	SDL_Rect* clip)
 {
     int bytes;
-    wchar unicode = encoding->Decode(text, bytes);
+    wchar unicode = encoding->DecodeWithLigatures(text, bytes);
 
-    if (!info->processCode(text)) {
+    bool code = info->processCode(text);
+    if (!code) {
         // info->doSize() called in GlyphAdvance
-	int b;
         float adv = info->GlyphAdvance(unicode,
-				       encoding->Decode(text + bytes, b));
+			       encoding->DecodeWithLigatures(text + bytes));
 
         if (info->isNoRoomFor(adv)) info->newLine();
 
@@ -133,9 +137,11 @@ void PonscripterLabel::drawChar(const char* text, Fontinfo* info, bool flush_fla
         info->advanceBy(adv);
     }
 
-    if (lookback_flag)
-        while (bytes--)
-            current_text_buffer->addBuffer(*text++);
+    if (lookback_flag) {
+	current_text_buffer->addBytes(text, bytes);
+//TextBuffer_dumpstate(1);
+    }
+    return bytes;
 }
 
 
@@ -167,8 +173,7 @@ PonscripterLabel::drawString(const char* str, rgb_t color, Fontinfo* info,
             str++;
         }
         else {
-            drawChar(str, info, false, false, surface, cache_info);
-            str += encoding->CharacterBytes(str);
+            str += drawChar(str, info, false, false, surface, cache_info);
         }
     }
     info->color = org_color;
@@ -192,20 +197,20 @@ void PonscripterLabel::restoreTextBuffer()
 
     Fontinfo f_info = sentence_font;
     f_info.clear();
-    const char* buffer = current_text_buffer->contents.c_str();
-    int buffer_count = current_text_buffer->contents.size();
+    const char* buffer = current_text_buffer->contents;
+    int buffer_count = current_text_buffer->contents.length();
 
-    int bytes;
-    const wchar first_ch = encoding->Decode(buffer, bytes);
+    const wchar first_ch = encoding->DecodeWithLigatures(buffer);
     if (is_indent_char(first_ch)) f_info.SetIndent(first_ch);
 
-    for (int i = 0; i < buffer_count; ++i) {
+    int i = 0;
+    while (i < buffer_count) {
         if (buffer[i] == 0x0a) {
             f_info.newLine();
+	    ++i;
         }
         else {
-            drawChar(buffer + i, &f_info, false, false, NULL, &text_info);
-            i += encoding->CharacterBytes(buffer + i) - 1;
+            i += drawChar(buffer + i, &f_info, false, false, NULL, &text_info);
         }
     }
 }
@@ -301,19 +306,20 @@ void PonscripterLabel::doClickEnd()
 
 int PonscripterLabel::clickWait(bool display_char)
 {
-    const char* c = script_h.getStringBuffer().c_str() + string_buffer_offset;
+    const char* c = script_h.getStrBuf(string_buffer_offset);
 
     skip_to_wait = 0;
 
     if ((skip_flag || draw_one_page_flag || ctrl_pressed_status) &&
 	!textgosub_label) {
         clickstr_state = CLICK_NONE;
-	if (display_char) {
-	    drawChar(c, &sentence_font, false, true, accumulation_surface,
-		     &text_info);
-	}
-	else flush(refreshMode());
-	string_buffer_offset += encoding->CharacterBytes(c);
+	int bytes = 0;
+	if (display_char)
+	    bytes = drawChar(c, &sentence_font, false, true,
+			     accumulation_surface, &text_info);
+	else
+	    flush(refreshMode());
+	string_buffer_offset += bytes;
         num_chars_in_sentence = 0;
         return RET_CONTINUE | RET_NOREAD;
     }
@@ -347,7 +353,7 @@ int PonscripterLabel::clickWait(bool display_char)
 
 int PonscripterLabel::clickNewPage(bool display_char)
 {
-    const char* c = script_h.getStringBuffer().c_str() + string_buffer_offset;
+    const char* c = script_h.getStrBuf(string_buffer_offset);
 
     skip_to_wait = 0;
 
@@ -389,12 +395,11 @@ int PonscripterLabel::clickNewPage(bool display_char)
 
 int PonscripterLabel::textCommand()
 {
-    int bytes;
     if (pretextgosub_label
         && (line_enter_status == 0
             || (line_enter_status == 1
-                && (script_h.getStringBuffer()[string_buffer_offset] == '['
-                    || zenkakko_flag && encoding->Decode(script_h.getStringBuffer().c_str() + string_buffer_offset, bytes) == 0x3010 /*y */)))) {
+                && (script_h.readStrBuf(string_buffer_offset) == '['
+                    || zenkakko_flag && encoding->DecodeChar(script_h.getStrBuf(string_buffer_offset)) == 0x3010 /*y */)))) {
         gosubReal(pretextgosub_label, script_h.getCurrent());
         line_enter_status = 1;
         return RET_CONTINUE;
@@ -418,36 +423,40 @@ int PonscripterLabel::processText()
     if (event_mode & (WAIT_INPUT_MODE | WAIT_SLEEP_MODE)) {
         draw_cursor_flag = false;
         if (clickstr_state == CLICK_WAIT) {
-	    string_buffer_offset += encoding->CharacterBytes(script_h.getStringBuffer().c_str() + string_buffer_offset);
+	    string_buffer_offset += encoding->NextCharSizeWithLigatures
+		(script_h.getStrBuf(string_buffer_offset));
             clickstr_state = CLICK_NONE;
         }
         else if (clickstr_state == CLICK_NEWPAGE) {
             event_mode = IDLE_EVENT_MODE;
-	    string_buffer_offset += encoding->CharacterBytes(script_h.getStringBuffer().c_str() + string_buffer_offset);
+	    string_buffer_offset += encoding->NextCharSizeWithLigatures
+		(script_h.getStrBuf(string_buffer_offset));
             newPage(true);
             clickstr_state = CLICK_NONE;
             return RET_CONTINUE | RET_NOREAD;
         }
-        else if (script_h.getStringBuffer()[string_buffer_offset] == '!') {
+        else if (script_h.readStrBuf(string_buffer_offset) == '!') {
             string_buffer_offset++;
-            if (script_h.getStringBuffer()[string_buffer_offset] == 'w' || script_h.getStringBuffer()[string_buffer_offset] == 'd') {
-                string_buffer_offset++;
-                while (script_h.getStringBuffer()[string_buffer_offset] >= '0'
-                       && script_h.getStringBuffer()[string_buffer_offset] <= '9')
-                    string_buffer_offset++;
-                while (script_h.getStringBuffer()[string_buffer_offset] == ' '
-                       || script_h.getStringBuffer()[string_buffer_offset] == '\t') string_buffer_offset++;
+            if (script_h.readStrBuf(string_buffer_offset) == 'w' ||
+		script_h.readStrBuf(string_buffer_offset) == 'd') {
+                ++string_buffer_offset;
+                while (script_h.readStrBuf(string_buffer_offset) >= '0'
+                       && script_h.readStrBuf(string_buffer_offset) <= '9')
+                    ++string_buffer_offset;
+                while (script_h.readStrBuf(string_buffer_offset) == ' ' ||
+                       script_h.readStrBuf(string_buffer_offset) == '\t')
+		    ++string_buffer_offset;
             }
         }
         else
             string_buffer_offset +=
-		encoding->CharacterBytes(script_h.getStringBuffer().c_str() +
-					 string_buffer_offset);
+		encoding->NextCharSizeWithLigatures
+		(script_h.getStrBuf(string_buffer_offset));
         event_mode = IDLE_EVENT_MODE;
     }
 
-    if (script_h.getStringBuffer()[string_buffer_offset] == 0x0a ||
-	script_h.getStringBuffer()[string_buffer_offset] == 0x00) {
+    if (script_h.readStrBuf(string_buffer_offset) == 0x0a ||
+	script_h.readStrBuf(string_buffer_offset) == 0x00) {
         indent_offset = 0; // redundant
         return RET_CONTINUE;
     }
@@ -455,11 +464,11 @@ int PonscripterLabel::processText()
     new_line_skip_flag = false;
 
     while ((!script_h.end1ByteChar()
-            && script_h.getStringBuffer()[string_buffer_offset] == ' ')
-           || script_h.getStringBuffer()[string_buffer_offset] == '\t')
+            && script_h.readStrBuf(string_buffer_offset) == ' ')
+           || script_h.readStrBuf(string_buffer_offset) == '\t')
 	string_buffer_offset++;
 
-    char ch = script_h.getStringBuffer()[string_buffer_offset];
+    char ch = script_h.readStrBuf(string_buffer_offset);
 
     if (ch == '@') { // wait for click
         return clickWait(false);
@@ -469,47 +478,47 @@ int PonscripterLabel::processText()
     }
     else if (ch == '_') { // Ignore following forced return
         clickstr_state = CLICK_IGNORE;
-        string_buffer_offset++;
+        ++string_buffer_offset;
         return RET_CONTINUE | RET_NOREAD;
     }
     else if (ch == '!') {
-        string_buffer_offset++;
-        if (script_h.getStringBuffer()[string_buffer_offset] == 's') {
+        ++string_buffer_offset;
+        if (script_h.readStrBuf(string_buffer_offset) == 's') {
             string_buffer_offset++;
-            if (script_h.getStringBuffer()[string_buffer_offset] == 'd') {
+            if (script_h.readStrBuf(string_buffer_offset) == 'd') {
                 sentence_font.wait_time = -1;
                 string_buffer_offset++;
             }
             else {
                 int t = 0;
-                while (script_h.getStringBuffer()[string_buffer_offset] >= '0'
-                       && script_h.getStringBuffer()[string_buffer_offset] <= '9') {
-                    t = t * 10 + script_h.getStringBuffer()[string_buffer_offset] - '0';
+                while (script_h.readStrBuf(string_buffer_offset) >= '0'
+                       && script_h.readStrBuf(string_buffer_offset) <= '9') {
+                    t = t * 10 + script_h.readStrBuf(string_buffer_offset) -'0';
                     string_buffer_offset++;
                 }
                 sentence_font.wait_time = t;
-                while (script_h.getStringBuffer()[string_buffer_offset] == ' '||
-                       script_h.getStringBuffer()[string_buffer_offset] == '\t')
+                while (script_h.readStrBuf(string_buffer_offset) == ' ' ||
+                       script_h.readStrBuf(string_buffer_offset) == '\t')
 		    string_buffer_offset++;
             }
         }
-        else if (script_h.getStringBuffer()[string_buffer_offset] == 'w'
-                 || script_h.getStringBuffer()[string_buffer_offset] == 'd') {
+        else if (script_h.readStrBuf(string_buffer_offset) == 'w'
+                 || script_h.readStrBuf(string_buffer_offset) == 'd') {
             bool flag = false;
-            if (script_h.getStringBuffer()[string_buffer_offset] == 'd')
+            if (script_h.readStrBuf(string_buffer_offset) == 'd')
 		flag = true;
 
             string_buffer_offset++;
             int tmp_string_buffer_offset = string_buffer_offset;
             int t = 0;
-            while (script_h.getStringBuffer()[string_buffer_offset] >= '0'
-                   && script_h.getStringBuffer()[string_buffer_offset] <= '9') {
+            while (script_h.readStrBuf(string_buffer_offset) >= '0'
+                   && script_h.readStrBuf(string_buffer_offset) <= '9') {
                 t = t * 10
-		    + script_h.getStringBuffer()[string_buffer_offset] - '0';
+		    + script_h.readStrBuf(string_buffer_offset) - '0';
                 string_buffer_offset++;
             }
-            while (script_h.getStringBuffer()[string_buffer_offset] == ' '
-                   || script_h.getStringBuffer()[string_buffer_offset] == '\t')
+            while (script_h.readStrBuf(string_buffer_offset) == ' '
+                   || script_h.readStrBuf(string_buffer_offset) == '\t')
 		string_buffer_offset++;
             if (skip_flag || draw_one_page_flag ||
 		ctrl_pressed_status || skip_to_wait) {
@@ -535,17 +544,21 @@ int PonscripterLabel::processText()
     else if (ch == '#') {
         char hexchecker;
         for (int tmpctr = 0; tmpctr <= 5; tmpctr++) {
-            hexchecker = script_h.getStringBuffer()[string_buffer_offset + tmpctr + 1];
-            if (!((hexchecker >= '0' && hexchecker <= '9') || (hexchecker >= 'a' && hexchecker <= 'f') || (hexchecker >= 'A' && hexchecker <= 'F'))) goto notacommand;
+            hexchecker = script_h.readStrBuf(string_buffer_offset + tmpctr + 1);
+            if (!((hexchecker >= '0' && hexchecker <= '9') ||
+		  (hexchecker >= 'a' && hexchecker <= 'f') ||
+		  (hexchecker >= 'A' && hexchecker <= 'F')))
+		goto notacommand;
         }
 
-        sentence_font.color = readColour(script_h.getStringBuffer().c_str() + string_buffer_offset);
+        sentence_font.color
+	    = readColour(script_h.getStrBuf(string_buffer_offset));
         string_buffer_offset += 7;
 
         return RET_CONTINUE | RET_NOREAD;
     }
     else if (ch == '/') {
-        if (script_h.getStringBuffer()[string_buffer_offset + 1] != 0x0a)
+        if (script_h.readStrBuf(string_buffer_offset + 1) != 0x0a)
 	    goto notacommand;
         else { // skip new line
             new_line_skip_flag = true;
@@ -560,8 +573,7 @@ int PonscripterLabel::processText()
 	    clickstr_state = CLICK_NONE;
 	}
 	else {
-	    const char* c = script_h.getStringBuffer().c_str() +
-		            string_buffer_offset;
+	    const char* c = script_h.getStrBuf(string_buffer_offset);
 	    if (script_h.checkClickstr(c)) {
 		if (sentence_font.isNoRoomForLines(clickstr_line))
 		    return clickNewPage(true);
@@ -573,15 +585,17 @@ int PonscripterLabel::processText()
         bool flush_flag = !(skip_flag || draw_one_page_flag ||
 			    ctrl_pressed_status);
 
-        drawChar(script_h.getStringBuffer().c_str() + string_buffer_offset,
-		 &sentence_font, flush_flag, true, accumulation_surface,
-		 &text_info);
+#ifdef BROKEN_SKIP_WRAPPING
+        int bytes =
+#endif	    
+	    drawChar(script_h.getStrBuf(string_buffer_offset),
+		     &sentence_font, flush_flag, true,
+		     accumulation_surface, &text_info);
         ++num_chars_in_sentence;
 
         if (skip_flag || draw_one_page_flag || ctrl_pressed_status) {
 #ifdef BROKEN_SKIP_WRAPPING
-            string_buffer_offset += CharacterBytes(script_h.getStringBuffer() +
-						   string_buffer_offset);
+            string_buffer_offset += bytes;
             return RET_CONTINUE | RET_NOREAD;
 #else
             skip_to_wait = 1;

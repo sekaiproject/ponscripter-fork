@@ -32,10 +32,10 @@
 
 extern int screen_ratio1, screen_ratio2;
 
-extern void MapFont(int id, const string& filename);
-extern void MapMetrics(int id, const string& filename);
+extern void MapFont(int id, const pstring& filename);
+extern void MapMetrics(int id, const pstring& filename);
 
-void InitialiseFontSystem(const string& basepath);
+void InitialiseFontSystem(const pstring& basepath);
 
 class Fontinfo {
     float indent;
@@ -97,9 +97,6 @@ public:
 
     float GlyphAdvance(unsigned short unicode, unsigned short next = 0);
     float StringAdvance(const char* string);
-    float StringAdvance(const string& s) {
-	return StringAdvance(s.c_str());
-    }
 
     bool isNoRoomFor(float margin = 0.0);
     bool isNoRoomForLines(int margin);

@@ -38,26 +38,26 @@ int screen_ratio1 = 1, screen_ratio2 = 1;
 int Fontinfo::default_encoding = 0;
 
 static class FontsStruct {
-    friend void MapFont(int, const string&);
-    friend void MapMetrics(int, const string&);
+    friend void MapFont(int, const pstring&);
+    friend void MapMetrics(int, const pstring&);
 
     static const int count = 8;
     bool isinit;
-    string path, fallback;
-    string mapping[count];
-    string metrics[count];
+    pstring path, fallback;
+    pstring mapping[count];
+    pstring metrics[count];
     Font* font_[count];
 public:
     Font* font(int style);
 
-    void init(const string& basepath)
+    void init(const pstring& basepath)
     {
 	isinit = true;
 	path = basepath;
 	fallback = basepath + "default.ttf";
         for (int i = 0; i < count; ++i) {
             font_[i] = NULL;
-            mapping[i] = "face" + str(i) + ".ttf";
+            mapping[i].format("face%d.ttf", i);
         }
     }
 
@@ -72,18 +72,18 @@ FontsStruct::~FontsStruct()
     }
 }
 
-void InitialiseFontSystem(const string& basepath)
+void InitialiseFontSystem(const pstring& basepath)
 {
     Fonts.init(basepath);
 }
 
-void MapFont(int id, const string& filename)
+void MapFont(int id, const pstring& filename)
 {
     Fonts.mapping[id] = filename;
 }
 
 
-void MapMetrics(int id, const string& filename)
+void MapMetrics(int id, const pstring& filename)
 {
     Fonts.metrics[id] = filename;
 }
@@ -99,39 +99,39 @@ Font* FontsStruct::font(int style)
     if (font_[style]) return font_[style];
 
     size_t len;
-    string fpath = path + mapping[style];
-    FILE* fp = fopen(fpath.c_str(), "rb");
+    pstring fpath = path + mapping[style];
+    FILE* fp = fopen(fpath, "rb");
     if (fp) {
         fclose(fp);
-	string mpath;
+	pstring mpath;
         const char* metnam = NULL;
         if (metrics[style]) {
 	    mpath = path + metrics[style];
-            fp = fopen(mpath.c_str(), "rb");
+            fp = fopen(mpath, "rb");
             if (fp) {
-                metnam = mpath.c_str();
+                metnam = mpath;
                 fclose(fp);
             }
         }
 
-        font_[style] = new Font(fpath.c_str(), metnam);
+        font_[style] = new Font(fpath, metnam);
     }
     else {
 	fpath = path + "fonts" + DELIMITER + mapping[style];
-	fp = fopen(fpath.c_str(), "rb");
+	fp = fopen(fpath, "rb");
 	if (fp) {
 	    fclose(fp);
-	    string mpath;
+	    pstring mpath;
 	    const char* metnam = NULL;
 	    if (metrics[style]) {
 		mpath = path + "fonts" + DELIMITER + metrics[style];
-		fp = fopen(mpath.c_str(), "rb");
+		fp = fopen(mpath, "rb");
 		if (fp) {
-		    metnam = mpath.c_str();
+		    metnam = mpath;
 		    fclose(fp);
 		}
 	    }
-	    font_[style] = new Font(fpath.c_str(), metnam);
+	    font_[style] = new Font(fpath, metnam);
 	}
 	else if ((len = ScriptHandler::cBR->getFileLength(mapping[style]))) {
 	    Uint8 *data = new Uint8[len], *mdat = NULL;
@@ -147,8 +147,8 @@ Font* FontsStruct::font(int style)
 	}
 	else {
 	    const InternalResource *fres, *mres = NULL;
-	    fres = getResource(mapping[style].c_str());
-	    if (metrics[style]) mres = getResource(metrics[style].c_str());
+	    fres = getResource(mapping[style]);
+	    if (metrics[style]) mres = getResource(metrics[style]);
 	    
 	    if (fres) font_[style] = new Font(fres, mres);
 	}
@@ -156,9 +156,9 @@ Font* FontsStruct::font(int style)
 
     // Fall back on default.ttf if no font was specified and
     // face$STYLE.ttf was not found.
-    if (!font_[style] && (fp = fopen(fallback.c_str(), "rb"))) {
+    if (!font_[style] && (fp = fopen(fallback, "rb"))) {
 	fclose(fp);
-	font_[style] = new Font(fallback.c_str(), NULL);
+	font_[style] = new Font(fallback, (const char*) NULL);
     }
 
     if (font_[style]) {
@@ -166,7 +166,8 @@ Font* FontsStruct::font(int style)
         return font_[style];
     }
 
-    fprintf(stderr, "Error: failed to open font %s\n", mapping[style].c_str());
+    fprintf(stderr, "Error: failed to open font %s\n",
+	    (const char*) mapping[style]);
     exit(1);
 }
 
@@ -278,14 +279,15 @@ bool Fontinfo::processCode(const char* text)
 
 float Fontinfo::StringAdvance(const char* string)
 {
+    // This relates to display, so we take ligatures into account.
     doSize();
     wchar unicode, next;
     int cb, nextcb;
     float orig_x   = pos_x;
     int   orig_mod = font_size_mod, orig_style = style, orig_y = pos_y;
-    unicode = encoding->Decode(string, cb);
+    unicode = encoding->DecodeWithLigatures(string, cb);
     while (*string) {
-        next = encoding->Decode(string + cb, nextcb);
+        next = encoding->DecodeWithLigatures(string + cb, nextcb);
 	if (!processCode(string))
 	    pos_x += GlyphAdvance(unicode, next);
         string += cb;

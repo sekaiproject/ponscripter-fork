@@ -29,7 +29,7 @@
 // NB. We currently don't support ligatures in CP932.
 
 int
-CP932Encoding::CharacterBytes(const char* string)
+CP932Encoding::Charsz_impl(const char* string, bool withligs)
 {
     const unsigned char c = *(unsigned char*) string;
     return (c < 0x7f || (c >= 0xa1 && c <= 0xdf)) ? 1 : 2;
@@ -37,7 +37,7 @@ CP932Encoding::CharacterBytes(const char* string)
 
 
 wchar
-CP932Encoding::Decode(const char* string, int& bytes)
+CP932Encoding::Decode_impl(const char* string, int& bytes, bool withligs)
 {
     bytes = 0;
     if (!string) return 0;
@@ -55,10 +55,10 @@ CP932Encoding::Decode(const char* string, int& bytes)
 const char*
 CP932Encoding::Previous(const char* currpos, const char* strstart)
 {
-    int cb = CharacterBytes(strstart);
+    int cb = NextCharSize(strstart);
     while (strstart + cb < currpos) {
 	strstart += cb;
-	cb = CharacterBytes(strstart);
+	cb = NextCharSize(strstart);
     }
     return strstart;
 }
@@ -82,10 +82,10 @@ CP932Encoding::Encode(wchar ch, char* out)
     }
 }
 
-string
+pstring
 CP932Encoding::Encode(const wchar ch)
 {
     char c[3];
     Encode(ch, c);
-    return string(c);
+    return c;
 }

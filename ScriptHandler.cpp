@@ -135,13 +135,13 @@ const char* ScriptHandler::readToken(bool no_kidoku)
     if (!no_kidoku) markAsKidoku(buf);
     
 readTokenTop:
-    string_buffer.clear();
+    string_buffer.trunc(0);
     char ch = *buf;
     if (ch == ';') { // comment
-        addStringBuffer(ch);
+        addStrBuf(ch);
         do {
             ch = *++buf;
-            addStringBuffer(ch);
+            addStrBuf(ch);
         } while (ch != 0x0a && ch != '\0');
     }
     else if (ch & 0x80
@@ -149,15 +149,18 @@ readTokenTop:
              || ch == '@' || ch == '\\' || ch == '/'
              || ch == '%' || ch == '?' || ch == '$'
              || ch == '[' || ch == '('
-             || ch == '!' || ch == '#' || ch == ',' || ch == '"') { // text
+             || ch == '!' || ch == '#' || ch == ',' || ch == '"') {
+        // text
+	if (ch != '!')
+	    errorWarning("unmarked text found - this may be deprecated soon");
         bool loop_flag = true;
         bool ignore_click_flag = false;
         do {
-            char bytes = encoding->CharacterBytes(buf);
+            char bytes = encoding->NextCharSize(buf);
             if (bytes > 1) {
                 if (textgosub_flag && !ignore_click_flag && checkClickstr(buf))
 		    loop_flag = false;
-		string_buffer.append(buf, bytes);
+		string_buffer.add(buf, bytes);
 		buf += bytes;
                 SKIP_SPACE(buf);
                 ch = *buf;
@@ -180,10 +183,11 @@ readTokenTop:
                     if (ch == '_') ignore_click_flag = true;
                 }
 
+		// CHECKME: why do we ignore text markers here?
                 if (ch >= '0' && ch <= '9' &&
 		    (*buf == ' ' || *buf == '\t' ||
 		     *buf == encoding->TextMarker()) &&
-		    string_buffer.size() % 2)
+		    string_buffer.length() % 2)
 		{
 		    string_buffer += ' ';
 		}
@@ -231,7 +235,8 @@ readTokenTop:
             }
 
 	    int bytes;
-            string_buffer += encoding->Encode(encoding->Decode(buf, bytes));
+	    // NOTE: we don't substitute ligatures at this stage.
+            string_buffer += encoding->Encode(encoding->DecodeChar(buf, bytes));
             buf += bytes;
             ch = *buf;
         }
@@ -275,7 +280,7 @@ readTokenTop:
 
     next_script = checkComma(buf);
 
-    return string_buffer.c_str();
+    return string_buffer;
 }
 
 
@@ -288,7 +293,7 @@ const char* ScriptHandler::readLabel()
     SKIP_SPACE(current_script);
     const char* buf = current_script;
 
-    string_buffer.clear();
+    string_buffer.trunc(0);
     char ch = *buf;
     if (ch == '$') {
         addStrVariable(&buf);
@@ -316,7 +321,7 @@ const char* ScriptHandler::readLabel()
 
     next_script = checkComma(buf);
 
-    return string_buffer.c_str();
+    return string_buffer;
 }
 
 
@@ -329,7 +334,7 @@ const char* ScriptHandler::readStr()
     SKIP_SPACE(current_script);
     const char* buf = current_script;
 
-    string_buffer.clear();
+    string_buffer.trunc(0);
 
     while (1) {
         string_buffer += parseStr(&buf);
@@ -340,13 +345,13 @@ const char* ScriptHandler::readStr()
     }
     next_script = buf;
 
-    return string_buffer.c_str();
+    return string_buffer;
 }
 
 
 int ScriptHandler::readInt()
 {
-    string_buffer.clear();
+    string_buffer.trunc(0);
 
     end_status = END_NONE;
     current_variable.type = VAR_NONE;
@@ -377,7 +382,9 @@ void ScriptHandler::skipToken()
 
         if (*buf == '"') quat_flag = !quat_flag;
 
-        const char bytes = encoding->CharacterBytes(buf);
+        const char bytes = encoding->NextCharSize(buf);
+
+	// CHECKME: what exactly does this do?
         if (bytes > 1 && !quat_flag) text_flag = true;
 
         buf += bytes;
@@ -548,8 +555,8 @@ void ScriptHandler::setKidokuskip(bool kidokuskip_flag)
 void ScriptHandler::saveKidokuData()
 {
     FILE* fp;
-    string fnam = save_path + "kidoku.dat";
-    if ((fp = fopen(fnam.c_str(), "wb")) == NULL) {
+    pstring fnam = save_path + "kidoku.dat";
+    if ((fp = fopen(fnam, "wb")) == NULL) {
         fprintf(stderr, "can't write kidoku.dat\n");
         return;
     }
@@ -562,12 +569,12 @@ void ScriptHandler::saveKidokuData()
 void ScriptHandler::loadKidokuData()
 {
     FILE* fp;
-    string fnam = save_path + "kidoku.dat";
+    pstring fnam = save_path + "kidoku.dat";
     setKidokuskip(true);
     kidoku_buffer = new char[script_buffer_length / 8 + 1];
     memset(kidoku_buffer, 0, script_buffer_length / 8 + 1);
 
-    if ((fp = fopen(fnam.c_str(), "rb")) != NULL) {
+    if ((fp = fopen(fnam, "rb")) != NULL) {
         fread(kidoku_buffer, 1, script_buffer_length / 8, fp);
         fclose(fp);
     }
@@ -593,13 +600,15 @@ void ScriptHandler::enableTextgosub(bool val)
 }
 
 
-void ScriptHandler::setClickstr(string values)
+void ScriptHandler::setClickstr(pstring values)
 {
     clickstr_list.clear();
-    string::witerator it = values.wbegin();
-    if (*it == encoding->TextMarker()) ++it;
-    while (it != values.wend())
-	clickstr_list.insert(*it++);
+    pstrIter it(values);
+    if (it.get() == encoding->TextMarker()) it.next();
+    while (it.get() >= 0) {
+	clickstr_list.insert(it.get());
+	it.next();
+    }
 }
 
 
@@ -607,7 +616,7 @@ int ScriptHandler::checkClickstr(const char* buf, bool recursive_flag)
 {
     if (buf[0] == '@' || buf[0] == '\\') return 1;
     int bytes;
-    wchar c = encoding->Decode(buf, bytes);
+    wchar c = encoding->DecodeChar(buf, bytes);
     if (clickstr_list.find(c) != clickstr_list.end()) {
 	if (!recursive_flag && checkClickstr(buf + bytes, true)) return 0;
 	return bytes;
@@ -631,13 +640,14 @@ void ScriptHandler::setNumVariable(int no, int val)
 }
 
 
-string ScriptHandler::stringFromInteger(int no, int num_column,
-					bool is_zero_inserted)
+pstring ScriptHandler::stringFromInteger(int no, int num_column,
+					 bool is_zero_inserted)
 {
-    string n = nstr(no, num_column, is_zero_inserted);
-    if (num_column > 0 && (int)n.size() > num_column) n.resize(num_column);
-    if (n == "-" || n == "") n = "0";
-    return n;
+    pstring s;
+    s.format(is_zero_inserted ? "%0*d" : "%*d", num_column, no);
+    if (num_column > 0) s.trunc(num_column);
+    if (s == "-" || !s) s = "0";
+    return s;
 }
 
 
@@ -702,7 +712,7 @@ int ScriptHandler::readScriptSub(FILE* fp, char** buf, int encrypt_mode)
 }
 
 
-int ScriptHandler::readScript(const string& path)
+int ScriptHandler::readScript(const pstring& path)
 {
     archive_path = path;
 
@@ -712,8 +722,7 @@ int ScriptHandler::readScript(const string& path)
 
     for (ScriptFilename::iterator ft = script_filenames.begin();
 	 ft != script_filenames.end(); ++ft) {
-	string spath = path + ft->filename;
-	if ((fp = fopen(spath.c_str(), "rb")) != NULL) {
+	if ((fp = fopen(path + ft->filename, "rb")) != NULL) {
 	    encrypt_mode = ft->encryption;
 	    enc = ft->encoding;
 	    if (enc == UTF8) {
@@ -736,7 +745,7 @@ int ScriptHandler::readScript(const string& path)
 		      "from a directory containing NScripter, ONScripter, "
 		      "or Ponscripter game data.", NULL, NULL);
 #else
-	cerr << string("Can't open any of ") << script_filenames << eol;
+	fprintf(stderr, "Can't find a Ponscripter game script.\n");
 #endif
         return -1;
     }
@@ -747,12 +756,13 @@ int ScriptHandler::readScript(const string& path)
     if (encrypt_mode == 0) {
         fclose(fp);
         for (int i = 1; i < 100; i++) {
-	    string filename = archive_path + str(i) +
-		(enc == UTF8 ? ".utf" : ".txt");
-            if ((fp = fopen(filename.c_str(), "rb")) == NULL) {
-		filename = archive_path + "0" + str(i) +
-		    (enc == UTF8 ? ".utf" : ".txt");
-                fp = fopen(filename.c_str(), "rb");
+	    pstring filename;
+	    filename.format("%s%d.%s", (const char*) archive_path, i,
+			    enc == UTF8 ? "utf" : "txt");
+            if ((fp = fopen(filename, "rb")) == NULL) {
+		filename.format("%s%02d.%s", (const char*) archive_path, i,
+				enc == UTF8 ? "utf" : "txt");
+                fp = fopen(filename, "rb");
             }
 
             if (fp) {
@@ -776,12 +786,13 @@ int ScriptHandler::readScript(const string& path)
     }
     else {
         for (int i = 0; i < 100; i++) {
-	    string filename = archive_path + str(i) +
-		(enc == UTF8 ? ".utf" : ".txt");
-            if ((fp = fopen(filename.c_str(), "rb")) == NULL) {
-		filename = archive_path + "0" + str(i) +
-		    (enc == UTF8 ? ".utf" : ".txt");
-                fp = fopen(filename.c_str(), "rb");
+	    pstring filename;
+	    filename.format("%s%d.%s", (const char*) archive_path, i,
+			    enc == UTF8 ? "utf" : "txt");
+            if ((fp = fopen(filename, "rb")) == NULL) {
+		filename.format("%s%02d.%s", (const char*) archive_path, i,
+				enc == UTF8 ? "utf" : "txt");
+                fp = fopen(filename, "rb");
             }
 
             if (fp) {
@@ -837,7 +848,7 @@ int ScriptHandler::readScript(const string& path)
             buf += 7;
             int i = 0;
             while (buf[i++] >= ' ') ;
-	    game_identifier.assign(buf, i - 1);
+	    game_identifier = pstring(buf, i - 1);
             buf += i;
         }
     }
@@ -858,7 +869,8 @@ int ScriptHandler::labelScript()
             setCurrent(buf);
             readLabel();
 	    LabelInfo new_label;
-	    new_label.name.assign(string_buffer, 1, string_buffer.size() - 1);
+	    new_label.name
+		= string_buffer.midstr(1, string_buffer.length() - 1);
             new_label.label_header = buf;
             new_label.num_of_lines = 1;
             new_label.start_line = current_line;
@@ -889,7 +901,7 @@ int ScriptHandler::labelScript()
 }
 
 
-ScriptHandler::LabelInfo ScriptHandler::lookupLabel(const string& label)
+ScriptHandler::LabelInfo ScriptHandler::lookupLabel(const pstring& label)
 {
     LabelInfo::iterator i = findLabel(label);
     label_log.add(label);
@@ -897,7 +909,7 @@ ScriptHandler::LabelInfo ScriptHandler::lookupLabel(const string& label)
 }
 
 
-ScriptHandler::LabelInfo ScriptHandler::lookupLabelNext(const string& label)
+ScriptHandler::LabelInfo ScriptHandler::lookupLabelNext(const pstring& label)
 {
     LabelInfo::iterator i = findLabel(label);
     if (++i != label_info.end()) {
@@ -908,30 +920,35 @@ ScriptHandler::LabelInfo ScriptHandler::lookupLabelNext(const string& label)
 }
 
 
-void ScriptHandler::errorAndExit(string s)
+void ScriptHandler::errorAndExit(pstring s)
 {
-    string why = "Script error at line "
-	       + str(getLineByAddress(getCurrent(), true))
-	       + ": " + s + "\n(String buffer: [" + string_buffer + "])\n";
-    fprintf(stderr, why.c_str());
+    fprintf(stderr, "Script error (line %d): %s\n(String buffer: [%s])\n",
+            getLineByAddress(getCurrent(), true),
+            (const char*) s, (const char*) string_buffer);
     exit(-1);
+}
+
+void ScriptHandler::errorWarning(pstring s)
+{
+    fprintf(stderr, "Warning (line %d): %s\n",
+            getLineByAddress(getCurrent(), true),
+            (const char*) s);
 }
 
 
 // ----------------------------------------
 // Private methods
 
-ScriptHandler::LabelInfo::iterator ScriptHandler::findLabel(string label)
+ScriptHandler::LabelInfo::iterator ScriptHandler::findLabel(pstring label)
 {
-    if (label[0] == '*') label.shift();
-    label.lowercase();
+    if (label[0] == '*') label.remove(0, 1);
+    label.tolower();
 
     LabelInfo::dic::iterator e = label_names.find(label);
     if (e != label_names.end())
 	return e->second;
 
-    label = "Label \"" + label + "\" is not found.";
-    errorAndExit(label.c_str());
+    errorAndExit("Label \"" + label + "\" is not found.");
     return label_info.end(); // dummy
 }
 
@@ -949,7 +966,7 @@ const char* ScriptHandler::checkComma(const char* buf)
 }
 
 
-string ScriptHandler::parseStr(const char** buf)
+pstring ScriptHandler::parseStr(const char** buf)
 {
     SKIP_SPACE(*buf);
 
@@ -958,7 +975,7 @@ string ScriptHandler::parseStr(const char** buf)
 	// viewed, baz otherwise.
 	
         (*buf)++;
-        string s = parseStr(buf);
+        pstring s = parseStr(buf);
         SKIP_SPACE(*buf);
         if ((*buf)[0] != ')') errorAndExit("parseStr: ) is not found.");
 
@@ -986,17 +1003,21 @@ string ScriptHandler::parseStr(const char** buf)
 	return variable_data[no].str;
     }
     else if (**buf == '"') {
-	string s;
         (*buf)++;
-	while (**buf != '"' && **buf != 0x0a)
-            s.push_back(*(*buf)++);
+	const char* const start = *buf;
+	int len = 0;
+	while (**buf != '"' && **buf != 0x0a) {
+	    ++len;
+            *(*buf)++;
+	}
         if (**buf == '"') (*buf)++;
 
         current_variable.type |= VAR_CONST;
-	return s;
+
+	return pstring(start, len);
     }
     else if (**buf == encoding->TextMarker()) {
-        string s(1, encoding->TextMarker());
+        pstring s(encoding->TextMarker());
 	(*buf)++;
 
         char ch = **buf;
@@ -1013,7 +1034,7 @@ string ScriptHandler::parseStr(const char** buf)
             }
 
 	    int bytes;
-            s += encoding->Encode(encoding->Decode(*buf, bytes));
+            s += encoding->Encode(encoding->DecodeChar(*buf, bytes));
             *buf += bytes;
             ch = **buf;
         }
@@ -1025,13 +1046,13 @@ string ScriptHandler::parseStr(const char** buf)
 	return s;
     }
     else if (**buf == '#') { // for color
-	string s(*buf, 7);
+	pstring s(*buf, 7);
 	*buf += 7;
         current_variable.type = VAR_NONE;
 	return s;
     }
     else if (**buf == '*') { // label
-        string s(1, *(*buf)++);
+        pstring s(*(*buf)++);
         SKIP_SPACE(*buf);
         char ch = **buf;
         while((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') ||
@@ -1046,7 +1067,7 @@ string ScriptHandler::parseStr(const char** buf)
     }   
     else { // bareword
         char ch;
-	string alias_buf;
+	pstring alias_buf;
         bool first_flag = true;
 
         while (1) {
@@ -1121,7 +1142,7 @@ int ScriptHandler::parseInt(const char** buf)
     }
     else {
         char ch;
-	string alias_buf;
+	pstring alias_buf;
         int alias_no = 0;
         bool direct_num_flag = false;
         bool num_alias_flag  = false;
@@ -1170,7 +1191,8 @@ int ScriptHandler::parseInt(const char** buf)
 
 	    numalias_t::iterator a = num_aliases.find(alias_buf);
 	    if (a == num_aliases.end()) {
-                printf("can't find num alias for %s... assume 0.\n", alias_buf.c_str());
+                printf("can't find num alias for %s... assume 0.\n",
+		       (const char*) alias_buf);
                 current_variable.type = VAR_NONE;
                 *buf = buf_start;
                 return 0;
@@ -1335,19 +1357,19 @@ void ScriptHandler::declareDim()
     next_script = buf;
 }
 
-bool ScriptHandler::LogInfo::find(string what)
+bool ScriptHandler::LogInfo::find(pstring what)
 {
-    if (what[0] == '*') what.shift();
-    what.uppercase();
-    what.replace('/', '\\');
+    if (what[0] == '*') what.remove(0, 1);
+    what.toupper();
+    replace_ascii(what, '/', '\\');
     return logged.find(what) != logged.end();
 }
 
-void ScriptHandler::LogInfo::add(string what)
+void ScriptHandler::LogInfo::add(pstring what)
 {
-    if (what[0] == '*') what.shift();
-    what.uppercase();
-    what.replace('/', '\\');    
+    if (what[0] == '*') what.remove(0, 1);
+    what.toupper();
+    replace_ascii(what, '/', '\\');    
     if (logged.find(what) == logged.end()) {
 	logged.insert(what);
 	ordered.push_back(&(*logged.find(what)));
@@ -1356,23 +1378,23 @@ void ScriptHandler::LogInfo::add(string what)
 
 void ScriptHandler::LogInfo::write(ScriptHandler& h)
 {
-    string buf = str(ordered.size()) + '\n';
+    pstring buf;
+    buf.format("%d\n", ordered.size());
     for (ordered_t::const_iterator it = ordered.begin();
 	 it != ordered.end(); ++it) {
 	buf += '"';
-	for (string::const_iterator si = (*it)->begin(); si != (*it)->end();
-	     ++si)
-	    buf += char(*si ^ 0x84);
+	const char* si = **it;
+	const char* ei = si + (*it)->length();
+	while (si < ei) buf += char(*si++ ^ 0x84);
 	buf += '"';
     }
-    string fnam = h.save_path + filename;
-    FILE* f = fopen(fnam.c_str(), "wb");
+    FILE* f = fopen(h.save_path + filename, "wb");
     if (f) {
-	fwrite(buf.data(), 1, buf.size(), f);
+	fwrite((const char*) buf, 1, buf.length(), f);
 	fclose(f);
     }
     else {
-        fprintf(stderr, "can't write %s\n", filename.c_str());
+        fprintf(stderr, "can't write %s\n", (const char*) filename);
         exit(-1);
     }
 }
@@ -1380,8 +1402,7 @@ void ScriptHandler::LogInfo::write(ScriptHandler& h)
 void ScriptHandler::LogInfo::read(ScriptHandler& h)
 {
     clear();
-    string fnam = h.save_path + filename;
-    FILE* f = fopen(fnam.c_str(), "rb");
+    FILE* f = fopen(h.save_path + filename, "rb");
     size_t len = 1, ret = 0;
     char* buf = 0;
     if (f) {
@@ -1395,12 +1416,16 @@ void ScriptHandler::LogInfo::read(ScriptHandler& h)
     if (ret == len) {
 	int count = 0;
 	char *it = buf;
-	while (*it != '\n') count = count * 10 + *it++ - '0';
+	while (*it != '\n') {
+	    count = count * 10 + *it++ - '0';
+	}
 	++it; // \n
 	while (count--) {
-	    string item;
+	    pstring item;
 	    ++it; // "
-	    while (*it != '"') item += char(*it++ ^ 0x84);
+	    while (*it != '"') {
+		item += char(*it++ ^ 0x84);
+	    }
 	    ++it; // "
 	    add(item);
 	}
@@ -1412,9 +1437,12 @@ void ScriptHandler::LogInfo::read(ScriptHandler& h)
 int&
 ScriptHandler::ArrayVariable::getoffs(const h_index_t& indices)
 {
-    if (indices.size() != dim.size())
-	owner->errorAndExit("Indexed " + str(indices.size()) + " deep into " +
-			    str(dim.size()) + "-dimensional array");
+    if (indices.size() != dim.size()) {
+	pstring msg;
+	msg.format("Indexed %d deep into %d-dimensional array",
+		   indices.size(), dim.size());
+	owner->errorAndExit(msg);
+    }
     int offs_idx = 0;
     for (h_index_t::size_type i = 0; i < indices.size(); ++i) {
 	if (indices[i] > dim[i])
@@ -1435,7 +1463,7 @@ ScriptHandler::ArrayVariable::ArrayVariable(ScriptHandler* o, h_index_t sizes)
 
 
 struct aliases_t {
-    set<string>::t aliases;
+    set<pstring>::t aliases;
     aliases_t();    
 } dodgy;
 aliases_t::aliases_t() {
@@ -1452,10 +1480,10 @@ aliases_t::aliases_t() {
     aliases.insert("to");
 }
 
-void ScriptHandler::checkalias(const string& alias)
+void ScriptHandler::checkalias(const pstring& alias)
 {
     if (dodgy.aliases.find(alias) != dodgy.aliases.end())
 	fprintf(stderr,
 		"Warning: alias `%s' may conflict with some barewords\n",
-		alias.c_str());
+		(const char*) alias);
 }

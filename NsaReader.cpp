@@ -26,7 +26,7 @@
 #include "NsaReader.h"
 #include <string.h>
 
-NsaReader::NsaReader(const string& path, const unsigned char* key_table)
+NsaReader::NsaReader(const pstring& path, const unsigned char* key_table)
     : SarReader(path, key_table),
       sar_flag(true),
       num_of_nsa_archives(0),
@@ -38,14 +38,14 @@ NsaReader::~NsaReader()
 { }
 
 
-int NsaReader::open(const string& nsa_path, int archive_type)
+int NsaReader::open(const pstring& nsa_path, int archive_type)
 {
     if (!SarReader::open("arc.sar")) return 0;
     sar_flag = false;
 
-    string archive_name = nsa_path + "arc." + nsa_archive_ext;
+    pstring archive_name = nsa_path + "arc." + nsa_archive_ext;
     if ((archive_info.file_handle = fileopen(archive_name, "rb")) == NULL) {
-        fprintf(stderr, "can't open file %s\n", archive_name.c_str());
+        fprintf(stderr, "can't open file %s\n", (const char*) archive_name);
         return -1;
     }
 
@@ -53,9 +53,10 @@ int NsaReader::open(const string& nsa_path, int archive_type)
     readArchive(&archive_info, archive_type);
 
     for (int i = 0; i < MAX_EXTRA_ARCHIVE; ++i) {
-	string arcname2("arc" + str(i + 1));
+	pstring arcname2;
+	arcname2.format("arc%d", i);
 	archive_name = nsa_path + arcname2 + "." + nsa_archive_ext;
-        if ((archive_info2[i].file_handle = fileopen(archive_name, "rb")) == NULL)
+        if ((archive_info2[i].file_handle = fileopen(archive_name, "rb")) == 0)
             return 0;
         archive_info2[i].file_name = arcname2;
         num_of_nsa_archives = i + 1;
@@ -77,7 +78,7 @@ int NsaReader::getNumFiles()
 }
 
 
-size_t NsaReader::getFileLengthSub(ArchiveInfo* ai, const string& file_name)
+size_t NsaReader::getFileLengthSub(ArchiveInfo* ai, const pstring& file_name)
 {
     unsigned int i = getIndexFromFile(ai, file_name);
 
@@ -94,7 +95,7 @@ size_t NsaReader::getFileLengthSub(ArchiveInfo* ai, const string& file_name)
 }
 
 
-size_t NsaReader::getFileLength(const string& file_name)
+size_t NsaReader::getFileLength(const pstring& file_name)
 {
     if (sar_flag) return SarReader::getFileLength(file_name);
 
@@ -113,7 +114,7 @@ size_t NsaReader::getFileLength(const string& file_name)
 }
 
 
-size_t NsaReader::getFile(const string& file_name, unsigned char* buffer,
+size_t NsaReader::getFile(const pstring& file_name, unsigned char* buffer,
 			  int* location)
 {
     size_t ret;

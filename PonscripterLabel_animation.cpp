@@ -181,8 +181,8 @@ void PonscripterLabel::setupAnimationInfo(AnimationInfo* anim, Fontinfo* info)
     if (anim->trans_mode == AnimationInfo::TRANS_STRING) {
         Fontinfo f_info = info ? *info : sentence_font;
 
-        // handle private-use encodings
-	anim->file_name = anim->file_name.parseTags();
+        // handle tags
+	anim->file_name = parseTags(anim->file_name);
 
         if (anim->font_size_x >= 0) { // in case of Sprite, not rclick menu
             f_info.top_x = anim->pos.x * screen_ratio2 / screen_ratio1;
@@ -250,7 +250,7 @@ void PonscripterLabel::parseTaggedString(AnimationInfo* anim)
     anim->removeTag();
 
     int i;
-    const char* buffer = anim->image_name.c_str();
+    const char* buffer = anim->image_name;
     anim->num_of_cells = 1;
     anim->trans_mode = trans_mode;
 
@@ -329,7 +329,7 @@ void PonscripterLabel::parseTaggedString(AnimationInfo* anim)
             while (buffer[0] != ';' && buffer[0] != 0x0a && buffer[0])
 		buffer++;
             if (buffer[0] == ';')
-                anim->mask_file_name.assign(start, buffer - start);
+                anim->mask_file_name = pstring(start, buffer - start);
         }
         else if (buffer[0] == '#') {
             anim->trans_mode = AnimationInfo::TRANS_DIRECT;

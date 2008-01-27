@@ -64,14 +64,14 @@ public:
     bool is_tight_region; // valid under TRANS_STRING
     bool is_centered_text;
 
-    string file_name;
-    string mask_file_name;
+    pstring file_name;
+    pstring mask_file_name;
 
     /* Variables from AnimationInfo */
     bool   visible;
     bool   abs_flag;
     int    trans;
-    string image_name;
+    pstring image_name;
     SDL_Surface*   image_surface;
     unsigned char* alpha_buf;
 
@@ -92,7 +92,7 @@ public:
     void reset();
 
     void setImageName(const char* name) { image_name = name; }
-    void setImageName(const string& name) { image_name = name; }    
+    void setImageName(const pstring& name) { image_name = name; }    
     void deleteSurface();
     void remove();
     void removeTag();

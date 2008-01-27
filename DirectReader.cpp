@@ -52,7 +52,7 @@ static iconv_t iconv_cd = NULL;
 #define N (1 << EI)  /* buffer size */
 #define F ((1 << EJ) + P)  /* lookahead buffer size */
 
-DirectReader::DirectReader(const string& path, const unsigned char* key_table)
+DirectReader::DirectReader(const pstring& path, const unsigned char* key_table)
     : archive_path(path)
 {
 #if defined (UTF8_FILESYSTEM) && !defined (MACOSX)
@@ -102,18 +102,48 @@ DirectReader::~DirectReader()
     }
 }
 
-
-FILE* DirectReader::fileopen(string path, const char* mode)
+static bool fnwarned = false;
+bool InvalidFilename(const pstring& filename)
 {
-    // FIXME: this routine is one place we need to convert to OS
-    // filename encoding at various points.
-    // <path> is encoded in the global internal encoding.
-    // How is <archive_path> encoded?  Probably in the OS filename encoding?
+    // For simplicity's sake, we simply refuse to allow non-ASCII
+    // filenames outside archives.  They are never going to be
+    // portable.  Anyone porting an existing game to Ponscripter can
+    // rename existing non-ASCII files in a matter of minutes.
+    //
+    // This may seem like it could potentially cause pain for
+    // patch-style translations, but in practice most games of the
+    // sort where a patch is required will have all assets within
+    // archives anyway, and it's nothing compared to the pain that
+    // would be caused to ME in trying to handle non-ASCII filenames
+    // in any remotely robust way.
+    //
+    // Since all files are sought outside archives before they're
+    // sought inside archives, a warning will always be issued if any
+    // non-ASCII filenames are in use.  To avoid being too pesky we
+    // only issue it once per run.
+    int len = filename.length();
+    const unsigned char* c = filename;
+    for (int i = 0; i < len; ++i) {
+	if (c[i] >= 0x80) {
+	    if (!fnwarned)
+		fprintf(stderr, "To ensure portability, filenames should "
+			"contain only ASCII characters.\nNon-ASCII files "
+			"will be found within archives, but not otherwise.\n");
+	    fnwarned = true;
+	    return true;
+	}
+    }
+    return false;
+}
 
-    string full_path = archive_path + path;
+FILE* DirectReader::fileopen(pstring path, const char* mode)
+{
+    if (InvalidFilename(path)) return NULL;
     
+    pstring full_path = archive_path + path;
+   
     // If the file is trivially found, open it and return the handle.
-    FILE* fp = fopen(full_path.c_str(), mode);
+    FILE* fp = fopen(full_path, mode);
     if (fp) return fp;
 
 #if !defined (WIN32) && !defined (PSP) && !defined (__OS2__)    
@@ -122,27 +152,23 @@ FILE* DirectReader::fileopen(string path, const char* mode)
     // until we either find the file or show that it doesn't exist.
 
     // Get the archive path sans final delimiter.
-    int l;
-    const wchar Delim = encoding->Decode(DELIMITER, l);
     full_path = archive_path ? archive_path : ".";
-    if (full_path.back() == Delim) full_path.pop();
+    full_path.rtrim(DELIMITER);
     
     // Get the constituent parts of the file path.
-    encoding->PushTagMode(false);
-    string::vector parts = path.wsplit(Delim);
-    encoding->PopTagMode();
-    
+    CBStringList parts = path.split(DELIMITER);
+
     // Correct the case of each.
-    for (string::vector::iterator it = parts.begin(); it != parts.end(); ++it) {
-	DIR* dp = opendir(full_path.c_str());
+    for (CBStringList::iterator it = parts.begin(); it != parts.end(); ++it) {
+	DIR* dp = opendir(full_path);
 	if (!dp) return NULL;
 	dirent* entry;
 	bool found = false;
 	while ((entry = readdir(dp))) {
-	    string item = entry->d_name; // FIXME: does this need decoding?
-	    if (it->wicompare(item) == 0) {
+	    pstring item = entry->d_name;
+	    if (it->caselessEqual(item)) {
 		found = true;
-		full_path += Delim;
+		full_path += DELIMITER;
 		full_path += item;
 		break;
 	    }
@@ -150,7 +176,7 @@ FILE* DirectReader::fileopen(string path, const char* mode)
 	closedir(dp);
 	if (!found) return NULL;
     }
-    fp = fopen(full_path.c_str(), mode);
+    fp = fopen(full_path, mode);
 #endif
     return fp;
 }
@@ -190,7 +216,7 @@ unsigned long DirectReader::readLong(FILE* fp)
 }
 
 
-int DirectReader::open(const string& name, int archive_type)
+int DirectReader::open(const pstring& name, int archive_type)
 {
     return 0;
 }
@@ -208,20 +234,22 @@ int DirectReader::getNumFiles()
 }
 
 
-void DirectReader::registerCompressionType(const string& ext, int type)
+void DirectReader::registerCompressionType(const pstring& ext, int type)
 {
-    last_registered_compression_type->next = new RegisteredCompressionType(ext, type);
-    last_registered_compression_type = last_registered_compression_type->next;
+    last_registered_compression_type->next
+	= new RegisteredCompressionType(ext, type);
+    last_registered_compression_type
+	= last_registered_compression_type->next;
 }
 
 
-int DirectReader::getRegisteredCompressionType(string filename)
+int DirectReader::getRegisteredCompressionType(pstring filename)
 {
-    filename.erase(0, filename.rfind('.') + 1);
-    filename.uppercase();
+    pstring ext = file_extension(filename);
+    ext.toupper();
     RegisteredCompressionType* reg = root_registered_compression_type.next;
     while (reg) {
-        if (filename == reg->ext) return reg->type;
+        if (ext == reg->ext) return reg->type;
         reg = reg->next;
     }
     return NO_COMPRESSION;
@@ -236,18 +264,16 @@ DirectReader::FileInfo DirectReader::getFileByIndex(unsigned int index)
 }
 
 
-FILE* DirectReader::getFileHandle(string filename, int& compression_type,
+FILE* DirectReader::getFileHandle(pstring filename, int& compression_type,
 				  size_t* length)
 {
+    if (InvalidFilename(filename)) return NULL;
     FILE* fp;
     compression_type = NO_COMPRESSION;
-    encoding->PushTagMode(false);
-    int l;
-    filename.replace(wchar('/'), encoding->Decode(DELIMITER, l));
-    filename.replace(wchar('\\'), encoding->Decode(DELIMITER, l));
-    encoding->PopTagMode();
+    filename.findreplace("/", DELIMITER);
+    filename.findreplace("\\", DELIMITER);
     *length = 0;
-    if ((fp = fileopen(filename, "rb")) != NULL && filename.size() >= 3) {
+    if ((fp = fileopen(filename, "rb")) != NULL && filename.length() >= 3) {
         compression_type = getRegisteredCompressionType(filename);
         if (compression_type == NBZ_COMPRESSION ||
 	    compression_type == SPB_COMPRESSION) {
@@ -263,17 +289,17 @@ FILE* DirectReader::getFileHandle(string filename, int& compression_type,
 }
 
 
-size_t DirectReader::getFileLength(const string& file_name)
+size_t DirectReader::getFileLength(const pstring& file_name)
 {
     int compression_type;
     size_t len;
-    FILE*  fp = getFileHandle(file_name, compression_type, &len);
+    FILE* fp = getFileHandle(file_name, compression_type, &len);
     if (fp) fclose(fp);
     return len;
 }
 
 
-size_t DirectReader::getFile(const string& file_name, unsigned char* buffer,
+size_t DirectReader::getFile(const pstring& file_name, unsigned char* buffer,
 			     int* location)
 {
     int compression_type;

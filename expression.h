@@ -14,7 +14,7 @@ public:
     type_t type() const { return type_; }
 
     // For debugging use
-    string debug_string() const; // returns representation such as "?25[0]"
+    pstring debug_string() const; // returns representation such as "?25[0]"
     
     // Test for attributes
     bool is_variable() const { return var_; }
@@ -26,7 +26,7 @@ public:
     bool is_array() const { return type_ == Array; }
     bool is_label() const { return type_ == Label; }
     bool is_bareword() const { return type_ == Bareword; }
-    bool is_bareword(string s) const;
+    bool is_bareword(pstring s) const;
 
     // Fail if attributes are missing
     void require(type_t t) const;
@@ -38,31 +38,31 @@ public:
     void require_bareword() const { require(Bareword); }
 
     // Access contents
-    string as_string() const; // coerced if necessary
+    pstring as_string() const; // coerced if necessary
     int as_int() const; // coerced if necessary
     int var_no() const; // if variable
     int dim() const; // if array: returns size of indexed dimension
     
     // Modify variable
     void mutate(int newval, int offset = MAX_INT, bool as_array = false);
-    void mutate(const string& newval);
-    void append(const string& newval);
+    void mutate(const pstring& newval);
+    void append(const pstring& newval);
     void append(wchar newval);    
     
     Expression(ScriptHandler& sh);
     Expression(ScriptHandler& sh, type_t t, bool is_v, int val);
     Expression(ScriptHandler& sh, type_t t, bool is_v, int val,
 	       const h_index_t& idx);
-    Expression(ScriptHandler& sh, type_t t, bool is_v, const string& val);
+    Expression(ScriptHandler& sh, type_t t, bool is_v, const pstring& val);
 
     Expression& operator=(const Expression& src);    
 private:
-    void die(string why) const;
+    void die(const char* why) const;
     ScriptHandler& h;
     type_t type_;
     bool var_;
     h_index_t index_;
-    string strval_;
+    pstring strval_;
     int intval_;
 };
 

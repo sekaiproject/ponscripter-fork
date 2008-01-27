@@ -30,16 +30,16 @@
 
 class SarReader : public DirectReader {
 public:
-    SarReader(const string& path = "", const unsigned char* key_table = NULL);
+    SarReader(const pstring& path = "", const unsigned char* key_table = NULL);
     ~SarReader();
 
-    int open(const string& name = "", int archive_type = ARCHIVE_TYPE_SAR);
+    int open(const pstring& name = "", int archive_type = ARCHIVE_TYPE_SAR);
     int close();
-    string getArchiveName() const { return "sar"; }
+    pstring getArchiveName() const { return "sar"; }
     int getNumFiles();
 
-    size_t getFileLength(const string& file_name);
-    size_t getFile(const string& file_name, unsigned char* buf,
+    size_t getFileLength(const pstring& file_name);
+    size_t getFile(const pstring& file_name, unsigned char* buf,
 		   int* location = NULL);
     FileInfo getFileByIndex(unsigned int index);
 
@@ -49,8 +49,8 @@ protected:
     int num_of_sar_archives;
 
     int readArchive(ArchiveInfo* ai, int archive_type = ARCHIVE_TYPE_SAR);
-    int getIndexFromFile(ArchiveInfo* ai, string file_name);
-    size_t getFileSub(ArchiveInfo* ai, const string& file_name,
+    int getIndexFromFile(ArchiveInfo* ai, pstring file_name);
+    size_t getFileSub(ArchiveInfo* ai, const pstring& file_name,
 		      unsigned char* buf);
 };
 

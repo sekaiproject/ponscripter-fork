@@ -37,7 +37,7 @@
  *
  *   !s20
  */
-int PonscripterLabel::haeleth_speedpercentCommand(const string& cmd)
+int PonscripterLabel::haeleth_speedpercentCommand(const pstring& cmd)
 {
     global_speed_modifier = script_h.readIntValue();
     return RET_CONTINUE;
@@ -56,10 +56,10 @@ int PonscripterLabel::haeleth_speedpercentCommand(const string& cmd)
  * h_usewindow* selects the stored style <name>, as though a setwindow*
  * command with the given parameters had been issued.
  */
-int PonscripterLabel::haeleth_defwindowCommand(const string& cmd)
+int PonscripterLabel::haeleth_defwindowCommand(const pstring& cmd)
 {
     WindowDef wind;
-    string name    = script_h.readStrValue();
+    pstring name   = script_h.readStrValue();
     wind.left      = script_h.readIntValue();
     wind.top       = script_h.readIntValue();
     wind.width     = script_h.readIntValue();
@@ -78,9 +78,9 @@ int PonscripterLabel::haeleth_defwindowCommand(const string& cmd)
     stored_windows[name] = wind;
     return RET_CONTINUE;
 }
-int PonscripterLabel::haeleth_usewindowCommand(const string& cmd)
+int PonscripterLabel::haeleth_usewindowCommand(const pstring& cmd)
 {
-    string name = script_h.readStrValue();
+    pstring name = script_h.readStrValue();
     DoSetwindow(stored_windows[name]);
 
     if (cmd == "h_usewindow") {
@@ -102,12 +102,12 @@ int PonscripterLabel::haeleth_usewindowCommand(const string& cmd)
  * Sets <ivar> to the width, in pixels, of <string> as rendered in the
  * current sentence font.
  */
-int PonscripterLabel::haeleth_text_extentCommand(const string& cmd)
+int PonscripterLabel::haeleth_text_extentCommand(const pstring& cmd)
 {
     Expression ivar = script_h.readIntExpr();
 
-    string buf = script_h.readStrValue();
-    if (buf[0] == encoding->TextMarker()) buf.shift();
+    pstring buf = script_h.readStrValue();
+    if (buf[0] == encoding->TextMarker()) buf.remove(0, 1);
 
     Fontinfo f = sentence_font;
     if (script_h.hasMoreArgs()) {
@@ -130,10 +130,10 @@ int PonscripterLabel::haeleth_text_extentCommand(const string& cmd)
  * which must be large enough and appropriately positioned!) in the
  * current sentence font.
  */
-int PonscripterLabel::haeleth_centre_lineCommand(const string& cmd)
+int PonscripterLabel::haeleth_centre_lineCommand(const pstring& cmd)
 {
-    string buf = script_h.readStrValue();
-    if (buf[0] == encoding->TextMarker()) buf.shift();
+    pstring buf = script_h.readStrValue();
+    if (buf[0] == encoding->TextMarker()) buf.remove(0, 1);
 
     sentence_font.SetXY(float(screen_width) / 2.0 -
 			sentence_font.StringAdvance(buf) / 2.0 -
@@ -148,18 +148,18 @@ int PonscripterLabel::haeleth_centre_lineCommand(const string& cmd)
  * the start of a screen.  If the first character of a screen is not
  * in the given string, any set indent will be cleared.
  */
-int PonscripterLabel::haeleth_char_setCommand(const string& cmd)
+int PonscripterLabel::haeleth_char_setCommand(const pstring& cmd)
 {
     std::set<wchar>& char_set = cmd == "h_indentstr"
 	                      ? indent_chars
 	                      : break_chars;
     char_set.clear();
 
-    string buf = script_h.readStrValue();
-    string::witerator it = buf.wbegin();
-    if (*it == encoding->TextMarker()) ++it;
-    while (it != buf.wend()) {
-	char_set.insert(*it++);
+    pstrIter it(script_h.readStrValue());
+    if (it.get() == encoding->TextMarker()) it.next();
+    while (it.get() >= 0) {
+	char_set.insert(it.get());
+	it.next();
     }
     return RET_CONTINUE;
 }
@@ -171,13 +171,11 @@ int PonscripterLabel::haeleth_char_setCommand(const string& cmd)
  * the start of every subsequent text display command.  Note that this
  * has no effect on text sprites.
  */
-int PonscripterLabel::haeleth_font_styleCommand(const string& cmd)
+int PonscripterLabel::haeleth_font_styleCommand(const pstring& cmd)
 {
-    string s = script_h.readStrValue();
-    if (s[0] == encoding->TextMarker()) s.shift();
-
     Fontinfo::default_encoding = 0;
-    const char* buf = s.c_str();
+    const char* buf = script_h.readStrValue();
+    if (*buf == encoding->TextMarker()) ++buf;
     while (*buf && *buf != encoding->TextMarker() && *buf != '"') {
         if (*buf == 'c') {
             ++buf;
@@ -195,7 +193,7 @@ int PonscripterLabel::haeleth_font_styleCommand(const string& cmd)
  *
  * Assigns a font file to be associated with the given style number.
  */
-int PonscripterLabel::haeleth_map_fontCommand(const string& cmd)
+int PonscripterLabel::haeleth_map_fontCommand(const pstring& cmd)
 {
     int id = script_h.readIntValue();
     MapFont(id, script_h.readStrValue());
@@ -212,17 +210,17 @@ int PonscripterLabel::haeleth_map_fontCommand(const string& cmd)
  * Rendermode is light or normal; if not specified, it will be light
  * when hinting is light, otherwise normal.
  */
-int PonscripterLabel::haeleth_hinting_modeCommand(const string& cmd)
+int PonscripterLabel::haeleth_hinting_modeCommand(const pstring& cmd)
 {
-    string l = script_h.readStrValue();
+    pstring l = script_h.readStrValue();
     if (l == "light") hinting = LightHinting;
     else if (l == "full") hinting = FullHinting;
     else if (l == "none") hinting = NoHinting;
-    else fprintf(stderr, "Unknown hinting mode `%s'\n", l.c_str());
+    else fprintf(stderr, "Unknown hinting mode `%s'\n", (const char*) l);
     l = script_h.readStrValue();
     if (l == "integer") subpixel = false;
     else if (l == "float") subpixel = true;
-    else fprintf(stderr, "Unknown positioning mode `%s'\n", l.c_str());
+    else fprintf(stderr, "Unknown positioning mode `%s'\n", (const char*) l);
 
     if (script_h.hasMoreArgs()) {
 	l = script_h.readStrValue();
@@ -247,17 +245,17 @@ int PonscripterLabel::haeleth_hinting_modeCommand(const string& cmd)
  * Ligature definitions are LIFO, so e.g. you must define "ff" before
  * "ffi", or the latter will never be seen.
  */
-int PonscripterLabel::haeleth_ligate_controlCommand(const string& cmd)
+int PonscripterLabel::haeleth_ligate_controlCommand(const pstring& cmd)
 {
     Expression e = script_h.readStrExpr();
-    string s = e.as_string();
+    pstring s = e.as_string();
     if (e.is_bareword()) {
 	if (s == "none")             ClearLigatures();
 	else if (s == "default")     DefaultLigatures(1 | 2 | 4);
 	else if (s == "basic")       DefaultLigatures(1);
 	else if (s == "punctuation") DefaultLigatures(2);
 	else if (s == "f_ligatures") DefaultLigatures(4);
-	else fprintf(stderr, "Unknown ligature set `%s'\n", s.c_str());    
+	else fprintf(stderr, "Unknown ligature set `%s'\n", (const char*) s);
     }
     else {
 	Expression l = script_h.readExpr();
@@ -266,21 +264,23 @@ int PonscripterLabel::haeleth_ligate_controlCommand(const string& cmd)
         else if (l.is_numeric())
             AddLigature(s, l.as_int());
 	else if (l.type() == Expression::String)
-	    AddLigature(s, *l.as_string().wbegin());
+	    AddLigature(s, encoding->DecodeChar(l.as_string()));
 	else
 	    fprintf(stderr, "Unknown character `%s'\n",
-		    l.debug_string().c_str());
+		    (const char*) l.debug_string());
     }
 
     return RET_CONTINUE;
 }
 
-int PonscripterLabel::haeleth_sayCommand(const string& cmd)
+int PonscripterLabel::haeleth_sayCommand(const pstring& cmd)
 {
     while (1) {
-	printf(script_h.readExpr().as_string().c_str());
-	if (script_h.hasMoreArgs()) printf(", "); else break;   
+	pstring s = script_h.readExpr().as_string();
+	print_escaped(s, stdout);
+	if (script_h.hasMoreArgs()) fputs(", ", stdout); else break;   
     }
-    printf("\n");
+    putchar('\n');
+    fflush(stdout);
     return RET_CONTINUE;
 }

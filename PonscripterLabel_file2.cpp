@@ -661,7 +661,7 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
     writeInt(text_num, output_flag);
 
     for (i = 0; i < text_num; i++) {
-	const char* buf = tb->contents.c_str();
+	const char* buf = tb->contents;
 	while (*buf) writeChar(*buf++, output_flag);
 	writeChar(0, output_flag);
 	tb = tb->next;
@@ -671,8 +671,8 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
     writeInt(0, output_flag);
 
     writeInt(current_label_info.start_line + current_line, output_flag);
-    const char* buf = script_h.getAddressByLine(current_label_info.start_line +
-						current_line);
+    const char* buf =
+	script_h.getAddressByLine(current_label_info.start_line + current_line);
 
     i = 0;
     if (!script_h.isText()) {

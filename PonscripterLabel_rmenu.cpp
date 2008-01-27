@@ -268,37 +268,35 @@ void PonscripterLabel::createSaveLoadMenu(bool is_save)
     // Set up formatting details for saved games.
     const float sw = float (screen_width * screen_ratio2)
 	           / float (screen_ratio1);
-    const int buf_sz = 1024;
-    char  buf[buf_sz], no_save_line[buf_sz];
+    pstring buffer, saveless_line;
     float lw, entry_offs_x, entry_date_x, entry_time_x;
     {
         float max_ew = 0, max_dw = 0, max_hw = 0, max_mw = 0;
         for (unsigned int i = 1; i <= num_save_file; i++) {
-            snprintf(buf, buf_sz, "^%s %-2d", save_item_name.c_str(), i);
-            lw = menu_font.StringAdvance(buf);
+	    buffer.format("^%s %-2d", (const char*) save_item_name, i);
+            lw = menu_font.StringAdvance(buffer);
             if (lw > max_ew) max_ew = lw;
 
             searchSaveFile(save_file_info, i);
             if (save_file_info.valid) {
-                snprintf(buf, buf_sz, "^%s %2d",
-			 short_month[save_file_info.month - 1],
-			 save_file_info.day);
-                lw = menu_font.StringAdvance(buf);
+		buffer.format("^%s %2d", short_month[save_file_info.month - 1],
+			   save_file_info.day);
+                lw = menu_font.StringAdvance(buffer);
                 if (lw > max_dw) max_dw = lw;
 
-                snprintf(buf, buf_sz, "^%2d:", save_file_info.hour);
-                lw = menu_font.StringAdvance(buf);
+                buffer.format("^%2d:", save_file_info.hour);
+                lw = menu_font.StringAdvance(buffer);
                 if (lw > max_hw) max_hw = lw;
 
-                snprintf(buf, buf_sz, "^%02d", save_file_info.minute);
-                lw = menu_font.StringAdvance(buf);
+                buffer.format("^%02d", save_file_info.minute);
+                lw = menu_font.StringAdvance(buffer);
                 if (lw > max_mw) max_mw = lw;
             }
         }
 
         if (max_dw < 1) {
-            strncpy(no_save_line, "------------------------", buf_sz);
-            lw = ceil(max_ew + 24 + menu_font.StringAdvance(no_save_line) + 1);
+	    saveless_line = "------------------------";
+            lw = ceil(max_ew + 24 + menu_font.StringAdvance(saveless_line) + 1);
             entry_offs_x = (sw - lw) / 2;
             entry_date_x = max_ew + 24;
             entry_time_x = 0;
@@ -312,10 +310,7 @@ void PonscripterLabel::createSaveLoadMenu(bool is_save)
 			   / menu_font.StringAdvance("-"));
 	    // Avoid ugliness with ligatures
 	    while (nslw % 3 || nslw % 2) ++nslw;
-            no_save_line[0] = '-';
-            for (int i = 1; i < nslw; ++i) no_save_line[i] = '-';
-
-            no_save_line[nslw] = 0;
+	    saveless_line = pstring(nslw, '-');
         }
     }
 
@@ -325,7 +320,7 @@ void PonscripterLabel::createSaveLoadMenu(bool is_save)
     menu_font.top_x  = int(entry_offs_x);
     menu_font.top_y  = (screen_height * screen_ratio2 / screen_ratio1
 			- menu_font.area_y) / 2;
-    string& menu_name = is_save ? save_menu_name : load_menu_name;
+    pstring& menu_name = is_save ? save_menu_name : load_menu_name;
     menu_font.SetXY((lw - menu_font.StringAdvance(menu_name)) / 2, 0);
     buttons[0] = getSelectableSentence(menu_name, &menu_font, false); // TODO: check that this isn't selectable!
 
@@ -339,22 +334,22 @@ void PonscripterLabel::createSaveLoadMenu(bool is_save)
         menu_font.SetXY(0);
 
         if (save_file_info.valid) {
-            snprintf(buf, buf_sz, "^%2d:", save_file_info.hour);
-            float hw = menu_font.StringAdvance(buf);
-            snprintf(buf, buf_sz, "^%s %2d~x%d~%s %-2d~x%d~%2d:%02d",
-		     save_item_name.c_str(), i, int(entry_date_x),
-		     short_month[save_file_info.month - 1], save_file_info.day,
-		     int(entry_time_x - hw), save_file_info.hour,
-		     save_file_info.minute);
+	    buffer.format("^%2d:", save_file_info.hour);
+            float hw = menu_font.StringAdvance(buffer);
+	    buffer.format("^%s %2d~x%d~%s %-2d~x%d~%2d:%02d",
+			  (const char*) save_item_name, i, int(entry_date_x),
+			  short_month[save_file_info.month - 1],
+			  save_file_info.day, int(entry_time_x - hw),
+			  save_file_info.hour, save_file_info.minute);
             disable = false;
         }
         else {
-            snprintf(buf, buf_sz, "^%s %2d~x%d~%s", save_item_name.c_str(), i,
-		     int(entry_date_x), no_save_line);
+	    buffer.format("^%s %2d~x%d~%s", (const char*) save_item_name, i,
+			  int(entry_date_x), (const char*) saveless_line);
             disable = !is_save;
         }
 
-	buttons[i] = getSelectableSentence(buf, &menu_font, false, disable);
+	buttons[i] = getSelectableSentence(buffer, &menu_font, false, disable);
         flush(refreshMode());
     }
 
@@ -489,7 +484,7 @@ void PonscripterLabel::executeSystemYesNo()
     }
     else {
         text_info.fill(0, 0, 0, 0);
-	string name;
+	pstring name;
 
         if (yesno_caller == SYSTEM_SAVE) {
             SaveFileInfo save_file_info;

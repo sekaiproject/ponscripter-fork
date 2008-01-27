@@ -86,7 +86,7 @@ struct OVInfo {
 struct Subtitle {
     int number;
     float time;
-    string text;
+    pstring text;
 };
 
 class SubtitleDefs {
@@ -103,7 +103,7 @@ public:
     operator bool() const { return !text.empty(); }
     int numdefs() const { return subs.size(); }
     void define(int n, rgb_t colour, int pos, int alpha);
-    void add(int n, float t, string x);
+    void add(int n, float t, pstring x);
     float next();
     Subtitle pop();
     rgb_t colour(int no) { return subs[no].colour; }
@@ -124,8 +124,8 @@ public:
     void setCDNumber(int cdrom_drive_number);
     void setRegistryFile(const char* filename);
     void setDLLFile(const char* filename);
-    void setSavePath(string path);
-    void setArchivePath(string path);
+    void setSavePath(const pstring& path);
+    void setArchivePath(const pstring& path);
 
     bool hasArchivePath() const { return archive_path; }
     void setFullscreenMode();
@@ -152,175 +152,175 @@ public:
     /* ---------------------------------------- */
     /* Commands */
     // my extensions
-    int haeleth_speedpercentCommand(const string& cmd);
-    int haeleth_defwindowCommand(const string& cmd);
-    int haeleth_usewindowCommand(const string& cmd);
-    int haeleth_text_extentCommand(const string& cmd);
-    int haeleth_centre_lineCommand(const string& cmd);
-    int haeleth_char_setCommand(const string& cmd);
-    int haeleth_font_styleCommand(const string& cmd);
-    int haeleth_map_fontCommand(const string& cmd);
-    int haeleth_hinting_modeCommand(const string& cmd);
-    int haeleth_ligate_controlCommand(const string& cmd);
-    int haeleth_sayCommand(const string& cmd);
+    int haeleth_speedpercentCommand(const pstring& cmd);
+    int haeleth_defwindowCommand(const pstring& cmd);
+    int haeleth_usewindowCommand(const pstring& cmd);
+    int haeleth_text_extentCommand(const pstring& cmd);
+    int haeleth_centre_lineCommand(const pstring& cmd);
+    int haeleth_char_setCommand(const pstring& cmd);
+    int haeleth_font_styleCommand(const pstring& cmd);
+    int haeleth_map_fontCommand(const pstring& cmd);
+    int haeleth_hinting_modeCommand(const pstring& cmd);
+    int haeleth_ligate_controlCommand(const pstring& cmd);
+    int haeleth_sayCommand(const pstring& cmd);
 
     // regular NScripter stuff
-    int wavestopCommand(const string& cmd);
-    int waveCommand(const string& cmd);
-    int waittimerCommand(const string& cmd);
-    int waitCommand(const string& cmd);
-    int vspCommand(const string& cmd);
-    int voicevolCommand(const string& cmd);
-    int vCommand(const string& cmd);
-    int trapCommand(const string& cmd);
-    int textspeedCommand(const string& cmd);
-    int textshowCommand(const string& cmd);
-    int textonCommand(const string& cmd);
-    int textoffCommand(const string& cmd);
-    int texthideCommand(const string& cmd);
-    int textclearCommand(const string& cmd);
-    int texecCommand(const string& cmd);
-    int tateyokoCommand(const string& cmd);
-    int talCommand(const string& cmd);
-    int tablegotoCommand(const string& cmd);
-    int systemcallCommand(const string& cmd);
-    int strspCommand(const string& cmd);
-    int stopCommand(const string& cmd);
-    int sp_rgb_gradationCommand(const string& cmd);
-    int spstrCommand(const string& cmd);
-    int spreloadCommand(const string& cmd);
-    int splitCommand(const string& cmd);
-    int spclclkCommand(const string& cmd);
-    int spbtnCommand(const string& cmd);
-    int skipoffCommand(const string& cmd);
-    int sevolCommand(const string& cmd);
-    int setwindow3Command(const string& cmd);
-    int setwindow2Command(const string& cmd);
-    int setwindowCommand(const string& cmd);
-    int setcursorCommand(const string& cmd);
-    int selectCommand(const string& cmd);
-    int savetimeCommand(const string& cmd);
-    int saveonCommand(const string& cmd);
-    int saveoffCommand(const string& cmd);
-    int savegameCommand(const string& cmd);
-    int savefileexistCommand(const string& cmd);
-    int savescreenshotCommand(const string& cmd);
-    int resettimerCommand(const string& cmd);
-    int resetCommand(const string& cmd);
-    int repaintCommand(const string& cmd);
-    int rndCommand(const string& cmd);
-    int rmodeCommand(const string& cmd);
-    int quakeCommand(const string& cmd);
-    int puttextCommand(const string& cmd);
-    int prnumclearCommand(const string& cmd);
-    int prnumCommand(const string& cmd);
-    int printCommand(const string& cmd);
-    int playstopCommand(const string& cmd);
-    int playonceCommand(const string& cmd);
-    int playCommand(const string& cmd);
-    int ofscopyCommand(const string& cmd);
-    int negaCommand(const string& cmd);
-    int mspCommand(const string& cmd);
-    int mpegplayCommand(const string& cmd);
-    int mp3volCommand(const string& cmd);
-    int mp3fadeoutCommand(const string& cmd);
-    int mp3Command(const string& cmd);
-    int movemousecursorCommand(const string& cmd);
-    int monocroCommand(const string& cmd);
-    int menu_windowCommand(const string& cmd);
-    int menu_fullCommand(const string& cmd);
-    int menu_automodeCommand(const string& cmd);
-    int lspCommand(const string& cmd);
-    int loopbgmstopCommand(const string& cmd);
-    int loopbgmCommand(const string& cmd);
-    int lookbackflushCommand(const string& cmd);
-    int lookbackbuttonCommand(const string& cmd);
-    int logspCommand(const string& cmd);
-    int locateCommand(const string& cmd);
-    int loadgameCommand(const string& cmd);
-    int ldCommand(const string& cmd);
-    int jumpfCommand(const string& cmd);
-    int jumpbCommand(const string& cmd);
-    int ispageCommand(const string& cmd);
-    int isfullCommand(const string& cmd);
-    int isskipCommand(const string& cmd);
-    int isdownCommand(const string& cmd);
-    int inputCommand(const string& cmd);
-    int indentCommand(const string& cmd);
-    int humanorderCommand(const string& cmd);
-    int getzxcCommand(const string& cmd);
-    int getvoicevolCommand(const string& cmd);
-    int getversionCommand(const string& cmd);
-    int gettimerCommand(const string& cmd);
-    int gettextCommand(const string& cmd);
-    int gettagCommand(const string& cmd);
-    int gettabCommand(const string& cmd);
-    int getspsizeCommand(const string& cmd);
-    int getspmodeCommand(const string& cmd);
-    int getsevolCommand(const string& cmd);
-    int getscreenshotCommand(const string& cmd);
-    int getretCommand(const string& cmd);
-    int getregCommand(const string& cmd);
-    int getpageupCommand(const string& cmd);
-    int getpageCommand(const string& cmd);
-    int getmp3volCommand(const string& cmd);
-    int getmouseposCommand(const string& cmd);
-    int getlogCommand(const string& cmd);
-    int getinsertCommand(const string& cmd);
-    int getfunctionCommand(const string& cmd);
-    int getenterCommand(const string& cmd);
-    int getcursorposCommand(const string& cmd);
-    int getcursorCommand(const string& cmd);
-    int getcselstrCommand(const string& cmd);
-    int getcselnumCommand(const string& cmd);
-    int gameCommand(const string& cmd);
-    int fileexistCommand(const string& cmd);
-    int exec_dllCommand(const string& cmd);
-    int exbtnCommand(const string& cmd);
-    int erasetextwindowCommand(const string& cmd);
-    int endCommand(const string& cmd);
-    int dwavestopCommand(const string& cmd);
-    int dwaveCommand(const string& cmd);
-    int dvCommand(const string& cmd);
-    int drawtextCommand(const string& cmd);
-    int drawsp3Command(const string& cmd);
-    int drawsp2Command(const string& cmd);
-    int drawspCommand(const string& cmd);
-    int drawfillCommand(const string& cmd);
-    int drawclearCommand(const string& cmd);
-    int drawbg2Command(const string& cmd);
-    int drawbgCommand(const string& cmd);
-    int drawCommand(const string& cmd);
-    int delayCommand(const string& cmd);
-    int defineresetCommand(const string& cmd);
-    int cspCommand(const string& cmd);
-    int cselgotoCommand(const string& cmd);
-    int cselbtnCommand(const string& cmd);
-    int clickCommand(const string& cmd);
-    int clCommand(const string& cmd);
-    int chvolCommand(const string& cmd);
-    int checkpageCommand(const string& cmd);
-    int cellCommand(const string& cmd);
-    int captionCommand(const string& cmd);
-    int btnwait2Command(const string& cmd);
-    int btnwaitCommand(const string& cmd);
-    int btntime2Command(const string& cmd);
-    int btntimeCommand(const string& cmd);
-    int btndownCommand(const string& cmd);
-    int btndefCommand(const string& cmd);
-    int btnCommand(const string& cmd);
-    int brCommand(const string& cmd);
-    int bltCommand(const string& cmd);
-    int bgcopyCommand(const string& cmd);
-    int bgCommand(const string& cmd);
-    int barclearCommand(const string& cmd);
-    int barCommand(const string& cmd);
-    int aviCommand(const string& cmd);
-    int automode_timeCommand(const string& cmd);
-    int autoclickCommand(const string& cmd);
-    int allspresumeCommand(const string& cmd);
-    int allsphideCommand(const string& cmd);
-    int amspCommand(const string& cmd);
+    int wavestopCommand(const pstring& cmd);
+    int waveCommand(const pstring& cmd);
+    int waittimerCommand(const pstring& cmd);
+    int waitCommand(const pstring& cmd);
+    int vspCommand(const pstring& cmd);
+    int voicevolCommand(const pstring& cmd);
+    int vCommand(const pstring& cmd);
+    int trapCommand(const pstring& cmd);
+    int textspeedCommand(const pstring& cmd);
+    int textshowCommand(const pstring& cmd);
+    int textonCommand(const pstring& cmd);
+    int textoffCommand(const pstring& cmd);
+    int texthideCommand(const pstring& cmd);
+    int textclearCommand(const pstring& cmd);
+    int texecCommand(const pstring& cmd);
+    int tateyokoCommand(const pstring& cmd);
+    int talCommand(const pstring& cmd);
+    int tablegotoCommand(const pstring& cmd);
+    int systemcallCommand(const pstring& cmd);
+    int strspCommand(const pstring& cmd);
+    int stopCommand(const pstring& cmd);
+    int sp_rgb_gradationCommand(const pstring& cmd);
+    int spstrCommand(const pstring& cmd);
+    int spreloadCommand(const pstring& cmd);
+    int splitCommand(const pstring& cmd);
+    int spclclkCommand(const pstring& cmd);
+    int spbtnCommand(const pstring& cmd);
+    int skipoffCommand(const pstring& cmd);
+    int sevolCommand(const pstring& cmd);
+    int setwindow3Command(const pstring& cmd);
+    int setwindow2Command(const pstring& cmd);
+    int setwindowCommand(const pstring& cmd);
+    int setcursorCommand(const pstring& cmd);
+    int selectCommand(const pstring& cmd);
+    int savetimeCommand(const pstring& cmd);
+    int saveonCommand(const pstring& cmd);
+    int saveoffCommand(const pstring& cmd);
+    int savegameCommand(const pstring& cmd);
+    int savefileexistCommand(const pstring& cmd);
+    int savescreenshotCommand(const pstring& cmd);
+    int resettimerCommand(const pstring& cmd);
+    int resetCommand(const pstring& cmd);
+    int repaintCommand(const pstring& cmd);
+    int rndCommand(const pstring& cmd);
+    int rmodeCommand(const pstring& cmd);
+    int quakeCommand(const pstring& cmd);
+    int puttextCommand(const pstring& cmd);
+    int prnumclearCommand(const pstring& cmd);
+    int prnumCommand(const pstring& cmd);
+    int printCommand(const pstring& cmd);
+    int playstopCommand(const pstring& cmd);
+    int playonceCommand(const pstring& cmd);
+    int playCommand(const pstring& cmd);
+    int ofscopyCommand(const pstring& cmd);
+    int negaCommand(const pstring& cmd);
+    int mspCommand(const pstring& cmd);
+    int mpegplayCommand(const pstring& cmd);
+    int mp3volCommand(const pstring& cmd);
+    int mp3fadeoutCommand(const pstring& cmd);
+    int mp3Command(const pstring& cmd);
+    int movemousecursorCommand(const pstring& cmd);
+    int monocroCommand(const pstring& cmd);
+    int menu_windowCommand(const pstring& cmd);
+    int menu_fullCommand(const pstring& cmd);
+    int menu_automodeCommand(const pstring& cmd);
+    int lspCommand(const pstring& cmd);
+    int loopbgmstopCommand(const pstring& cmd);
+    int loopbgmCommand(const pstring& cmd);
+    int lookbackflushCommand(const pstring& cmd);
+    int lookbackbuttonCommand(const pstring& cmd);
+    int logspCommand(const pstring& cmd);
+    int locateCommand(const pstring& cmd);
+    int loadgameCommand(const pstring& cmd);
+    int ldCommand(const pstring& cmd);
+    int jumpfCommand(const pstring& cmd);
+    int jumpbCommand(const pstring& cmd);
+    int ispageCommand(const pstring& cmd);
+    int isfullCommand(const pstring& cmd);
+    int isskipCommand(const pstring& cmd);
+    int isdownCommand(const pstring& cmd);
+    int inputCommand(const pstring& cmd);
+    int indentCommand(const pstring& cmd);
+    int humanorderCommand(const pstring& cmd);
+    int getzxcCommand(const pstring& cmd);
+    int getvoicevolCommand(const pstring& cmd);
+    int getversionCommand(const pstring& cmd);
+    int gettimerCommand(const pstring& cmd);
+    int gettextCommand(const pstring& cmd);
+    int gettagCommand(const pstring& cmd);
+    int gettabCommand(const pstring& cmd);
+    int getspsizeCommand(const pstring& cmd);
+    int getspmodeCommand(const pstring& cmd);
+    int getsevolCommand(const pstring& cmd);
+    int getscreenshotCommand(const pstring& cmd);
+    int getretCommand(const pstring& cmd);
+    int getregCommand(const pstring& cmd);
+    int getpageupCommand(const pstring& cmd);
+    int getpageCommand(const pstring& cmd);
+    int getmp3volCommand(const pstring& cmd);
+    int getmouseposCommand(const pstring& cmd);
+    int getlogCommand(const pstring& cmd);
+    int getinsertCommand(const pstring& cmd);
+    int getfunctionCommand(const pstring& cmd);
+    int getenterCommand(const pstring& cmd);
+    int getcursorposCommand(const pstring& cmd);
+    int getcursorCommand(const pstring& cmd);
+    int getcselstrCommand(const pstring& cmd);
+    int getcselnumCommand(const pstring& cmd);
+    int gameCommand(const pstring& cmd);
+    int fileexistCommand(const pstring& cmd);
+    int exec_dllCommand(const pstring& cmd);
+    int exbtnCommand(const pstring& cmd);
+    int erasetextwindowCommand(const pstring& cmd);
+    int endCommand(const pstring& cmd);
+    int dwavestopCommand(const pstring& cmd);
+    int dwaveCommand(const pstring& cmd);
+    int dvCommand(const pstring& cmd);
+    int drawtextCommand(const pstring& cmd);
+    int drawsp3Command(const pstring& cmd);
+    int drawsp2Command(const pstring& cmd);
+    int drawspCommand(const pstring& cmd);
+    int drawfillCommand(const pstring& cmd);
+    int drawclearCommand(const pstring& cmd);
+    int drawbg2Command(const pstring& cmd);
+    int drawbgCommand(const pstring& cmd);
+    int drawCommand(const pstring& cmd);
+    int delayCommand(const pstring& cmd);
+    int defineresetCommand(const pstring& cmd);
+    int cspCommand(const pstring& cmd);
+    int cselgotoCommand(const pstring& cmd);
+    int cselbtnCommand(const pstring& cmd);
+    int clickCommand(const pstring& cmd);
+    int clCommand(const pstring& cmd);
+    int chvolCommand(const pstring& cmd);
+    int checkpageCommand(const pstring& cmd);
+    int cellCommand(const pstring& cmd);
+    int captionCommand(const pstring& cmd);
+    int btnwait2Command(const pstring& cmd);
+    int btnwaitCommand(const pstring& cmd);
+    int btntime2Command(const pstring& cmd);
+    int btntimeCommand(const pstring& cmd);
+    int btndownCommand(const pstring& cmd);
+    int btndefCommand(const pstring& cmd);
+    int btnCommand(const pstring& cmd);
+    int brCommand(const pstring& cmd);
+    int bltCommand(const pstring& cmd);
+    int bgcopyCommand(const pstring& cmd);
+    int bgCommand(const pstring& cmd);
+    int barclearCommand(const pstring& cmd);
+    int barCommand(const pstring& cmd);
+    int aviCommand(const pstring& cmd);
+    int automode_timeCommand(const pstring& cmd);
+    int autoclickCommand(const pstring& cmd);
+    int allspresumeCommand(const pstring& cmd);
+    int allsphideCommand(const pstring& cmd);
+    int amspCommand(const pstring& cmd);
 
 protected:
     /* ---------------------------------------- */
@@ -379,14 +379,14 @@ private:
     // ----------------------------------------
     // start-up options
     bool   cdaudio_flag;
-    string registry_file;
-    string dll_file;
-    string getret_str;
+    pstring registry_file;
+    pstring dll_file;
+    pstring getret_str;
     int    getret_int;
     bool   enable_wheeldown_advance_flag;
     bool   disable_rescale_flag;
     bool   edit_flag;
-    string key_exe_file;
+    pstring key_exe_file;
 
     // ----------------------------------------
     // Global definitions
@@ -412,10 +412,10 @@ private:
            TRAP_NEXT_SELECT = 4,
            TRAP_STOP = 8 };
     int    trap_mode;
-    string trap_dist;
-    string wm_title_string;
-    string wm_icon_string;
-    string wm_edit_string;
+    pstring trap_dist;
+    pstring wm_title_string;
+    pstring wm_icon_string;
+    pstring wm_edit_string;
     bool   fullscreen_mode;
     bool   window_mode;
 
@@ -476,7 +476,7 @@ private:
         };
         BUTTON_TYPE button_type;
         int sprite_no;
-        string exbtn_ctl;
+        pstring exbtn_ctl;
         SDL_Rect select_rect;
         SDL_Rect image_rect;
         AnimationInfo* anim[2];
@@ -517,7 +517,7 @@ private:
              ++it)
             it->second.destroy();
         buttons.clear();
-        exbtn_d_button.exbtn_ctl.clear();
+        exbtn_d_button.exbtn_ctl.trunc(0);
     }
     
     int current_over_button;
@@ -537,7 +537,7 @@ private:
     void refreshSprite(int sprite_no, bool active_flag, int cell_no,
                        SDL_Rect* check_src_rect, SDL_Rect* check_dst_rect);
 
-    void decodeExbtnControl(const string& ctl_string,
+    void decodeExbtnControl(const pstring& ctl_string,
                             SDL_Rect* check_src_rect = 0,
                             SDL_Rect* check_dst_rect = 0);
 
@@ -592,11 +592,11 @@ private:
     /* ---------------------------------------- */
     /* Stored window related variables */
     struct WindowDef {
-	typedef dictionary<string, WindowDef>::t dic;
+	typedef dictionary<pstring, WindowDef>::t dic;
 	int left, top, width, height,
 	    font_size, pitch_x, pitch_y,
 	    speed, bold, shadow;
-	string backdrop;
+	pstring backdrop;
 	int w_left, w_top, w_width, w_height;
     };
     WindowDef::dic stored_windows;
@@ -624,18 +624,18 @@ private:
                    wchar unicode, float x, int y, bool shadow_flag,
                    AnimationInfo* cache_info, SDL_Rect* clip,
                    SDL_Rect &dst_rect);
-    void drawChar(const char* text, Fontinfo* info, bool flush_flag,
+    int  drawChar(const char* text, Fontinfo* info, bool flush_flag,
                   bool lookback_flag, SDL_Surface* surface,
                   AnimationInfo* cache_info, SDL_Rect* clip = 0);
     void drawString(const char* str, rgb_t color, Fontinfo* info,
                     bool flush_flag, SDL_Surface* surface, SDL_Rect* rect = 0,
                     AnimationInfo* cache_info = 0);
 
-    void drawString(const string& str, rgb_t color, Fontinfo* info,
+/*  void drawString(const pstring& str, rgb_t color, Fontinfo* info,
                     bool flush_flag, SDL_Surface* surface, SDL_Rect* rect = 0,
                     AnimationInfo* cache_info = 0)
-        { /* for now */ drawString(str.c_str(), color, info, flush_flag,
-				   surface, rect, cache_info); }
+        { /- for now -/ drawString(str, color, info, flush_flag,
+				   surface, rect, cache_info); }*/
     
     void restoreTextBuffer();
     int  enterTextDisplayMode(bool text_flag = true);
@@ -680,14 +680,14 @@ private:
     struct SelectElt {
         typedef std::vector<SelectElt> vector;
         typedef vector::iterator iterator;
-        string text, label;
-        SelectElt(const string& t, const string& l) : text(t), label(l) {}
+        pstring text, label;
+        SelectElt(const pstring& t, const pstring& l) : text(t), label(l) {}
     };
     SelectElt::vector select_links, shelter_select_links;
     const char* select_label_next_script;
     ButtonElt::iterator shortcut_mouse_line;
 
-    ButtonElt getSelectableSentence(const string& buffer, Fontinfo* info,
+    ButtonElt getSelectableSentence(const pstring& buffer, Fontinfo* info,
                                     bool flush_flag = true,
                                     bool nofile_flag = false);
 
@@ -704,17 +704,17 @@ private:
         SOUND_OTHER   = 64
     };
     int cdrom_drive_number;
-    string default_cdrom_drive;
+    pstring default_cdrom_drive;
     bool cdaudio_on_flag; // false if mute
     bool volume_on_flag; // false if mute
     SDL_AudioSpec audio_format;
     bool audio_open_flag;
 
     bool   wave_play_loop_flag;
-    string wave_file_name;
+    pstring wave_file_name;
 
     bool   midi_play_loop_flag;
-    string midi_file_name;
+    pstring midi_file_name;
     Mix_Music* midi_info;
 
     SDL_CD* cdrom_info;
@@ -722,21 +722,21 @@ private:
     bool   cd_play_loop_flag;
     bool   music_play_loop_flag;
     bool   mp3save_flag;
-    string music_file_name;
+    pstring music_file_name;
     unsigned char* mp3_buffer;
     SMPEG*  mp3_sample;
     Uint32  mp3fadeout_start;
     Uint32  mp3fadeout_duration;
     OVInfo* music_ovi;
     Mix_Music* music_info;
-    string loop_bgm_name[2];
+    pstring loop_bgm_name[2];
 
     Mix_Chunk* wave_sample[ONS_MIX_CHANNELS + ONS_MIX_EXTRA_CHANNELS];
 
-    string music_cmd;
-    string midi_cmd;
+    pstring music_cmd;
+    pstring midi_cmd;
 
-    int playSound(const string& filename, int format, bool loop_flag,
+    int playSound(const pstring& filename, int format, bool loop_flag,
                   int channel = 0);
     
     void playCDAudio();
@@ -747,10 +747,10 @@ private:
     int playExternalMusic(bool loop_flag);
     int playMIDI(bool loop_flag);
 
-    SubtitleDefs parseSubtitles(string file);
-    int playMPEG(const string& filename, bool click_flag,
+    SubtitleDefs parseSubtitles(pstring file);
+    int playMPEG(const pstring& filename, bool click_flag,
 		 SubtitleDefs& subtitles);
-    void playAVI(const string& filename, bool click_flag);
+    void playAVI(const pstring& filename, bool click_flag);
 
     enum { WAVE_PLAY        = 0,
            WAVE_PRELOAD     = 1,
@@ -776,7 +776,7 @@ private:
                bool clear_dirty_flag = true, bool direct_flag = false);
     void flushDirect(SDL_Rect &rect, int refresh_mode, bool updaterect = true);
     void executeLabel();
-    SDL_Surface* loadImage(const string& file_name, bool* has_alpha = NULL);
+    SDL_Surface* loadImage(const pstring& file_name, bool* has_alpha = NULL);
     int parseLine();
 
     void mouseOverCheck(int x, int y);

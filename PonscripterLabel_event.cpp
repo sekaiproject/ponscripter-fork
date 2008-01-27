@@ -603,7 +603,7 @@ void PonscripterLabel::variableEditMode(SDL_KeyboardEvent* event)
             variable_edit_mode = NOT_EDIT_MODE;
             SDL_WM_SetCaption(DEFAULT_WM_TITLE, DEFAULT_WM_ICON);
             SDL_Delay(100);
-            SDL_WM_SetCaption(wm_title_string.c_str(), wm_icon_string.c_str());
+            SDL_WM_SetCaption(wm_title_string, wm_icon_string);
             return;
         }
 
@@ -617,16 +617,16 @@ void PonscripterLabel::variableEditMode(SDL_KeyboardEvent* event)
         wm_edit_string = EDIT_MODE_PREFIX EDIT_SELECT_STRING;
     }
     else if (variable_edit_mode == EDIT_VARIABLE_INDEX_MODE) {
-        wm_edit_string = EDIT_MODE_PREFIX "Variable Index?  %" +
-	                 str(variable_edit_sign * variable_edit_num);
+        wm_edit_string.format(EDIT_MODE_PREFIX "Variable Index?  %%%d",
+			      variable_edit_sign * variable_edit_num);
     }
     else if (variable_edit_mode >= EDIT_VARIABLE_NUM_MODE) {
         int p = 0;
-	string var_name;
+	pstring var_name;
 	
         switch (variable_edit_mode) {
         case EDIT_VARIABLE_NUM_MODE:
-	    var_name = "%" + str(variable_edit_index);
+	    var_name.format("%%%d", variable_edit_index);
 	    p = script_h.variable_data[variable_edit_index].num; break;
 
         case EDIT_MP3_VOLUME_MODE:
@@ -642,11 +642,12 @@ void PonscripterLabel::variableEditMode(SDL_KeyboardEvent* event)
             var_name = "";
         }
 
-	wm_edit_string = EDIT_MODE_PREFIX "Current " + var_name + "=" + str(p)
-	    + "  New value? " + str(variable_edit_num * variable_edit_sign);
+	wm_edit_string.format(EDIT_MODE_PREFIX "Current %s=%d  New value? %d",
+			      (const char*) var_name, p,
+			      variable_edit_num * variable_edit_sign);
     }
 
-    SDL_WM_SetCaption(wm_edit_string.c_str(), wm_icon_string.c_str());
+    SDL_WM_SetCaption(wm_edit_string, wm_icon_string);
 }
 
 
@@ -755,7 +756,7 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
             variable_edit_sign = 1;
             variable_edit_num  = 0;
             wm_edit_string = EDIT_MODE_PREFIX EDIT_SELECT_STRING;
-            SDL_WM_SetCaption(wm_edit_string.c_str(), wm_icon_string.c_str());
+            SDL_WM_SetCaption(wm_edit_string, wm_icon_string);
         }
     }
 

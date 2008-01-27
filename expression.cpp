@@ -1,8 +1,8 @@
 #include "ScriptHandler.h"
 
-string typestr(Expression::type_t t, bool v = false)
+pstring typestr(Expression::type_t t, bool v = false)
 {
-    string var = v ? " variable" : "";
+    pstring var = v ? " variable" : "";
     switch (t) {
     case Expression::Int:	return "integer" + var;
     case Expression::Array:	return "integer array" + var;
@@ -13,47 +13,59 @@ string typestr(Expression::type_t t, bool v = false)
     return "[invalid type]";
 }
 
-void Expression::die(string why) const
+void Expression::die(const char* why) const
 {
     int line = h.getLineByAddress(h.getCurrent(), true);
-    why = "Parse error at line " + str(line) + ": " + why + "\n";
-    fprintf(stderr, why.c_str());
+    fprintf(stderr, "Parse error at line %d: %s\n", line, why);
     exit(-1);
 }
 
-string Expression::debug_string() const
+pstring Expression::debug_string() const
 {
+    pstring rv;
     if (var_) {
 	switch (type_) {
-	case Int:    return "%" + str(intval_);
-	case String: return "$" + str(intval_);
+	case Int:
+	    rv.format("%%%d", intval_);
+	    break;
+	case String:
+	    rv.format("$%d", intval_);
+	    break;
 	case Array:
-	  { string rv = "?" + str(intval_);
+	    rv.format("?%d", intval_);
 	    for (h_index_t::const_iterator it = index_.begin();
 		 it != index_.end(); ++it)
-		rv += "[" + str(*it) + "]";
-	    return rv; }
-	default: return "[invalid type]";
+		rv.formata("[%d]", *it);
+	    break;
+	default:
+	    rv = "[invalid type]";
 	}
     }
     else {
 	switch (type_) {
-	case Int:      return str(intval_);
-	case String:   return "\"" + strval_ + "\"";
-	case Label:    return "*" + strval_;
-	case Bareword: return strval_;
-	default: return "[invalid type]";	    
+	case Int:
+	    rv.format("%d", intval_);
+	    break;
+	case String:
+	    rv.format("\"%s\"", (const char*) strval_);
+	    break;
+	case Label:
+	    rv.format("*%s", (const char*) strval_);
+	    break;
+	case Bareword:
+	    rv = strval_;
+	    break;
+	default:
+	    rv = "[invalid type]";
 	}
     }
+    return rv;
 }
 
-bool Expression::is_bareword(string what) const
+bool Expression::is_bareword(pstring what) const
 {
     if (type_ != Bareword) return false;
-    what.lowercase();
-    string w2 = strval_;
-    w2.lowercase();
-    return what == w2;
+    return what.caselessEqual(strval_);
 }
 
 void Expression::require(type_t t) const
@@ -86,14 +98,17 @@ void Expression::require_numeric() const
 	die("expected number, found " + typestr(type_, var_));
 }
 
-string Expression::as_string() const
+pstring Expression::as_string() const
 {
     if (is_textual() && is_constant())
 	return strval_;
     else if (is_textual())
 	return h.variable_data[intval_].str;
-    else if (is_numeric())
-	return str(as_int());
+    else if (is_numeric()) {
+	pstring rv;
+	rv.format("%d", as_int());
+	return rv;
+    }
     throw "Error: invalid expression type";
 }
 
@@ -106,7 +121,7 @@ int Expression::as_int() const
     else if (type_ == Int)
 	return h.variable_data[intval_].num;
     else if (is_textual())
-	return atoi(as_string().c_str());
+	return as_string();
     throw "Error: invalid expression type";
 }
 
@@ -143,13 +158,13 @@ void Expression::mutate(int newval, int offset, bool as_array)
 	require(Int, true);
 }
 
-void Expression::mutate(const string& newval)
+void Expression::mutate(const pstring& newval)
 {
     require(String, true);
     h.variable_data[intval_].str = newval;
 }
 
-void Expression::append(const string& newval)
+void Expression::append(const pstring& newval)
 {
     require(String, true);
     h.variable_data[intval_].str += newval;
@@ -158,7 +173,7 @@ void Expression::append(const string& newval)
 void Expression::append(wchar newval)
 {
     require(String, true);
-    h.variable_data[intval_].str += newval;
+    h.variable_data[intval_].str += encoding->Encode(newval);
 }
 
 Expression::Expression(ScriptHandler& sh)
@@ -179,7 +194,7 @@ Expression::Expression(ScriptHandler& sh, type_t t, bool is_v, int val,
 }
 
 Expression::Expression(ScriptHandler& sh, type_t t, bool is_v,
-		       const string& val)
+		       const pstring& val)
     : h(sh), type_(t), var_(is_v), strval_(val), intval_(0)
 {}
 
@@ -204,12 +219,12 @@ Expression ScriptHandler::readStrExpr(bool trace)
     // Currently this is a sane wrapper around the existing unsafe
     // plumbing.  It can be replaced with a safe implementation once
     // everything is going through a safe interface like this.
-    string s = readStr();
+    pstring s = readStr();
     if (current_variable.type == VAR_STR)
 	return Expression(*this, Expression::String, 1,
 			  current_variable.var_no);
     else if (current_variable.type & VAR_LABEL) {
-	s.shift();
+	s.remove(0, 1);
 	return Expression(*this, Expression::Label, 0, s);
     }
     else if (current_variable.type == VAR_NONE)
@@ -258,12 +273,12 @@ Expression ScriptHandler::readExpr()
     return e;
 }
 
-string ScriptHandler::readStrValue()
+pstring ScriptHandler::readStrValue()
 {
     return readStrExpr().as_string();
 }
 
-string ScriptHandler::readBareword()
+pstring ScriptHandler::readBareword()
 {
     Expression e = readStrExpr();
     e.require(Expression::Bareword, false);

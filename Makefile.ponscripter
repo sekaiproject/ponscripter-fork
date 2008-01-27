@@ -22,7 +22,8 @@ GUI_OBJS = PonscripterLabel$(OBJSUFFIX)					\
 	Fontinfo$(OBJSUFFIX) DirtyRect$(OBJSUFFIX)			\
 	resize_image$(OBJSUFFIX) encoding$(OBJSUFFIX)			\
 	font$(OBJSUFFIX) $(if $(NO_RESOURCES), ,resources$(OBJSUFFIX))  \
-	pstring$(OBJSUFFIX) cp932_encoding$(OBJSUFFIX) expression$(OBJSUFFIX)
+	bstrlib$(OBJSUFFIX) bstrwrap$(OBJSUFFIX) pstring$(OBJSUFFIX)    \
+	cp932_encoding$(OBJSUFFIX) expression$(OBJSUFFIX)
 DECODER_OBJS = DirectReader$(OBJSUFFIX) SarReader$(OBJSUFFIX)	\
 	NsaReader$(OBJSUFFIX)
 PONSCR_OBJS = Ponscripter$(OBJSUFFIX) $(DECODER_OBJS)		\
@@ -30,7 +31,8 @@ PONSCR_OBJS = Ponscripter$(OBJSUFFIX) $(DECODER_OBJS)		\
 	ScriptParser_command$(OBJSUFFIX) $(GUI_OBJS) $(EXT_OBJS)
 PARSER_HEADER = $(EXTRADEPS) BaseReader.h SarReader.h NsaReader.h	\
 	DirectReader.h ScriptHandler.h ScriptParser.h AnimationInfo.h	\
-	Fontinfo.h DirtyRect.h pstring.h defs.h expression.h encoding.h
+	Fontinfo.h DirtyRect.h bstrlib.h bstrwrap.h pstring.h           \
+	defs.h expression.h encoding.h
 PONSCR_HEADER = font.h PonscripterLabel.h $(PARSER_HEADER)
 
 ponscr$(EXESUFFIX): $(PONSCR_OBJS)
@@ -73,7 +75,9 @@ AVIWrapper$(OBJSUFFIX): AVIWrapper.h
 encoding$(OBJSUFFIX): defs.h pstring.h encoding.h
 cp932_encoding$(OBJSUFFIX): pstring.h encoding.h cp932_tables.h
 expression$(OBJSUFFIX): $(PONSCR_HEADER)
-pstring$(OBJSUFFIX): $(PONSCR_HEADER)
+bstrlib$(OBJSUFFIX): bstrlib.h
+bstrwrap$(OBJSUFFIX): bstrlib.h bstrwrap.h
+pstring$(OBJSUFFIX): bstrlib.h bstrwrap.h pstring.h defs.h encoding.h
 font$(OBJSUFFIX): font.h
 
 ifndef NO_DEFAULT_ICON

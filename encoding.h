@@ -37,57 +37,73 @@ const int Bold    = 2;
 const int Sans    = 4;
 
 // Ligature control
-void AddLigature(const string& in, wchar out);
-void DeleteLigature(const string& in);
+void AddLigature(const pstring& in, wchar out);
+void DeleteLigature(const pstring& in);
 void DefaultLigatures(int which);
 void ClearLigatures();
 
 class Encoding {
     const char textchar;
     const char* name;
-    std::stack<bool> usetags;
     bool tagscurr;
+protected:    
+    virtual wchar Decode_impl(const char* str, int& bytes, bool withligs) = 0;
+    virtual int Charsz_impl(const char* str, bool withligs) = 0;
 public:
     char TextMarker() const { return textchar; }
     bool UseTags() const { return tagscurr; }
 
-    void PushTagMode(bool ut) { usetags.push(tagscurr = ut); }
-    void PopTagMode() { usetags.pop(); tagscurr = usetags.top(); }
-    
-    virtual int CharacterBytes(const char* str) = 0;
-    virtual wchar Decode(const char* str, int& bytes) = 0;
-    virtual int Encode(wchar input, char* output) = 0;
-    virtual string Encode(wchar input) = 0;
-    // Previous is O(1) for UTF-8, but may be O(n) for encodings like CP932.
-    virtual const char* Previous(const char* currpos, const char* strstart) = 0;
-    size_t CharacterCount(const char* str);
-    void SetStyle(int& style, const char flag);
-    string TranslateTag(const char* flags, int& in_len);
+    int NextCharSize(const char* str, bool withligs = false)
+	{ return Charsz_impl(str, withligs); }
+    int NextCharSizeWithLigatures(const char* str)
+	{ return Charsz_impl(str, true); }
 
-    const string which() const;
+    virtual int Encode(wchar input, char* output) = 0;
+    virtual pstring Encode(wchar input) = 0;
+
+    wchar DecodeChar(const char* str, bool withligs = false)
+	{ int bytes; return Decode_impl(str, bytes, withligs); }
+    wchar DecodeChar(const char* str, int& bytes, bool withligs = false)
+	{ return Decode_impl(str, bytes, withligs); }
+    wchar DecodeWithLigatures(const char* str, int& bytes)
+	{ return Decode_impl(str, bytes, true); }
+    wchar DecodeWithLigatures(const char* str)
+	{ int bytes; return Decode_impl(str, bytes, true); }
+    
+    // Previous is O(1) for UTF-8, but may be O(n) for encodings like CP932.
+    // It never takes ligatures into account.
+    virtual const char* Previous(const char* currpos, const char* strstart) = 0;
+
+    size_t CharacterCount(const char* str, bool withligs);
+    void SetStyle(int& style, const char flag);
+    pstring TranslateTag(const char* flags, int& in_len);
+
+    const pstring which() const;
     
     Encoding(char tc, bool ut, const char* n)
-	: textchar(tc), name(n) { usetags.push(ut); }
+	: textchar(tc), name(n), tagscurr(ut) {}
     virtual ~Encoding() {}
 };
 
 class UTF8Encoding : public Encoding {
+protected:
+    wchar Decode_impl(const char* str, int& bytes, bool withligs);
+    int Charsz_impl(const char* str, bool withligs);
 public:
-    int CharacterBytes(const char* str);
-    wchar Decode(const char* str, int& bytes);    
     int Encode(wchar input, char* output);
-    string Encode(wchar input);
+    pstring Encode(wchar input);
     const char* Previous(const char* str, const char* min = 0);
 
     UTF8Encoding() : Encoding('^', true, "utf8") {}
 };
 
 class CP932Encoding : public Encoding {
+protected:
+    wchar Decode_impl(const char* str, int& bytes, bool withligs);
+    int Charsz_impl(const char* str, bool withligs);
 public:
-    int CharacterBytes(const char* str);
-    wchar Decode(const char* str, int& bytes);
     int Encode(wchar input, char* output);
-    string Encode(wchar input);
+    pstring Encode(wchar input);
     const char* Previous(const char* str, const char* min = 0);
 
     CP932Encoding() : Encoding('`', false, "cp932") {}

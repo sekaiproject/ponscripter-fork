@@ -48,14 +48,15 @@ extern "C" void c2pstrcpy(Str255 dst, const char* src);
 
 void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
 {
-    string filename;
+    save_file_info.num_str
+	= script_h.stringFromInteger(no, num_save_file >= 10 ? 2 : 1);
 
-    save_file_info.num_str = script_h.stringFromInteger(no, num_save_file >= 10 ? 2 : 1);
+    pstring filename;
+    filename.format("%ssave$d.dat", (const char*) script_h.save_path, no);
 #if defined (LINUX) || defined (MACOSX)
-    filename = script_h.save_path + "save" + str(no) + ".dat";
     struct stat buf;
     struct tm*  tm;
-    if (stat(filename.c_str(), &buf) != 0) {
+    if (stat(filename, &buf) != 0) {
         save_file_info.valid = false;
         return;
     }
@@ -67,12 +68,11 @@ void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
     save_file_info.hour   = tm->tm_hour;
     save_file_info.minute = tm->tm_min;
 #elif defined (WIN32)
-    filename = script_h.save_path + "save" + str(no) + ".dat";    
     HANDLE     handle;
     FILETIME   tm, ltm;
     SYSTEMTIME stm;
 
-    handle = CreateFile(filename.c_str(), GENERIC_READ, 0, NULL,
+    handle = CreateFile(filename, GENERIC_READ, 0, NULL,
                  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (handle == INVALID_HANDLE_VALUE) {
         save_file_info.valid = false;
@@ -89,9 +89,8 @@ void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
     save_file_info.hour   = stm.wHour;
     save_file_info.minute = stm.wMinute;
 #elif defined (PSP)
-    filename = script_h.save_path + "save" + str(no) + ".dat";    
     SceIoStat buf;
-    if (sceIoGetstat(filename.c_str(), &buf) < 0) {
+    if (sceIoGetstat(filename, &buf) < 0) {
         save_file_info.valid = false;
         return;
     }
@@ -101,7 +100,6 @@ void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
     save_file_info.hour   = buf.st_mtime.hour;
     save_file_info.minute = buf.st_mtime.minute;
 #else
-    filename = script_h.save_path + "save" + str(no) + ".dat";        
     FILE* fp;
     if ((fp = fopen(filename, "rb")) == NULL) {
         save_file_info.valid = false;
@@ -120,9 +118,10 @@ void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
 
 int PonscripterLabel::loadSaveFile(int no)
 {
-    string filename = "save" + str(no) + ".dat";
+    pstring filename;
+    filename.format("save%d.dat", no);
     if (loadFileIOBuf(filename)) {
-        fprintf(stderr, "can't open save file %s\n", filename.c_str());
+        fprintf(stderr, "can't open save file save%d.dat\n", no);
         return -1;
     }
 
@@ -169,7 +168,9 @@ int PonscripterLabel::loadSaveFile(int no)
     }
 
     if (file_version > SAVEFILE_VERSION_MAJOR * 100 + SAVEFILE_VERSION_MINOR) {
-        fprintf(stderr, "Save file is newer than %d.%d, please use the latest Ponscripter.\n", SAVEFILE_VERSION_MAJOR, SAVEFILE_VERSION_MINOR);
+        fprintf(stderr, "Save file is newer than %d.%d, please use the "
+		"latest Ponscripter.\n",
+		SAVEFILE_VERSION_MAJOR, SAVEFILE_VERSION_MINOR);
         return -1;
     }
 
@@ -209,18 +210,18 @@ int PonscripterLabel::saveSaveFile(int no)
     if (no >= 0) {
         saveAll();
 
-	string filename = "save" + str(no) + ".dat";
+	pstring filename;
+	filename.format("save%d.dat", no);
         memcpy(file_io_buf, save_data_buf, save_data_len);
         file_io_buf_ptr = save_data_len;
         if (saveFileIOBuf(filename)) {
-            fprintf(stderr, "can't open save file %s for writing\n", filename.c_str());
+            fprintf(stderr, "can't open save file save%d.dat for writing\n",
+		    no);
             return -1;
         }
 
         size_t magic_len = 5;
-	filename = "sav";
-	filename += DELIMITER;
-	filename += "save" + str(no) + ".dat";
+	filename.format("sav" DELIMITER "save%d.dat", no);
         saveFileIOBuf(filename, magic_len);
     }
 

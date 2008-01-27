@@ -45,12 +45,12 @@ public:
     struct ScriptFilename {
 	typedef std::vector<ScriptFilename> vec;
 	typedef vec::iterator iterator;
-	string filename;
+	pstring filename;
 	int encryption;
 	encoding_t encoding;
 	ScriptFilename(const char* f, int e, encoding_t c)
 	    : filename(f), encryption(e), encoding(c) {}
-	string to_string() const { return filename; }
+	pstring to_string() const { return filename; }
     };
     ScriptFilename::vec script_filenames;
     
@@ -60,8 +60,8 @@ public:
     struct LabelInfo {
 	typedef std::vector<LabelInfo> vec;
 	typedef vec::iterator iterator;
-	typedef dictionary<string, iterator>::t dic;
-	string name;
+	typedef dictionary<pstring, iterator>::t dic;
+	pstring name;
         const char* label_header;
         const char* start_address;
         int start_line;
@@ -126,8 +126,8 @@ public:
     // saner parser functions :)
     // Implementations in expression.cpp
     bool hasMoreArgs();
-    string readStrValue();
-    string readBareword();
+    pstring readStrValue();
+    pstring readBareword();
     int readIntValue();
     Expression readStrExpr(bool trace = false);
     Expression readIntExpr();
@@ -135,8 +135,27 @@ public:
     char checkPtr();
 
     // function for string access
-    inline string& getStringBuffer() { return string_buffer; }
-    void addStringBuffer(char ch) { string_buffer += ch; }
+    inline pstring& getStrBuf() {
+	return string_buffer;
+    }
+    inline const char* getStrBuf(int offset) {
+	if (offset < 0 || offset > string_buffer.length()) {
+	    fprintf(stderr, "getStrBuf outside buffer (offs %d, len %u)\n",
+		    offset, string_buffer.length());
+	    if (offset < 0) offset = 0;
+	    else offset = string_buffer.length() - 1;
+	}
+	return ((const char*)string_buffer) + offset;
+    }
+    inline char readStrBuf(int offset) {
+	if (offset < 0 || offset > string_buffer.length()) {
+	    fprintf(stderr, "readStrBuf outside buffer (offs %d, len %u)\n",
+		    offset, string_buffer.length());
+	    return 0;
+	}
+	return string_buffer[offset];
+    }
+    void addStrBuf(char ch) { string_buffer += ch; }
 
     // function for direct manipulation of script address
     inline const char* getCurrent() { return current_script; };
@@ -175,39 +194,40 @@ public:
     void declareDim();
 
     void enableTextgosub(bool val);
-    void setClickstr(string values);
+    void setClickstr(pstring values);
     int  checkClickstr(const char* buf, bool recursive_flag = false);
 
     void setNumVariable(int no, int val);
 
-    string stringFromInteger(int no, int num_column,
+    pstring stringFromInteger(int no, int num_column,
 			     bool is_zero_inserted = false);
     
     int readScriptSub(FILE* fp, char** buf, int encrypt_mode);
-    int readScript(const string& path);
+    int readScript(const pstring& path);
     int labelScript();
 
-    LabelInfo lookupLabel(const string& label);
-    LabelInfo lookupLabelNext(const string& label);
-    void errorAndExit(string str);
+    LabelInfo lookupLabel(const pstring& label);
+    LabelInfo lookupLabelNext(const pstring& label);
+    void errorAndExit(pstring str);
+    void errorWarning(pstring str);
 
     void loadArrayVariable(FILE* fp);
 
-    void addNumAlias(const string& str, int val)
+    void addNumAlias(const pstring& str, int val)
 	{ checkalias(str); num_aliases[str] = val; }
-    void addStrAlias(const string& str, const string& val)
+    void addStrAlias(const pstring& str, const pstring& val)
 	{ checkalias(str); str_aliases[str] = val; }
 
 
     class LogInfo {
-	typedef set<string>::t logged_t;
+	typedef set<pstring>::t logged_t;
 	logged_t logged;
-	typedef std::vector<const string*> ordered_t;
+	typedef std::vector<const pstring*> ordered_t;
 	ordered_t ordered;
     public:
-	string filename;
-	bool find(string what);
-	void add(string what);
+	pstring filename;
+	bool find(pstring what);
+	void add(pstring what);
 	void clear() { ordered.clear(); logged.clear(); }
 	void write(ScriptHandler& h);
 	void read(ScriptHandler& h);
@@ -220,7 +240,7 @@ public:
         bool num_limit_flag;
         int num_limit_upper;
         int num_limit_lower;
-        string str;
+        pstring str;
 
         VariableData() {
             reset(true);
@@ -231,7 +251,7 @@ public:
             if (limit_reset_flag)
                 num_limit_flag = false;
 
-            if (str) str.clear();
+            if (str) str.trunc(0);
         };
     };
     std::vector<VariableData> variable_data;
@@ -245,8 +265,8 @@ public:
            SCREEN_SIZE_320x240 = 3 };
     int global_variable_border;
 
-    string game_identifier;
-    string save_path;
+    pstring game_identifier;
+    pstring save_path;
 
     static BaseReader* cBR;
 
@@ -259,10 +279,10 @@ private:
            OP_MOD     = 6  // 110
     };
 
-    LabelInfo::iterator findLabel(string label);
+    LabelInfo::iterator findLabel(pstring label);
 
     const char* checkComma(const char* buf);
-    string parseStr(const char** buf);
+    pstring parseStr(const char** buf);
     int  parseIntExpression(const char** buf);
     void readNextOp(const char** buf, int* op, int* num);
     int  calcArithmetic(int num1, int op, int num2);
@@ -271,18 +291,18 @@ private:
     
     /* ---------------------------------------- */
     /* Variable */
-    typedef dictionary<string, int>::t    numalias_t;
-    typedef dictionary<string, string>::t stralias_t;
-    void checkalias(const string& alias); // warns if an alias may cause trouble
+    typedef dictionary<pstring, int>::t    numalias_t;
+    typedef dictionary<pstring, pstring>::t stralias_t;
+    void checkalias(const pstring& alias);// warns if an alias may cause trouble
     numalias_t num_aliases;
     stralias_t str_aliases;
 
-    string archive_path;
+    pstring archive_path;
     int   script_buffer_length;
     char* script_buffer;
     char* tmp_script_buf;
 
-    string string_buffer; // updated only by readToken (is this true?)
+    pstring string_buffer; // updated only by readToken (is this true?)
 
     LabelInfo::vec label_info;
     LabelInfo::dic label_names;

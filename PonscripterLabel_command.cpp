@@ -35,7 +35,7 @@
 extern SDL_TimerID timer_mp3fadeout_id;
 extern "C" Uint32 SDLCALL mp3fadeoutCallback(Uint32 interval, void* param);
 
-int PonscripterLabel::waveCommand(const string& cmd)
+int PonscripterLabel::waveCommand(const pstring& cmd)
 {
     wavestopCommand("wavestop");
 
@@ -47,7 +47,7 @@ int PonscripterLabel::waveCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::wavestopCommand(const string& cmd)
+int PonscripterLabel::wavestopCommand(const pstring& cmd)
 {
     if (wave_sample[MIX_WAVE_CHANNEL]) {
         Mix_Pause(MIX_WAVE_CHANNEL);
@@ -55,20 +55,20 @@ int PonscripterLabel::wavestopCommand(const string& cmd)
         wave_sample[MIX_WAVE_CHANNEL] = NULL;
     }
 
-    wave_file_name.clear();
+    wave_file_name = "";
 
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::waittimerCommand(const string& cmd)
+int PonscripterLabel::waittimerCommand(const pstring& cmd)
 {
     startTimer(script_h.readIntValue() + internal_timer - SDL_GetTicks());
     return RET_WAIT;
 }
 
 
-int PonscripterLabel::waitCommand(const string& cmd)
+int PonscripterLabel::waitCommand(const pstring& cmd)
 {
     int count = script_h.readIntValue();
     if (skip_flag || draw_one_page_flag || ctrl_pressed_status || skip_to_wait)
@@ -78,7 +78,7 @@ int PonscripterLabel::waitCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::vspCommand(const string& cmd)
+int PonscripterLabel::vspCommand(const pstring& cmd)
 {
     int no = script_h.readIntValue();
     sprite_info[no].visible = script_h.readIntValue() == 1;
@@ -87,7 +87,7 @@ int PonscripterLabel::vspCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::voicevolCommand(const string& cmd)
+int PonscripterLabel::voicevolCommand(const pstring& cmd)
 {
     voice_volume = script_h.readIntValue();
     if (wave_sample[0]) Mix_Volume(0, se_volume * 128 / 100);
@@ -95,17 +95,15 @@ int PonscripterLabel::voicevolCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::vCommand(const string& cmd)
+int PonscripterLabel::vCommand(const pstring& cmd)
 {
-    string lcmd = cmd;
-    lcmd.shift();
-    playSound("wav" DELIMITER + lcmd, SOUND_WAVE | SOUND_OGG, false,
-	      MIX_WAVE_CHANNEL);
+    playSound("wav" DELIMITER + cmd.midstr(1, cmd.length()),
+	      SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::trapCommand(const string& cmd)
+int PonscripterLabel::trapCommand(const pstring& cmd)
 {
     if (cmd == "lr_trap")
         trap_mode = TRAP_LEFT_CLICK | TRAP_RIGHT_CLICK;
@@ -118,21 +116,22 @@ int PonscripterLabel::trapCommand(const string& cmd)
     else if (e.is_label())
         trap_dist = e.as_string();
     else
-        printf("%s: [%s] is not supported\n", cmd.c_str(),
-	       e.debug_string().c_str());
+        printf("%s: [%s] is not supported\n",
+	       (const char*) cmd,
+	       (const char*) e.debug_string());
 
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::textspeedCommand(const string& cmd)
+int PonscripterLabel::textspeedCommand(const pstring& cmd)
 {
     sentence_font.wait_time = script_h.readIntValue();
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::textshowCommand(const string& cmd)
+int PonscripterLabel::textshowCommand(const pstring& cmd)
 {
     dirty_rect.fill(screen_width, screen_height);
     refresh_shadow_text_mode = REFRESH_NORMAL_MODE
@@ -144,7 +143,7 @@ int PonscripterLabel::textshowCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::textonCommand(const string& cmd)
+int PonscripterLabel::textonCommand(const pstring& cmd)
 {
     text_on_flag = true;
     if (!(display_mode & TEXT_DISPLAY_MODE)) {
@@ -157,7 +156,7 @@ int PonscripterLabel::textonCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::textoffCommand(const string& cmd)
+int PonscripterLabel::textoffCommand(const pstring& cmd)
 {
     text_on_flag = false;
     if (display_mode & TEXT_DISPLAY_MODE) {
@@ -170,7 +169,7 @@ int PonscripterLabel::textoffCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::texthideCommand(const string& cmd)
+int PonscripterLabel::texthideCommand(const pstring& cmd)
 {
     dirty_rect.fill(screen_width, screen_height);
     refresh_shadow_text_mode = REFRESH_NORMAL_MODE | REFRESH_SHADOW_MODE;
@@ -180,14 +179,14 @@ int PonscripterLabel::texthideCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::textclearCommand(const string& cmd)
+int PonscripterLabel::textclearCommand(const pstring& cmd)
 {
     newPage(false);
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::texecCommand(const string& cmd)
+int PonscripterLabel::texecCommand(const pstring& cmd)
 {
     if (textgosub_clickstr_state == CLICK_NEWPAGE) {
         newPage(true);
@@ -206,14 +205,14 @@ int PonscripterLabel::texecCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::tateyokoCommand(const string& cmd)
+int PonscripterLabel::tateyokoCommand(const pstring& cmd)
 {
     sentence_font.setTateYoko(script_h.readIntValue());
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::talCommand(const string& cmd)
+int PonscripterLabel::talCommand(const pstring& cmd)
 {
     int ret = leaveTextDisplayMode();
     if (ret != RET_NOMATCH) return ret;
@@ -245,12 +244,12 @@ int PonscripterLabel::talCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::tablegotoCommand(const string& cmd)
+int PonscripterLabel::tablegotoCommand(const pstring& cmd)
 {
     int count = 0;
     int no = script_h.readIntValue();
     while (script_h.hasMoreArgs()) {
-        string buf = script_h.readStrValue();
+        pstring buf = script_h.readStrValue();
         if (count++ == no) {
 	    setCurrentLabel(buf);
 	    break;
@@ -260,7 +259,7 @@ int PonscripterLabel::tablegotoCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::systemcallCommand(const string& cmd)
+int PonscripterLabel::systemcallCommand(const pstring& cmd)
 {
     system_menu_mode = getSystemCallNo(script_h.readStrValue());
     enterSystemCall();
@@ -269,7 +268,7 @@ int PonscripterLabel::systemcallCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::strspCommand(const string& cmd)
+int PonscripterLabel::strspCommand(const pstring& cmd)
 {
     int sprite_no = script_h.readIntValue();
     AnimationInfo* ai = &sprite_info[sprite_no];
@@ -311,7 +310,7 @@ int PonscripterLabel::strspCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::stopCommand(const string& cmd)
+int PonscripterLabel::stopCommand(const pstring& cmd)
 {
     stopBGM(false);
     wavestopCommand("wavestop");
@@ -320,7 +319,7 @@ int PonscripterLabel::stopCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::sp_rgb_gradationCommand(const string& cmd)
+int PonscripterLabel::sp_rgb_gradationCommand(const pstring& cmd)
 {
     int no = script_h.readIntValue();
     int upper_r  = script_h.readIntValue();
@@ -417,14 +416,14 @@ int PonscripterLabel::sp_rgb_gradationCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::spstrCommand(const string& cmd)
+int PonscripterLabel::spstrCommand(const pstring& cmd)
 {
     decodeExbtnControl(script_h.readStrValue());
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::spreloadCommand(const string& cmd)
+int PonscripterLabel::spreloadCommand(const pstring& cmd)
 {
     int no = script_h.readIntValue();
     AnimationInfo* si;
@@ -441,17 +440,18 @@ int PonscripterLabel::spreloadCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::splitCommand(const string& cmd)
+int PonscripterLabel::splitCommand(const pstring& cmd)
 {
-    string buf = script_h.readStrValue();
-    string delimiter = script_h.readStrValue();
-    delimiter.erase(encoding->CharacterBytes(delimiter.c_str()));
-    string::vector parts = buf.split(delimiter);
-    string::vector::const_iterator it = parts.begin();
+    pstring buf = script_h.readStrValue();
+    pstring delimiter = script_h.readStrValue();
+    delimiter.trunc(encoding->NextCharSize(delimiter));
+    CBStringList parts = buf.splitstr(delimiter);
+   
+    CBStringList::const_iterator it = parts.begin();
     while (script_h.hasMoreArgs()) {
 	Expression e = script_h.readExpr();
 	if (e.is_numeric())
-	    e.mutate(it == parts.end() ? 0 : atoi(it->c_str()));
+	    e.mutate(it == parts.end() ? 0 : atoi(*it));
 	else
 	    e.mutate(it == parts.end() ? "" : *it);
 	++it;
@@ -460,7 +460,7 @@ int PonscripterLabel::splitCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::spclclkCommand(const string& cmd)
+int PonscripterLabel::spclclkCommand(const pstring& cmd)
 {
     if (!force_button_shortcut_flag)
         spclclk_flag = true;
@@ -469,7 +469,7 @@ int PonscripterLabel::spclclkCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::spbtnCommand(const string& cmd)
+int PonscripterLabel::spbtnCommand(const pstring& cmd)
 {
     bool cellcheck_flag = cmd == "cellcheckspbtn";
 
@@ -500,7 +500,7 @@ int PonscripterLabel::spbtnCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::skipoffCommand(const string& cmd)
+int PonscripterLabel::skipoffCommand(const pstring& cmd)
 {
     skip_flag = false;
 
@@ -508,7 +508,7 @@ int PonscripterLabel::skipoffCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::sevolCommand(const string& cmd)
+int PonscripterLabel::sevolCommand(const pstring& cmd)
 {
     se_volume = script_h.readIntValue();
 
@@ -602,7 +602,7 @@ void PonscripterLabel::setwindowCore()
 }
 
 
-int PonscripterLabel::setwindow3Command(const string& cmd)
+int PonscripterLabel::setwindow3Command(const pstring& cmd)
 {
     setwindowCore();
 
@@ -616,9 +616,9 @@ int PonscripterLabel::setwindow3Command(const string& cmd)
 }
 
 
-int PonscripterLabel::setwindow2Command(const string& cmd)
+int PonscripterLabel::setwindow2Command(const pstring& cmd)
 {
-    string back = script_h.readStrValue();
+    pstring back = script_h.readStrValue();
     if (back[0] == '#') {
         sentence_font.is_transparent = true;
         sentence_font.window_color = readColour(back);
@@ -636,7 +636,7 @@ int PonscripterLabel::setwindow2Command(const string& cmd)
 }
 
 
-int PonscripterLabel::setwindowCommand(const string& cmd)
+int PonscripterLabel::setwindowCommand(const pstring& cmd)
 {
     setwindowCore();
 
@@ -650,20 +650,20 @@ int PonscripterLabel::setwindowCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::setcursorCommand(const string& cmd)
+int PonscripterLabel::setcursorCommand(const pstring& cmd)
 {
-    int no = script_h.readIntValue();
-    string cur = script_h.readStrValue();
-    int x = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    int y = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    int no    = script_h.readIntValue();
+    pstring c = script_h.readStrValue();
+    int x     = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    int y     = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
 
-    loadCursor(no, cur.c_str(), x, y, cmd == "abssetcursor");
+    loadCursor(no, c, x, y, cmd == "abssetcursor");
 
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::selectCommand(const string& cmd)
+int PonscripterLabel::selectCommand(const pstring& cmd)
 {
     int ret = enterTextDisplayMode();
     if (ret != RET_NOMATCH) return ret;
@@ -732,12 +732,12 @@ int PonscripterLabel::selectCommand(const string& cmd)
 
         while (1) {
             if (script_h.getNext()[0] != 0x0a && comma_flag == true) {
-                string text = script_h.readStrValue();
+                pstring text = script_h.readStrValue();
                 comma_flag = script_h.hasMoreArgs();
                 if (select_mode != SELECT_NUM_MODE && !comma_flag)
 		    errorAndExit(cmd + ": comma is needed here.");
 
-		string label;
+		pstring label;
                 if (select_mode != SELECT_NUM_MODE)
                     label = script_h.readStrValue();
 
@@ -810,7 +810,7 @@ int PonscripterLabel::selectCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::savetimeCommand(const string& cmd)
+int PonscripterLabel::savetimeCommand(const pstring& cmd)
 {
     SaveFileInfo info;
     searchSaveFile(info, script_h.readIntValue());
@@ -829,25 +829,26 @@ int PonscripterLabel::savetimeCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::savescreenshotCommand(const string& cmd)
+int PonscripterLabel::savescreenshotCommand(const pstring& cmd)
 {
-    string filename = script_h.readStrValue();
-    string ext = filename.substr(filename.rfind('.'));
-    ext.lowercase();
-    if (ext == ".bmp") {
+    pstring filename = script_h.readStrValue();
+    pstring ext = file_extension(filename);
+    ext.toupper();
+    if (ext == "BMP") {
 	filename = archive_path + filename;
-	filename.replace('/', DELIMITER[0]);
-	filename.replace('\\', DELIMITER[0]);	
-        SDL_SaveBMP(screenshot_surface, filename.c_str());
+	replace_ascii(filename, '/', DELIMITER[0]);
+	replace_ascii(filename, '\\', DELIMITER[0]);
+        SDL_SaveBMP(screenshot_surface, filename);
     }
     else
-        printf("%s: %s files are not supported.\n", cmd.c_str(), ext.c_str());
+        printf("%s: %s files are not supported.\n",
+	       (const char*) cmd, (const char*) ext);
 
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::saveonCommand(const string& cmd)
+int PonscripterLabel::saveonCommand(const pstring& cmd)
 {
     saveon_flag = true;
 
@@ -855,7 +856,7 @@ int PonscripterLabel::saveonCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::saveoffCommand(const string& cmd)
+int PonscripterLabel::saveoffCommand(const pstring& cmd)
 {
     saveon_flag = false;
 
@@ -863,7 +864,7 @@ int PonscripterLabel::saveoffCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::savegameCommand(const string& cmd)
+int PonscripterLabel::savegameCommand(const pstring& cmd)
 {
     int no = script_h.readIntValue();
     if (no < 0)
@@ -876,7 +877,7 @@ int PonscripterLabel::savegameCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::savefileexistCommand(const string& cmd)
+int PonscripterLabel::savefileexistCommand(const pstring& cmd)
 {
     Expression e = script_h.readIntExpr();
     SaveFileInfo info;
@@ -886,7 +887,7 @@ int PonscripterLabel::savefileexistCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::rndCommand(const string& cmd)
+int PonscripterLabel::rndCommand(const pstring& cmd)
 {
     int upper, lower;
     Expression e = script_h.readIntExpr();
@@ -904,21 +905,21 @@ int PonscripterLabel::rndCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::rmodeCommand(const string& cmd)
+int PonscripterLabel::rmodeCommand(const pstring& cmd)
 {
     rmode_flag = script_h.readIntValue() == 1;
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::resettimerCommand(const string& cmd)
+int PonscripterLabel::resettimerCommand(const pstring& cmd)
 {
     internal_timer = SDL_GetTicks();
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::resetCommand(const string& cmd)
+int PonscripterLabel::resetCommand(const pstring& cmd)
 {
     resetSub();
     clearCurrentTextBuffer();
@@ -930,7 +931,7 @@ int PonscripterLabel::resetCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::repaintCommand(const string& cmd)
+int PonscripterLabel::repaintCommand(const pstring& cmd)
 {
     dirty_rect.fill(screen_width, screen_height);
     flush(refreshMode());
@@ -939,7 +940,7 @@ int PonscripterLabel::repaintCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::quakeCommand(const string& cmd)
+int PonscripterLabel::quakeCommand(const pstring& cmd)
 {
     int quake_type;
 
@@ -978,18 +979,18 @@ int PonscripterLabel::quakeCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::puttextCommand(const string& cmd)
+int PonscripterLabel::puttextCommand(const pstring& cmd)
 {
     int ret = enterTextDisplayMode(false);
     if (ret != RET_NOMATCH) return ret;
 
-    string s = script_h.readStrValue() + "\n";
-    if (s[0] == encoding->TextMarker()) s.shift();
+    pstring s = script_h.readStrValue() + "\n";
+    if (s[0] == encoding->TextMarker()) s.remove(0, 1);
 
-    script_h.getStringBuffer() = s;
+    script_h.getStrBuf() = s;
     string_buffer_offset = 0;
     ret = processText();
-    if (script_h.getStringBuffer()[string_buffer_offset] == 0x0a) {
+    if (script_h.readStrBuf(string_buffer_offset) == 0x0a) {
         ret = RET_CONTINUE; // suppress RET_CONTINUE | RET_NOREAD
         if (!sentence_font.isLineEmpty() && !new_line_skip_flag) {
             current_text_buffer->addBuffer(0x0a);
@@ -1007,7 +1008,7 @@ int PonscripterLabel::puttextCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::prnumclearCommand(const string& cmd)
+int PonscripterLabel::prnumclearCommand(const pstring& cmd)
 {
     for (int i = 0; i < MAX_PARAM_NUM; i++) {
         if (prnum_info[i]) {
@@ -1021,7 +1022,7 @@ int PonscripterLabel::prnumclearCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::prnumCommand(const string& cmd)
+int PonscripterLabel::prnumCommand(const pstring& cmd)
 {
     int no = script_h.readIntValue();
     if (prnum_info[no]) {
@@ -1053,7 +1054,7 @@ int PonscripterLabel::prnumCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::printCommand(const string& cmd)
+int PonscripterLabel::printCommand(const pstring& cmd)
 {
     int ret = leaveTextDisplayMode();
     if (ret != RET_NOMATCH) return ret;
@@ -1067,20 +1068,20 @@ int PonscripterLabel::printCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::playstopCommand(const string& cmd)
+int PonscripterLabel::playstopCommand(const pstring& cmd)
 {
     stopBGM(false);
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::playCommand(const string& cmd)
+int PonscripterLabel::playCommand(const pstring& cmd)
 {
-    string buf = script_h.readStrValue();
+    pstring buf = script_h.readStrValue();
     if (buf[0] == '*') {
 	cd_play_loop_flag = cmd != "playonce";
-	buf.shift();
-        int new_cd_track = atoi(buf.c_str());
+	buf.remove(0, 1);
+        int new_cd_track = buf;
 #ifdef CONTINUOUS_PLAY
         if (current_cd_track != new_cd_track) {
 #endif
@@ -1099,14 +1100,14 @@ int PonscripterLabel::playCommand(const string& cmd)
         if (playSound(midi_file_name, SOUND_MIDI,
 		      midi_play_loop_flag) != SOUND_MIDI)
             fprintf(stderr, "can't play MIDI file %s\n",
-		    midi_file_name.c_str());
+		    (const char*) midi_file_name);
     }
 
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::ofscopyCommand(const string& cmd)
+int PonscripterLabel::ofscopyCommand(const pstring& cmd)
 {
     SDL_BlitSurface(screen_surface, NULL, accumulation_surface, NULL);
 
@@ -1114,7 +1115,7 @@ int PonscripterLabel::ofscopyCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::negaCommand(const string& cmd)
+int PonscripterLabel::negaCommand(const pstring& cmd)
 {
     nega_mode = script_h.readIntValue();
     dirty_rect.fill(screen_width, screen_height);
@@ -1123,7 +1124,7 @@ int PonscripterLabel::negaCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::mspCommand(const string& cmd)
+int PonscripterLabel::mspCommand(const pstring& cmd)
 {
     int no = script_h.readIntValue();
     dirty_rect.add(sprite_info[no].pos);
@@ -1141,7 +1142,7 @@ int PonscripterLabel::mspCommand(const string& cmd)
     return RET_CONTINUE;
 }
 
-void SubtitleDefs::add(int n, float t, string x)
+void SubtitleDefs::add(int n, float t, pstring x)
 {
     sorted = false;
     Subtitle sub;
@@ -1188,48 +1189,52 @@ void SubtitleDefs::sort()
     std::sort(text.begin(), text.end(), sublessthan);
 }
 
-SubtitleDefs PonscripterLabel::parseSubtitles(string file)
+SubtitleDefs PonscripterLabel::parseSubtitles(pstring file)
 {
     SubtitleDefs defs;
-    string::vector lines = ScriptHandler::cBR->getFile(file).split(0x0a);
-    for (string::vector::iterator it = lines.begin(); it != lines.end(); ++it) {
-	it->chomp(); it->ltrim();
+    CBStringList lines = ScriptHandler::cBR->getFile(file).split(0x0a);
+
+    for (CBStringList::iterator it = lines.begin(); it != lines.end(); ++it) {
+	it->trim();
 	if (!*it || (*it)[0] == ';') continue;
-	if (it->substr(0, 7) == "define ") {
-	    string::vector e = it->substr(7).split(',');
+	if (it->midstr(0, 7) == "define ") {
+	    CBStringList e = it->midstr(7, it->length()).split(',');
 	    if (e.size() > 2) {
-		int alpha = e.size() > 3 ? e[3].to_int() : 255;
+		int alpha = e.size() > 3 ? (int) e[3] : 255;
 		rgb_t col = readColour(e.size() > 2 ? e[2].trim() : "#FFFFFF");
-		defs.define(e[0].to_int(), col, e[1].to_int(), alpha);
+		defs.define(e[0], col, e[1], alpha);
 	    }
-	    else cerr << "Bad line in subtitle file: " + *it + eol;
+	    else fprintf(stderr, "Bad line in subtitle file: %s\n",
+			 (const char*) *it);
 	}
 	else {
-	    string::vector e = it->split(',', 4);
+	    CBStringList e = it->split(',', 4);
 	    if (e.size() == 4) {
-		defs.add(e[2].to_int(), e[0].to_float(), e[3].ltrim());
-		defs.add(e[2].to_int(), e[1].to_float(), "");
+		defs.add(e[2], e[0], e[3].ltrim());
+		defs.add(e[2], e[1], "");
 	    }
-	    else cerr << "Bad line in subtitle file: " + *it + eol;
+	    else fprintf(stderr, "Bad line in subtitle file: %s\n",
+			 (const char*) *it);
 	}
     }
     return defs;
 }
 
-int PonscripterLabel::mpegplayCommand(const string& cmd)
+int PonscripterLabel::mpegplayCommand(const pstring& cmd)
 {
-    string name = script_h.readStrValue();
-    bool cancel = script_h.readIntValue() == 1;
+    pstring name = script_h.readStrValue();
+    bool cancel  = script_h.readIntValue() == 1;
     SubtitleDefs subtitles;
     if (script_h.hasMoreArgs())
 	subtitles = parseSubtitles(script_h.readStrValue());
     stopBGM(false);
-    if (playMPEG(name, cancel, subtitles)) endCommand("end");
+    if (playMPEG(name, cancel, subtitles))
+	endCommand("end");
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::mp3volCommand(const string& cmd)
+int PonscripterLabel::mp3volCommand(const pstring& cmd)
 {
     music_volume = script_h.readIntValue();
 
@@ -1240,7 +1245,7 @@ int PonscripterLabel::mp3volCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::mp3fadeoutCommand(const string& cmd)
+int PonscripterLabel::mp3fadeoutCommand(const pstring& cmd)
 {
     mp3fadeout_start    = SDL_GetTicks();
     mp3fadeout_duration = script_h.readIntValue();
@@ -1252,7 +1257,7 @@ int PonscripterLabel::mp3fadeoutCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::mp3Command(const string& cmd)
+int PonscripterLabel::mp3Command(const pstring& cmd)
 {
     bool loop_flag = false;
     if (cmd == "mp3save") {
@@ -1281,7 +1286,7 @@ int PonscripterLabel::mp3Command(const string& cmd)
 }
 
 
-int PonscripterLabel::movemousecursorCommand(const string& cmd)
+int PonscripterLabel::movemousecursorCommand(const pstring& cmd)
 {
     int x = script_h.readIntValue();
     int y = script_h.readIntValue();
@@ -1292,7 +1297,7 @@ int PonscripterLabel::movemousecursorCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::monocroCommand(const string& cmd)
+int PonscripterLabel::monocroCommand(const pstring& cmd)
 {
     Expression e = script_h.readStrExpr();
     if (e.is_bareword("off")) {
@@ -1313,7 +1318,7 @@ int PonscripterLabel::monocroCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::menu_windowCommand(const string& cmd)
+int PonscripterLabel::menu_windowCommand(const pstring& cmd)
 {
     if (fullscreen_mode) {
 #if !defined (PSP)
@@ -1332,7 +1337,7 @@ int PonscripterLabel::menu_windowCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::menu_fullCommand(const string& cmd)
+int PonscripterLabel::menu_fullCommand(const pstring& cmd)
 {
     if (!fullscreen_mode) {
 #if !defined (PSP)
@@ -1351,7 +1356,7 @@ int PonscripterLabel::menu_fullCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::menu_automodeCommand(const string& cmd)
+int PonscripterLabel::menu_automodeCommand(const pstring& cmd)
 {
     automode_flag = true;
     skip_flag = false;
@@ -1361,7 +1366,7 @@ int PonscripterLabel::menu_automodeCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::lspCommand(const string& cmd)
+int PonscripterLabel::lspCommand(const pstring& cmd)
 {
     int no = script_h.readIntValue();
     if (sprite_info[no].visible)
@@ -1389,7 +1394,7 @@ int PonscripterLabel::lspCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::loopbgmstopCommand(const string& cmd)
+int PonscripterLabel::loopbgmstopCommand(const pstring& cmd)
 {
     if (wave_sample[MIX_LOOPBGM_CHANNEL0]) {
         Mix_Pause(MIX_LOOPBGM_CHANNEL0);
@@ -1403,13 +1408,13 @@ int PonscripterLabel::loopbgmstopCommand(const string& cmd)
         wave_sample[MIX_LOOPBGM_CHANNEL1] = NULL;
     }
 
-    loop_bgm_name[0].clear();
+    loop_bgm_name[0] = "";
 
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::loopbgmCommand(const string& cmd)
+int PonscripterLabel::loopbgmCommand(const pstring& cmd)
 {
     loop_bgm_name[0] = script_h.readStrValue();
     loop_bgm_name[1] = script_h.readStrValue();    
@@ -1423,7 +1428,7 @@ int PonscripterLabel::loopbgmCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::lookbackflushCommand(const string& cmd)
+int PonscripterLabel::lookbackflushCommand(const pstring& cmd)
 {
     current_text_buffer = current_text_buffer->next;
     for (int i = 0; i < max_text_buffer - 1; i++) {
@@ -1438,7 +1443,7 @@ int PonscripterLabel::lookbackflushCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::lookbackbuttonCommand(const string& cmd)
+int PonscripterLabel::lookbackbuttonCommand(const pstring& cmd)
 {
     for (int i = 0; i < 4; i++) {
         lookback_info[i].image_name = script_h.readStrValue();
@@ -1450,7 +1455,7 @@ int PonscripterLabel::lookbackbuttonCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::logspCommand(const string& cmd)
+int PonscripterLabel::logspCommand(const pstring& cmd)
 {
     int sprite_no = script_h.readIntValue();
 
@@ -1505,7 +1510,7 @@ int PonscripterLabel::logspCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::locateCommand(const string& cmd)
+int PonscripterLabel::locateCommand(const pstring& cmd)
 {
     int x = script_h.readIntValue();
     int y = script_h.readIntValue();
@@ -1521,7 +1526,7 @@ int PonscripterLabel::locateCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::loadgameCommand(const string& cmd)
+int PonscripterLabel::loadgameCommand(const pstring& cmd)
 {
     int no = script_h.readIntValue();
 
@@ -1563,7 +1568,7 @@ int PonscripterLabel::loadgameCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::ldCommand(const string& cmd)
+int PonscripterLabel::ldCommand(const pstring& cmd)
 {
     // TEST rca spriteanim patch
 #ifdef NO_RCA_CHANGES
@@ -1577,7 +1582,7 @@ int PonscripterLabel::ldCommand(const string& cmd)
     else if (loc.is_bareword("c")) no = 1;
     else if (loc.is_bareword("r")) no = 2;
 
-    string buf;
+    pstring buf;
     if (no >= 0) buf = script_h.readStrValue();
 
     if (event_mode & EFFECT_EVENT_MODE) {
@@ -1591,8 +1596,10 @@ int PonscripterLabel::ldCommand(const string& cmd)
             setupAnimationInfo(&tachi_info[no]);
             if (tachi_info[no].image_surface) {
                 tachi_info[no].visible = true;
-                tachi_info[no].pos.x = screen_width * (no + 1) / 4 - tachi_info[no].pos.w / 2;
-                tachi_info[no].pos.y = underline_value - tachi_info[no].image_surface->h + 1;
+                tachi_info[no].pos.x
+		    = screen_width * (no + 1) / 4 - tachi_info[no].pos.w / 2;
+                tachi_info[no].pos.y
+		    = underline_value - tachi_info[no].image_surface->h + 1;
                 dirty_rect.add(tachi_info[no].pos);
             }
         }
@@ -1602,7 +1609,7 @@ int PonscripterLabel::ldCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::jumpfCommand(const string& cmd)
+int PonscripterLabel::jumpfCommand(const pstring& cmd)
 {
     const char* buf = script_h.getNext();
     while (*buf != '\0' && *buf != '~') buf++;
@@ -1616,7 +1623,7 @@ int PonscripterLabel::jumpfCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::jumpbCommand(const string& cmd)
+int PonscripterLabel::jumpbCommand(const pstring& cmd)
 {
     script_h.setCurrent(last_tilde);
     current_label_info = script_h.getLabelByAddress(last_tilde);
@@ -1626,21 +1633,21 @@ int PonscripterLabel::jumpbCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::ispageCommand(const string& cmd)
+int PonscripterLabel::ispageCommand(const pstring& cmd)
 {
     script_h.readIntExpr().mutate(textgosub_clickstr_state == CLICK_NEWPAGE);
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::isfullCommand(const string& cmd)
+int PonscripterLabel::isfullCommand(const pstring& cmd)
 {
     script_h.readIntExpr().mutate(fullscreen_mode);
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::isskipCommand(const string& cmd)
+int PonscripterLabel::isskipCommand(const pstring& cmd)
 {
     script_h.readIntExpr().mutate(automode_flag         ? 2 :
 				  (skip_flag            ? 1 :
@@ -1650,22 +1657,22 @@ int PonscripterLabel::isskipCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::isdownCommand(const string& cmd)
+int PonscripterLabel::isdownCommand(const pstring& cmd)
 {
     script_h.readIntExpr().mutate(current_button_state.down_flag);
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::inputCommand(const string& cmd)
+int PonscripterLabel::inputCommand(const pstring& cmd)
 {
     Expression e = script_h.readStrExpr();
 
     script_h.readStrValue(); // description
 
     e.mutate(script_h.readStrValue());
-    printf("%s: %s is set to the default value, %s\n", cmd.c_str(),
-	   e.debug_string().c_str(), e.as_string().c_str());
+    printf("%s: %s is set to the default value, %s\n", (const char*) cmd,
+	   (const char*) e.debug_string(), (const char*) e.as_string());
 
     script_h.readIntValue(); // maxlen
     script_h.readIntValue(); // widechar flag
@@ -1680,7 +1687,7 @@ int PonscripterLabel::inputCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::indentCommand(const string& cmd)
+int PonscripterLabel::indentCommand(const pstring& cmd)
 {
     indent_offset = script_h.readIntValue();
     fprintf(stderr, " warning: [indent] command is broken\n");
@@ -1688,12 +1695,12 @@ int PonscripterLabel::indentCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::humanorderCommand(const string& cmd)
+int PonscripterLabel::humanorderCommand(const pstring& cmd)
 {
     int ret = leaveTextDisplayMode();
     if (ret != RET_NOMATCH) return ret;
 
-    string buf = script_h.readStrValue();
+    pstring buf = script_h.readStrValue();
     int i;
     for (i = 0; i < 3; i++) {
         if (buf[i] == 'l') human_order[i] = 0;
@@ -1714,7 +1721,7 @@ int PonscripterLabel::humanorderCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::getzxcCommand(const string& cmd)
+int PonscripterLabel::getzxcCommand(const pstring& cmd)
 {
     getzxc_flag = true;
 
@@ -1722,21 +1729,21 @@ int PonscripterLabel::getzxcCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::getvoicevolCommand(const string& cmd)
+int PonscripterLabel::getvoicevolCommand(const pstring& cmd)
 {
     script_h.readIntExpr().mutate(voice_volume);
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::getversionCommand(const string& cmd)
+int PonscripterLabel::getversionCommand(const pstring& cmd)
 {
     script_h.readIntExpr().mutate(NSC_VERSION);
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::gettimerCommand(const string& cmd)
+int PonscripterLabel::gettimerCommand(const pstring& cmd)
 {
     if (cmd == "gettimer")
 	script_h.readIntExpr().mutate(SDL_GetTicks() - internal_timer);
@@ -1747,19 +1754,16 @@ int PonscripterLabel::gettimerCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::gettextCommand(const string& cmd)
+int PonscripterLabel::gettextCommand(const pstring& cmd)
 {
-    string buf;
-    remove_copy(current_text_buffer->contents.begin(),
-		current_text_buffer->contents.end(),
-		buf.begin(),
-		0x0a);
+    pstring buf = current_text_buffer->contents;
+    buf.findreplace("\x0a", "");
     script_h.readStrExpr(true).mutate(buf);
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::gettagCommand(const string& cmd)
+int PonscripterLabel::gettagCommand(const pstring& cmd)
 {
     if (nest_infos.empty() || nest_infos.back().nest_mode != NestInfo::LABEL)
         errorAndExit("gettag: not in a subroutine, e.g. pretextgosub");
@@ -1768,7 +1772,7 @@ int PonscripterLabel::gettagCommand(const string& cmd)
     const char* buf = nest_infos.back().next_script;
     while (*buf == ' ' || *buf == '\t') buf++;
     int bytes;
-    if (zenkakko_flag && encoding->Decode(buf, bytes) == 0x3010 /*y */)
+    if (zenkakko_flag && encoding->DecodeChar(buf, bytes) == 0x3010 /*y */)
         buf += bytes;
     else if (*buf == '[')
         buf++;
@@ -1788,10 +1792,11 @@ int PonscripterLabel::gettagCommand(const string& cmd)
 	    const char* buf_start = buf;
 	    int bytes;
 	    while (*buf != '/' &&
-		   (!zenkakko_flag || encoding->Decode(buf, bytes) != 0x3011) &&
+		   (!zenkakko_flag ||
+		    encoding->DecodeChar(buf, bytes) != 0x3011) &&
 		   *buf != ']')
 		buf += bytes;
-	    e.mutate(string(buf_start, buf - buf_start));
+	    e.mutate(pstring(buf_start, buf - buf_start));
 	}
         if (*buf == '/')
             buf++;
@@ -1800,7 +1805,7 @@ int PonscripterLabel::gettagCommand(const string& cmd)
     }
     while (more_args);
 
-    if (zenkakko_flag && encoding->Decode(buf, bytes) == 0x3010 /*y */)
+    if (zenkakko_flag && encoding->DecodeChar(buf, bytes) == 0x3010 /*y */)
 	buf += bytes;
     else if (*buf == ']') buf++;
 
@@ -1811,7 +1816,7 @@ int PonscripterLabel::gettagCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::gettabCommand(const string& cmd)
+int PonscripterLabel::gettabCommand(const pstring& cmd)
 {
     gettab_flag = true;
 
@@ -1819,7 +1824,7 @@ int PonscripterLabel::gettabCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::getspsizeCommand(const string& cmd)
+int PonscripterLabel::getspsizeCommand(const pstring& cmd)
 {
     int no = script_h.readIntValue();
 
@@ -1834,7 +1839,7 @@ int PonscripterLabel::getspsizeCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::getspmodeCommand(const string& cmd)
+int PonscripterLabel::getspmodeCommand(const pstring& cmd)
 {
     Expression e = script_h.readIntExpr();
     e.mutate(sprite_info[script_h.readIntValue()].visible);
@@ -1842,14 +1847,14 @@ int PonscripterLabel::getspmodeCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::getsevolCommand(const string& cmd)
+int PonscripterLabel::getsevolCommand(const pstring& cmd)
 {
     script_h.readIntExpr().mutate(se_volume);
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::getscreenshotCommand(const string& cmd)
+int PonscripterLabel::getscreenshotCommand(const pstring& cmd)
 {
     int w = script_h.readIntValue();
     int h = script_h.readIntValue();
@@ -1877,7 +1882,7 @@ int PonscripterLabel::getscreenshotCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::getpageupCommand(const string& cmd)
+int PonscripterLabel::getpageupCommand(const pstring& cmd)
 {
     getpageup_flag = true;
 
@@ -1885,7 +1890,7 @@ int PonscripterLabel::getpageupCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::getpageCommand(const string& cmd)
+int PonscripterLabel::getpageCommand(const pstring& cmd)
 {
     getpageup_flag   = true;
     getpagedown_flag = true;
@@ -1894,7 +1899,7 @@ int PonscripterLabel::getpageCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::getretCommand(const string& cmd)
+int PonscripterLabel::getretCommand(const pstring& cmd)
 {
     Expression e = script_h.readExpr();
     if (e.is_numeric()) e.mutate(getret_int); else e.mutate(getret_str);
@@ -1902,58 +1907,65 @@ int PonscripterLabel::getretCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::getregCommand(const string& cmd)
+int PonscripterLabel::getregCommand(const pstring& cmd)
 {
-    Expression e = script_h.readStrExpr();
+    Expression ex = script_h.readStrExpr();
 
-    string path = "[" + script_h.readStrValue() + "]";
-    string key = script_h.readStrValue();
+    pstring path = "[" + script_h.readStrValue() + "]";
+    pstring key = script_h.readStrValue();
 
     FILE* fp;
-    if ((fp = fopen(registry_file.c_str(), "r")) == NULL &&
-	(fp = fopen((archive_path + registry_file).c_str(), "r")) == NULL) {
-        fprintf(stderr, "Cannot open file [%s]\n", registry_file.c_str());
+    if ((fp = fopen(registry_file, "r")) == NULL &&
+	(fp = fopen(archive_path + registry_file, "r")) == NULL) {
+        fprintf(stderr, "Cannot open file [%s]\n",
+		(const char*) registry_file);
         return RET_CONTINUE;
     }
-    string reg_buf;
+    pstring reg_buf;
     while (!feof(fp)) {
-	fp >> reg_buf;
+	reg_buf = "";
+	int c;
+	while ((c = fgetc(fp)) != EOF && c != '\n')
+	    reg_buf += (unsigned char) c;
 	if (reg_buf == path) {
 	    while (!feof(fp)) {
-		fp >> reg_buf;
-		string::iterator s, f;
-		s = reg_buf.begin();
-		while (s != reg_buf.end() && *s != '"') ++s;
-		if (s == reg_buf.end()) continue;
+		reg_buf = "";
+		while ((c = fgetc(fp)) != EOF && c != '\n')
+		    reg_buf += (unsigned char) c;
+		const char *s, *e, *f;
+		s = reg_buf;
+		e = s + reg_buf.length();
+		while (s != e && *s != '"') ++s;
+		if (s >= e) continue;
 		f = ++s;
-		while (f != reg_buf.end() && *f != '"') f += 1 + *f == '\\';
-		if (f == reg_buf.end() || string(s, f) != key) continue;
+		while (f != e && *f != '"') f += 1 + *f == '\\';
+		if (f >= e || pstring(s, f - s) != key) continue;
 		s = ++f;
-		while (s != reg_buf.end() && *s != '"') ++s;
-		if (s == reg_buf.end()) continue;
+		while (s != e && *s != '"') ++s;
+		if (s >= e) continue;
 		f = ++s;
-		while (f != reg_buf.end() && *f != '"') f += 1 + *f == '\\';
-		e.mutate(string(s, f));
+		while (f != e && *f != '"') f += 1 + *f == '\\';
+		ex.mutate(pstring(s, f - s));
 		fclose(fp);
 		return RET_CONTINUE;
 	    }
 	}
     }
     fprintf(stderr, "Registry key %s\\%s not found.\n",
-	    path.c_str(), key.c_str());
+	    (const char*) path, (const char*) key);
     fclose(fp);
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::getmp3volCommand(const string& cmd)
+int PonscripterLabel::getmp3volCommand(const pstring& cmd)
 {
     script_h.readIntExpr().mutate(music_volume);
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::getmouseposCommand(const string& cmd)
+int PonscripterLabel::getmouseposCommand(const pstring& cmd)
 {
     script_h.readIntExpr().mutate(current_button_state.x *
 				  screen_ratio2 / screen_ratio1);
@@ -1963,7 +1975,7 @@ int PonscripterLabel::getmouseposCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::getlogCommand(const string& cmd)
+int PonscripterLabel::getlogCommand(const pstring& cmd)
 {
     Expression e = script_h.readStrExpr();
     int page_no = script_h.readIntValue();
@@ -1977,28 +1989,28 @@ int PonscripterLabel::getlogCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::getinsertCommand(const string& cmd)
+int PonscripterLabel::getinsertCommand(const pstring& cmd)
 {
     getinsert_flag = true;
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::getfunctionCommand(const string& cmd)
+int PonscripterLabel::getfunctionCommand(const pstring& cmd)
 {
     getfunction_flag = true;
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::getenterCommand(const string& cmd)
+int PonscripterLabel::getenterCommand(const pstring& cmd)
 {
     if (!force_button_shortcut_flag) getenter_flag = true;
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::getcursorposCommand(const string& cmd)
+int PonscripterLabel::getcursorposCommand(const pstring& cmd)
 {
     script_h.readIntExpr().mutate(int(floor(sentence_font.GetX())));
     script_h.readIntExpr().mutate(sentence_font.GetY());
@@ -2006,14 +2018,14 @@ int PonscripterLabel::getcursorposCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::getcursorCommand(const string& cmd)
+int PonscripterLabel::getcursorCommand(const pstring& cmd)
 {
     if (!force_button_shortcut_flag) getcursor_flag = true;
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::getcselstrCommand(const string& cmd)
+int PonscripterLabel::getcselstrCommand(const pstring& cmd)
 {
     Expression e = script_h.readStrExpr();
     int csel_no = script_h.readIntValue();
@@ -2024,14 +2036,14 @@ int PonscripterLabel::getcselstrCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::getcselnumCommand(const string& cmd)
+int PonscripterLabel::getcselnumCommand(const pstring& cmd)
 {
     script_h.readIntExpr().mutate(int(select_links.size()));
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::gameCommand(const string& cmd)
+int PonscripterLabel::gameCommand(const pstring& cmd)
 {
     int i;
     current_mode = NORMAL_MODE;
@@ -2092,7 +2104,7 @@ int PonscripterLabel::gameCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::fileexistCommand(const string& cmd)
+int PonscripterLabel::fileexistCommand(const pstring& cmd)
 {
     Expression e = script_h.readIntExpr();
     e.mutate(ScriptHandler::cBR->getFileLength(script_h.readStrValue()) > 0);
@@ -2100,51 +2112,58 @@ int PonscripterLabel::fileexistCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::exec_dllCommand(const string& cmd)
+int PonscripterLabel::exec_dllCommand(const pstring& cmd)
 {
-    string dll_name = "[" + script_h.readStrValue().split("/", 2).at(0) + "]";
+    pstring dll_name = "[" + script_h.readStrValue().split("/", 2).at(0) + "]";
 
     FILE* fp;
-    if ((fp = fopen(dll_file.c_str(), "r")) == NULL &&
-	(fp = fopen((archive_path + dll_file).c_str(), "r")) == NULL) {
-        fprintf(stderr, "Cannot open file [%s]\n", dll_file.c_str());
+    if ((fp = fopen(dll_file, "r")) == NULL &&
+	(fp = fopen(archive_path + dll_file, "r")) == NULL) {
+        fprintf(stderr, "Cannot open file [%s]\n", (const char*) dll_file);
         return RET_CONTINUE;
     }
 
-    string dll_buf;
+    pstring dll_buf;
     while (!feof(fp)) {
-	fp >> dll_buf;
+	dll_buf = "";
+	int c;
+	while ((c = fgetc(fp)) != EOF && c != '\n')
+	    dll_buf += (unsigned char) c;
 	dll_buf.trim();
 	if (dll_buf == dll_name) {
-	    getret_str.clear();
+	    getret_str = "";
 	    getret_int = 0;
 	    while (!feof(fp)) {
-		fp >> dll_buf;
+		dll_buf = "";
+		while ((c = fgetc(fp)) != EOF && c != '\n')
+		    dll_buf += (unsigned char) c;
 		dll_buf.ltrim();
 		if (dll_buf[0] == '[') break;
-		string::vector parts = dll_buf.split("=", 2);
+		CBStringList parts = dll_buf.split("=", 2);
 		parts[0].trim();
 		parts[1].trim();
 		if (parts[0] == "str") {
-		    if (parts[1][0] == '"') parts[1].shift();
-		    if (parts[1].back() == '"') parts[1].pop();
+		    if (parts[1][0] == '"')
+			parts[1].remove(0, 1);
+		    if (parts[1][parts[1].length()] == '"')
+			parts[1].trunc(parts[1].length() - 1);
 		    getret_str = parts[1];
 		}
 		else if (parts[0] == "ret") {
-		    getret_int = atoi(parts[1].c_str());
+		    getret_int = parts[1];
 		}
 	    }
 	    fclose(fp);
 	    return RET_CONTINUE;
 	}
     }
-    fprintf(stderr, "The DLL is not found in %s.\n", dll_file.c_str());
+    fprintf(stderr, "The DLL is not found in %s.\n", (const char*) dll_file);
     fclose(fp);
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::exbtnCommand(const string& cmd)
+int PonscripterLabel::exbtnCommand(const pstring& cmd)
 {
     int sprite_no = -1, no = 0;
     ButtonElt* button = &exbtn_d_button;
@@ -2176,7 +2195,7 @@ int PonscripterLabel::exbtnCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::erasetextwindowCommand(const string& cmd)
+int PonscripterLabel::erasetextwindowCommand(const pstring& cmd)
 {
     erase_text_window_mode = script_h.readIntValue();
     dirty_rect.add(sentence_font_info.pos);
@@ -2184,7 +2203,7 @@ int PonscripterLabel::erasetextwindowCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::endCommand(const string& cmd)
+int PonscripterLabel::endCommand(const pstring& cmd)
 {
     quit();
     exit(0);
@@ -2192,7 +2211,7 @@ int PonscripterLabel::endCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::dwavestopCommand(const string& cmd)
+int PonscripterLabel::dwavestopCommand(const pstring& cmd)
 {
     int ch = script_h.readIntValue();
     if (wave_sample[ch]) {
@@ -2204,7 +2223,7 @@ int PonscripterLabel::dwavestopCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::dwaveCommand(const string& cmd)
+int PonscripterLabel::dwaveCommand(const pstring& cmd)
 {
     int play_mode  = WAVE_PLAY;
     bool loop_flag = false;
@@ -2241,17 +2260,15 @@ int PonscripterLabel::dwaveCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::dvCommand(const string& cmd)
+int PonscripterLabel::dvCommand(const pstring& cmd)
 {
-    string lcmd = cmd;
-    lcmd.shift();
-    lcmd.shift();
-    playSound("voice" DELIMITER + lcmd, SOUND_WAVE | SOUND_OGG, false, 0);
+    playSound("voice" DELIMITER + cmd.midstr(2, cmd.length()),
+	      SOUND_WAVE | SOUND_OGG, false, 0);
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::drawtextCommand(const string& cmd)
+int PonscripterLabel::drawtextCommand(const pstring& cmd)
 {
     SDL_Rect clip = { 0, 0, accumulation_surface->w, accumulation_surface->h };
     text_info.blendOnSurface(accumulation_surface, 0, 0, clip);
@@ -2260,7 +2277,7 @@ int PonscripterLabel::drawtextCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::drawsp3Command(const string& cmd)
+int PonscripterLabel::drawsp3Command(const pstring& cmd)
 {
     int sprite_no = script_h.readIntValue();
     int cell_no   = script_h.readIntValue();
@@ -2287,7 +2304,7 @@ int PonscripterLabel::drawsp3Command(const string& cmd)
 }
 
 
-int PonscripterLabel::drawsp2Command(const string& cmd)
+int PonscripterLabel::drawsp2Command(const pstring& cmd)
 {
     int sprite_no = script_h.readIntValue();
     int cell_no   = script_h.readIntValue();
@@ -2324,7 +2341,7 @@ int PonscripterLabel::drawsp2Command(const string& cmd)
 }
 
 
-int PonscripterLabel::drawspCommand(const string& cmd)
+int PonscripterLabel::drawspCommand(const pstring& cmd)
 {
     int sprite_no = script_h.readIntValue();
     int cell_no   = script_h.readIntValue();
@@ -2343,7 +2360,7 @@ int PonscripterLabel::drawspCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::drawfillCommand(const string& cmd)
+int PonscripterLabel::drawfillCommand(const pstring& cmd)
 {
     int r = script_h.readIntValue();
     int g = script_h.readIntValue();
@@ -2354,7 +2371,7 @@ int PonscripterLabel::drawfillCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::drawclearCommand(const string& cmd)
+int PonscripterLabel::drawclearCommand(const pstring& cmd)
 {
     SDL_FillRect(accumulation_surface, NULL,
 		 SDL_MapRGBA(accumulation_surface->format, 0, 0, 0, 0xff));
@@ -2362,7 +2379,7 @@ int PonscripterLabel::drawclearCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::drawbgCommand(const string& cmd)
+int PonscripterLabel::drawbgCommand(const pstring& cmd)
 {
     SDL_Rect clip = { 0, 0, accumulation_surface->w, accumulation_surface->h };
     bg_info.blendOnSurface(accumulation_surface, bg_info.pos.x, bg_info.pos.y,
@@ -2371,7 +2388,7 @@ int PonscripterLabel::drawbgCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::drawbg2Command(const string& cmd)
+int PonscripterLabel::drawbg2Command(const pstring& cmd)
 {
     int x       = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
     int y       = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
@@ -2400,7 +2417,7 @@ int PonscripterLabel::drawbg2Command(const string& cmd)
 }
 
 
-int PonscripterLabel::drawCommand(const string& cmd)
+int PonscripterLabel::drawCommand(const pstring& cmd)
 {
     SDL_Rect rect = { 0, 0, screen_width, screen_height };
     flushDirect(rect, REFRESH_NONE_MODE);
@@ -2410,7 +2427,7 @@ int PonscripterLabel::drawCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::delayCommand(const string& cmd)
+int PonscripterLabel::delayCommand(const pstring& cmd)
 {
     int t = script_h.readIntValue();
 
@@ -2427,7 +2444,7 @@ int PonscripterLabel::delayCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::defineresetCommand(const string& cmd)
+int PonscripterLabel::defineresetCommand(const pstring& cmd)
 {
     script_h.reset();
     ScriptParser::reset();
@@ -2439,7 +2456,7 @@ int PonscripterLabel::defineresetCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::cspCommand(const string& cmd)
+int PonscripterLabel::cspCommand(const pstring& cmd)
 {
     int no = script_h.readIntValue();
 
@@ -2468,7 +2485,7 @@ int PonscripterLabel::cspCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::cselgotoCommand(const string& cmd)
+int PonscripterLabel::cselgotoCommand(const pstring& cmd)
 {
     int csel_no = script_h.readIntValue();
     if (csel_no >= int(select_links.size()))
@@ -2482,7 +2499,7 @@ int PonscripterLabel::cselgotoCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::cselbtnCommand(const string& cmd)
+int PonscripterLabel::cselbtnCommand(const pstring& cmd)
 {
     int csel_no   = script_h.readIntValue();
     int button_no = script_h.readIntValue();
@@ -2492,7 +2509,7 @@ int PonscripterLabel::cselbtnCommand(const string& cmd)
     csel_info.top_y = script_h.readIntValue();
 
     if (csel_no >= (int)select_links.size()) return RET_CONTINUE;
-    const string& text = select_links[csel_no].text;
+    const pstring& text = select_links[csel_no].text;
     if (!text) return RET_CONTINUE;
 
     csel_info.setLineArea(int(ceil(csel_info.StringAdvance(text))));
@@ -2504,7 +2521,7 @@ int PonscripterLabel::cselbtnCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::clickCommand(const string& cmd)
+int PonscripterLabel::clickCommand(const pstring& cmd)
 {
     if (event_mode & WAIT_INPUT_MODE) {
         event_mode = IDLE_EVENT_MODE;
@@ -2519,7 +2536,7 @@ int PonscripterLabel::clickCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::clCommand(const string& cmd)
+int PonscripterLabel::clCommand(const pstring& cmd)
 {
     // TEST rca spriteanim patch
 #ifdef NO_RCA_CHANGES
@@ -2553,7 +2570,7 @@ int PonscripterLabel::clCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::chvolCommand(const string& cmd)
+int PonscripterLabel::chvolCommand(const pstring& cmd)
 {
     int ch  = script_h.readIntValue();
     int vol = script_h.readIntValue();
@@ -2562,7 +2579,7 @@ int PonscripterLabel::chvolCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::checkpageCommand(const string& cmd)
+int PonscripterLabel::checkpageCommand(const pstring& cmd)
 {
     Expression e = script_h.readIntExpr();
     int page_no = script_h.readIntValue();
@@ -2576,7 +2593,7 @@ int PonscripterLabel::checkpageCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::cellCommand(const string& cmd)
+int PonscripterLabel::cellCommand(const pstring& cmd)
 {
     int sprite_no = script_h.readIntValue();
     int no = script_h.readIntValue();
@@ -2588,15 +2605,15 @@ int PonscripterLabel::cellCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::captionCommand(const string& cmd)
+int PonscripterLabel::captionCommand(const pstring& cmd)
 {
-    string buf = script_h.readStrValue();
-    SDL_WM_SetCaption(buf.c_str(), buf.c_str());
+    pstring buf = script_h.readStrValue();
+    SDL_WM_SetCaption(buf, buf);
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::btnwaitCommand(const string& cmd)
+int PonscripterLabel::btnwaitCommand(const pstring& cmd)
 {
     bool del_flag = false, textbtn_flag = false;
 
@@ -2693,7 +2710,7 @@ int PonscripterLabel::btnwaitCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::btntimeCommand(const string& cmd)
+int PonscripterLabel::btntimeCommand(const pstring& cmd)
 {
     btntime2_flag = cmd == "btntime2";
     btntime_value = script_h.readIntValue();
@@ -2701,14 +2718,14 @@ int PonscripterLabel::btntimeCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::btndownCommand(const string& cmd)
+int PonscripterLabel::btndownCommand(const pstring& cmd)
 {
     btndown_flag = script_h.readIntValue() == 1;
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::btndefCommand(const string& cmd)
+int PonscripterLabel::btndefCommand(const pstring& cmd)
 {
     Expression e = script_h.readStrExpr();
     if (!e.is_bareword("clear")) {
@@ -2723,7 +2740,7 @@ int PonscripterLabel::btndefCommand(const string& cmd)
 			     SDL_ALPHA_OPAQUE);
 	    else
 		fprintf(stderr, "Could not create button: %s not found\n",
-			e.as_string().c_str());
+			(const char*) e.as_string());
         }
     }
     deleteButtons();
@@ -2732,7 +2749,7 @@ int PonscripterLabel::btndefCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::btnCommand(const string& cmd)
+int PonscripterLabel::btnCommand(const pstring& cmd)
 {
     SDL_Rect src_rect;
 
@@ -2777,7 +2794,7 @@ int PonscripterLabel::btnCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::brCommand(const string& cmd)
+int PonscripterLabel::brCommand(const pstring& cmd)
 {
     int delta = cmd == "br2" ? script_h.readIntValue()
 	                     : (script_h.is_ponscripter ? 50 : 100);
@@ -2791,19 +2808,19 @@ int PonscripterLabel::brCommand(const string& cmd)
     sentence_font.newLine();
     sentence_font.set_mod_size(cs);
 
-    current_text_buffer->addBuffer(0x17);
-    current_text_buffer->addBuffer(ns & 0x7f);
-    current_text_buffer->addBuffer((ns >> 7) & 0x7f);
+    int ignored;
+    pstring tag;
+    tag.format("=%d", ns);
+    current_text_buffer->addBuffer(encoding->TranslateTag(tag, ignored));
     current_text_buffer->addBuffer(0x0a);
-    current_text_buffer->addBuffer(0x17);
-    current_text_buffer->addBuffer(cs & 0x7f);
-    current_text_buffer->addBuffer((cs >> 7) & 0x7f);
+    tag.format("=%d", cs);
+    current_text_buffer->addBuffer(encoding->TranslateTag(tag, ignored));
 
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::bltCommand(const string& cmd)
+int PonscripterLabel::bltCommand(const pstring& cmd)
 {
     int dx, dy, dw, dh;
     int sx, sy, sw, sh;
@@ -2888,7 +2905,7 @@ int PonscripterLabel::bltCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::bgcopyCommand(const string& cmd)
+int PonscripterLabel::bgcopyCommand(const pstring& cmd)
 {
     SDL_BlitSurface(screen_surface, NULL, accumulation_surface, NULL);
     bg_effect_image = BG_EFFECT_IMAGE;
@@ -2903,7 +2920,7 @@ int PonscripterLabel::bgcopyCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::bgCommand(const string& cmd)
+int PonscripterLabel::bgCommand(const pstring& cmd)
 {
     int ret = leaveTextDisplayMode();
     if (ret != RET_NOMATCH) return ret;
@@ -2930,7 +2947,7 @@ int PonscripterLabel::bgCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::barclearCommand(const string& cmd)
+int PonscripterLabel::barclearCommand(const pstring& cmd)
 {
     for (int i = 0; i < MAX_PARAM_NUM; i++) {
         if (bar_info[i]) {
@@ -2944,7 +2961,7 @@ int PonscripterLabel::barclearCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::barCommand(const string& cmd)
+int PonscripterLabel::barCommand(const pstring& cmd)
 {
     int no = script_h.readIntValue();
     if (bar_info[no]) {
@@ -2985,30 +3002,30 @@ int PonscripterLabel::barCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::aviCommand(const string& cmd)
+int PonscripterLabel::aviCommand(const pstring& cmd)
 {
-    string name = script_h.readStrValue();
+    pstring name = script_h.readStrValue();
     stopBGM(false);
     playAVI(name, script_h.readIntValue() == 1);
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::automode_timeCommand(const string& cmd)
+int PonscripterLabel::automode_timeCommand(const pstring& cmd)
 {
     automode_time = script_h.readIntValue();
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::autoclickCommand(const string& cmd)
+int PonscripterLabel::autoclickCommand(const pstring& cmd)
 {
     autoclick_time = script_h.readIntValue();
     return RET_CONTINUE;
 }
 
 
-int PonscripterLabel::amspCommand(const string& cmd)
+int PonscripterLabel::amspCommand(const pstring& cmd)
 {
     int no = script_h.readIntValue();
     dirty_rect.add(sprite_info[no].pos);
@@ -3029,7 +3046,7 @@ int PonscripterLabel::amspCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::allspresumeCommand(const string& cmd)
+int PonscripterLabel::allspresumeCommand(const pstring& cmd)
 {
     all_sprite_hide_flag = false;
     for (int i = 0; i < MAX_SPRITE_NUM; i++) {
@@ -3041,7 +3058,7 @@ int PonscripterLabel::allspresumeCommand(const string& cmd)
 }
 
 
-int PonscripterLabel::allsphideCommand(const string& cmd)
+int PonscripterLabel::allsphideCommand(const pstring& cmd)
 {
     all_sprite_hide_flag = true;
     for (int i = 0; i < MAX_SPRITE_NUM; i++) {

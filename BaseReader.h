@@ -55,7 +55,7 @@ struct BaseReader {
     };
 
     struct FileInfo {
-        string name;
+        pstring name;
         int compression_type;
         size_t offset;
         size_t length;
@@ -66,7 +66,7 @@ struct BaseReader {
 	// FIXME: convert to an STL container
         ArchiveInfo* next;
         FILE* file_handle;
-        string file_name;
+        pstring file_name;
         FileInfo* fi_list;
         unsigned int num_of_files;
         unsigned long base_offset;
@@ -81,35 +81,36 @@ struct BaseReader {
 
     virtual ~BaseReader() { };
 
-    virtual int open(const string& name = "",
+    virtual int open(const pstring& name = "",
 		     int archive_type = ARCHIVE_TYPE_NONE) = 0;
+    
     virtual int close() = 0;
 
-    virtual string getArchiveName() const = 0;
+    virtual pstring getArchiveName() const = 0;
 
     virtual int getNumFiles() = 0;
 
-    virtual void registerCompressionType(const string& ext, int type) = 0;
+    virtual void registerCompressionType(const pstring& ext, int type) = 0;
 
     virtual FileInfo getFileByIndex(unsigned int index) = 0;
 
-    virtual size_t getFileLength(const string& file_name) = 0;
+    virtual size_t getFileLength(const pstring& file_name) = 0;
 
-    virtual size_t getFile(const string& file_name, unsigned char* buffer,
+    virtual size_t getFile(const pstring& file_name, unsigned char* buffer,
 			   int* location = NULL) = 0;
 
-    string getFile(const string& file_name, int* location = NULL);
+    pstring getFile(const pstring& file_name, int* location = NULL);
 };
 
 
-inline string
-BaseReader::getFile(const string& file_name, int* location)
+inline pstring
+BaseReader::getFile(const pstring& file_name, int* location)
 {
     size_t length = getFileLength(file_name);
-    if (!length) return string();
-    unsigned char* buf = new unsigned char[length];
-    length = getFile(file_name, buf, location);
-    return string(buf, length);
+    if (!length) return pstring();
+    char* buf = new char[length];
+    length = getFile(file_name, (unsigned char*) buf, location);
+    return pstring(buf, length);
 }
 
 #endif // __BASE_READER_H__
