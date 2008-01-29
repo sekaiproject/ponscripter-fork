@@ -15,16 +15,8 @@ NARCI = true
 endif
 
 ifdef NARCI
-PSCFLAGS := $(PSCFLAGS) -D 'EMBOLDEN=font->embolden && font->currsize < 20' -DKERNING
-RESOURCES = $(GAME).png =icon.png \
-            $(foreach n,0 1 2 3 4 5 6 7,narci_fonts/face$(n).ttf =face$(n).ttf)
+RESOURCES = $(GAME).png =icon.png
 RCFILE = $(GAME).rc
-
-.PHONY: fonts
-fonts: $(foreach n,0 1 2 3 4 5 6 7, narci_fonts/face$(n).ttf)
-
-%.ttf: %.sfd
-	fontforge -c 'Open("$<");Generate("$@","",0x89c)'
 
 .PHONY: final
 final: ponscr$(EXESUFFIX)

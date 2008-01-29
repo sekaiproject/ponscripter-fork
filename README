@@ -69,26 +69,26 @@ find are anything to do with ogapee.
 
 --- COMPATIBILITY
 
-Ponscripter has been tested on the following primary platforms:
+Ponscripter requires a generally-POSIX-compatible build environment
+with GNU make -- on Windows this means MinGW + msys -- and is only
+extensively tested using the GNU compiler suite.  Most of my testing
+is carried out on the following platforms:
 
-* Ubuntu 7.10     x86_64 (primary development platform)
-* OS X 10.4       i386
-* Windows 2000
-!* Windows Vista  i386
+* Ubuntu 7.10	x86_64 (primary development platform)
+* MacOS X 10.4	i386   (built as universal binary)
+* Windows 2000	i386
 
-It has also been tried on the following secondary platforms, which
-gives me confidence that it is at least reasonably portable:
+Releases are also confirmed to build and launch on the following
+secondary platforms/configurations:
 
-!* Ubuntu 7.04    i386
-!* Fedora 7       x86_64
-!* Solaris 10     x86_64
-!* FreeBSD 6.2    x86_64
-!* OpenBSD 4.1    i386
-!* NetBSD 3.1     x86_64
-
-The only compiler that has been tested extensively is g++ (in the case
-of Windows, the MinGW version), though I try the Linux build with icc
-from time to time, and it generally works.
+* Ubuntu 7.10	i386
+* Ubuntu 7.10	x86_64 (using Intel compiler suite)
+* Windows Vista i386   (not yet tested for 20080201)
+* Fedora 7	x86_64
+* Solaris 10	x86_64
+* FreeBSD 6.2	x86_64
+* OpenBSD 4.1	i386   (runs fine but segfaults on exit?)
+* NetBSD 3.1	x86_64
 
 
 --- ACKNOWLEDGEMENTS
