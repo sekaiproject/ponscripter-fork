@@ -70,10 +70,12 @@ FontsStruct::~FontsStruct()
     for (int i = 0; i < count; ++i) {
         if (font_[i]) delete font_[i];
     }
+    FontFinished();
 }
 
 void InitialiseFontSystem(const pstring& basepath)
 {
+    FontInitialise();
     Fonts.init(basepath);
 }
 

@@ -87,7 +87,7 @@ secondary platforms/configurations:
 * Fedora 7	x86_64
 * Solaris 10	x86_64
 * FreeBSD 6.2	x86_64
-* OpenBSD 4.1	i386   (runs fine but segfaults on exit?)
+* OpenBSD 4.1	i386
 * NetBSD 3.1	x86_64
 
 

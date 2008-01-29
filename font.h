@@ -26,13 +26,16 @@
 #include <SDL.h>
 #include "resources.h"
 
-enum HintingMode { NoHinting, LightHinting, FullHinting };
+enum HintingMode { NoHinting = 0, LightHinting = 1, FullHinting = 2 };
 
 extern HintingMode hinting;
 extern bool lightrender;
 extern bool subpixel;
 
 struct FontInternals;
+
+void FontInitialise();
+void FontFinished();
 
 struct Glyph {
     SDL_Surface* bitmap;

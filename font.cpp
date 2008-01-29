@@ -28,17 +28,33 @@
 #include <math.h>
 #include "font.h"
 
+
+FT_Library freetype;
+
+void FontInitialise()
+{
+    FT_Init_FreeType(&freetype);
+}
+
+void FontFinished()
+{
+    FT_Done_FreeType(freetype);
+}
+
 HintingMode hinting = NoHinting;
 bool lightrender = false;
 bool subpixel = false;
 
+static const int load_modes[] = {
+    FT_LOAD_NO_HINTING,    // NoHinting
+    FT_LOAD_TARGET_LIGHT,  // LightHinting
+    FT_LOAD_TARGET_NORMAL, // FullHinting
+};
+
 inline FT_Int32
 load_mode()
 {
-    return FT_LOAD_NO_BITMAP
-           | (hinting == NoHinting ? FT_LOAD_NO_HINTING
-              : (hinting == LightHinting ? FT_LOAD_TARGET_LIGHT
-                 : FT_LOAD_TARGET_NORMAL));
+    return FT_LOAD_NO_BITMAP | load_modes[hinting];
 }
 
 
@@ -60,14 +76,6 @@ kerning_mode()
 #define FT_FLOOR(X) (((X) & - 64) / 64)
 #define FT_CEIL(X) ((((X) +63) & - 64) / 64)
 
-static class FT {
-    FT_Library ft;
-public:
-    FT() { FT_Init_FreeType(&ft); }
-    ~FT() { FT_Done_FreeType(ft); }
-    inline FT_Library& operator ()() { return ft; }
-} freetype;
-
 struct FontInternals {
     FT_Open_Args args, met;
     FT_Face face;
@@ -77,7 +85,7 @@ struct FontInternals {
     bool del_data;
 
     FontInternals(const Uint8* data, size_t len, const Uint8* mdat,
-        size_t mlen, bool own);
+		  size_t mlen, bool own);
 
     ~FontInternals() {
         FT_Done_Face(face);
@@ -90,7 +98,7 @@ struct FontInternals {
     FT_GlyphSlot load_glyph(Uint16 unicode)
     {
         err = FT_Load_Glyph(face, FT_Get_Char_Index(face, unicode),
-                  load_mode());
+			    load_mode());
         return face->glyph;
     }
 };
@@ -105,7 +113,7 @@ FontInternals::FontInternals(const Uint8* data, size_t len, const Uint8* mdat,
     met.flags = FT_OPEN_MEMORY;
     met.memory_base = mdat;
     met.memory_size = mlen;
-    FT_Error err = FT_Open_Face(freetype(), &args, 0, &face);
+    FT_Error err = FT_Open_Face(freetype, &args, 0, &face);
     if (err) {
 	fprintf(stderr, "ERROR: Failed to open face.\n");
 	exit(1);
