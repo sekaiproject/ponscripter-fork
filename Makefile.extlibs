@@ -12,7 +12,7 @@ EI = extlib/include
 EB = extlib/bin
 ES = extlib/src
 
-SDLSRC  = $(ES)/SDL-1.2.11
+SDLSRC  = $(ES)/SDL-1.2.13
 SDLISRC = $(ES)/SDL_image-1.2.5
 ZSRC    = $(ES)/zlib-1.2.3
 PNGSRC  = $(ES)/libpng-1.2.16
@@ -43,7 +43,7 @@ $(SDLSRC)/Makefile: $(if $(INTERNAL_LIBPNG),$(EL)/libpng$(LIBSUFFIX))
 	@echo Configuring internal SDL...
 	@cd $(SDLSRC) && \
 	./configure --prefix="$(LPREFIX)" \
-	    $(addprefix --disable-,shared joystick $(addprefix video-,fbcon directfb svga vgl wscons opengl)) \
+	    $(addprefix --disable-,shared joystick nas $(addprefix video-,fbcon directfb svga vgl wscons opengl)) \
 	    $(REDIR)
 
 $(EB)/sdl-config: $(SDLSRC)/Makefile
