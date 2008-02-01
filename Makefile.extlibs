@@ -42,7 +42,7 @@ dclean_sdl: clean_sdl
 $(SDLSRC)/Makefile: $(if $(INTERNAL_LIBPNG),$(EL)/libpng$(LIBSUFFIX))
 	@echo Configuring internal SDL...
 	@cd $(SDLSRC) && \
-	./configure --prefix="$(LPREFIX)" \
+	./configure --prefix="$(LPREFIX)" $(SDLOTHERCONFIG) \
 	    $(addprefix --disable-,shared joystick nas $(addprefix video-,fbcon directfb svga vgl wscons opengl)) \
 	    $(REDIR)
 
@@ -81,7 +81,7 @@ $(SDLISRC)/Makefile: $(if $(INTERNAL_SDL),$(EB)/sdl-config) \
                      $(if $(INTERNAL_LIBJPEG),$(EL)/libjpeg$(LIBSUFFIX))
 	@echo Configuring internal SDL_image...
 	@cd $(SDLISRC) && \
-	./configure --prefix="$(LPREFIX)" \
+	./configure --prefix="$(LPREFIX)" $(OTHERCONFIG) \
 	    $(addprefix --disable-,shared lbm pcx pnm tga xcf xv tif \
 	    	                   $(if $(INTERNAL_LIBPNG),png-shared) \
                                    $(if $(INTERNAL_LIBJPEG),jpg-shared)) \
@@ -105,7 +105,7 @@ internal_jpeg = $(EL)/libjpeg$(LIBSUFFIX)
 $(PNGSRC)/Makefile: $(EL)/libz$(LIBSUFFIX)
 	@echo Configuring internal libpng...
 	@cd $(PNGSRC) && \
-	./configure --prefix="$(LPREFIX)" --disable-shared --disable-dependency-tracking $(REDIR)
+	./configure --prefix="$(LPREFIX)" --disable-shared --disable-dependency-tracking $(OTHERCONFIG) $(REDIR)
 
 $(EL)/libpng$(LIBSUFFIX): $(PNGSRC)/Makefile
 	@echo Building internal libpng...
@@ -119,7 +119,7 @@ $(EL)/libz$(LIBSUFFIX):
 $(JPEGSRC)/Makefile:
 	@echo Configuring internal libjpeg...
 	@cd $(JPEGSRC) && \
-	./configure --prefix="$(LPREFIX)" --disable-shared --enable-static $(REDIR)
+	./configure --prefix="$(LPREFIX)" --disable-shared --enable-static $(OTHERCONFIG) $(REDIR)
 
 $(EL)/libjpeg$(LIBSUFFIX): $(JPEGSRC)/Makefile 
 	@echo Building internal libjpeg...
@@ -148,7 +148,7 @@ $(SDLMSRC)/Makefile: $(if $(INTERNAL_SDL),$(EB)/sdl-config) \
                      $(if $(INTERNAL_OGGLIBS),$(OGGLIBS))
 	@echo Configuring internal SDL_mixer...
 	@cd $(SDLMSRC) && \
-	./configure --prefix="$(LPREFIX)" $(SDL_MIXER_FLAGS) \
+	./configure --prefix="$(LPREFIX)" $(SDL_MIXER_FLAGS) $(OTHERCONFIG) \
 	    $(addprefix --disable-,shared $(addprefix music-,cmd timidity-midi)) \
 	    $(REDIR)
 
@@ -164,7 +164,7 @@ internal_ogglibs = $(OGGLIBS)
 $(OGGSRC)/Makefile:
 	@echo Configuring internal libogg...
 	@cd $(OGGSRC) && \
-	./configure --prefix="$(LPREFIX)" --disable-shared --disable-dependency-tracking $(REDIR)
+	./configure --prefix="$(LPREFIX)" --disable-shared --disable-dependency-tracking $(OTHERCONFIG) $(REDIR)
 
 $(EL)/libogg$(LIBSUFFIX): $(OGGSRC)/Makefile
 	@echo Building internal libogg...
@@ -174,7 +174,7 @@ $(EL)/libogg$(LIBSUFFIX): $(OGGSRC)/Makefile
 $(VORBSRC)/Makefile:
 	@echo Configuring internal libvorbis...
 	@cd $(VORBSRC) && \
-	./configure --prefix="$(LPREFIX)" $(addprefix --disable-,shared dependency-tracking docs) $(REDIR)
+	./configure --prefix="$(LPREFIX)" $(addprefix --disable-,shared dependency-tracking docs) $(OTHERCONFIG) $(REDIR)
 
 $(EL)/libvorbisfile$(LIBSUFFIX): $(EL)/libvorbis$(LIBSUFFIX)
 $(EL)/libvorbis$(LIBSUFFIX): $(EL)/libogg$(LIBSUFFIX) $(VORBSRC)/Makefile
@@ -195,7 +195,7 @@ dclean_smpeg: clean_smpeg
 $(SMPGSRC)/Makefile: $(if $(INTERNAL_SDL),$(EB)/sdl-config)
 	@echo Configuring internal smpeg...
 	@cd $(SMPGSRC) && \
-	./configure --prefix="$(LPREFIX)" \
+	./configure --prefix="$(LPREFIX)" $(OTHERCONFIG) \
 	    $(addprefix --disable-,shared gtk-player opengl-player debug) \
 	    $(REDIR)
 
@@ -219,7 +219,7 @@ dclean_freetype:
 $(FTCONFIGURE): $(if $(INTERNAL_LIBPNG),$(EL)/libz$(LIBSUFFIX))
 	@echo Configuring internal Freetype...
 	@cd $(FTSRC) && \
-	./configure --prefix="$(LPREFIX)" --disable-shared $(REDIR)
+	./configure --prefix="$(LPREFIX)" --disable-shared $(OTHERCONFIG) $(REDIR)
 
 $(EB)/freetype-config: $(FTCONFIGURE)
 	@echo Building internal Freetype...
