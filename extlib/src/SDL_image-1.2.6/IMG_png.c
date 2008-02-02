@@ -69,7 +69,6 @@
 #endif
 #include <png.h>
 
-#define PNG_BYTES_TO_CHECK 4
 
 static struct {
 	int loaded;
@@ -268,18 +267,21 @@ int IMG_isPNG(SDL_RWops *src)
 {
 	int start;
 	int is_PNG;
-	unsigned char buf[PNG_BYTES_TO_CHECK];
+	Uint8 magic[4];
 
-	if ( IMG_InitPNG() < 0 ) {
+	if ( !src )
 		return 0;
-	}
 	start = SDL_RWtell(src);
 	is_PNG = 0;
-	if ( SDL_RWread(src, buf, 1, PNG_BYTES_TO_CHECK) == PNG_BYTES_TO_CHECK ) {
-		is_PNG = (lib.png_sig_cmp(buf, (png_size_t)0, PNG_BYTES_TO_CHECK) == 0);
+	if ( SDL_RWread(src, magic, 1, sizeof(magic)) == sizeof(magic) ) {
+                if ( magic[0] == 0x89 &&
+                     magic[1] == 'P' &&
+                     magic[2] == 'N' &&
+                     magic[3] == 'G' ) {
+			is_PNG = 1;
+		}
 	}
 	SDL_RWseek(src, start, SEEK_SET);
-	IMG_QuitPNG();
 	return(is_PNG);
 }
 

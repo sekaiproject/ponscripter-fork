@@ -13,7 +13,7 @@ EB = extlib/bin
 ES = extlib/src
 
 SDLSRC  = $(ES)/SDL-1.2.13
-SDLISRC = $(ES)/SDL_image-1.2.5
+SDLISRC = $(ES)/SDL_image-1.2.6
 ZSRC    = $(ES)/zlib-1.2.3
 PNGSRC  = $(ES)/libpng-1.2.24
 JPEGSRC = $(ES)/jpeg-6b

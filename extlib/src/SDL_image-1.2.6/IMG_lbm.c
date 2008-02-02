@@ -65,6 +65,8 @@ int IMG_isLBM( SDL_RWops *src )
 	int   is_LBM;
 	Uint8 magic[4+4+4];
 
+	if ( !src ) 
+		return 0;
 	start = SDL_RWtell(src);
 	is_LBM = 0;
 	if ( SDL_RWread( src, magic, sizeof(magic), 1 ) )
@@ -295,7 +297,8 @@ SDL_Surface *IMG_LoadLBM_RW( SDL_RWops *src )
 			Image->format->palette->colors[i].g = Image->format->palette->colors[i%nbcolors].g;
 			Image->format->palette->colors[i].b = Image->format->palette->colors[i%nbcolors].b;
 		}
-		Image->format->palette->ncolors = nbrcolorsfinal;
+		if ( !pbm )
+			Image->format->palette->ncolors = nbrcolorsfinal;
 	}
 
 	/* Get the bitmap */

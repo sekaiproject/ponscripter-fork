@@ -36,6 +36,8 @@ int IMG_isGIF(SDL_RWops *src)
 	int is_GIF;
 	char magic[6];
 
+	if ( !src )
+		return 0;
 	start = SDL_RWtell(src);
 	is_GIF = 0;
 	if ( SDL_RWread(src, magic, sizeof(magic), 1) ) {
@@ -415,6 +417,10 @@ LWZReadByte(SDL_RWops *src, int flag, int input_code_size)
     static int table[2][(1 << MAX_LWZ_BITS)];
     static int stack[(1 << (MAX_LWZ_BITS)) * 2], *sp;
     register int i;
+
+    /* Fixed buffer overflow found by Michael Skladnikiewicz */
+    if (input_code_size > MAX_LWZ_BITS)
+	return -1;
 
     if (flag) {
 	set_code_size = input_code_size;

@@ -213,6 +213,8 @@ int IMG_isXCF(SDL_RWops *src)
 	int is_XCF;
 	char magic[14];
 
+	if ( !src )
+		return 0;
 	start = SDL_RWtell(src);
 	is_XCF = 0;
 	if ( SDL_RWread(src, magic, sizeof(magic), 1) ) {
@@ -640,7 +642,8 @@ int do_layer_surface (SDL_Surface * surface, SDL_RWops * src, xcf_header * head,
 	      *row++ = 0xFF000000
 		| (((Uint32) (*p8)) << 16)
 		| (((Uint32) (*p8)) << 8)
-		| (((Uint32) (*p8++)) << 0);
+		| (((Uint32) (*p8)) << 0);
+			++p8;
 	    }
 	    break;	    
 	  default:
