@@ -20,7 +20,7 @@
     This file by Vaclav Slavik (vaclav.slavik@matfyz.cz).
 */
 
-/* $Id: load_ogg.c 2406 2006-05-12 06:14:15Z slouken $ */
+/* $Id: load_ogg.c 3274 2007-07-15 03:38:33Z slouken $ */
 
 #ifdef OGG_MUSIC
 
@@ -117,9 +117,15 @@ SDL_AudioSpec *Mix_LoadOGG_RW (SDL_RWops *src, int freesrc,
 
     buf = *audio_buf;
     to_read = *audio_len;
+#ifdef OGG_USE_TREMOR
+    for (read = vorbis.ov_read(&vf, (char *)buf, to_read, &bitstream);
+	 read > 0;
+	 read = vorbis.ov_read(&vf, (char *)buf, to_read, &bitstream))
+#else
     for (read = vorbis.ov_read(&vf, (char *)buf, to_read, 0/*LE*/, 2/*16bit*/, 1/*signed*/, &bitstream);
          read > 0;
          read = vorbis.ov_read(&vf, (char *)buf, to_read, 0, 2, 1, &bitstream))
+#endif	 
     {
         if (read == OV_HOLE || read == OV_EBADLINK)
             break; /* error */

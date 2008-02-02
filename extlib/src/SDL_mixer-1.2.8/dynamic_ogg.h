@@ -20,32 +20,31 @@
     slouken@libsdl.org
 */
 
-/* $Id: effects_internal.h 1192 2004-01-04 17:41:55Z slouken $ */
-
-#ifndef _INCLUDE_EFFECTS_INTERNAL_H_
-#define _INCLUDE_EFFECTS_INTERNAL_H_
-
-#ifndef __MIX_INTERNAL_EFFECT__
-#error You should not include this file or use these functions.
+#ifdef OGG_MUSIC
+#ifdef OGG_USE_TREMOR
+#include <tremor/ivorbisfile.h>
+#else
+#include <vorbis/vorbisfile.h>
 #endif
 
-#include "SDL_mixer.h"
-
-/* Set up for C function definitions, even when using C++ */
-#ifdef __cplusplus
-extern "C" {
+typedef struct {
+	int loaded;
+	void *handle;
+	int (*ov_clear)(OggVorbis_File *vf);
+	vorbis_info *(*ov_info)(OggVorbis_File *vf,int link);
+	int (*ov_open_callbacks)(void *datasource, OggVorbis_File *vf, char *initial, long ibytes, ov_callbacks callbacks);
+	ogg_int64_t (*ov_pcm_total)(OggVorbis_File *vf,int i);
+#ifdef OGG_USE_TREMOR
+	long (*ov_read)(OggVorbis_File *vf,char *buffer,int length, int *bitstream);
+#else
+	long (*ov_read)(OggVorbis_File *vf,char *buffer,int length, int bigendianp,int word,int sgned,int *bitstream);
 #endif
+	int (*ov_time_seek)(OggVorbis_File *vf,double pos);
+} vorbis_loader;
 
-extern int _Mix_effects_max_speed;
-extern void *_Eff_volume_table;
-void *_Eff_build_volume_table_u8(void);
-void *_Eff_build_volume_table_s8(void);
+extern vorbis_loader vorbis;
 
-/* Set up for C function definitions, even when using C++ */
-#ifdef __cplusplus
-}
-#endif
-
+extern int Mix_InitOgg();
+extern void Mix_QuitOgg();
 
 #endif
-

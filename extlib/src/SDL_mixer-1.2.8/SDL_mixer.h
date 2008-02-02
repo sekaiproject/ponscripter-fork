@@ -20,7 +20,7 @@
     slouken@libsdl.org
 */
 
-/* $Id: SDL_mixer.h 1599 2005-07-09 01:09:32Z icculus $ */
+/* $Id: SDL_mixer.h 3278 2007-07-15 05:33:35Z slouken $ */
 
 #ifndef _SDL_MIXER_H
 #define _SDL_MIXER_H
@@ -28,7 +28,7 @@
 #include "SDL_types.h"
 #include "SDL_rwops.h"
 #include "SDL_audio.h"
-#include "SDL_byteorder.h"
+#include "SDL_endian.h"
 #include "SDL_version.h"
 #include "begin_code.h"
 
@@ -41,7 +41,7 @@ extern "C" {
 */
 #define SDL_MIXER_MAJOR_VERSION	1
 #define SDL_MIXER_MINOR_VERSION	2
-#define SDL_MIXER_PATCHLEVEL	7
+#define SDL_MIXER_PATCHLEVEL	8
 
 /* This macro can be used to fill a version structure with the compile-time
  * version of the SDL_mixer library.
@@ -103,7 +103,8 @@ typedef enum {
 	MUS_MOD,
 	MUS_MID,
 	MUS_OGG,
-	MUS_MP3
+	MUS_MP3,
+	MUS_MP3_MAD
 } Mix_MusicType;
 
 /* The internal format for a music chunk interpreted via mikmod */
@@ -181,7 +182,7 @@ extern DECLSPEC void * SDLCALL Mix_GetMusicHookData(void);
 extern DECLSPEC void SDLCALL Mix_ChannelFinished(void (*channel_finished)(int channel));
 
 
-/* Special Effects API by ryan c. gordon. (icculus@linuxgames.com) */
+/* Special Effects API by ryan c. gordon. (icculus@icculus.org) */
 
 #define MIX_CHANNEL_POST  -2
 

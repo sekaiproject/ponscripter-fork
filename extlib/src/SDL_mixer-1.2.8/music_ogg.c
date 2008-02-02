@@ -20,7 +20,7 @@
     slouken@libsdl.org
 */
 
-/* $Id: music_ogg.c 2406 2006-05-12 06:14:15Z slouken $ */
+/* $Id: music_ogg.c 3275 2007-07-15 04:08:44Z slouken $ */
 
 #ifdef OGG_MUSIC
 
@@ -55,38 +55,14 @@ void OGG_setvolume(OGG_music *music, int volume)
 /* Load an OGG stream from the given file */
 OGG_music *OGG_new(const char *file)
 {
-	OGG_music *music;
-	FILE *fp;
+	SDL_RWops *rw;
 
-	music = (OGG_music *)malloc(sizeof *music);
-	if ( music ) {
-		/* Initialize the music structure */
-		memset(music, 0, (sizeof *music));
-		OGG_stop(music);
-		OGG_setvolume(music, MIX_MAX_VOLUME);
-		music->section = -1;
-
-		if ( Mix_InitOgg() < 0 ) {
-			return(NULL);
-		}
-		fp = fopen(file, "rb");
-		if ( fp == NULL ) {
-			free(music);
-			Mix_QuitOgg();
-			SDL_SetError("Couldn't open %s", file);
-			return(NULL);
-		}
-		if ( vorbis.ov_open(fp, &music->vf, NULL, 0) < 0 ) {
-			fclose(fp);
-			free(music);
-			Mix_QuitOgg();
-			SDL_SetError("Not an Ogg Vorbis audio stream");
-			return(NULL);
-		}
-	} else {
-		SDL_OutOfMemory();
+	rw = SDL_RWFromFile(file, "rb");
+	if ( rw == NULL ) {
+		SDL_SetError("Couldn't open %s", file);
+		return NULL;
 	}
-	return(music);
+	return OGG_new_RW(rw);
 }
 
 
@@ -165,7 +141,11 @@ static void OGG_getsome(OGG_music *music)
 	char data[4096];
 	SDL_AudioCVT *cvt;
 
+#ifdef OGG_USE_TREMOR
+	len = vorbis.ov_read(&music->vf, data, sizeof(data), &section);
+#else
 	len = vorbis.ov_read(&music->vf, data, sizeof(data), 0, 2, 1, &section);
+#endif
 	if ( len <= 0 ) {
 		if ( len == 0 ) {
 			music->playing = 0;

@@ -16,12 +16,12 @@
     License along with this library; if not, write to the Free
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    This file by Ryan C. Gordon (icculus@linuxgames.com)
+    This file by Ryan C. Gordon (icculus@icculus.org)
 
     These are some helper functions for the internal mixer special effects.
 */
 
-/* $Id: effects_internal.c 1192 2004-01-04 17:41:55Z slouken $ */
+/* $Id: effects_internal.c 3288 2007-07-15 15:43:02Z icculus $ */
 
 
      /* ------ These are used internally only. Don't touch. ------ */
@@ -32,6 +32,9 @@
 #include <stdlib.h>
 #include "SDL_mixer.h"
 
+#define __MIX_INTERNAL_EFFECT__
+#include "effects_internal.h"
+
 /* Should we favor speed over memory usage and/or quality of output? */
 int _Mix_effects_max_speed = 0;
 
@@ -39,6 +42,11 @@ int _Mix_effects_max_speed = 0;
 void _Mix_InitEffects(void)
 {
     _Mix_effects_max_speed = (getenv(MIX_EFFECTSMAXSPEED) != NULL);
+}
+
+void _Mix_DeinitEffects(void)
+{
+    _Eff_PositionDeinit();
 }
 
 

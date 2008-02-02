@@ -20,13 +20,17 @@
     slouken@libsdl.org
 */
 
-/* $Id: music_ogg.h 1702 2005-11-19 18:43:48Z icculus $ */
+/* $Id: music_ogg.h 3274 2007-07-15 03:38:33Z slouken $ */
 
 #ifdef OGG_MUSIC
 
 /* This file supports Ogg Vorbis music streams */
 
+#ifdef OGG_USE_TREMOR
+#include <tremor/ivorbisfile.h>
+#else
 #include <vorbis/vorbisfile.h>
+#endif
 
 typedef struct {
 	int playing;

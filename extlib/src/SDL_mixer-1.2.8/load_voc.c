@@ -21,13 +21,13 @@
     externally-callable function is Mix_LoadVOC_RW(), which is meant to
     act as identically to SDL_LoadWAV_RW() as possible.
 
-    This file by Ryan C. Gordon (icculus@linuxgames.com).
+    This file by Ryan C. Gordon (icculus@icculus.org).
 
     Heavily borrowed from sox v12.17.1's voc.c.
         (http://www.freshmeat.net/projects/sox/)
 */
 
-/* $Id: load_voc.c 2394 2006-05-11 19:30:52Z slouken $ */
+/* $Id: load_voc.c 2936 2007-01-15 16:14:04Z icculus $ */
 
 #include <stdio.h>
 #include <stdlib.h>

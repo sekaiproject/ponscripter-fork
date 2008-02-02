@@ -20,7 +20,7 @@
     slouken@libsdl.org
 */
 
-/* $Id: mixer.c 2290 2006-05-01 03:34:46Z slouken $ */
+/* $Id: mixer.c 3359 2007-07-21 06:37:58Z slouken $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,6 +34,9 @@
 #include "load_aiff.h"
 #include "load_voc.h"
 #include "load_ogg.h"
+
+#define __MIX_INTERNAL_EFFECT__
+#include "effects_internal.h"
 
 /* Magic numbers for various audio file formats */
 #define RIFF		0x46464952		/* "RIFF" */
@@ -155,8 +158,13 @@ static void *Mix_DoEffects(int chan, void *snd, int len)
 static void mix_channels(void *udata, Uint8 *stream, int len)
 {
 	Uint8 *mix_input;
-	int i, mixable, volume;
+	int i, mixable, volume = SDL_MIX_MAXVOLUME;
 	Uint32 sdl_ticks;
+
+#if SDL_VERSION_ATLEAST(1, 3, 0)
+	/* Need to initialize the stream in SDL 1.3+ */
+	memset(stream, mixer.silence, len);
+#endif
 
 	/* Mix the music (must be done before the channels are added) */
 	if ( music_active || (mix_music != music_mixer) ) {
@@ -223,9 +231,9 @@ static void mix_channels(void *udata, Uint8 *stream, int len)
 				while ( mix_channel[i].looping && index < len ) {
 					int alen = mix_channel[i].chunk->alen;
 					remaining = len - index;
-				    	if (remaining > alen) {
+					if (remaining > alen) {
 						remaining = alen;
-				    	}
+					}
 
 					mix_input = Mix_DoEffects(i, mix_channel[i].chunk->abuf, remaining);
 					SDL_MixAudio(stream+index, mix_input, remaining, volume);
@@ -238,12 +246,10 @@ static void mix_channels(void *udata, Uint8 *stream, int len)
 					index += remaining;
 				}
 				if ( ! mix_channel[i].playing && mix_channel[i].looping ) {
-					if ( --mix_channel[i].looping ) {
-						mix_channel[i].samples = mix_channel[i].chunk->abuf;
-						mix_channel[i].playing = mix_channel[i].chunk->alen;
-					}
+					--mix_channel[i].looping;
+					mix_channel[i].samples = mix_channel[i].chunk->abuf;
+					mix_channel[i].playing = mix_channel[i].chunk->alen;
 				}
-
 			}
 		}
 	}
@@ -256,6 +262,7 @@ static void mix_channels(void *udata, Uint8 *stream, int len)
 	}
 }
 
+#if 0
 static void PrintFormat(char *title, SDL_AudioSpec *fmt)
 {
 	printf("%s: %d bit %s audio (%s) at %u Hz\n", title, (fmt->format&0xFF),
@@ -263,9 +270,8 @@ static void PrintFormat(char *title, SDL_AudioSpec *fmt)
 			(fmt->channels > 2) ? "surround" :
 			(fmt->channels > 1) ? "stereo" : "mono", fmt->freq);
 }
+#endif
 
-
-void _Mix_InitEffects(void);
 
 /* Open the mixer with a certain desired audio format */
 int Mix_OpenAudio(int frequency, Uint16 format, int nchannels, int chunksize)
@@ -344,6 +350,7 @@ int Mix_AllocateChannels(int numchans)
 		/* Stop the affected channels */
 		int i;
 		for(i=numchans; i < num_channels; i++) {
+			Mix_UnregisterAllEffects(i);
 			Mix_HaltChannel(i);
 		}
 	}
@@ -512,7 +519,7 @@ Mix_Chunk *Mix_QuickLoad_WAV(Uint8 *mem)
 	}
 
 	/* Allocate the chunk memory */
-	chunk = (Mix_Chunk *)malloc(sizeof(Mix_Chunk));
+	chunk = (Mix_Chunk *)calloc(1,sizeof(Mix_Chunk));
 	if ( chunk == NULL ) {
 		SDL_SetError("Out of memory");
 		return(NULL);
@@ -959,6 +966,7 @@ void Mix_CloseAudio(void)
 			Mix_UnregisterAllEffects(MIX_CHANNEL_POST);
 			close_music();
 			Mix_HaltChannel(-1);
+			_Mix_DeinitEffects();
 			SDL_CloseAudio();
 			free(mix_channel);
 			mix_channel = NULL;

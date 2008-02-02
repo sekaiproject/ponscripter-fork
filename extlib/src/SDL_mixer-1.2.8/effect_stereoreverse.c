@@ -16,13 +16,13 @@
     License along with this library; if not, write to the Free
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    This file by Ryan C. Gordon (icculus@linuxgames.com)
+    This file by Ryan C. Gordon (icculus@icculus.org)
 
     These are some internally supported special effects that use SDL_mixer's
     effect callback API. They are meant for speed over quality.  :)
 */
 
-/* $Id: effect_stereoreverse.c 2394 2006-05-11 19:30:52Z slouken $ */
+/* $Id: effect_stereoreverse.c 2936 2007-01-15 16:14:04Z icculus $ */
 
 #include <stdio.h>
 #include <stdlib.h>
