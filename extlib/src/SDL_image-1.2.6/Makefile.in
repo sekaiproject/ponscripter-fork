@@ -272,21 +272,6 @@ all: all-am
 
 .SUFFIXES:
 .SUFFIXES: .c .lo .o .obj
-am--refresh:
-	@:
-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
-	@for dep in $?; do \
-	  case '$(am__configure_deps)' in \
-	    *$$dep*) \
-	      echo ' cd $(srcdir) && $(AUTOMAKE) --foreign '; \
-	      cd $(srcdir) && $(AUTOMAKE) --foreign  \
-		&& exit 0; \
-	      exit 1;; \
-	  esac; \
-	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  Makefile'; \
-	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -298,13 +283,9 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	    cd $(top_builddir) && $(SHELL) ./config.status $@ $(am__depfiles_maybe);; \
 	esac;
 
-$(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
+$(top_builddir)/config.status: $(CONFIG_STATUS_DEPENDENCIES)
 	$(SHELL) ./config.status --recheck
 
-$(top_srcdir)/configure:  $(am__configure_deps)
-	cd $(srcdir) && $(AUTOCONF)
-$(ACLOCAL_M4):  $(am__aclocal_m4_deps)
-	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 SDL_image.spec: $(top_builddir)/config.status $(srcdir)/SDL_image.spec.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 SDL_image.qpg: $(top_builddir)/config.status $(srcdir)/SDL_image.qpg.in
@@ -675,7 +656,7 @@ ps-am:
 uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES \
 	uninstall-libSDL_imageincludeHEADERS
 
-.PHONY: CTAGS GTAGS all all-am am--refresh check check-am clean \
+.PHONY: CTAGS GTAGS all all-am check check-am clean \
 	clean-generic clean-libLTLIBRARIES clean-libtool \
 	clean-noinstPROGRAMS ctags dist dist-all dist-bzip2 dist-gzip \
 	dist-shar dist-tarZ dist-zip distcheck distclean \

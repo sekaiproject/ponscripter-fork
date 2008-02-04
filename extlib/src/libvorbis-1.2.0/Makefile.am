@@ -2,7 +2,7 @@
 
 AUTOMAKE_OPTIONS = 1.6 foreign dist-zip dist-bzip2
 
-SUBDIRS = lib include doc examples vq
+SUBDIRS = lib include vq
 
 m4datadir = $(datadir)/aclocal
 m4data_DATA = vorbis.m4
@@ -19,11 +19,9 @@ EXTRA_DIST = \
 	vorbis-uninstalled.pc.in \
 	vorbisenc-uninstalled.pc.in \
 	vorbisfile-uninstalled.pc.in \
-	doc examples symbian vq \
+	symbian vq \
 	macos macosx win32
 
-
-DISTCHECK_CONFIGURE_FLAGS = --enable-docs
 
 dist-hook:
 	for item in $(EXTRA_DIST); do \

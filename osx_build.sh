@@ -16,7 +16,11 @@ then
     restart=false
 fi
 
-$restart && make distclean &>/dev/null
+if $restart
+then
+    rm -f ponscr.ppc ponscr.intel ponscr
+    make distclean &>/dev/null
+fi
 
 if [ ! -f ponscr.ppc ]
 then
