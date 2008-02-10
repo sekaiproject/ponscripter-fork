@@ -244,11 +244,6 @@ libSDL_image_la_SOURCES = \
 
 EXTRA_DIST = \
 	CHANGES			\
-	version.rc		\
-	VisualC.zip		\
-	Xcode.tar.gz		\
-	MPWmake.sea.bin		\
-	Watcom-OS2.zip		\
 	IMG_xxx.c		\
 	SDL_image.spec		\
 	SDL_image.spec.in	\
@@ -263,11 +258,11 @@ EXTRA_DIST = \
 @USE_VERSION_RC_TRUE@libSDL_image_la_LDFLAGS = \
 @USE_VERSION_RC_TRUE@	-no-undefined		\
 @USE_VERSION_RC_TRUE@	-release $(LT_RELEASE)	\
-@USE_VERSION_RC_TRUE@	-version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE) -Wl,version.o
+@USE_VERSION_RC_TRUE@	-version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
 
 @USE_VERSION_RC_FALSE@libSDL_image_la_LIBADD = $(IMG_LIBS)
 @USE_VERSION_RC_TRUE@libSDL_image_la_LIBADD = $(IMG_LIBS)
-@USE_VERSION_RC_TRUE@libSDL_image_la_DEPENDENCIES = version.o
+@USE_VERSION_RC_TRUE@libSDL_image_la_DEPENDENCIES = 
 all: all-am
 
 .SUFFIXES:
@@ -672,9 +667,6 @@ uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES \
 	tags uninstall uninstall-am uninstall-info-am \
 	uninstall-libLTLIBRARIES uninstall-libSDL_imageincludeHEADERS
 
-
-%.o : %.rc
-	$(WINDRES) $< $@
 
 # Rule to build tar-gzipped distribution package
 $(PACKAGE)-$(VERSION).tar.gz: distcheck
