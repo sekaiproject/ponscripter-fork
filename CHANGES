@@ -1,3 +1,8 @@
+2008-02-22
+
+  Extend vsp, csp, (a)msp, and cell to provide some convenient
+  shorthands.  Extend tablegoto to provide a 1-based alternative.
+
 2008-01-27
 
   Revert setwindow and locate commands to the NScripter behaviour
@@ -9,7 +14,9 @@
 
   Filenames are now checked for non-ASCII text; finding any is
   considered an error.  Life's too short to implement a fully general
-  cross-platform encoding-independent file access mechanism.
+  cross-platform encoding-independent file access mechanism, and
+  frankly ASCII is good enough -- we're talking arbitrary identifier
+  tokens here, not _literature_.
 
   Games were randomly segfaulting on my computer, and the problem
   seemed to be related to string handling, so I've taken the

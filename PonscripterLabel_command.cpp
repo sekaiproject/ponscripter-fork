@@ -80,9 +80,17 @@ int PonscripterLabel::waitCommand(const pstring& cmd)
 
 int PonscripterLabel::vspCommand(const pstring& cmd)
 {
-    int no = script_h.readIntValue();
-    sprite_info[no].visible = script_h.readIntValue() == 1;
-    dirty_rect.add(sprite_info[no].pos);
+    // Haeleth extension: allow vsp <sprite1>,<sprite2>,<value> like csp
+    int no1 = script_h.readIntValue();
+    int no2 = no1;
+    int vis = script_h.readIntValue();
+    if (script_h.hasMoreArgs()) { no2 = vis; vis = script_h.readIntValue(); }
+    if (no2 < no1) { int swap = no2; no2 = no1; no1 = swap; }
+    if (no2 >= MAX_SPRITE_NUM) no2 = MAX_SPRITE_NUM - 1;
+    for (int no = no1; no <= no2; ++no) {
+	sprite_info[no].visible = vis;
+	dirty_rect.add(sprite_info[no].pos);
+    }
     return RET_CONTINUE;
 }
 
@@ -246,15 +254,21 @@ int PonscripterLabel::talCommand(const pstring& cmd)
 
 int PonscripterLabel::tablegotoCommand(const pstring& cmd)
 {
-    int count = 0;
+    // Haeleth extension: tablegoto1 uses 1-based indexing
+    int count = cmd == "tablegoto1";
     int no = script_h.readIntValue();
     while (script_h.hasMoreArgs()) {
         pstring buf = script_h.readStrValue();
         if (count++ == no) {
+	    if (cmd == "debugtablegoto")
+		fprintf(stderr, "tablegoto %d -> %s\n", no, (const char*) buf);
 	    setCurrentLabel(buf);
+	    count = -1;
 	    break;
 	}
     }
+    if (count > 0 && cmd == "debugtablegoto")
+	fprintf(stderr, "tablegoto %d -> FAIL\n", no);
     return RET_CONTINUE;
 }
 
@@ -1126,15 +1140,30 @@ int PonscripterLabel::negaCommand(const pstring& cmd)
 
 int PonscripterLabel::mspCommand(const pstring& cmd)
 {
+    // Haeleth extension: the form `msp NUM,NUM,NUM[,NUM]' is augmented
+    // by the form `msp NUM,NUM' which modifies only the transparency.
+    
     int no = script_h.readIntValue();
-    dirty_rect.add(sprite_info[no].pos);
-    sprite_info[no].pos.x += script_h.readIntValue() *
-	screen_ratio1 / screen_ratio2;
-    sprite_info[no].pos.y += script_h.readIntValue() *
-	screen_ratio1 / screen_ratio2;
-    dirty_rect.add(sprite_info[no].pos);
-    if (script_h.hasMoreArgs())
-        sprite_info[no].trans += script_h.readIntValue();
+    int val = script_h.readIntValue();
+    if (script_h.hasMoreArgs()) {
+	dirty_rect.add(sprite_info[no].pos);
+	int x = 0, y = 0, a = 0;
+	if (cmd == "msp") {
+	    x = sprite_info[no].pos.x;
+	    y = sprite_info[no].pos.y;
+	    a = sprite_info[no].trans;
+	}
+	sprite_info[no].pos.x = x + val * screen_ratio1 / screen_ratio2;
+	sprite_info[no].pos.y = y + script_h.readIntValue() *
+	    screen_ratio1 / screen_ratio2;
+	dirty_rect.add(sprite_info[no].pos);
+	if (script_h.hasMoreArgs())
+	    sprite_info[no].trans = a + script_h.readIntValue();
+    }
+    else {
+	sprite_info[no].trans = (cmd == "msp" ? sprite_info[no].trans : 0)
+	                      + val;
+    }
 
     if (sprite_info[no].trans > 256) sprite_info[no].trans = 256;
     else if (sprite_info[no].trans < 0) sprite_info[no].trans = 0;
@@ -2458,9 +2487,14 @@ int PonscripterLabel::defineresetCommand(const pstring& cmd)
 
 int PonscripterLabel::cspCommand(const pstring& cmd)
 {
-    int no = script_h.readIntValue();
-
-    if (no == -1)
+    // Haeleth extension: csp <sprite>, <sprite2> clears all sprites
+    // between those numbers, inclusive.
+    int no1 = script_h.readIntValue();
+    int no2 = script_h.hasMoreArgs() ? script_h.readIntValue() : no1;
+    if (no2 < no1) { int swap = no2; no2 = no1; no1 = swap; }
+    if (no2 >= MAX_SPRITE_NUM) no2 = MAX_SPRITE_NUM - 1;
+    
+    if (no1 == -1)
         for (int i = 0; i < MAX_SPRITE_NUM; i++) {
             if (sprite_info[i].visible)
                 dirty_rect.add(sprite_info[i].pos);
@@ -2473,7 +2507,8 @@ int PonscripterLabel::cspCommand(const pstring& cmd)
             buttonsRemoveSprite(i);
             sprite_info[i].remove();
         }
-    else if (no >= 0 && no < MAX_SPRITE_NUM) {
+    else for (int no = no1; no <= no2; ++no)
+	if (no >= 0 && no < MAX_SPRITE_NUM) {
         if (sprite_info[no].visible)
             dirty_rect.add(sprite_info[no].pos);
 
@@ -2595,12 +2630,28 @@ int PonscripterLabel::checkpageCommand(const pstring& cmd)
 
 int PonscripterLabel::cellCommand(const pstring& cmd)
 {
-    int sprite_no = script_h.readIntValue();
-    int no = script_h.readIntValue();
-
-    sprite_info[sprite_no].setCell(no);
-    dirty_rect.add(sprite_info[sprite_no].pos);
-
+    // Haeleth extension: allow cell <sprite1>,<sprite2>,<set1>,[val1],[val2].
+    // In this form, all sprites between sprite1 and sprite2 are changed:
+    // sprite set1 is set to val1, and the rest to val2.
+    // val1 and val2 default to 1 and 0 respectively.
+    int no1   = script_h.readIntValue();
+    int cell1 = script_h.readIntValue();
+    if (script_h.hasMoreArgs()) {
+	int no2   = cell1;
+	int set   = script_h.readIntValue();
+	cell1     = script_h.hasMoreArgs() ? script_h.readIntValue() : 1;
+	int cell2 = script_h.hasMoreArgs() ? script_h.readIntValue() : 0;
+	if (no2 < no1) { int swap = no2; no2 = no1; no1 = swap; }
+	if (no2 >= MAX_SPRITE_NUM) no2 = MAX_SPRITE_NUM - 1;
+	for (int no = no1; no <= no2; ++no) {
+	    sprite_info[no].setCell(no == set ? cell1 : cell2);
+	    dirty_rect.add(sprite_info[no].pos);
+	}
+    }
+    else {
+	sprite_info[no1].setCell(cell1);
+	dirty_rect.add(sprite_info[no1].pos);
+    }
     return RET_CONTINUE;
 }
 
@@ -3021,27 +3072,6 @@ int PonscripterLabel::automode_timeCommand(const pstring& cmd)
 int PonscripterLabel::autoclickCommand(const pstring& cmd)
 {
     autoclick_time = script_h.readIntValue();
-    return RET_CONTINUE;
-}
-
-
-int PonscripterLabel::amspCommand(const pstring& cmd)
-{
-    int no = script_h.readIntValue();
-    dirty_rect.add(sprite_info[no].pos);
-    sprite_info[no].pos.x = script_h.readIntValue() *
-	screen_ratio1 / screen_ratio2;
-    sprite_info[no].pos.y = script_h.readIntValue() *
-	screen_ratio1 / screen_ratio2;
-
-    if (script_h.hasMoreArgs())
-        sprite_info[no].trans = script_h.readIntValue();
-
-    if (sprite_info[no].trans > 256) sprite_info[no].trans = 256;
-    else if (sprite_info[no].trans < 0) sprite_info[no].trans = 0;
-
-    dirty_rect.add(sprite_info[no].pos);
-
     return RET_CONTINUE;
 }
 

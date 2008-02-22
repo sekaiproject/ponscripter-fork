@@ -71,7 +71,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["abssetcursor"]     = &PonscripterLabel::setcursorCommand;
     dict["allsphide"]        = &PonscripterLabel::allsphideCommand;
     dict["allspresume"]      = &PonscripterLabel::allspresumeCommand;
-    dict["amsp"]             = &PonscripterLabel::amspCommand;
+    dict["amsp"]             = &PonscripterLabel::mspCommand;
     dict["autoclick"]        = &PonscripterLabel::autoclickCommand;
     dict["automode_time"]    = &PonscripterLabel::automode_timeCommand;
     dict["avi"]              = &PonscripterLabel::aviCommand;
@@ -254,6 +254,8 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["strsp"]            = &PonscripterLabel::strspCommand;
     dict["systemcall"]       = &PonscripterLabel::systemcallCommand;
     dict["tablegoto"]        = &PonscripterLabel::tablegotoCommand;
+    dict["tablegoto1"]       = &PonscripterLabel::tablegotoCommand;    
+    dict["debugtablegoto"]   = &PonscripterLabel::tablegotoCommand;
     dict["tal"]              = &PonscripterLabel::talCommand;
     dict["tateyoko"]         = &PonscripterLabel::tateyokoCommand;
     dict["texec"]            = &PonscripterLabel::texecCommand;
