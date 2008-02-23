@@ -428,14 +428,16 @@ int ScriptParser::mulCommand(const pstring& cmd)
 
 int ScriptParser::movCommand(const pstring& cmd)
 {
+    // Haeleth extension: movz is like movl, but if not enough
+    // arguments are provided, fills remaining spaces with zeroes.
     Expression e = script_h.readExpr();
     int limit = cmd == "mov" ? 1
-	      : cmd == "movl" ? e.dim()
+	      : cmd == "movl" || cmd == "movz" ? e.dim()
 	      : atoi(((const char*) cmd) + 3);
 
     // ONScripter has been a bit permissive in the past.
     if (!script_h.is_ponscripter && e.is_array() &&
-	cmd != "movl" && cmd != "mov")
+	cmd != "movl" && cmd != "movz" && cmd != "mov")
 	errorAndCont("NScripter does not permit `" + cmd + " " +
 		     e.debug_string() + ", ...': for portability, use "
 		     "`movl' or a series of `mov' calls instead.");
@@ -446,11 +448,16 @@ int ScriptParser::movCommand(const pstring& cmd)
 	e.mutate(script_h.readStrValue());
     }
     else {
-	bool movl = cmd == "movl";
+	bool movl = cmd == "movl" || cmd == "movz";
 	for (int i = 0; i < limit; ++i) {
-	    if (!script_h.hasMoreArgs())
+	    int val;
+	    if (script_h.hasMoreArgs())
+		val = script_h.readIntValue();
+	    else if (cmd == "movz")
+		val = 0;
+	    else
 		errorAndExit("Not enough arguments to " + cmd);
-	    e.mutate(script_h.readIntValue(), i, movl);
+	    e.mutate(val, i, movl);
 	}
 	if (script_h.hasMoreArgs())
 	    errorAndCont("Too many arguments to " + cmd);

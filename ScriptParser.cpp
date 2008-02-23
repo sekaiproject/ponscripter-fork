@@ -112,6 +112,7 @@ func_lut_t::func_lut_t() {
     dict["mov8"]            = &ScriptParser::movCommand;
     dict["mov9"]            = &ScriptParser::movCommand;
     dict["movl"]            = &ScriptParser::movCommand;
+    dict["movz"]            = &ScriptParser::movCommand;
     dict["mul"]             = &ScriptParser::mulCommand;
     dict["next"]            = &ScriptParser::nextCommand;
     dict["notif"]           = &ScriptParser::ifCommand;

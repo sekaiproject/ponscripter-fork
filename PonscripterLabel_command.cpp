@@ -485,30 +485,40 @@ int PonscripterLabel::spclclkCommand(const pstring& cmd)
 
 int PonscripterLabel::spbtnCommand(const pstring& cmd)
 {
+    // Haeleth extension: spbtn SPRITE1,SPRITE2,BTN assigns buttons
+    // counting up from BTN to sprites in the range SPRITE1..SPRITE2.
     bool cellcheck_flag = cmd == "cellcheckspbtn";
 
-    int sprite_no = script_h.readIntValue();
+    int sprite_n1 = script_h.readIntValue();
+    int sprite_n2 = sprite_n1;
     int no = script_h.readIntValue();
-
-    if (cellcheck_flag) {
-        if (sprite_info[sprite_no].num_of_cells < 2) return RET_CONTINUE;
-    }
-    else {
-        if (sprite_info[sprite_no].num_of_cells == 0) return RET_CONTINUE;
+    if (script_h.hasMoreArgs()) {
+	sprite_n2 = no;
+	no = script_h.readIntValue();
     }
 
-    ButtonElt button;
-    button.button_type = ButtonElt::SPRITE_BUTTON;
-    button.sprite_no = sprite_no;
+    for (int sprite_no = sprite_n1; sprite_no <= sprite_n2; ++sprite_no, ++no) {
+    
+	if (cellcheck_flag) {
+	    if (sprite_info[sprite_no].num_of_cells < 2) continue;
+	}
+	else {
+	    if (sprite_info[sprite_no].num_of_cells == 0) continue;
+	}
 
-    if (sprite_info[sprite_no].image_surface
-        || sprite_info[sprite_no].trans_mode == AnimationInfo::TRANS_STRING)
-    {
-        button.image_rect = button.select_rect = sprite_info[sprite_no].pos;
-        sprite_info[sprite_no].visible = true;
+	ButtonElt button;
+	button.button_type = ButtonElt::SPRITE_BUTTON;
+	button.sprite_no = sprite_no;
+
+	if (sprite_info[sprite_no].image_surface
+	    || sprite_info[sprite_no].trans_mode == AnimationInfo::TRANS_STRING)
+	{
+	    button.image_rect = button.select_rect = sprite_info[sprite_no].pos;
+	    sprite_info[sprite_no].visible = true;
+	}
+
+	buttons[no] = button;
     }
-
-    buttons[no] = button;
     
     return RET_CONTINUE;
 }

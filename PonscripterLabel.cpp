@@ -1203,13 +1203,10 @@ int PonscripterLabel::parseLine()
                  cmd[2] <= '9')
             return dvCommand(cmd);
 
-//	fprintf(stderr, "PonscripterLabel::parseLine - %s\n", (const char*)cmd);
-	
 	PonscrFun f = func_lut.get(cmd);
 	if (f) return (this->*f)(cmd);
 
-        fprintf(stderr, " command [%s] is not supported yet!!\n",
-		(const char*) cmd);
+	errorAndCont("unknown command [" + cmd + "]");
 
         script_h.skipToken();
 

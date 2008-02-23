@@ -1,7 +1,10 @@
-2008-02-22
+2008-02-23
+
+  Improve diagnostics slightly.
 
   Extend vsp, csp, (a)msp, and cell to provide some convenient
-  shorthands.  Extend tablegoto to provide a 1-based alternative.
+  shorthands, tablegoto to provide a 1-based alternative, and add
+  movz, which is like movl but treats missing args as implicit zeroes.
 
 2008-01-27
 
