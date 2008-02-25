@@ -1,10 +1,12 @@
-2008-02-23
+2008-02-25
 
   Improve diagnostics slightly.
 
   Extend vsp, csp, (a)msp, and cell to provide some convenient
   shorthands, tablegoto to provide a 1-based alternative, and add
   movz, which is like movl but treats missing args as implicit zeroes.
+
+  Merge across the RC version synchronisation code from ONScripter-En.
 
 2008-01-27
 

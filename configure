@@ -776,6 +776,13 @@ RCFILE ?= ponscr.rc
 win32rc.o: \$(RCFILE)
 	windres \$< -o \$@
 
+%.rc: %.rc.in version.h
+	ver=\`awk '/define VER_NUMBER/ { print $\$3 }' version.h\`; \\
+	y=\`expr substr $\$ver 1 4\`; \\
+	m=\`expr substr $\$ver 5 2\`; \\
+	d=\`expr substr $\$ver 7 2\`; \\
+	sed -e "s/@Y@/$\$y/g;s/@M@/$\$m/g;s/@D@/$\$d/g" \$< > \$@
+
 SDL_win32_main.o: SDL_win32_main.c
 	\$(CC) \$(INCS) \$(DEFS) -c \$< -o \$@
 _EOF

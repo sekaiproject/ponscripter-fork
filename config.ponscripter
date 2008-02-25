@@ -5,16 +5,6 @@ GAME = narci2
 FINAL_TARGET = $(if $(WIN32),"Narcissu 2.exe",narcissu2$(EXESUFFIX))
 PSCFLAGS := $(PSCFLAGS) -D 'DEFAULT_WM_TITLE="Narcissu Side 2nd"'
 NARCI = true
-endif
-
-ifdef NARCISSU
-GAME = narci
-FINAL_TARGET = $(if $(WIN32),"Narcissu.exe",narcissu$(EXESUFFIX))
-PSCFLAGS := $(PSCFLAGS) -D 'DEFAULT_WM_TITLE="Narcissu"'
-NARCI = true
-endif
-
-ifdef NARCI
 RESOURCES = $(GAME).png =icon.png
 RCFILE = $(GAME).rc
 
