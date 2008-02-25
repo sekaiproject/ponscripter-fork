@@ -87,7 +87,6 @@ AC_C_CONST
 
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
-        SOURCES="$srcdir/version.rc"
         EXE=".exe"
         if test "$build" != "$host"; then # cross-compiling
             # Default cross-compile location
