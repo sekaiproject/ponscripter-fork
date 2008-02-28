@@ -52,7 +52,7 @@ void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
 	= script_h.stringFromInteger(no, num_save_file >= 10 ? 2 : 1);
 
     pstring filename;
-    filename.format("%ssave$d.dat", (const char*) script_h.save_path, no);
+    filename.format("%ssave%d.dat", (const char*) script_h.save_path, no);
 #if defined (LINUX) || defined (MACOSX)
     struct stat buf;
     struct tm*  tm;

@@ -165,7 +165,7 @@ MPEGaudio:: StopDecoding(void)
     if ( decode_thread ) {
         force_exit = true;
         if( ring ) ring->ReleaseThreads();
-        SDL_KillThread(decode_thread);
+        SDL_WaitThread(decode_thread, NULL);
         decode_thread = NULL;
     }
     if ( ring ) {
@@ -207,9 +207,9 @@ MPEGaudio:: Stop(void)
             SDL_LockAudio();
 
         playing = false;
-#ifdef THREADED_AUDIO
-        StopDecoding();
-#endif
+//#ifdef THREADED_AUDIO
+//        StopDecoding();
+//#endif
 
         if ( sdl_audio )
             SDL_UnlockAudio();
