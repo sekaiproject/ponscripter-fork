@@ -71,12 +71,12 @@ be followed by a second directive, which takes the form
 
 This second directive, if present, must be preceded by a resolution
 directive.  It is used on most platforms to name a folder for the
-game's saved data:
+game's saved data, which will typically be:
 
   OS X: ~/Library/Application Support/[gameid]
   Linux: ~/.[gameid]
-  Windows: C:\Documents and Settings\All Users\Application Data\[gameid]
-           (or something similar)
+  Win2k/XP: C:\Documents and Settings\All Users\Application Data\[gameid]
+  Vista: C:\ProgramData\[gameid]
 
 (Note that on OS X and *nix saved games are per-user, while on Windows
 they are currently shared between all users.  This latter could easily
@@ -597,8 +597,8 @@ optional!)
 On ancient versions of Windows that do not support the required APIs
 (basically just Windows 95 without IE 5), this behaviour will
 theoretically degrade gracefully to the standard ONScripter behaviour,
-though it is not known whether such platforms are actually capable of
-running Ponscripter in the first place.
+though I have not actually checked whether such platforms are even 
+capable of running Ponscripter in the first place.
 
 
 /---------------------------------------------------------------------
