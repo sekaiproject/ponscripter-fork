@@ -52,7 +52,7 @@ int NsaReader::open(const pstring& nsa_path, int archive_type)
     archive_info.file_name = archive_name;
     readArchive(&archive_info, archive_type);
 
-    for (int i = 0; i < MAX_EXTRA_ARCHIVE; ++i) {
+    for (int i = 1; i <= MAX_EXTRA_ARCHIVE; ++i) {
 	pstring arcname2;
 	arcname2.format("arc%d", i);
 	archive_name = nsa_path + arcname2 + "." + nsa_archive_ext;

@@ -610,7 +610,7 @@ void ScriptParser::readArrayVariable()
 
 void ScriptParser::errorAndCont(const char* why, const char* reason)
 {
-    fprintf(stderr, "Parse error at line %d: %s",
+    fprintf(stderr, "Error at line %d: %s",
 	    script_h.getLineByAddress(script_h.getCurrent(), true), why);
     if (reason) fprintf(stderr, "; %s", reason);
     fprintf(stderr, "\n(*%s line %d)\n",

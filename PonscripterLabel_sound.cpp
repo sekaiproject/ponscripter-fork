@@ -130,7 +130,10 @@ int PonscripterLabel::playSound(const pstring& filename, int format,
     if (!filename || !audio_open_flag) return SOUND_NONE;
 
     long length = ScriptHandler::cBR->getFileLength(filename);
-    if (length == 0) return SOUND_NONE;
+    if (length == 0) {
+	errorAndCont(filename + " not found");
+	return SOUND_NONE;
+    }
 
     unsigned char* buffer = new unsigned char[length];
     ScriptHandler::cBR->getFile(filename, buffer);
