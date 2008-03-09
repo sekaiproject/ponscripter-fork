@@ -353,7 +353,11 @@ protected:
     void advancePhase(int count = 0);
     void trapHandler();
     void initSDL();
-    void openAudio();
+#if defined(PDA) && !defined(PSP)
+    void openAudio(int freq=22050, Uint16 format=MIX_DEFAULT_FORMAT, int channels=MIX_DEFAULT_CHANNELS);
+#else
+    void openAudio(int freq=44100, Uint16 format=MIX_DEFAULT_FORMAT, int channels=MIX_DEFAULT_CHANNELS);
+#endif
 
 private:
     enum { NORMAL_DISPLAY_MODE = 0, TEXT_DISPLAY_MODE = 1 };

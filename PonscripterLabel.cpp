@@ -394,25 +394,14 @@ void PonscripterLabel::initSDL()
 }
 
 
-void PonscripterLabel::openAudio()
+void PonscripterLabel::openAudio(int freq, Uint16 format, int channels)
 {
-#if defined (PDA) && !defined (PSP)
-    const int sample_rate = 22050;
-#else
-    const int sample_rate = 44100;
-#endif
-
-    if (Mix_OpenAudio(sample_rate, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS,
-            DEFAULT_AUDIOBUF) < 0) {
+    if (Mix_OpenAudio(freq, format, channels, DEFAULT_AUDIOBUF) < 0) {
         fprintf(stderr, "Couldn't open audio device!\n"
                         "  reason: [%s].\n", SDL_GetError());
         audio_open_flag = false;
     }
     else {
-        int freq;
-        Uint16 format;
-        int channels;
-
         Mix_QuerySpec(&freq, &format, &channels);
         audio_format.format = format;
         audio_format.freq = freq;
