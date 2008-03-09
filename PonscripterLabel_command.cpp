@@ -582,8 +582,8 @@ void PonscripterLabel::DoSetwindow(PonscripterLabel::WindowDef& def)
         sentence_font_info.setImageName(def.backdrop);
         parseTaggedString(&sentence_font_info);
         setupAnimationInfo(&sentence_font_info);
-        sentence_font_info.pos.x = int(def.w_left   * r);
-	sentence_font_info.pos.y = int(def.w_height * r);
+        sentence_font_info.pos.x = int(def.w_left * r);
+	sentence_font_info.pos.y = int(def.w_top  * r);
 #if 0
         if (sentence_font_info.image_surface) {
             sentence_font_info.pos.w = int(sentence_font_info.image_surface->w * r);
