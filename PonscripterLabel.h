@@ -121,6 +121,7 @@ public:
     // ----------------------------------------
     // start-up options
     void enableCDAudio();
+    void setDebugMode();
     void setCDNumber(int cdrom_drive_number);
     void setRegistryFile(const char* filename);
     void setDLLFile(const char* filename);

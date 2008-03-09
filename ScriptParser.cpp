@@ -374,7 +374,7 @@ rgb_t ScriptParser::readColour(const char* buf)
 int ScriptParser::parseLine()
 {
     pstring cmd = script_h.getStrBuf();
-    if (debug_level > 0)
+    if (debug_level > 1)
 	printf("ScriptParser::Parseline %s\n", (const char*) cmd);
 
     if (cmd[0] == ';' || cmd[0] == '*' || cmd[0] == ':' || cmd[0] == 0x0a)

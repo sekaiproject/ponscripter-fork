@@ -62,9 +62,9 @@ static class sfunc_lut_t {
 public:
     sfunc_lut_t();
     PonscrFun get(pstring what) const {
-	dic_t::const_iterator it = dict.find(what);
-	if (it == dict.end()) return 0;
-	return it->second;
+        dic_t::const_iterator it = dict.find(what);
+        if (it == dict.end()) return 0;
+        return it->second;
     }
 } func_lut;
 sfunc_lut_t::sfunc_lut_t() {
@@ -360,7 +360,7 @@ void PonscripterLabel::initSDL()
     else if (modes == (SDL_Rect **)-1){
         // no restriction
     }
- 	else{
+        else{
         int width;
         if (modes[0]->w * 3 > modes[0]->h * 4)
             width = (modes[0]->h / 3) * 4;
@@ -384,14 +384,14 @@ void PonscripterLabel::initSDL()
         screen_width  /= 2;
         screen_height /= 2;
         screen_surface = SDL_SetVideoMode(screen_width,screen_height,screen_bpp,
-	    DEFAULT_VIDEO_SURFACE_FLAG | (fullscreen_mode? SDL_FULLSCREEN : 0));
+            DEFAULT_VIDEO_SURFACE_FLAG | (fullscreen_mode? SDL_FULLSCREEN : 0));
     }
 #endif
     underline_value = screen_height - 1;
 
     if (screen_surface == 0) {
         fprintf(stderr, "Couldn't set %dx%dx%d video mode: %s\n",
-		screen_width, screen_height, screen_bpp, SDL_GetError());
+                screen_width, screen_height, screen_bpp, SDL_GetError());
         exit(-1);
     }
 
@@ -441,7 +441,7 @@ PonscripterLabel::PonscripterLabel()
     sprite_info     = new AnimationInfo[MAX_SPRITE_NUM];
     sprite2_info    = new AnimationInfo[MAX_SPRITE2_NUM];
     for (int i = 0; i < MAX_SPRITE2_NUM; ++i)
-	sprite2_info[i].affine_flag = true;
+        sprite2_info[i].affine_flag = true;
     global_speed_modifier = 100;
 }
 
@@ -459,6 +459,10 @@ void PonscripterLabel::enableCDAudio()
     cdaudio_flag = true;
 }
 
+void PonscripterLabel::setDebugMode()
+{
+    ++debug_level;
+}
 
 void PonscripterLabel::setCDNumber(int cdrom_drive_number)
 {
@@ -544,41 +548,41 @@ pstring MacOSX_SeekArchive(ScriptHandler& script_h)
     UInt8 path[max_path];
     CFBundleRef bundle = CFBundleGetMainBundle();
     if (bundle) {
-	if ((url = CFBundleCopyResourcesDirectoryURL(bundle))) {
-	    if (CFURLGetFileSystemRepresentation(url, true, path, max_path))
-		rv = pstring((char*) path) + '/';
+        if ((url = CFBundleCopyResourcesDirectoryURL(bundle))) {
+            if (CFURLGetFileSystemRepresentation(url, true, path, max_path))
+                rv = pstring((char*) path) + '/';
             CFRelease(url);
-	}
-	if (rv) {
-	    // Verify that this is the archive path by checking for a script
-	    // file.
-	    ScriptHandler::ScriptFilename::iterator it =
-		script_h.script_filenames.begin();
-	    for (; it != script_h.script_filenames.end(); ++it) {
-		pstring s = rv + it->filename;
-		FSRef ref;
-		// If we've found a script file, we've found the archive
-		// path, so return it.
-		if (FSPathMakeRef(s, &ref, 0) == noErr &&
-		    FSGetCatalogInfo(&ref, kFSCatInfoNone, 0, 0, 0, 0) == noErr)
-		    return rv;
-	    }
-	}
-	// There were no script files in the application bundle.
-	// Assume that the script files are intended to be in the
-	// application path.
-	if ((url = CFBundleCopyBundleURL(bundle))) {
-	    CFURLRef app =
-		CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorDefault,
-							 url);
-	    CFRelease(url);
-	    if (app) {
-		Boolean valid =
-		    CFURLGetFileSystemRepresentation(app, true, path, max_path);
-		CFRelease(app);
-		if (valid) return pstring((char*) path) + '/';
-	    }
-	}
+        }
+        if (rv) {
+            // Verify that this is the archive path by checking for a script
+            // file.
+            ScriptHandler::ScriptFilename::iterator it =
+                script_h.script_filenames.begin();
+            for (; it != script_h.script_filenames.end(); ++it) {
+                pstring s = rv + it->filename;
+                FSRef ref;
+                // If we've found a script file, we've found the archive
+                // path, so return it.
+                if (FSPathMakeRef(s, &ref, 0) == noErr &&
+                    FSGetCatalogInfo(&ref, kFSCatInfoNone, 0, 0, 0, 0) == noErr)
+                    return rv;
+            }
+        }
+        // There were no script files in the application bundle.
+        // Assume that the script files are intended to be in the
+        // application path.
+        if ((url = CFBundleCopyBundleURL(bundle))) {
+            CFURLRef app =
+                CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorDefault,
+                                                         url);
+            CFRelease(url);
+            if (app) {
+                Boolean valid =
+                    CFURLGetFileSystemRepresentation(app, true, path, max_path);
+                CFRelease(app);
+                if (valid) return pstring((char*) path) + '/';
+            }
+        }
     }
     return "";
 }
@@ -593,19 +597,19 @@ pstring Platform_GetSavePath(pstring gameid) // Windows version
     HMODULE shdll = LoadLibrary("shfolder");
     pstring rv;
     if (shdll) {
-	GETFOLDERPATH gfp =
-	    GETFOLDERPATH(GetProcAddress(shdll, "SHGetFolderPathA"));
-	if (gfp) {
-	    char hpath[MAX_PATH];
+        GETFOLDERPATH gfp =
+            GETFOLDERPATH(GetProcAddress(shdll, "SHGetFolderPathA"));
+        if (gfp) {
+            char hpath[MAX_PATH];
 #define CSIDL_COMMON_APPDATA 0x0023 // for [Profiles]/All Users/Application Data
 #define CSIDL_APPDATA        0x001a // for [Profiles]/[User]/Application Data
-	    HRESULT res = gfp(0, CSIDL_COMMON_APPDATA, 0, 0, hpath);
-	    if (res != S_FALSE && res != E_FAIL && res != E_INVALIDARG) {
-		rv = pstring(hpath) + '/' + gameid + '/';
-		CreateDirectory(rv, 0);
-	    }
-	}
-	FreeLibrary(shdll);
+            HRESULT res = gfp(0, CSIDL_COMMON_APPDATA, 0, 0, hpath);
+            if (res != S_FALSE && res != E_FAIL && res != E_INVALIDARG) {
+                rv = pstring(hpath) + '/' + gameid + '/';
+                CreateDirectory(rv, 0);
+            }
+        }
+        FreeLibrary(shdll);
     }
     return rv;
 }
@@ -617,42 +621,42 @@ pstring Platform_GetSavePath(pstring gameid) // MacOS X version
     using namespace Carbon;
     FSRef appsupport;
     FSFindFolder(kUserDomain, kApplicationSupportFolderType, kDontCreateFolder,
-		 &appsupport);
+                 &appsupport);
     char path[32768];
     FSRefMakePath(&appsupport, (UInt8*) path, 32768);
     pstring rv = pstring(path) + '/' + gameid + '/';
     if (mkdir(rv, 0755) == 0 || errno == EEXIST) 
-	return rv;
+        return rv;
     // If that fails, die.
     StandardAlert(kAlertStopAlert, "\pmkdir failure",
-		  "\pCould not create a directory for saved games.", NULL, NULL);
+                  "\pCould not create a directory for saved games.", NULL, NULL);
     exit(1);
 }
 #elif defined LINUX
 pstring Platform_GetSavePath(pstring gameid) // POSIX version
 {
     if (!gameid) {
-	fprintf(stderr, "No gameid\n");
-	exit(1);
+        fprintf(stderr, "No gameid\n");
+        exit(1);
     }
     
     // On Linux (and other POSIX-a-likes), place in ~/.gameid
     replace_ascii(gameid, ' ', '_');
     replace_ascii(gameid, '/', '_');
     replace_ascii(gameid, '(', '_');
-    replace_ascii(gameid, ')', '_');		   
+    replace_ascii(gameid, ')', '_');               
     replace_ascii(gameid, '[', '_');
-    replace_ascii(gameid, ']', '_');		   
+    replace_ascii(gameid, ']', '_');               
     passwd* pwd = getpwuid(getuid());
     if (pwd) {
-	pstring rv = pstring(pwd->pw_dir) + "/." + gameid + '/';
-	if (mkdir(rv, 0755) == 0 || errno == EEXIST)
-	    return rv;
+        pstring rv = pstring(pwd->pw_dir) + "/." + gameid + '/';
+        if (mkdir(rv, 0755) == 0 || errno == EEXIST)
+            return rv;
     }
     // Error; either getpwuid failed, or we couldn't create a save
     // directory.  Either way, issue a warning and then give up.
     fprintf(stderr, "Warning: could not create save directory ~/.%s.\n",
-	    (const char*) gameid);
+            (const char*) gameid);
     return "";
 }
 #else
@@ -668,7 +672,7 @@ pstring getGameId(ScriptHandler& script_h)
 {
     // Ideally, this will have been supplied with a ;gameid directive.
     if (script_h.game_identifier)
-	return script_h.game_identifier;
+        return script_h.game_identifier;
 
     // If it wasn't, first we try to find the game's name as given in a
     // versionstr or caption command.
@@ -676,30 +680,30 @@ pstring getGameId(ScriptHandler& script_h)
     pstring caption, versionstr;
     script_h.pushCurrent(define.start_address);
     while (script_h.getLineByAddress(script_h.getCurrent())
-	   < define.num_of_lines)
+           < define.num_of_lines)
     {
-	pstring t = script_h.readToken(true);
-	t.trim();
-	if (t == "caption") {
-	    caption = script_h.readStrValue();
-	}
-	else if (t == "versionstr") {
-	    versionstr = script_h.readStrValue();
-	}
-	if (!t || t[0] == ';' || script_h.getCurrent() >= script_h.getNext())
-	    script_h.skipLine();
-	else if (t == "game")
-	    break;
-	else
-	    script_h.skipToken();
+        pstring t = script_h.readToken(true);
+        t.trim();
+        if (t == "caption") {
+            caption = script_h.readStrValue();
+        }
+        else if (t == "versionstr") {
+            versionstr = script_h.readStrValue();
+        }
+        if (!t || t[0] == ';' || script_h.getCurrent() >= script_h.getNext())
+            script_h.skipLine();
+        else if (t == "game")
+            break;
+        else
+            script_h.skipToken();
     }
     script_h.popCurrent();
     if (caption || versionstr) {
-	caption.trim();
-	versionstr.trim();
-	return zentohan(caption.length() <= versionstr.length()
-			? caption
-			: versionstr);
+        caption.trim();
+        versionstr.trim();
+        return zentohan(caption.length() <= versionstr.length()
+                        ? caption
+                        : versionstr);
     }
     
     // The fallback position is to generate a semi-unique ID using the
@@ -728,7 +732,7 @@ int PonscripterLabel::init()
 
     // Try to determine an appropriate location for saved games.
     if (!script_h.save_path)
-	script_h.save_path = Platform_GetSavePath(getGameId(script_h));
+        script_h.save_path = Platform_GetSavePath(getGameId(script_h));
 
     // If we couldn't find anything obvious, fall back on ONScripter
     // behaviour of putting saved games in the archive path.
@@ -740,13 +744,13 @@ int PonscripterLabel::init()
                         0x0000ff00, 0x000000ff, 0xff000000);
 
     accumulation_surface =
-	AnimationInfo::allocSurface(screen_width, screen_height);
+        AnimationInfo::allocSurface(screen_width, screen_height);
     accumulation_comp_surface =
-	AnimationInfo::allocSurface(screen_width, screen_height);
+        AnimationInfo::allocSurface(screen_width, screen_height);
     effect_src_surface =
-	AnimationInfo::allocSurface(screen_width, screen_height);
+        AnimationInfo::allocSurface(screen_width, screen_height);
     effect_dst_surface =
-	AnimationInfo::allocSurface(screen_width, screen_height);
+        AnimationInfo::allocSurface(screen_width, screen_height);
     SDL_SetAlpha(accumulation_surface, 0, SDL_ALPHA_OPAQUE);
     SDL_SetAlpha(accumulation_comp_surface, 0, SDL_ALPHA_OPAQUE);    
     SDL_SetAlpha(effect_src_surface, 0, SDL_ALPHA_OPAQUE);
@@ -799,7 +803,7 @@ int PonscripterLabel::init()
     resize_buffer_size = 16;
 
     for (i = 0; i < MAX_PARAM_NUM; i++)
-	bar_info[i] = prnum_info[i] = 0;
+        bar_info[i] = prnum_info[i] = 0;
 
     defineresetCommand("definereset");
     readToken();
@@ -976,14 +980,14 @@ flush(int refresh_mode, SDL_Rect* rect, bool clear_dirty_flag,
 
         if (dirty_rect.area > 0) {
             if (dirty_rect.area >= dirty_rect.bounding_box.w *
-		                   dirty_rect.bounding_box.h) {
+                                   dirty_rect.bounding_box.h) {
                 flushDirect(dirty_rect.bounding_box, refresh_mode);
-	    }
+            }
             else {
                 for (int i = 0; i < dirty_rect.num_history; i++)
                     flushDirect(dirty_rect.history[i], refresh_mode, false);
-		SDL_UpdateRects(screen_surface, dirty_rect.num_history,
-				dirty_rect.history);
+                SDL_UpdateRects(screen_surface, dirty_rect.num_history,
+                                dirty_rect.history);
             }
         }
     }
@@ -997,16 +1001,16 @@ void PonscripterLabel::flushDirect(SDL_Rect &rect, int refresh_mode, bool update
     refreshSurface(accumulation_surface, &rect, refresh_mode);
 
     if (refresh_mode != REFRESH_NONE_MODE &&
-	!(refresh_mode & REFRESH_CURSOR_MODE)) {
+        !(refresh_mode & REFRESH_CURSOR_MODE)) {
         if (refresh_mode & REFRESH_SHADOW_MODE)
             refreshSurface(accumulation_comp_surface, &rect,
-			   (refresh_mode & ~REFRESH_SHADOW_MODE
-			                 & ~REFRESH_TEXT_MODE)
-			                 | REFRESH_COMP_MODE);
+                           (refresh_mode & ~REFRESH_SHADOW_MODE
+                                         & ~REFRESH_TEXT_MODE)
+                                         | REFRESH_COMP_MODE);
         else
             refreshSurface(accumulation_comp_surface, &rect,
-			   refresh_mode | refresh_shadow_text_mode
-			                | REFRESH_COMP_MODE);
+                           refresh_mode | refresh_shadow_text_mode
+                                        | REFRESH_COMP_MODE);
     }
     
     SDL_BlitSurface(accumulation_surface, &rect, screen_surface, &rect);
@@ -1030,12 +1034,12 @@ void PonscripterLabel::mouseOverCheck(int x, int y)
     // defined last.  ONScripter handles this by traversing the entire
     // list every time, but traversing backwards lets us shortcircuit.
     for (ButtonElt::reverse_iterator it = buttons.rbegin();
-	 it != buttons.rend(); ++it, ++c) {
-	const SDL_Rect& r = it->second.select_rect;
-	if (x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h) {
-	    button = it->first;
-	    break;
-	}
+         it != buttons.rend(); ++it, ++c) {
+        const SDL_Rect& r = it->second.select_rect;
+        if (x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h) {
+            button = it->first;
+            break;
+        }
     }
 
     if (current_over_button != button) {
@@ -1045,7 +1049,7 @@ void PonscripterLabel::mouseOverCheck(int x, int y)
         SDL_Rect check_src_rect = { 0, 0, 0, 0 };
         SDL_Rect check_dst_rect = { 0, 0, 0, 0 };
         if (current_over_button != 0) {
-	    ButtonElt& curr_btn = buttons[current_over_button];
+            ButtonElt& curr_btn = buttons[current_over_button];
 
             curr_btn.show_flag = 0;
             check_src_rect = curr_btn.image_rect;
@@ -1066,26 +1070,26 @@ void PonscripterLabel::mouseOverCheck(int x, int y)
 
         if (exbtn_d_button.exbtn_ctl) {
             decodeExbtnControl(exbtn_d_button.exbtn_ctl,
-			       &check_src_rect, &check_dst_rect);
+                               &check_src_rect, &check_dst_rect);
         }
 
         if (c < buttons.size()) {
             if (system_menu_mode != SYSTEM_NULL)
                 playSound(menuselectvoice_file_name[MENUSELECTVOICE_OVER],
-			  SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
+                          SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
             else
-		playSound(selectvoice_file_name[SELECTVOICE_OVER],
-			  SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
+                playSound(selectvoice_file_name[SELECTVOICE_OVER],
+                          SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
 
-	    ButtonElt& new_btn = buttons[button];
-	    
+            ButtonElt& new_btn = buttons[button];
+            
             check_dst_rect = new_btn.image_rect;
             if (new_btn.isSprite()) {
                 sprite_info[new_btn.sprite_no].setCell(1);
                 sprite_info[new_btn.sprite_no].visible = true;
                 if (new_btn.button_type == ButtonElt::EX_SPRITE_BUTTON) {
                     decodeExbtnControl(new_btn.exbtn_ctl,
-				       &check_src_rect, &check_dst_rect);
+                                       &check_src_rect, &check_dst_rect);
                 }
             }
             else if (new_btn.isTmpSprite()) {
@@ -1112,13 +1116,32 @@ void PonscripterLabel::executeLabel()
 {
     executeLabelTop:
 
+    // Protect against infinite loops (these should only occur when
+    // there's a bug in Ponscripter, but as I've just found such a
+    // bug, it's clearly not unthinkable!)
+    int loops;
+    const char* last_pointer;
+    
     while (current_line < current_label_info.num_of_lines) {
-        if (debug_level > 0)
+
+        if (debug_level > 0) {
+            // Protect against infinite loops
+            if (script_h.getCurrent() == last_pointer) {
+                ++loops;
+                if (loops == 32)
+                    errorAndExit("Likely infinite loop detected.");
+            }
+            else {
+                loops = 0;
+                last_pointer = script_h.getCurrent();
+            }
+            
             printf("*****  executeLabel %s:%d/%d:%d:%d *****\n",
-		   (const char*) current_label_info.name,
-		   current_line,
-		   current_label_info.num_of_lines,
-		   string_buffer_offset, display_mode);
+                   (const char*) current_label_info.name,
+                   current_line,
+                   current_label_info.num_of_lines,
+                   string_buffer_offset, display_mode);
+        }
 
         if (script_h.readStrBuf(0) == '~') {
             last_tilde = script_h.getNext();
@@ -1138,8 +1161,8 @@ void PonscripterLabel::executeLabel()
             continue;
         }
 
-        if (kidokuskip_flag && skip_flag && kidokumode_flag && !script_h.
-            isKidoku()) skip_flag = false;
+        if (kidokuskip_flag && skip_flag && kidokumode_flag &&
+            !script_h.isKidoku()) skip_flag = false;
 
         const char* current = script_h.getCurrent();
         int ret = ScriptParser::parseLine();
@@ -1203,7 +1226,7 @@ int PonscripterLabel::parseLine()
     if (cmd[0] == '_') cmd.remove(0, 1);
     
     if (!script_h.isText()) {
-	
+        
         if (cmd[0] == 0x0a)
             return RET_CONTINUE;
         else if (cmd[0] == 'v' && cmd[1] >= '0' && cmd[1] <= '9')
@@ -1212,10 +1235,10 @@ int PonscripterLabel::parseLine()
                  cmd[2] <= '9')
             return dvCommand(cmd);
 
-	PonscrFun f = func_lut.get(cmd);
-	if (f) return (this->*f)(cmd);
+        PonscrFun f = func_lut.get(cmd);
+        if (f) return (this->*f)(cmd);
 
-	errorAndCont("unknown command [" + cmd + "]");
+        errorAndCont("unknown command [" + cmd + "]");
 
         script_h.skipToken();
 
@@ -1224,12 +1247,12 @@ int PonscripterLabel::parseLine()
 
     /* Text */
     if (current_mode == DEFINE_MODE)
-	errorAndExit("text cannot be displayed in define section.");
+        errorAndExit("text cannot be displayed in define section.");
 
 //--------INDENT ROUTINE--------------------------------------------------------
     if (sentence_font.GetXOffset() == 0 && sentence_font.GetYOffset() == 0) {
         const wchar first_ch = encoding->DecodeWithLigatures
-	    (script_h.getStrBuf(string_buffer_offset), sentence_font);
+            (script_h.getStrBuf(string_buffer_offset), sentence_font);
         if (is_indent_char(first_ch))
             sentence_font.SetIndent(first_ch);
         else
@@ -1243,12 +1266,12 @@ int PonscripterLabel::parseLine()
 
     int l;
     const wchar first_ch =
-	encoding->DecodeWithLigatures(script_h.getStrBuf(string_buffer_offset),
-				      sentence_font, l);
+        encoding->DecodeWithLigatures(script_h.getStrBuf(string_buffer_offset),
+                                      sentence_font, l);
 
     if (is_break_char(first_ch) && !new_line_skip_flag) {
         const char* it = script_h.getStrBuf(string_buffer_offset) + l;
-	wchar next_ch = encoding->DecodeWithLigatures(it, sentence_font, l);
+        wchar next_ch = encoding->DecodeWithLigatures(it, sentence_font, l);
         float len = sentence_font.GlyphAdvance(first_ch, next_ch);
         while (1) {
             // For each character (not char!) before a break is found,
@@ -1258,7 +1281,7 @@ int PonscripterLabel::parseLine()
 
             // Check for token breaks.
             if (ch <= 0x1f || ch == '\n' || ch == '@' || ch == '\\'
-		|| is_break_char(ch))
+                || is_break_char(ch))
                 break;
 
             // Look for an inline command.
@@ -1266,7 +1289,7 @@ int PonscripterLabel::parseLine()
                 // !sd
                 if (it[0] == 's' && it[1] == 'd') {
                     it += 2;
-		    continue;
+                    continue;
                 }
                 // ![sdw]<int>
                 do { ++it; } while (isdigit(*it));
@@ -1276,7 +1299,7 @@ int PonscripterLabel::parseLine()
                 //#rrggbb: check all figures are in order
                 bool ok = true;
                 for (int offs = 1; ok && offs <= 6; ++offs)
-		    ok &= isxdigit(it[offs]);
+                    ok &= isxdigit(it[offs]);
                 if (ok) {
                     it += 7;
                     continue;
@@ -1284,10 +1307,10 @@ int PonscripterLabel::parseLine()
             }
 
             // No inline command?  Use the glyph metrics, then!
-	    next_ch = encoding->DecodeWithLigatures(it, sentence_font, l);
+            next_ch = encoding->DecodeWithLigatures(it, sentence_font, l);
             len += sentence_font.GlyphAdvance(ch, next_ch);
-	    ch = next_ch;
-	    goto cont;
+            ch = next_ch;
+            goto cont;
         }
         if (check_orphan_control()) {
             // If this is the start of a sentence, or follows some
@@ -1335,7 +1358,7 @@ int PonscripterLabel::parseLine()
 
 
 SDL_Surface* PonscripterLabel::loadImage(const pstring& file_name,
-					 bool* has_alpha)
+                                         bool* has_alpha)
 {  
     if (!file_name) return 0;
 
@@ -1346,10 +1369,10 @@ SDL_Surface* PonscripterLabel::loadImage(const pstring& file_name,
             file_name != DEFAULT_LOOKBACK_NAME1 &&
             file_name != DEFAULT_LOOKBACK_NAME2 &&
             file_name != DEFAULT_LOOKBACK_NAME3 &&
-	    file_name != DEFAULT_CURSOR0 &&
-	    file_name != DEFAULT_CURSOR1)
+            file_name != DEFAULT_CURSOR0 &&
+            file_name != DEFAULT_CURSOR1)
           fprintf(stderr, " *** can't find file [%s] ***\n",
-		  (const char*) file_name);
+                  (const char*) file_name);
         return 0;
     }
     if (filelog_flag) script_h.file_log.add(file_name);
@@ -1357,27 +1380,27 @@ SDL_Surface* PonscripterLabel::loadImage(const pstring& file_name,
     SDL_Surface* tmp = IMG_Load_RW(rwops(dat), 1);
     if (!tmp && file_extension(file_name).caselessEqual("jpg")) {
         fprintf(stderr, " *** force-loading a JPEG image [%s]\n",
-		(const char*) file_name);
+                (const char*) file_name);
         SDL_RWops* src = rwops(dat);
         tmp = IMG_LoadJPG_RW(src);
         SDL_RWclose(src);
     }
-	
+        
     if (!tmp) {
         fprintf(stderr, " *** can't load file [%s] : %s ***\n",
-		(const char*) file_name, IMG_GetError());
-	return 0;
+                (const char*) file_name, IMG_GetError());
+        return 0;
     }
 
     if (tmp && has_alpha)
-	*has_alpha = tmp->format->Amask;
+        *has_alpha = tmp->format->Amask;
 
     SDL_Surface* ret = SDL_ConvertSurface(tmp, image_surface->format,
-					  SDL_SWSURFACE);
+                                          SDL_SWSURFACE);
     if (ret
         && screen_ratio2 != screen_ratio1
         && (!disable_rescale_flag ||
-	    location == BaseReader::ARCHIVE_TYPE_NONE)) {
+            location == BaseReader::ARCHIVE_TYPE_NONE)) {
         SDL_Surface* src_s = ret;
 
         int w, h;
@@ -1385,7 +1408,7 @@ SDL_Surface* PonscripterLabel::loadImage(const pstring& file_name,
         if ((h = src_s->h * screen_ratio1 / screen_ratio2) == 0) h = 1;
         SDL_PixelFormat* fmt = image_surface->format;
         ret = SDL_CreateRGBSurface(SDL_SWSURFACE, w, h, fmt->BitsPerPixel,
-		       fmt->Rmask, fmt->Gmask, fmt->Bmask, fmt->Amask);
+                       fmt->Rmask, fmt->Gmask, fmt->Bmask, fmt->Amask);
 
         resizeSurface(src_s, ret);
         SDL_FreeSurface(src_s);
@@ -1400,25 +1423,25 @@ SDL_Surface* PonscripterLabel::loadImage(const pstring& file_name,
     // the --force-png-alpha and --force-png-nscmask command-line
     // options.
     if (has_alpha && *has_alpha) {
-	if (png_mask_type == PNG_MASK_USE_NSCRIPTER)
-	    *has_alpha = false;
-	else if (png_mask_type == PNG_MASK_AUTODETECT) {	
-	    SDL_LockSurface(ret);
-	    const Uint32 aval = *(Uint32*)ret->pixels & ret->format->Amask;
-	    if (aval != 0xffUL << ret->format->Ashift) goto breakme;
-	    *has_alpha = false;
-	    for (int y=0; y<ret->h; ++y) {
-		Uint32* pixbuf = (Uint32*)((char*)ret->pixels + y * ret->pitch);
-		for (int x=0; x<ret->w; ++x, ++pixbuf) {
-		    if (*pixbuf & ret->format->Amask != aval) {
-			*has_alpha = true;
-			goto breakme;
-		    }
-		}
-	    }
-	breakme:
-	    SDL_UnlockSurface(ret);
-	}
+        if (png_mask_type == PNG_MASK_USE_NSCRIPTER)
+            *has_alpha = false;
+        else if (png_mask_type == PNG_MASK_AUTODETECT) {        
+            SDL_LockSurface(ret);
+            const Uint32 aval = *(Uint32*)ret->pixels & ret->format->Amask;
+            if (aval != 0xffUL << ret->format->Ashift) goto breakme;
+            *has_alpha = false;
+            for (int y=0; y<ret->h; ++y) {
+                Uint32* pixbuf = (Uint32*)((char*)ret->pixels + y * ret->pitch);
+                for (int x=0; x<ret->w; ++x, ++pixbuf) {
+                    if (*pixbuf & ret->format->Amask != aval) {
+                        *has_alpha = true;
+                        goto breakme;
+                    }
+                }
+            }
+        breakme:
+            SDL_UnlockSurface(ret);
+        }
     }
 #else
 #warning "BPP16 defined: PNGs with NScripter-style masks will not work as expected"
@@ -1478,7 +1501,7 @@ void PonscripterLabel::shadowTextDisplay(SDL_Surface* surface, SDL_Rect &clip)
                         (8 - fmt->Rloss)) << fmt->Rshift |
                        (((*buf & fmt->Gmask) >> fmt->Gshift) * color.g >>
                         (8 - fmt->Gloss)) << fmt->Gshift |
-		       (((*buf & fmt->Bmask) >> fmt->Bshift) * color.b >>
+                       (((*buf & fmt->Bmask) >> fmt->Bshift) * color.b >>
                         (8 - fmt->Bloss)) << fmt->Bshift;
             }
             buf += surface->w - rect.w;
@@ -1516,7 +1539,7 @@ void PonscripterLabel::newPage(bool next_flag)
 
 PonscripterLabel::ButtonElt
 PonscripterLabel::getSelectableSentence(const pstring& buffer, Fontinfo* info,
-					bool flush_flag, bool nofile_flag)
+                                        bool flush_flag, bool nofile_flag)
 {
     ButtonElt rv;
     float current_x;
@@ -1555,8 +1578,8 @@ PonscripterLabel::getSelectableSentence(const pstring& buffer, Fontinfo* info,
 
 void
 PonscripterLabel::decodeExbtnControl(const pstring& ctl_string,
-				     SDL_Rect* check_src_rect,
-				     SDL_Rect* check_dst_rect)
+                                     SDL_Rect* check_src_rect,
+                                     SDL_Rect* check_dst_rect)
 {
     const char* ctl_str = ctl_string;
     char sound_name[256];
@@ -1583,13 +1606,13 @@ PonscripterLabel::decodeExbtnControl(const pstring& ctl_string,
             else
                 cell_no = 0;
             refreshSprite(sprite_no, true, cell_no,
-			  check_src_rect, check_dst_rect);
+                          check_src_rect, check_dst_rect);
         }
         else if (com == 'S' || com == 's') {
             sprite_no = getNumberFromBuffer(&ctl_str);
             if (sprite_no < 0) sprite_no = 0;
             else if (sprite_no >= ONS_MIX_CHANNELS)
-		sprite_no = ONS_MIX_CHANNELS - 1;
+                sprite_no = ONS_MIX_CHANNELS - 1;
             if (*ctl_str != ',') continue;
             ctl_str++;
             if (*ctl_str != '(') continue;
@@ -1658,23 +1681,23 @@ void PonscripterLabel::loadEnvData()
 
     if (loadFileIOBuf("envdata") == 0) {
         if (readInt() == 1 && window_mode == false)
-	    menu_fullCommand("menu_full");
+            menu_fullCommand("menu_full");
         if (readInt() == 0)
-	    volume_on_flag = false;
+            volume_on_flag = false;
         text_speed_no = readInt();
         if (readInt() == 1)
-	    draw_one_page_flag = true;
+            draw_one_page_flag = true;
         default_env_font = readStr();
         if (!default_env_font)
-	    default_env_font = DEFAULT_ENV_FONT;
+            default_env_font = DEFAULT_ENV_FONT;
         if (readInt() == 0)
-	    cdaudio_on_flag = false;
+            cdaudio_on_flag = false;
         default_cdrom_drive = readStr();
         voice_volume = DEFAULT_VOLUME - readInt();
         se_volume    = DEFAULT_VOLUME - readInt();
         music_volume = DEFAULT_VOLUME - readInt();
         if (readInt() == 0)
-	    kidokumode_flag = false;
+            kidokumode_flag = false;
     }
     else {
         default_env_font = DEFAULT_ENV_FONT;
@@ -1714,8 +1737,8 @@ void PonscripterLabel::saveEnvData()
 int PonscripterLabel::refreshMode()
 {
     return display_mode == TEXT_DISPLAY_MODE
-	 ? refresh_shadow_text_mode
-	 : REFRESH_NORMAL_MODE;
+         ? refresh_shadow_text_mode
+         : REFRESH_NORMAL_MODE;
 }
 
 

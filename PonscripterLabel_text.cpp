@@ -313,12 +313,14 @@ int PonscripterLabel::clickWait(bool display_char)
     if ((skip_flag || draw_one_page_flag || ctrl_pressed_status) &&
 	!textgosub_label) {
         clickstr_state = CLICK_NONE;
-	int bytes = 0;
+	int bytes;
 	if (display_char)
 	    bytes = drawChar(c, &sentence_font, false, true,
 			     accumulation_surface, &text_info);
-	else
+	else {
+	    bytes = 1; // @, \, etc...?
 	    flush(refreshMode());
+	}
 	string_buffer_offset += bytes;
         num_chars_in_sentence = 0;
         return RET_CONTINUE | RET_NOREAD;
@@ -588,9 +590,8 @@ int PonscripterLabel::processText()
 #ifdef BROKEN_SKIP_WRAPPING
         int bytes =
 #endif	    
-	    drawChar(script_h.getStrBuf(string_buffer_offset),
-		     &sentence_font, flush_flag, true,
-		     accumulation_surface, &text_info);
+	drawChar(script_h.getStrBuf(string_buffer_offset), &sentence_font,
+		 flush_flag, true, accumulation_surface, &text_info);
         ++num_chars_in_sentence;
 
         if (skip_flag || draw_one_page_flag || ctrl_pressed_status) {
@@ -598,7 +599,9 @@ int PonscripterLabel::processText()
             string_buffer_offset += bytes;
             return RET_CONTINUE | RET_NOREAD;
 #else
+#ifdef SKIP_TO_WAIT
             skip_to_wait = 1;
+#endif	    
             event_mode = WAIT_SLEEP_MODE;
             advancePhase(0);
             return RET_WAIT | RET_NOREAD;
