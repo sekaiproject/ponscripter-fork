@@ -71,8 +71,12 @@ int PonscripterLabel::waittimerCommand(const pstring& cmd)
 int PonscripterLabel::waitCommand(const pstring& cmd)
 {
     int count = script_h.readIntValue();
-    if (skip_flag || draw_one_page_flag || ctrl_pressed_status || skip_to_wait)
+    if (skip_flag || draw_one_page_flag || ctrl_pressed_status)
 	return RET_CONTINUE;
+    if (skip_to_wait) {
+	skip_to_wait = 0;
+	return RET_CONTINUE;
+    }	
     startTimer(count);
     return RET_WAIT;
 }

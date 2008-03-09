@@ -440,9 +440,9 @@ void PonscripterLabel::mousePressEvent(SDL_MouseButtonEvent* event)
              && (event->type == SDL_MOUSEBUTTONUP || btndown_flag)) {
         current_button_state.button  = current_over_button;
         volatile_button_state.button = current_over_button;
-#ifdef SKIP_TO_WAIT
+//#ifdef SKIP_TO_WAIT
         if (event_mode & WAIT_SLEEP_MODE) skip_to_wait = 1;
-#endif	
+//#endif	
 
         if (event->type == SDL_MOUSEBUTTONDOWN)
             current_button_state.down_flag = true;
@@ -1010,14 +1010,14 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
         }
     }
 
-#ifdef SKIP_TO_WAIT    
+//#ifdef SKIP_TO_WAIT    
     if (event_mode & WAIT_SLEEP_MODE) {
         if (event->keysym.sym == SDLK_RETURN ||
 	    event->keysym.sym == SDLK_KP_ENTER ||
 	    event->keysym.sym == SDLK_SPACE)
 	  skip_to_wait = 1;
     }
-#endif
+//#endif
 }
 
 

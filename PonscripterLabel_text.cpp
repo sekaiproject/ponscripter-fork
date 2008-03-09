@@ -522,8 +522,9 @@ int PonscripterLabel::processText()
             while (script_h.readStrBuf(string_buffer_offset) == ' '
                    || script_h.readStrBuf(string_buffer_offset) == '\t')
 		string_buffer_offset++;
-            if (skip_flag || draw_one_page_flag ||
-		ctrl_pressed_status || skip_to_wait) {
+            if (skip_flag || draw_one_page_flag || ctrl_pressed_status ||
+		skip_to_wait) {
+		skip_to_wait = 0;
                 return RET_CONTINUE | RET_NOREAD;
             }
             else {
@@ -587,6 +588,9 @@ int PonscripterLabel::processText()
         bool flush_flag = !(skip_flag || draw_one_page_flag ||
 			    ctrl_pressed_status);
 
+	// Or possibly just:
+	flush_flag = true;
+	
 #ifdef BROKEN_SKIP_WRAPPING
         int bytes =
 #endif	    
@@ -599,9 +603,9 @@ int PonscripterLabel::processText()
             string_buffer_offset += bytes;
             return RET_CONTINUE | RET_NOREAD;
 #else
-#ifdef SKIP_TO_WAIT
+//#ifdef SKIP_TO_WAIT
             skip_to_wait = 1;
-#endif	    
+//#endif	    
             event_mode = WAIT_SLEEP_MODE;
             advancePhase(0);
             return RET_WAIT | RET_NOREAD;

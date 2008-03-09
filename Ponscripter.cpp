@@ -65,7 +65,7 @@ static void optionVersion()
     printf("Ponscripter version %s (NScr %d.%02d)\n",
         ONS_VERSION, NSC_VERSION / 100, NSC_VERSION % 100);
     printf("Based on ONScripter by Ogapee <ogapee@aqua.dti2.ne.jp>\n\n");
-    printf("Copyright (c) 2001-2008 Ogapee, 2006-2008 Haeleth et al.\n");
+    printf("Copyright (c) 2001-2008 Ogapee, 2006-2008 insani, Haeleth et al.\n");
     printf("This is free software; see the source for copying conditions.\n");
     exit(0);
 }
