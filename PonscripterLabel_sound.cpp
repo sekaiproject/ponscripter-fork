@@ -2,7 +2,7 @@
  *
  *  PonscripterLabel_sound.cpp - Methods for playing sound
  *
- *  Copyright (c) 2001-2007 Ogapee (original ONScripter, of which this
+ *  Copyright (c) 2001-2008 Ogapee (original ONScripter, of which this
  *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
@@ -626,6 +626,18 @@ void PonscripterLabel::stopBGM(bool continue_flag)
     }
 
     if (!continue_flag) current_cd_track = -1;
+}
+
+
+void PonscripterLabel::stopAllDWAVE()
+{
+    for (int ch = 0; ch < ONS_MIX_CHANNELS; ++ch) {
+        if (wave_sample[ch]) {
+            Mix_Pause(ch);
+            Mix_FreeChunk(wave_sample[ch]);
+            wave_sample[ch] = NULL;
+        }
+    }
 }
 
 

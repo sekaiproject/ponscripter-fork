@@ -1,3 +1,13 @@
+2008-03-09
+
+  Get Vista working properly (?).
+
+  Add Mion's workaround to fix sample rate mismatches in MPEG
+  playback.
+
+  Merge across the upstream ONScripter enhancements (mostly
+  sp2-related) that Mion has integrated into ONScripter-En.
+
 2008-02-25
 
   Improve diagnostics slightly.

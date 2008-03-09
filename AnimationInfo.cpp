@@ -2,7 +2,7 @@
  *
  *  AnimationInfo.cpp - General image storage class of Ponscripter
  *
- *  Copyright (c) 2001-2007 Ogapee (original ONScripter, of which this
+ *  Copyright (c) 2001-2008 Ogapee (original ONScripter, of which this
  *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
@@ -50,6 +50,7 @@ AnimationInfo::AnimationInfo()
     image_surface = NULL;
     alpha_buf = NULL;
     trans_mode = TRANS_TOPLEFT;
+    affine_flag = false;
     reset();
 }
 
@@ -74,6 +75,11 @@ void AnimationInfo::reset()
 
     font_size_x = font_size_y = -1;
     font_pitch  = -1;
+
+    mat[0][0] = 1000;
+    mat[0][1] = 0;
+    mat[1][0] = 0;
+    mat[1][1] = 1000;
 }
 
 
@@ -273,54 +279,27 @@ void AnimationInfo::blendOnSurface(SDL_Surface* dst_surface, int dst_x, int dst_
 }
 
 
-void AnimationInfo::blendOnSurface2(SDL_Surface* dst_surface, int dst_x, int dst_y, int alpha, int mat[2][2])
+void AnimationInfo::blendOnSurface2(SDL_Surface* dst_surface, int dst_x, int dst_y, SDL_Rect &clip, int alpha)
 {
     if (image_surface == NULL) return;
+    if (scale_x == 0 || scale_y == 0) return; // ...really?
 
     int i, x, y;
-    // calculate Inverse of mat
-    int inv_mat[2][2], denom = mat[0][0] * mat[1][1] - mat[0][1] * mat[1][0];
-    if (denom == 0) return;
-
-    inv_mat[0][0] = mat[1][1] * 1000000 / denom;
-    inv_mat[0][1] = -mat[0][1] * 1000000 / denom;
-    inv_mat[1][0] = -mat[1][0] * 1000000 / denom;
-    inv_mat[1][1] = mat[0][0] * 1000000 / denom;
 
     // project corner point and calculate bounding box
-    int dst_corner_xy[4][2];
-    int min_xy[2] = { dst_surface->w - 1, dst_surface->h - 1 }, max_xy[2] = { 0, 0 };
-    for (i = 0; i < 4; i++) {
-        int c_x = (i < 2) ? (-pos.w / 2) : (pos.w / 2);
-        int c_y = ((i + 1) & 2) ? (pos.h / 2) : (-pos.h / 2);
-        dst_corner_xy[i][0] = (mat[0][0] * c_x + mat[0][1] * c_y) / 1000 + dst_x;
-        dst_corner_xy[i][1] = (mat[1][0] * c_x + mat[1][1] * c_y) / 1000 + dst_y;
-
-        if (min_xy[0] > dst_corner_xy[i][0]) min_xy[0] = dst_corner_xy[i][0];
-
-        if (max_xy[0] < dst_corner_xy[i][0]) max_xy[0] = dst_corner_xy[i][0];
-
-        if (min_xy[1] > dst_corner_xy[i][1]) min_xy[1] = dst_corner_xy[i][1];
-
-        if (max_xy[1] < dst_corner_xy[i][1]) max_xy[1] = dst_corner_xy[i][1];
-    }
+    int min_xy[2] = { bounding_rect.x, bounding_rect.y };
+    int max_xy[2] = { bounding_rect.x + bounding_rect.w - 1,
+		      bounding_rect.y + bounding_rect.h - 1 };
 
     // clip bounding box
-    if (max_xy[0] < 0) return;
-
-    if (max_xy[0] >= dst_surface->w) max_xy[0] = dst_surface->w - 1;
-
-    if (min_xy[0] >= dst_surface->w) return;
-
-    if (min_xy[0] < 0) min_xy[0] = 0;
-
-    if (max_xy[1] < 0) return;
-
-    if (max_xy[1] >= dst_surface->h) max_xy[1] = dst_surface->h - 1;
-
-    if (min_xy[1] >= dst_surface->h) return;
-
-    if (min_xy[1] < 0) min_xy[1] = 0;
+    if (max_xy[0] < clip.x) return;
+    if (max_xy[0] >= clip.x + clip.w) max_xy[0] = clip.x + clip.w - 1;
+    if (min_xy[0] >= clip.x + clip.w) return;
+    if (min_xy[0] < clip.x) min_xy[0] = clip.x;
+    if (max_xy[1] < clip.x) return;
+    if (max_xy[1] >= clip.y + clip.h) max_xy[1] = clip.y + clip.h - 1;
+    if (min_xy[1] >= clip.y + clip.h) return;
+    if (min_xy[1] < clip.y) min_xy[1] = clip.y;
 
     SDL_LockSurface(dst_surface);
     SDL_LockSurface(image_surface);
@@ -337,11 +316,14 @@ void AnimationInfo::blendOnSurface2(SDL_Surface* dst_surface, int dst_x, int dst
         // calculate the start and end point for each raster scan
         int raster_min = min_xy[0], raster_max = max_xy[0];
         for (i = 0; i < 4; i++) {
-            if (dst_corner_xy[i][1] == dst_corner_xy[(i + 1) % 4][1]) continue;
-
-            x = (dst_corner_xy[(i + 1) % 4][0] - dst_corner_xy[i][0]) * (y - dst_corner_xy[i][1]) / (dst_corner_xy[(i + 1) % 4][1] - dst_corner_xy[i][1]) + dst_corner_xy[i][0];
-            if (dst_corner_xy[(i + 1) % 4][1] - dst_corner_xy[i][1] > 0) {
-                if (raster_min < x) raster_min = x;
+            if (corner_xy[i][1] == corner_xy[(i + 1) % 4][1])
+		continue;
+            x = (corner_xy[(i + 1) % 4][0] - corner_xy[i][0])
+	      * (y - corner_xy[i][1])
+	      / (corner_xy[(i + 1) % 4][1] - corner_xy[i][1])
+	      + corner_xy[i][0];
+            if (corner_xy[(i + 1) % 4][1] - corner_xy[i][1] > 0) {
+	        if (raster_min < x) raster_min = x;
             }
             else {
                 if (raster_max > x) raster_max = x;
@@ -474,6 +456,50 @@ void AnimationInfo::blendBySurface(SDL_Surface* surface, int dst_x, int dst_y, S
     SDL_UnlockSurface(surface);
 }
 
+void AnimationInfo::calcAffineMatrix()
+{
+    // calculate forward matrix
+    // |mat[0][0] mat[0][1]|
+    // |mat[1][0] mat[1][1]|
+    int cos_i = 1000, sin_i = 0;
+    if (rot != 0){
+        cos_i = (int)(1000.0 * cos(-M_PI * rot / 180));
+        sin_i = (int)(1000.0 * sin(-M_PI * rot / 180));
+    }
+    mat[0][0] =  cos_i * scale_x / 100;
+    mat[0][1] = -sin_i * scale_y / 100;
+    mat[1][0] =  sin_i * scale_x / 100;
+    mat[1][1] =  cos_i * scale_y / 100;
+
+    // calculate bounding box
+    int min_xy[2], max_xy[2];
+    for (int i = 0; i < 4; ++i) {
+        int c_x = i < 2       ? -pos.w / 2 :  pos.w / 2;
+        int c_y = (i + 1) & 2 ?  pos.h / 2 : -pos.h / 2;
+	
+        corner_xy[i][0] = (mat[0][0] * c_x + mat[0][1] * c_y) / 1000 + pos.x;
+        corner_xy[i][1] = (mat[1][0] * c_x + mat[1][1] * c_y) / 1000 + pos.y;
+
+        if (i==0 || min_xy[0] > corner_xy[i][0]) min_xy[0] = corner_xy[i][0];
+        if (i==0 || max_xy[0] < corner_xy[i][0]) max_xy[0] = corner_xy[i][0];
+        if (i==0 || min_xy[1] > corner_xy[i][1]) min_xy[1] = corner_xy[i][1];
+        if (i==0 || max_xy[1] < corner_xy[i][1]) max_xy[1] = corner_xy[i][1];
+    }
+
+    bounding_rect.x = min_xy[0];
+    bounding_rect.y = min_xy[1];
+    bounding_rect.w = max_xy[0] - min_xy[0] + 1;
+    bounding_rect.h = max_xy[1] - min_xy[1] + 1;
+    
+    // calculate inverse matrix
+    int denom = scale_x * scale_y;
+    if (denom == 0) return;
+
+    inv_mat[0][0] =  mat[1][1] * 10000 / denom;
+    inv_mat[0][1] = -mat[0][1] * 10000 / denom;
+    inv_mat[1][0] = -mat[1][0] * 10000 / denom;
+    inv_mat[1][1] =  mat[0][0] * 10000 / denom;
+}
 
 SDL_Surface* AnimationInfo::allocSurface(int w, int h)
 {

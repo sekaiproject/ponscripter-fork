@@ -2,7 +2,7 @@
  *
  *  PonscripterLabel.h - Execution block parser of Ponscripter
  *
- *  Copyright (c) 2001-2007 Ogapee (original ONScripter, of which this
+ *  Copyright (c) 2001-2008 Ogapee (original ONScripter, of which this
  *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
@@ -292,6 +292,7 @@ public:
     int drawbgCommand(const pstring& cmd);
     int drawCommand(const pstring& cmd);
     int delayCommand(const pstring& cmd);
+    int deletescreenshotCommand(const pstring& cmd);    
     int defineresetCommand(const pstring& cmd);
     int cspCommand(const pstring& cmd);
     int cselgotoCommand(const pstring& cmd);
@@ -320,6 +321,8 @@ public:
     int autoclickCommand(const pstring& cmd);
     int allspresumeCommand(const pstring& cmd);
     int allsphideCommand(const pstring& cmd);
+    int allsp2resumeCommand(const pstring& cmd);
+    int allsp2hideCommand(const pstring& cmd);
     int amspCommand(const pstring& cmd);
 
 protected:
@@ -463,6 +466,7 @@ private:
     struct ButtonState {
         int x, y, button;
         bool down_flag;
+	ButtonState() { button = -1; down_flag = false; }
     } current_button_state, volatile_button_state,
       last_mouse_state, shelter_mouse_state;
 
@@ -569,10 +573,11 @@ private:
 
     /* ---------------------------------------- */
     /* Sprite related variables */
-    AnimationInfo sprite_info[MAX_SPRITE_NUM];
-    AnimationInfo sprite2_info[MAX_SPRITE2_NUM];    
+    AnimationInfo* sprite_info;
+    AnimationInfo* sprite2_info;
     bool all_sprite_hide_flag;
-
+    bool all_sprite2_hide_flag;
+    
     /* ---------------------------------------- */
     /* Parameter related variables */
     AnimationInfo* bar_info[MAX_PARAM_NUM];
@@ -760,6 +765,7 @@ private:
            WAVE_PRELOAD     = 1,
            WAVE_PLAY_LOADED = 2 };
     void stopBGM(bool continue_flag);
+    void stopAllDWAVE();
     void playClickVoice();
     void setupWaveHeader(unsigned char* buffer, int channels, int rate,
                          unsigned long data_length);

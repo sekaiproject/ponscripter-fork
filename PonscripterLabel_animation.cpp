@@ -2,7 +2,7 @@
  *
  *  Ponscripter_animation.cpp - Methods to manipulate AnimationInfo
  *
- *  Copyright (c) 2001-2007 Ogapee (original ONScripter, of which this
+ *  Copyright (c) 2001-2008 Ogapee (original ONScripter, of which this
  *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
@@ -44,6 +44,13 @@ int PonscripterLabel::proceedAnimation()
         }
     }
 
+    for (i = MAX_SPRITE2_NUM - 1; i >= 0; i--) {
+        anim = &sprite2_info[i];
+        if (anim->visible && anim->is_animatable) {
+            minimum_duration = estimateNextDuration(anim, anim->pos, minimum_duration);
+        }
+    }
+    
     if (!textgosub_label
         && (clickstr_state == CLICK_WAIT
             || clickstr_state == CLICK_NEWPAGE)) {
@@ -103,6 +110,13 @@ void PonscripterLabel::resetRemainingTime(int t)
 
     for (i = MAX_SPRITE_NUM - 1; i >= 0; i--) {
         anim = &sprite_info[i];
+        if (anim->visible && anim->is_animatable) {
+            anim->remaining_time -= t;
+        }
+    }
+
+    for (i = MAX_SPRITE2_NUM - 1; i >= 0; i--) {
+        anim = &sprite2_info[i];
         if (anim->visible && anim->is_animatable) {
             anim->remaining_time -= t;
         }
@@ -399,8 +413,12 @@ void PonscripterLabel::drawTaggedSurface(SDL_Surface* dst_surface, AnimationInfo
         poly_rect.y += sentence_font.GetY() * screen_ratio1 / screen_ratio2;
     }
 
-    anim->blendOnSurface(dst_surface, poly_rect.x, poly_rect.y,
-        clip, anim->trans);
+    if (anim->affine_flag)
+	anim->blendOnSurface2(dst_surface, poly_rect.x, poly_rect.y,
+			      clip, anim->trans);
+    else
+	anim->blendOnSurface(dst_surface, poly_rect.x, poly_rect.y,
+			     clip, anim->trans);
 }
 
 

@@ -2,7 +2,7 @@
  *
  *  PonscripterLabel.cpp - Execution block parser of Ponscripter
  *
- *  Copyright (c) 2001-2007 Ogapee (original ONScripter, of which this
+ *  Copyright (c) 2001-2008 Ogapee (original ONScripter, of which this
  *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
@@ -70,8 +70,11 @@ public:
 sfunc_lut_t::sfunc_lut_t() {
     dict["abssetcursor"]     = &PonscripterLabel::setcursorCommand;
     dict["allsphide"]        = &PonscripterLabel::allsphideCommand;
+    dict["allsp2hide"]       = &PonscripterLabel::allsp2hideCommand;
     dict["allspresume"]      = &PonscripterLabel::allspresumeCommand;
+    dict["allsp2resume"]     = &PonscripterLabel::allsp2resumeCommand;
     dict["amsp"]             = &PonscripterLabel::mspCommand;
+    dict["amsp2"]            = &PonscripterLabel::mspCommand;
     dict["autoclick"]        = &PonscripterLabel::autoclickCommand;
     dict["automode_time"]    = &PonscripterLabel::automode_timeCommand;
     dict["avi"]              = &PonscripterLabel::aviCommand;
@@ -106,8 +109,10 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["cselbtn"]          = &PonscripterLabel::cselbtnCommand;
     dict["cselgoto"]         = &PonscripterLabel::cselgotoCommand;
     dict["csp"]              = &PonscripterLabel::cspCommand;
+    dict["csp2"]             = &PonscripterLabel::cspCommand;
     dict["definereset"]      = &PonscripterLabel::defineresetCommand;
     dict["delay"]            = &PonscripterLabel::delayCommand;
+    dict["deletescreenshot"] = &PonscripterLabel::deletescreenshotCommand;    
     dict["draw"]             = &PonscripterLabel::drawCommand;
     dict["drawbg"]           = &PonscripterLabel::drawbgCommand;
     dict["drawbg2"]          = &PonscripterLabel::drawbg2Command;
@@ -192,7 +197,9 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["loopbgmstop"]      = &PonscripterLabel::loopbgmstopCommand;
     dict["lr_trap"]          = &PonscripterLabel::trapCommand;
     dict["lsp"]              = &PonscripterLabel::lspCommand;
+    dict["lsp2"]             = &PonscripterLabel::lspCommand;
     dict["lsph"]             = &PonscripterLabel::lspCommand;
+    dict["lsph2"]            = &PonscripterLabel::lspCommand;
     dict["menu_automode"]    = &PonscripterLabel::menu_automodeCommand;
     dict["menu_full"]        = &PonscripterLabel::menu_fullCommand;
     dict["menu_window"]      = &PonscripterLabel::menu_windowCommand;
@@ -206,6 +213,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["mp3vol"]           = &PonscripterLabel::mp3volCommand;
     dict["mpegplay"]         = &PonscripterLabel::mpegplayCommand;
     dict["msp"]              = &PonscripterLabel::mspCommand;
+    dict["msp2"]             = &PonscripterLabel::mspCommand;
     dict["nega"]             = &PonscripterLabel::negaCommand;
     dict["ofscopy"]          = &PonscripterLabel::ofscopyCommand;
     dict["ofscpy"]           = &PonscripterLabel::ofscopyCommand;
@@ -269,6 +277,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["trap"]             = &PonscripterLabel::trapCommand;
     dict["voicevol"]         = &PonscripterLabel::voicevolCommand;
     dict["vsp"]              = &PonscripterLabel::vspCommand;
+    dict["vsp2"]             = &PonscripterLabel::vspCommand;
     dict["wait"]             = &PonscripterLabel::waitCommand;
     dict["waittimer"]        = &PonscripterLabel::waittimerCommand;
     dict["wave"]             = &PonscripterLabel::waveCommand;
@@ -429,6 +438,10 @@ PonscripterLabel::PonscripterLabel()
     fullscreen_mode = false;
     window_mode     = false;
     skip_to_wait    = 0;
+    sprite_info     = new AnimationInfo[MAX_SPRITE_NUM];
+    sprite2_info    = new AnimationInfo[MAX_SPRITE2_NUM];
+    for (int i = 0; i < MAX_SPRITE2_NUM; ++i)
+	sprite2_info[i].affine_flag = true;
     global_speed_modifier = 100;
 }
 
@@ -436,6 +449,8 @@ PonscripterLabel::PonscripterLabel()
 PonscripterLabel::~PonscripterLabel()
 {
     reset();
+    delete[] sprite_info;
+    delete[] sprite2_info;
 }
 
 
@@ -815,6 +830,7 @@ void PonscripterLabel::reset()
     display_mode = NORMAL_DISPLAY_MODE;
     event_mode = IDLE_EVENT_MODE;
     all_sprite_hide_flag = false;
+    all_sprite2_hide_flag = false;
 
     if (resize_buffer_size != 16) {
         delete[] resize_buffer;
@@ -887,6 +903,7 @@ void PonscripterLabel::resetSub()
 
     stopCommand("stop");
     loopbgmstopCommand("loopbgmstop");
+    stopAllDWAVE();
     loop_bgm_name[1].trunc(0);
 
     // ----------------------------------------
@@ -897,6 +914,7 @@ void PonscripterLabel::resetSub()
     createBackground();
     for (i = 0; i < 3; i++) tachi_info[i].reset();
     for (i = 0; i < MAX_SPRITE_NUM; i++) sprite_info[i].reset();
+    for (i = 0; i < MAX_SPRITE2_NUM; i++) sprite2_info[i].reset();
     barclearCommand("barclear");
     prnumclearCommand("prnumclear");
     for (i = 0; i < 2; i++) cursor_info[i].reset();

@@ -2,7 +2,7 @@
  *
  *  PonscripterLabel_image.cpp - Image processing in Ponscripter
  *
- *  Copyright (c) 2001-2006 Ogapee (original ONScripter, of which this
+ *  Copyright (c) 2001-2008 Ogapee (original ONScripter, of which this
  *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
@@ -308,10 +308,18 @@ PonscripterLabel::refreshSurface(SDL_Surface* surface, SDL_Rect* clip_src,
     if (windowback_flag) {
 	if (is_drawable) {
 	    if (nega_mode == 1) makeNegaSurface(surface, clip);
-	    if (monocro_flag) makeMonochromeSurface(surface, clip);
+	    if (monocro_flag)   makeMonochromeSurface(surface, clip);
 	    if (nega_mode == 2) makeNegaSurface(surface, clip);
-	    SDL_BlitSurface(surface, &clip, accumulation_comp_surface, &clip);
-	}
+            //Mion - ogapee2008
+            if (!all_sprite2_hide_flag) {
+                for (i = MAX_SPRITE2_NUM - 1; i >= 0; --i)
+                    if (sprite2_info[i].image_surface &&
+			sprite2_info[i].visible)
+                        drawTaggedSurface(surface, &sprite2_info[i], clip);
+            }
+            SDL_BlitSurface(surface, &clip, accumulation_comp_surface, &clip);
+        }
+
         if (refresh_mode & REFRESH_SHADOW_MODE)
             shadowTextDisplay(surface, clip);
         if (refresh_mode & REFRESH_TEXT_MODE)
@@ -331,8 +339,15 @@ PonscripterLabel::refreshSurface(SDL_Surface* surface, SDL_Rect* clip_src,
 		    drawTaggedSurface(surface, &sprite_info[i], clip);
 	}
 	if (!windowback_flag) {
+	    //Mion - ogapee2008
+            if (!all_sprite2_hide_flag) {
+                for (i = MAX_SPRITE2_NUM - 1; i >= 0; --i)
+                    if (sprite2_info[i].image_surface &&
+			sprite2_info[i].visible)
+                        drawTaggedSurface(surface, &sprite2_info[i], clip);
+            }
 	    if (nega_mode == 1) makeNegaSurface(surface, clip);
-	    if (monocro_flag) makeMonochromeSurface(surface, clip);
+	    if (monocro_flag)   makeMonochromeSurface(surface, clip);
 	    if (nega_mode == 2) makeNegaSurface(surface, clip);
 	}
 	if (!(refresh_mode & REFRESH_SAYA_MODE)) {

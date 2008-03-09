@@ -2,7 +2,7 @@
  *
  *  PonscripterLabel_command.cpp - Command executer of Ponscripter
  *
- *  Copyright (c) 2001-2007 Ogapee (original ONScripter, of which this
+ *  Copyright (c) 2001-2008 Ogapee (original ONScripter, of which this
  *  is a fork).
  *
  *  ogapee@aqua.dti2.ne.jp
@@ -87,7 +87,11 @@ int PonscripterLabel::vspCommand(const pstring& cmd)
     if (script_h.hasMoreArgs()) { no2 = vis; vis = script_h.readIntValue(); }
     if (no2 < no1) { int swap = no2; no2 = no1; no1 = swap; }
     if (no2 >= MAX_SPRITE_NUM) no2 = MAX_SPRITE_NUM - 1;
-    for (int no = no1; no <= no2; ++no) {
+    if (cmd == "vsp2") for (int no = no1; no <= no2; ++no) {
+	sprite2_info[no].visible = vis;
+	dirty_rect.add(sprite2_info[no].bounding_rect);
+    }
+    else for (int no = no1; no <= no2; ++no) {
 	sprite_info[no].visible = vis;
 	dirty_rect.add(sprite_info[no].pos);
     }
@@ -291,8 +295,8 @@ int PonscripterLabel::strspCommand(const pstring& cmd)
 
     Fontinfo fi;
     fi.is_newline_accepted = true;
-    ai->pos.x = script_h.readIntValue();
-    ai->pos.y = script_h.readIntValue();
+    ai->pos.x = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    ai->pos.y = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
     fi.area_x = script_h.readIntValue();
     fi.area_y = script_h.readIntValue();
     int s1 = script_h.readIntValue(), s2 = script_h.readIntValue();
@@ -1152,31 +1156,61 @@ int PonscripterLabel::mspCommand(const pstring& cmd)
 {
     // Haeleth extension: the form `msp NUM,NUM,NUM[,NUM]' is augmented
     // by the form `msp NUM,NUM' which modifies only the transparency.
-    
+    // Likewise `msp2 NUM,NUM,NUM,NUM,NUM,NUM[,NUM]' is augmented by
+    // `msp2 NUM,NUM'.
+    bool sprite2 = cmd == "msp2" || cmd == "amsp2";
+    bool absolute = cmd == "amsp" || cmd == "amsp2";
     int no = script_h.readIntValue();
     int val = script_h.readIntValue();
+    bool modsp2 = false;
+    int x, y, a, sx, sy, r;
+    AnimationInfo& si = sprite2 ? sprite2_info[no] : sprite_info[no];
     if (script_h.hasMoreArgs()) {
-	dirty_rect.add(sprite_info[no].pos);
-	int x = 0, y = 0, a = 0;
-	if (cmd == "msp") {
-	    x = sprite_info[no].pos.x;
-	    y = sprite_info[no].pos.y;
-	    a = sprite_info[no].trans;
+	dirty_rect.add(sprite2 ? si.bounding_rect : si.pos);
+	x = val * screen_ratio1 / screen_ratio2;
+	y = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+	if (sprite2) {
+	    modsp2 = true;
+	    sx = script_h.readIntValue();
+	    sy = script_h.readIntValue();
+	    r  = script_h.readIntValue();
 	}
-	sprite_info[no].pos.x = x + val * screen_ratio1 / screen_ratio2;
-	sprite_info[no].pos.y = y + script_h.readIntValue() *
-	    screen_ratio1 / screen_ratio2;
-	dirty_rect.add(sprite_info[no].pos);
-	if (script_h.hasMoreArgs())
-	    sprite_info[no].trans = a + script_h.readIntValue();
+	a = script_h.hasMoreArgs() ? script_h.readIntValue()
+	                           : (absolute ? si.trans : 0);
     }
     else {
-	sprite_info[no].trans = (cmd == "msp" ? sprite_info[no].trans : 0)
-	                      + val;
+	x = absolute ? si.pos.x : 0;
+	y = absolute ? si.pos.y : 0;
+	a = val;
     }
 
-    if (sprite_info[no].trans > 256) sprite_info[no].trans = 256;
-    else if (sprite_info[no].trans < 0) sprite_info[no].trans = 0;
+    if (absolute) {
+    	si.pos.x = x;
+	si.pos.y = y;
+	si.trans = a;
+    }
+    else {
+	si.pos.x += x;
+	si.pos.y += y;
+	si.trans += a;
+    }
+    if (modsp2) {
+	if (absolute) {
+	    si.scale_x = sx;
+	    si.scale_y = sy;
+	    si.rot     = r;
+	}
+	else {
+	    si.scale_x += sx;
+	    si.scale_y += sy;
+	    si.rot     += r;
+	}
+	si.calcAffineMatrix();
+    }
+    dirty_rect.add(sprite2 ? si.bounding_rect : si.pos);
+
+    if (si.trans > 256) si.trans = 256;
+    else if (si.trans < 0) si.trans = 0;
 
     return RET_CONTINUE;
 }
@@ -1327,8 +1361,8 @@ int PonscripterLabel::mp3Command(const pstring& cmd)
 
 int PonscripterLabel::movemousecursorCommand(const pstring& cmd)
 {
-    int x = script_h.readIntValue();
-    int y = script_h.readIntValue();
+    int x = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    int y = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
 
     SDL_WarpMouse(x, y);
 
@@ -1407,27 +1441,33 @@ int PonscripterLabel::menu_automodeCommand(const pstring& cmd)
 
 int PonscripterLabel::lspCommand(const pstring& cmd)
 {
+    bool sprite2 = cmd == "lsp2" || cmd == "lsph2";
+    bool hidden = cmd == "lsph" || cmd == "lsph2";
+    
     int no = script_h.readIntValue();
-    if (sprite_info[no].visible)
-        dirty_rect.add(sprite_info[no].pos);
+    AnimationInfo& si = sprite2 ? sprite2_info[no] : sprite_info[no];
+    
+    if (si.visible) dirty_rect.add(sprite2 ? si.bounding_rect : si.pos);
 
-    sprite_info[no].visible = cmd != "lsph";
+    si.visible = !hidden;
+    si.setImageName(script_h.readStrValue());
+    si.pos.x = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    si.pos.y = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    if (sprite2) {
+	si.scale_x = script_h.readIntValue();
+	si.scale_y = script_h.readIntValue();
+	si.rot     = script_h.readIntValue();
+    }
+    si.trans = script_h.hasMoreArgs() ? script_h.readIntValue() : 256;
 
-    sprite_info[no].setImageName(script_h.readStrValue());
+    parseTaggedString(&si);
+    setupAnimationInfo(&si);
 
-    sprite_info[no].pos.x = script_h.readIntValue() *
-	screen_ratio1 / screen_ratio2;
-    sprite_info[no].pos.y = script_h.readIntValue() *
-	screen_ratio1 / screen_ratio2;
-    if (script_h.hasMoreArgs())
-        sprite_info[no].trans = script_h.readIntValue();
-    else
-        sprite_info[no].trans = 256;
-
-    parseTaggedString(&sprite_info[no]);
-    setupAnimationInfo(&sprite_info[no]);
-    if (sprite_info[no].visible)
-        dirty_rect.add(sprite_info[no].pos);
+    if (sprite2) {
+	si.calcAffineMatrix();
+    }
+    
+    if (si.visible) dirty_rect.add(sprite2 ? si.bounding_rect : si.pos);
 
     return RET_CONTINUE;
 }
@@ -1900,8 +1940,8 @@ int PonscripterLabel::getscreenshotCommand(const pstring& cmd)
     if (w == 0) w = 1;
     if (h == 0) h = 1;
     if (screenshot_surface &&
-        screenshot_surface->w != w &&
-        screenshot_surface->h != h) {
+	(screenshot_surface->w != w || screenshot_surface->h != h))
+    {
         SDL_FreeSurface(screenshot_surface);
         screenshot_surface = NULL;
     }
@@ -2253,6 +2293,8 @@ int PonscripterLabel::endCommand(const pstring& cmd)
 int PonscripterLabel::dwavestopCommand(const pstring& cmd)
 {
     int ch = script_h.readIntValue();
+    if (ch < 0) ch = 0;
+    else if (ch >= ONS_MIX_CHANNELS) ch = ONS_MIX_CHANNELS - 1;
     if (wave_sample[ch]) {
         Mix_Pause(ch);
         Mix_FreeChunk(wave_sample[ch]);
@@ -2324,19 +2366,28 @@ int PonscripterLabel::drawsp3Command(const pstring& cmd)
     int x         = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
     int y         = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
 
-    // |mat[0][0] mat[0][1]|
-    // |mat[1][0] mat[1][1]|
-    int mat[2][2];
-    mat[0][0] = script_h.readIntValue();
-    mat[0][1] = script_h.readIntValue();
-    mat[1][0] = script_h.readIntValue();
-    mat[1][1] = script_h.readIntValue();
-
     AnimationInfo &si = sprite_info[sprite_no];
     int old_cell_no = si.current_cell;
     si.setCell(cell_no);
 
-    si.blendOnSurface2(accumulation_surface, x, y, alpha, mat);
+    si.mat[0][0] = script_h.readIntValue();
+    si.mat[0][1] = script_h.readIntValue();
+    si.mat[1][0] = script_h.readIntValue();
+    si.mat[1][1] = script_h.readIntValue();
+
+    int denom = (si.mat[0][0] * si.mat[1][1] -
+		 si.mat[0][1] * si.mat[1][0])
+	      / 1000;
+
+    if (denom) {
+        si.inv_mat[0][0] =  si.mat[1][1] * 1000 / denom;
+        si.inv_mat[0][1] = -si.mat[0][1] * 1000 / denom;
+        si.inv_mat[1][0] = -si.mat[1][0] * 1000 / denom;
+        si.inv_mat[1][1] =  si.mat[0][0] * 1000 / denom;
+    }
+
+    SDL_Rect clip = { 0, 0, screen_surface->w, screen_surface->h };
+    si.blendOnSurface2(accumulation_surface, x, y, clip, alpha);
     si.setCell(old_cell_no);
 
     return RET_CONTINUE;
@@ -2348,32 +2399,20 @@ int PonscripterLabel::drawsp2Command(const pstring& cmd)
     int sprite_no = script_h.readIntValue();
     int cell_no   = script_h.readIntValue();
     int alpha     = script_h.readIntValue();
-    int x         = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    int y         = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    int scale_x   = script_h.readIntValue();
-    int scale_y   = script_h.readIntValue();
-    int rot       = script_h.readIntValue();
 
     AnimationInfo &si = sprite_info[sprite_no];
+    si.pos.x   = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    si.pos.y   = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    si.scale_x = script_h.readIntValue();
+    si.scale_y = script_h.readIntValue();
+    si.rot     = script_h.readIntValue();
+    si.calcAffineMatrix();
+
     int old_cell_no = si.current_cell;
     si.setCell(cell_no);
 
-    if (scale_x == 0 || scale_y == 0) return RET_CONTINUE;
-
-    // |mat[0][0] mat[0][1]|
-    // |mat[1][0] mat[1][1]|
-    int mat[2][2];
-    int cos_i = 1000, sin_i = 0;
-    if (rot != 0) {
-        cos_i = (int) (1000.0 * cos(-M_PI * rot / 180));
-        sin_i = (int) (1000.0 * sin(-M_PI * rot / 180));
-    }
-
-    mat[0][0] = cos_i * scale_x / 100;
-    mat[0][1] = -sin_i * scale_y / 100;
-    mat[1][0] = sin_i * scale_x / 100;
-    mat[1][1] = cos_i * scale_y / 100;
-    si.blendOnSurface2(accumulation_surface, x, y, alpha, mat);
+    SDL_Rect clip = { 0, 0, screen_surface->w, screen_surface->h };
+    si.blendOnSurface2(accumulation_surface, si.pos.x, si.pos.y, clip, alpha);
     si.setCell(old_cell_no);
 
     return RET_CONTINUE;
@@ -2431,26 +2470,13 @@ int PonscripterLabel::drawbg2Command(const pstring& cmd)
 {
     int x       = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
     int y       = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    int scale_x = script_h.readIntValue();
-    int scale_y = script_h.readIntValue();
-    int rot     = script_h.readIntValue();
+    bg_info.scale_x = script_h.readIntValue();
+    bg_info.scale_y = script_h.readIntValue();
+    bg_info.rot     = script_h.readIntValue();
+    bg_info.calcAffineMatrix();
 
-    // |mat[0][0] mat[0][1]|
-    // |mat[1][0] mat[1][1]|
-    int mat[2][2];
-    int cos_i = 1000, sin_i = 0;
-    if (rot != 0) {
-        cos_i = (int) (1000.0 * cos(-M_PI * rot / 180));
-        sin_i = (int) (1000.0 * sin(-M_PI * rot / 180));
-    }
-
-    mat[0][0] = cos_i * scale_x / 100;
-    mat[0][1] = -sin_i * scale_y / 100;
-    mat[1][0] = sin_i * scale_x / 100;
-    mat[1][1] = cos_i * scale_y / 100;
-
-    bg_info.blendOnSurface2(accumulation_surface, x, y,
-        256, mat);
+    SDL_Rect clip = { 0, 0, screen_surface->w, screen_surface->h };
+    bg_info.blendOnSurface2(accumulation_surface, x, y, clip, 256);
 
     return RET_CONTINUE;
 }
@@ -2465,6 +2491,14 @@ int PonscripterLabel::drawCommand(const pstring& cmd)
     return RET_CONTINUE;
 }
 
+int PonscripterLabel::deletescreenshotCommand(const pstring& cmd)
+{
+    if (screenshot_surface) {
+        SDL_FreeSurface(screenshot_surface);
+        screenshot_surface = NULL;
+    }
+    return RET_CONTINUE;
+}
 
 int PonscripterLabel::delayCommand(const pstring& cmd)
 {
@@ -2498,32 +2532,36 @@ int PonscripterLabel::defineresetCommand(const pstring& cmd)
 int PonscripterLabel::cspCommand(const pstring& cmd)
 {
     // Haeleth extension: csp <sprite>, <sprite2> clears all sprites
-    // between those numbers, inclusive.
+    // between those numbers, inclusive.  Ditto for csp2.
+    bool csp2         = cmd == "csp2";
+    const int max     = csp2 ? MAX_SPRITE2_NUM : MAX_SPRITE_NUM;
+    AnimationInfo* si = csp2 ? sprite2_info    : sprite_info;
+    
     int no1 = script_h.readIntValue();
     int no2 = script_h.hasMoreArgs() ? script_h.readIntValue() : no1;
     if (no2 < no1) { int swap = no2; no2 = no1; no1 = swap; }
-    if (no2 >= MAX_SPRITE_NUM) no2 = MAX_SPRITE_NUM - 1;
+    if (no2 >= max) no2 = max - 1;
     
     if (no1 == -1)
-        for (int i = 0; i < MAX_SPRITE_NUM; i++) {
-            if (sprite_info[i].visible)
-                dirty_rect.add(sprite_info[i].pos);
+        for (int i = 0; i < max; i++) {
+            if (si[i].visible)
+                dirty_rect.add(csp2 ? si[i].bounding_rect : si[i].pos);
 
-            if (sprite_info[i].image_name) {
-                sprite_info[i].pos.x = -1000 * screen_ratio1 / screen_ratio2;
-                sprite_info[i].pos.y = -1000 * screen_ratio1 / screen_ratio2;
+            if (si[i].image_name) {
+                si[i].pos.x = -1000 * screen_ratio1 / screen_ratio2;
+                si[i].pos.y = -1000 * screen_ratio1 / screen_ratio2;
             }
 
-            buttonsRemoveSprite(i);
-            sprite_info[i].remove();
+            if (!csp2) buttonsRemoveSprite(i);
+            si[i].remove();
         }
     else for (int no = no1; no <= no2; ++no)
-	if (no >= 0 && no < MAX_SPRITE_NUM) {
-        if (sprite_info[no].visible)
-            dirty_rect.add(sprite_info[no].pos);
+	if (no >= 0 && no < max) {
+        if (si[no].visible)
+            dirty_rect.add(csp2 ? si[no].bounding_rect : si[no].pos);
 
-        buttonsRemoveSprite(no);
-        sprite_info[no].remove();
+        if (!csp2) buttonsRemoveSprite(no);
+        si[no].remove();
     }
 
     return RET_CONTINUE;
@@ -2619,6 +2657,8 @@ int PonscripterLabel::chvolCommand(const pstring& cmd)
 {
     int ch  = script_h.readIntValue();
     int vol = script_h.readIntValue();
+    if (ch < 0) ch = 0;
+    else if (ch >= ONS_MIX_CHANNELS) ch = ONS_MIX_CHANNELS - 1;
     if (wave_sample[ch]) Mix_Volume(ch, vol * 128 / 100);
     return RET_CONTINUE;
 }
@@ -2796,12 +2836,15 @@ int PonscripterLabel::btndefCommand(const pstring& cmd)
             parseTaggedString(&btndef_info);
             btndef_info.trans_mode = AnimationInfo::TRANS_COPY;
             setupAnimationInfo(&btndef_info);
-	    if (btndef_info.image_surface)
+	    if (btndef_info.image_surface) {
 		SDL_SetAlpha(btndef_info.image_surface, DEFAULT_BLIT_FLAG,
 			     SDL_ALPHA_OPAQUE);
-	    else
+	    }
+	    else {
+		btntime_value = 0; //Mion - clear the btn wait time
 		fprintf(stderr, "Could not create button: %s not found\n",
 			(const char*) e.as_string());
+	    }
         }
     }
     deleteButtons();
@@ -3104,6 +3147,29 @@ int PonscripterLabel::allsphideCommand(const pstring& cmd)
     for (int i = 0; i < MAX_SPRITE_NUM; i++) {
         if (sprite_info[i].visible)
             dirty_rect.add(sprite_info[i].pos);
+    }
+
+    return RET_CONTINUE;
+}
+
+int PonscripterLabel::allsp2resumeCommand(const pstring& cmd)
+{
+    all_sprite2_hide_flag = false;
+    for (int i = 0; i < MAX_SPRITE2_NUM; i++) {
+        if (sprite2_info[i].visible)
+            dirty_rect.add(sprite2_info[i].bounding_rect);
+    }
+
+    return RET_CONTINUE;
+}
+
+
+int PonscripterLabel::allsp2hideCommand(const pstring& cmd)
+{
+    all_sprite2_hide_flag = true;
+    for (int i = 0; i < MAX_SPRITE2_NUM; i++) {
+        if (sprite2_info[i].visible)
+            dirty_rect.add(sprite2_info[i].bounding_rect);
     }
 
     return RET_CONTINUE;
