@@ -151,8 +151,8 @@ readTokenTop:
              || ch == '[' || ch == '('
              || ch == '!' || ch == '#' || ch == ',' || ch == '"') {
         // text
-	if (ch != '!')
-	    errorWarning("unmarked text found - this may be deprecated soon");
+//	if (ch != '!')
+//	    errorWarning("unmarked text found - this may be deprecated soon");
         bool loop_flag = true;
         bool ignore_click_flag = false;
         do {

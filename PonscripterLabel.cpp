@@ -597,7 +597,9 @@ pstring Platform_GetSavePath(pstring gameid) // Windows version
 	    GETFOLDERPATH(GetProcAddress(shdll, "SHGetFolderPathA"));
 	if (gfp) {
 	    char hpath[MAX_PATH];
-	    HRESULT res = gfp(0, 0x0023, 0, 0, hpath);
+#define CSIDL_COMMON_APPDATA 0x0023 // for [Profiles]/All Users/Application Data
+#define CSIDL_APPDATA        0x001a // for [Profiles]/[User]/Application Data
+	    HRESULT res = gfp(0, CSIDL_COMMON_APPDATA, 0, 0, hpath);
 	    if (res != S_FALSE && res != E_FAIL && res != E_INVALIDARG) {
 		rv = pstring(hpath) + '/' + gameid + '/';
 		CreateDirectory(rv, 0);
