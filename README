@@ -1,7 +1,7 @@
 CONTENTS
 
 1. Overview
-2. Compatibility
+2. Compatibility (incl. platform-specific issues)
 3. Acknowledgements
 
 
@@ -90,6 +90,14 @@ secondary platforms/configurations:
 * FreeBSD 6.2     x86_64
 * OpenBSD 4.1     i386
 * NetBSD 3.1      x86_64
+
+
+=== OS X ISSUES
+
+On OS X 10.4+, you will need to add a boolean key
+CGDisableCoalescedUpdates (with value "Yes") to your bundle's
+Info.plist in order for mouse clicks to cause a full page to display.
+This workaround will hopefully only be temporary.
 
 
 --- ACKNOWLEDGEMENTS

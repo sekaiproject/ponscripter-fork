@@ -3,7 +3,8 @@ NB. Some of these are actually Narci2-specific.
 
 MAJOR BUGS
 
-* Click-to-display-a-full-page doesn't work in OS X.
+* Click-to-display-a-full-page doesn't work in OS X 10.4+ unless
+  coalesced updates are disabled.
 
 * Some fades repeat randomly (doesn't happen in Linux, does in
   Solaris) (can't duplicate this again - WTF was it?)
