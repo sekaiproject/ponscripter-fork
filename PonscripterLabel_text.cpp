@@ -129,6 +129,8 @@ PonscripterLabel::drawChar(const char* text, Fontinfo* info, bool flush_flag,
             dirty_rect.add(dst_rect);
         }
         else if (flush_flag) {
+	    if (surface == accumulation_surface)
+		flush(refreshMode()); // hack to fix skip refresh bug
             flushDirect(dst_rect, REFRESH_NONE_MODE);
         }
 
@@ -153,6 +155,9 @@ PonscripterLabel::drawString(const char* str, rgb_t color, Fontinfo* info,
     float start_x = info->GetXOffset();
     int   start_y = info->GetYOffset();
 
+/**/float max_x = start_x;
+/**/int   max_y = start_y;
+    
     /* ---------------------------------------- */
     /* Draw selected characters */
     rgb_t org_color = info->color;
@@ -174,14 +179,19 @@ PonscripterLabel::drawString(const char* str, rgb_t color, Fontinfo* info,
         }
         else {
             str += drawChar(str, info, false, false, surface, cache_info);
+/**/	    if (info->GetXOffset() > max_x) max_x = info->GetXOffset();
+/**/	    if (info->GetYOffset() + info->line_space() > max_y)
+/**/		max_y = info->GetYOffset() + info->line_space();
         }
     }
     info->color = org_color;
 
     /* ---------------------------------------- */
     /* Calculate the area of selection */
-    SDL_Rect clipped_rect = info->calcUpdatedArea(start_x, start_y,
-						  screen_ratio1, screen_ratio2);
+//  SDL_Rect clipped_rect = info->calcUpdatedArea(start_x, start_y,
+//						  screen_ratio1, screen_ratio2);
+/**/SDL_Rect clipped_rect = { int(start_x), start_y,
+			      int(max_x - start_x), max_y - start_y };
     info->addShadeArea(clipped_rect, shade_distance);
 
     if (flush_flag)
@@ -589,7 +599,7 @@ int PonscripterLabel::processText()
 			    ctrl_pressed_status);
 
 	// Or possibly just:
-	flush_flag = true;
+//	flush_flag = true;
 	
 #ifdef BROKEN_SKIP_WRAPPING
         int bytes =

@@ -350,8 +350,8 @@ int PonscripterLabel::doEffect(Effect& effect, AnimationInfo* anim,
         break;
 
     case (CUSTOM_EFFECT_NO + 2): // quake
-        dst_rect.x = effect.no * ((int) (3.0 * rand() / (RAND_MAX + 1.0)) - 1) * 2;
-        dst_rect.y = effect.no * ((int) (3.0 * rand() / (RAND_MAX + 1.0)) - 1) * 2;
+        dst_rect.x = effect.no * ((int) (3.0 * random() / (RAND_MAX + 1.0)) - 1) * 2;
+        dst_rect.y = effect.no * ((int) (3.0 * random() / (RAND_MAX + 1.0)) - 1) * 2;
         SDL_FillRect(accumulation_surface, NULL, SDL_MapRGBA(accumulation_surface->format, 0, 0, 0, 0xff));
         drawEffect(&dst_rect, &src_rect, effect_dst_surface);
         break;

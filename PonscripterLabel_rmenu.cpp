@@ -322,7 +322,7 @@ void PonscripterLabel::createSaveLoadMenu(bool is_save)
 			- menu_font.area_y) / 2;
     pstring& menu_name = is_save ? save_menu_name : load_menu_name;
     menu_font.SetXY((lw - menu_font.StringAdvance(menu_name)) / 2, 0);
-    buttons[0] = getSelectableSentence(menu_name, &menu_font, false); // TODO: check that this isn't selectable!
+    buttons[0] = getSelectableSentence(menu_name, &menu_font, false); 
 
     menu_font.newLine();
 
@@ -511,7 +511,7 @@ void PonscripterLabel::executeSystemYesNo()
         menu_font.top_y  = (screen_height * screen_ratio2 / screen_ratio1 - menu_font.area_y) / 2;
         menu_font.SetXY(0, 0);
 
-	buttons[0] = getSelectableSentence(name, &menu_font, false); // TODO: check that this is not selectable!
+	buttons[0] = getSelectableSentence(name, &menu_font, false);
 
         flush(refreshMode());
 

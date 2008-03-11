@@ -1,13 +1,9 @@
-NB. These are all described in terms of Narcissu 2, and may not apply
-to other titles.
+NB. Some of these are actually Narci2-specific.
 
 
 MAJOR BUGS
 
-* @ mid-line doesn't work (and I could've sworn I tested it! ;_;)
-  Ah, probably a textgosub issue.
-
-* Movie playback doesn't work?
+* Click-to-display-a-full-page doesn't work in OS X.
 
 * Some fades repeat randomly (doesn't happen in Linux, does in
   Solaris) (can't duplicate this again - WTF was it?)
@@ -15,15 +11,11 @@ MAJOR BUGS
 
 MINOR BUGS
 
+* FontInfo doesn't store accurate information on extremes, so
+  getFullArea(), line_space() etc don't actually return the area
+  filled by existing text.
+
 * Built-in save/load menus are broken when encoding is Shift_JIS
-
-
-ENVIRONMENT
-
-* Title bar sometimes "stops working" when Beryl is active (title,
-  icon, and buttons do not appear, window cannot be moved by dragging,
-  and title bar is always in inactive style).  Restarting Beryl seems
-  to fix this, so I don't think it can be a Ponscripter bug.
 
 
 AESTHETIC

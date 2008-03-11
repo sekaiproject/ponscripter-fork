@@ -931,7 +931,7 @@ int PonscripterLabel::rndCommand(const pstring& cmd)
         lower = 0;
         upper = script_h.readIntValue() - 1;
     }
-    e.mutate(lower + int(double(upper - lower + 1) * rand() /
+    e.mutate(lower + int(double(upper - lower + 1) * random() /
 			 (RAND_MAX + 1.0)));
     return RET_CONTINUE;
 }

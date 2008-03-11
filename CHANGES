@@ -1,3 +1,12 @@
+2008-03-11
+
+  Fix random number generation on OS X.
+
+  Fix built-in load menu line truncation.
+
+  Fix bug causing text to be missing when coming out of skip mode.
+
+
 2008-03-09
 
   Get Vista working properly (?).
@@ -8,6 +17,7 @@
   Merge across the upstream ONScripter enhancements (mostly
   sp2-related) that Mion has integrated into ONScripter-En.
 
+  
 2008-02-25
 
   Improve diagnostics slightly.
@@ -18,6 +28,7 @@
 
   Merge across the RC version synchronisation code from ONScripter-En.
 
+  
 2008-01-27
 
   Revert setwindow and locate commands to the NScripter behaviour
@@ -46,6 +57,7 @@
   ignore ligature definitions where there's no suitable glyph in the
   active font.
 
+  
 2007-10-08
 
   Support for soft subtitles in MPEG playback (but not, at present, in
@@ -59,6 +71,7 @@
 
   Remove support for obsolete ONScripter-format saved games.
 
+  
 2007-09-25
 
   Implement h_defwindow, h_usewindow, h_usewindow3: create and use
@@ -67,16 +80,19 @@
   Implement h_speedpercent: adjust all font speed settings
   proportionately with a single convenient command.
 
+  
 2007-07-15
 
   Fix glyph positioning and a number of OS X build bugs.
 
+  
 2007-06-16
 
   Merge recent portability enhancements from ONScripter-En: configure
   now works properly on a wider range of Unixes, and generates an
   `install' target as documented.
 
+  
 2007-05-14
 
   Improve path handling: all paths are now specified explicitly. 
@@ -86,11 +102,13 @@
   files with non-ASCII filenames is still very much dependent on a
   UTF-8 filesystem.
 
+  
 2007-05-13
 
   The game identifier can now be derived from caption or versionstr
   commands if the ;gameid directive is absent.
 
+  
 2007-04-28
 
   Ponscripter games now use slightly different script filenames.
@@ -142,6 +160,7 @@
   ONScripter.  Built-in save/load menus take advantage of proportional
   text to display in automatically-formatted columns.
 
+  
 2006-11-30
 
   Increase flexibility of file embedding.  Font files can now be
@@ -152,6 +171,7 @@
   The new system could easily be expanded to allow other files to be
   embedded, including game data.
   
+
 2006-11-22
 
   Implement default data/save separation for Windows and Linux
@@ -159,6 +179,7 @@
   it possible to package Linux versions in a way that respects the
   FHS.
 
+  
 2006-11-21
 
   Implement ligature customisation.
@@ -166,6 +187,7 @@
   Integers can now be expressed in hexadecimal with an 0x prefix, as
   in C.
 
+  
 2006-09-24
 
   Replace SDL_ttf with a simpler, saner C++ interface (the
@@ -183,19 +205,23 @@
   premature optimisation.  The code is simplified considerably by its
   removal.
 
+  
 2006-09-18
 
   Multi-font-style support.
 
+  
 2006-09-14
 
   Automatic ligature support.
+
   
 2006-09-08
 
   Default icon embedded in interpreter.  (This is game-specific; users
   are expected to use custom builds with these replaced.)
 
+  
 2006-09-06
 
   Fork.
@@ -204,6 +230,7 @@
   
   Ruby, clickstr, and tategaki support removed.
 
+  
 2006-09-05 (as ONScripter)
 
   Make archive path and save path separately configurable.  Game data
