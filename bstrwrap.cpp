@@ -1467,6 +1467,7 @@ int p, i;
 CBStringList rv;
 
 	p = 0;
+	--n;
 	do {
 		for (i = p; i < length (); i++) {
 			if (character (i) == splitChar) break;
@@ -1488,6 +1489,7 @@ struct { unsigned long content[(1 << CHAR_BIT) / 32]; } chrs;
 unsigned char c;
 int p, i;
 
+        --n;
 	if (s.length() == 0) bstringThrow ("Null splitstring failure");
 	if (s.length() == 1) {
 		return split (s.character (0));
