@@ -1,6 +1,7 @@
 2008-03-11
 
-  Fix random number generation on OS X.
+  Fix random number generation; the first instance of rnd in a program
+  will no longer produce predictable results.
 
   Fix built-in load menu line truncation.
 

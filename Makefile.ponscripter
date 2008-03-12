@@ -23,7 +23,7 @@ GUI_OBJS = PonscripterLabel$(OBJSUFFIX)					\
 	resize_image$(OBJSUFFIX) encoding$(OBJSUFFIX)			\
 	font$(OBJSUFFIX) $(if $(NO_RESOURCES), ,resources$(OBJSUFFIX))  \
 	bstrlib$(OBJSUFFIX) bstrwrap$(OBJSUFFIX) pstring$(OBJSUFFIX)    \
-	cp932_encoding$(OBJSUFFIX) expression$(OBJSUFFIX)
+	cp932_encoding$(OBJSUFFIX) expression$(OBJSUFFIX) prng$(OBJSUFFIX)
 DECODER_OBJS = DirectReader$(OBJSUFFIX) SarReader$(OBJSUFFIX)	\
 	NsaReader$(OBJSUFFIX)
 PONSCR_OBJS = Ponscripter$(OBJSUFFIX) $(DECODER_OBJS)		\
@@ -79,6 +79,7 @@ SarReader$(OBJSUFFIX): SarReader.h DirectReader.h BaseReader.h $(ENCODING_H)
 ScriptHandler$(OBJSUFFIX): $(HANDLER_H)
 ScriptParser_command$(OBJSUFFIX): $(PARSER_H)
 ScriptParser$(OBJSUFFIX): $(PARSER_H)
+prng$(OBJSUFFIX): defs.h
 
 ifndef NO_DEFAULT_ICON
 RESOURCES ?= default.png =icon.png

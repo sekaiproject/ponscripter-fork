@@ -8,12 +8,12 @@
 #define USE_HASH
 #endif
 
+#include <stdlib.h>
 #include <stdio.h>
 
 #include <algorithm>
 #include <utility>
 #include <limits>
-//#include <string>
 #include <vector>
 #include <deque>
 #include <map>
@@ -105,5 +105,9 @@ void print_escaped(const pstring& what, FILE* where = stdout, bool newline = 0)
 	fflush(where);
     }
 }
+
+// Random number generation
+void init_rnd();
+int get_rnd(int lower, int upper);
 
 #endif

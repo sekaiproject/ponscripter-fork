@@ -157,7 +157,7 @@ func_lut_t::func_lut_t() {
 ScriptParser::ScriptParser()
 {
     debug_level = 0;
-    srandom(time(NULL));
+    init_rnd();
 
     key_table = NULL;
     force_button_shortcut_flag = false;
