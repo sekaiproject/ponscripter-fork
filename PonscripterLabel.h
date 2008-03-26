@@ -157,6 +157,7 @@ public:
     int haeleth_defwindowCommand(const pstring& cmd);
     int haeleth_usewindowCommand(const pstring& cmd);
     int haeleth_text_extentCommand(const pstring& cmd);
+    int haeleth_text_heightCommand(const pstring& cmd);
     int haeleth_centre_lineCommand(const pstring& cmd);
     int haeleth_char_setCommand(const pstring& cmd);
     int haeleth_font_styleCommand(const pstring& cmd);
@@ -164,6 +165,7 @@ public:
     int haeleth_hinting_modeCommand(const pstring& cmd);
     int haeleth_ligate_controlCommand(const pstring& cmd);
     int haeleth_sayCommand(const pstring& cmd);
+    int gettextspeedCommand(const pstring& cmd);
 
     // regular NScripter stuff
     int wavestopCommand(const pstring& cmd);

@@ -410,15 +410,30 @@ positioning:
 |  h_textextent <ivar>,<string>,[size_x],[size_y],[pitch_x]
 
 Sets <ivar> to the width, in pixels, of <string> as rendered in the
-current sentence font. If given, size_x, size_y, and pitch_x override
+current sentence font.  If given, size_x, size_y, and pitch_x override
 the current window settings (useful for calculating the size of
 buttons etc.)
 
 
 /---------------------------------------------------------------------
+|  h_textheight <ivar>,<string>,[string...]
+
+Sets <ivar> to the height, in pixels, that would be taken up if the
+<strings> were printed as consecutive paragraphs on a single page in
+the current text window.  The text is not actually displayed.
+
+This can be used to align a block of text vertically:
+
+  ; Centre text vertically in window
+  h_textheight %var, ^Pretend this is long, maybe several lines.^
+  h_locate 0, ([height of window] / 2) - (%var / 2)
+  ^Pretend this is long, maybe several lines.\
+
+  
+/---------------------------------------------------------------------
 |  h_centreline <string>
 
-A basic hack to make it easier to centre text.
+A basic hack to make it easier to centre text horizontally.
 
 Sets the current x position to the expected location required to
 centre the given <string> on screen (NOT in the window, which must be
@@ -448,6 +463,21 @@ NScripter.
 
 
 /---------------------------------------------------------------------
+|  gettextspeed <ivar>
+
+There's probably already a way to retrieve the current text speed, but
+I couldn't find it, so I added one.  Now you can do
+
+  gettextspeed %var
+  textspeed 0
+  ^Fast text!\
+  textspeed %var
+
+without having to worry about what the text speed was before you set
+it to 0.
+
+
+/---------------------------------------------------------------------
 |  Command changes 1: size and position
 
 Earlier versions of Ponscripter modified locate and setwindow to
@@ -459,6 +489,9 @@ setwindow are retained for compatibility, but they are deprecated.
 |  h_locate <x>, <y>
 
 A pixel-based replacement for locate.  It works just how you'd expect.
+In particular, movements performed by h_locate (but not locate) are
+remembered and will be repeated when scrolling back through viewed
+text.
 
 /---------------------------------------------------------------------
 |  h_defwindow <name>, (definition)

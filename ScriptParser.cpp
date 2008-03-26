@@ -377,10 +377,10 @@ int ScriptParser::parseLine()
     if (debug_level > 1)
 	printf("ScriptParser::Parseline %s\n", (const char*) cmd);
 
+    if (script_h.isText()) return RET_NOMATCH;
+
     if (cmd[0] == ';' || cmd[0] == '*' || cmd[0] == ':' || cmd[0] == 0x0a)
 	return RET_CONTINUE;
-
-    if (script_h.isText()) return RET_NOMATCH;
 
     if (cmd[0] != '_') {
 	if (user_func_lut.find(cmd) != user_func_lut.end()) {

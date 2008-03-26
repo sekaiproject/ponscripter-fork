@@ -1,8 +1,12 @@
-* Tags
+* Required for Narci2
 
-When are they processed?  Are they being processed in places where
-they definitely shouldn't, or ignored in places where they should 
-logically be handled?
+h_locate must add an ~x=,y=~ equivalent to the stored instructions if
+   the backlog is to work properly.
+
+* Upstream ONScripter
+
+Merge in some changes.  We're missing useful functions like
+   windowchip that are implemented there.
 
 * Not gonna happen any time soon
 

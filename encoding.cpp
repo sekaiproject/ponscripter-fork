@@ -381,13 +381,14 @@ Encoding::TranslateTag(const char* flag, int& in_len)
             return set_int(0x1a, flag + 1, in_len,
 			   flag[1] == '-' ? -1 : 1, 8192);
         }
-        else return set_int(0x1b, flag, in_len);
+        else
+	    return set_int(0x1b, flag, in_len);
 
     case 'y': if (flag[1] == '+' || flag[1] == '-') {
             ++in_len;
             return set_int(0x1c, flag + 1, in_len,
 			   flag[1] == '-' ? -1 : 1, 8192);
-    }
+	}
         else return set_int(0x1d, flag, in_len);
 
     case 'c': return set_int(0x1e, flag, in_len);

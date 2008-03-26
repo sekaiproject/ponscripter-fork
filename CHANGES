@@ -1,3 +1,18 @@
+2008-03-26
+
+  Add h_textheight command to facilitate footnote positioning in
+  Narci2.
+
+  h_locate now adds the equivalent of ~x...y...~ to the lookback
+  buffer, so pages using it will appear correctly in lookback mode.
+
+  Add gettextspeed command to determine the current text speed.
+
+  Tweak line wrapping code; formatting commands no longer count as
+  break points, and formatting changes are always taken into account
+  when wrapping.
+  
+
 2008-03-11
 
   Fix random number generation; the first instance of rnd in a program

@@ -146,6 +146,12 @@ int PonscripterLabel::textspeedCommand(const pstring& cmd)
     return RET_CONTINUE;
 }
 
+int PonscripterLabel::gettextspeedCommand(const pstring& cmd)
+{
+    script_h.readIntExpr().mutate(sentence_font.wait_time);
+    return RET_CONTINUE;
+}
+
 
 int PonscripterLabel::textshowCommand(const pstring& cmd)
 {
@@ -1602,6 +1608,15 @@ int PonscripterLabel::locateCommand(const pstring& cmd)
     if (cmd == "locate") {
 	x *= sentence_font.size() + sentence_font.pitch_x;
 	y *= sentence_font.line_space() + sentence_font.pitch_y;
+    }
+    else {
+	// For h_locate only, store new location in backlog.
+	pstring tag;
+	int phony;
+	tag.format("x%d", x);
+	current_text_buffer->addBuffer(encoding->TranslateTag(tag, phony));
+	tag.format("y%d", y);
+	current_text_buffer->addBuffer(encoding->TranslateTag(tag, phony));
     }
     sentence_font.SetXY(x, y);
     return RET_CONTINUE;

@@ -159,6 +159,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["gettab"]           = &PonscripterLabel::gettabCommand;
     dict["gettag"]           = &PonscripterLabel::gettagCommand;
     dict["gettext"]          = &PonscripterLabel::gettextCommand;
+    dict["gettextspeed"]     = &PonscripterLabel::gettextspeedCommand;
     dict["gettimer"]         = &PonscripterLabel::gettimerCommand;
     dict["getversion"]       = &PonscripterLabel::getversionCommand;
     dict["getvoicevol"]      = &PonscripterLabel::getvoicevolCommand;
@@ -171,6 +172,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["h_locate"]         = &PonscripterLabel::locateCommand;
     dict["h_mapfont"]        = &PonscripterLabel::haeleth_map_fontCommand;
     dict["h_rendering"]      = &PonscripterLabel::haeleth_hinting_modeCommand;
+    dict["h_textheight"]     = &PonscripterLabel::haeleth_text_heightCommand;
     dict["h_textextent"]     = &PonscripterLabel::haeleth_text_extentCommand;
     dict["h_defwindow"]      = &PonscripterLabel::haeleth_defwindowCommand;
     dict["h_usewindow"]      = &PonscripterLabel::haeleth_usewindowCommand;
@@ -1265,23 +1267,29 @@ int PonscripterLabel::parseLine()
 //--------LINE BREAKING ROUTINE-------------------------------------------------
 
     int l;
+    Fontinfo f = sentence_font;
     const wchar first_ch =
         encoding->DecodeWithLigatures(script_h.getStrBuf(string_buffer_offset),
-                                      sentence_font, l);
+                                      f, l);
 
     if (is_break_char(first_ch) && !new_line_skip_flag) {
         const char* it = script_h.getStrBuf(string_buffer_offset) + l;
-        wchar next_ch = encoding->DecodeWithLigatures(it, sentence_font, l);
-        float len = sentence_font.GlyphAdvance(first_ch, next_ch);
+        wchar next_ch = encoding->DecodeWithLigatures(it, f, l);
+        float len = f.GlyphAdvance(first_ch, next_ch);
         while (1) {
             // For each character (not char!) before a break is found,
             // get unicode.
-            wchar ch = encoding->DecodeWithLigatures(it, sentence_font, l);
+            wchar ch = encoding->DecodeWithLigatures(it, f, l);
       cont: it += l;
 
+	    // Check for special sequences.
+	    if (ch >= 0x10 && ch < 0x20) {
+		f.processCode(it - l);
+		continue;
+	    }
+	    
             // Check for token breaks.
-            if (ch <= 0x1f || ch == '\n' || ch == '@' || ch == '\\'
-                || is_break_char(ch))
+            if (ch == '\n' || ch == '@' || ch == '\\' || is_break_char(ch))
                 break;
 
             // Look for an inline command.
@@ -1301,14 +1309,14 @@ int PonscripterLabel::parseLine()
                 for (int offs = 1; ok && offs <= 6; ++offs)
                     ok &= isxdigit(it[offs]);
                 if (ok) {
-                    it += 7;
+                    it += 7; // really 7? or should it be 6?
                     continue;
                 }
             }
 
             // No inline command?  Use the glyph metrics, then!
-            next_ch = encoding->DecodeWithLigatures(it, sentence_font, l);
-            len += sentence_font.GlyphAdvance(ch, next_ch);
+            next_ch = encoding->DecodeWithLigatures(it, f, l);
+            len += f.GlyphAdvance(ch, next_ch);
             ch = next_ch;
             goto cont;
         }
@@ -1333,12 +1341,13 @@ int PonscripterLabel::parseLine()
             //    -------------------------
             // Currently we use four em widths, which is an arbitrary
             // figure that may need tweaking.
-            const float minlen = sentence_font.em_width() * 4;
+            const float minlen = f.em_width() * 4;
             if (len < minlen) len = minlen;
         }
-        if (len > 0 && sentence_font.isNoRoomFor(len)) {
+        if (len > 0 && f.isNoRoomFor(len)) {
             current_text_buffer->addBuffer(0x0a);
             sentence_font.newLine();
+            f.newLine();
         }
     }
 //-----END LINE BREAKING ROUTINE------------------------------------------------

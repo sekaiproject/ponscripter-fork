@@ -122,6 +122,92 @@ int PonscripterLabel::haeleth_text_extentCommand(const pstring& cmd)
     return RET_CONTINUE;
 }
 
+/* h_textheight <ivar>,<string...>
+ *
+ * Sets <ivar> to the height, in pixels, of the area that would be
+ * taken up by rendering each <string> as a separate line in the
+ * current text window.
+ */
+int PonscripterLabel::haeleth_text_heightCommand(const pstring& cmd)
+{
+    Expression ivar = script_h.readIntExpr();
+
+    pstring buf;
+    while (script_h.hasMoreArgs()) {
+	pstring arg = script_h.readStrValue();
+	if (arg[0] == encoding->TextMarker()) arg.remove(0, 1);
+	buf += arg;
+	buf += '\n';
+    }
+
+    if (!buf) {
+	errorAndCont("h_textheight: no strings");
+	ivar.mutate(0);
+	return RET_CONTINUE;
+    }
+    
+    Fontinfo f = sentence_font;
+    f.area_y = 0xffffff;
+    f.SetXY(0, 0);
+
+    // Bad factoring: we already have a line breaking routine in
+    // PonscripterLabel.cpp, but we had to write our own here to
+    // handle breaking a complete string as opposed to just finding
+    // the next breakpoint...
+    const char* first = buf;
+    const char* it = first;
+    const char* lastbreak = first;
+    const char* end = first + buf.length();
+    while (it < end) {
+	int l;
+	wchar ch = encoding->DecodeWithLigatures(it, f, l);
+    cont:
+	const char* start = it;
+	it += l;
+	if (ch >= 0x10 && ch < 0x20) {
+	    f.processCode(start);
+	}
+	else {
+	    if (ch == '\\')
+		errorAndExit("h_textheight: ditch the \\");
+
+	    if (ch == '\n') {
+		f.newLine();
+		lastbreak = it;
+		continue;
+	    }
+	    
+	    if (ch < 0x20 || ch == '@' || is_break_char(ch))
+		lastbreak = start;
+	    
+	    if (ch == '!' && (*it == 's' || *it == 'd' || *it == 'w')) {
+		if (it[0] == 's' && it[1] == 'd') it += 2;
+		else do { ++it; } while (isdigit(*it));
+		continue;
+	    }
+	    else if (ch == '#') {
+		it += 7;
+		continue;
+	    }
+
+	    wchar next_ch = encoding->DecodeWithLigatures(it, f, l);
+	    float adv = f.GlyphAdvance(ch, next_ch);
+	    if (f.isNoRoomFor(adv)) {
+		f.newLine();
+		if (lastbreak != first) it = lastbreak;
+		lastbreak = it;
+		continue;
+	    }
+	    f.advanceBy(adv);
+	    ch = next_ch;
+	    goto cont;
+	}
+    }
+
+    ivar.mutate(f.GetYOffset() + f.line_space());
+        
+    return RET_CONTINUE;
+}
 
 /* h_centreline <string>
  *
