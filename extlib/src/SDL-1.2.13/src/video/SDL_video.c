@@ -128,6 +128,10 @@ static VideoBootStrap *bootstrap[] = {
 
 SDL_VideoDevice *current_video = NULL;
 
+/* Haeleth extension */
+static int desktop_w, desktop_h, desktop_a;
+/* End of extension */
+
 /* Various local functions */
 int SDL_VideoInit(const char *driver_name, Uint32 flags);
 void SDL_VideoQuit(void);
@@ -266,6 +270,11 @@ int SDL_VideoInit (const char *driver_name, Uint32 flags)
 	}
 #endif
 	video->info.vfmt = SDL_VideoSurface->format;
+	/* Haeleth extension */
+	desktop_w = video->info.current_w;
+	desktop_h = video->info.current_h;
+	desktop_a = desktop_w * 100 / desktop_h;
+	/* End extension */
 
 	/* Start the event loop */
 	if ( SDL_StartEventLoop(flags) < 0 ) {
@@ -431,6 +440,11 @@ static int SDL_GetVideoMode (int *w, int *h, int *BitsPerPixel, Uint32 flags)
 	SDL_PixelFormat format;
 	SDL_Rect **sizes;
 
+	/* Haeleth extension */
+	if (!(flags & SDL_FULLSCREEN))
+	    flags &= ~SDLEXT_ASPECT;
+	/* End extension */
+	
 	/* Check parameters */
 	if ( *BitsPerPixel < 8 || *BitsPerPixel > 32 ) {
 		SDL_SetError("Invalid bits per pixel (range is {8...32})");
@@ -443,6 +457,9 @@ static int SDL_GetVideoMode (int *w, int *h, int *BitsPerPixel, Uint32 flags)
 
 	/* Try the original video mode, get the closest depth */
 	native_bpp = SDL_VideoModeOK(*w, *h, *BitsPerPixel, flags);
+	/* Haeleth extension */
+	if (!(flags & SDLEXT_ASPECT) || ((int)(*w * 100 / *h) == desktop_a)) {
+	/* End extension */
 	if ( native_bpp == *BitsPerPixel ) {
 		return(1);
 	}
@@ -450,6 +467,9 @@ static int SDL_GetVideoMode (int *w, int *h, int *BitsPerPixel, Uint32 flags)
 		*BitsPerPixel = native_bpp;
 		return(1);
 	}
+	/* Haeleth extension */
+	}
+	/* End extension */
 
 	/* No exact size match at any depth, look for closest match */
 	SDL_memset(&format, 0, sizeof(format));
@@ -468,6 +488,11 @@ static int SDL_GetVideoMode (int *w, int *h, int *BitsPerPixel, Uint32 flags)
 		}
 		best=0;
 		for ( i=0; sizes[i]; ++i ) {
+			/* Haeleth extension */
+			if ((flags & SDLEXT_ASPECT) &&
+			    ((int)(sizes[i]->w * 100 / sizes[i]->h) != desktop_a))
+				continue;
+		    
 			/* Mode with both dimensions bigger or equal than asked ? */
 			if ((sizes[i]->w >= *w) && (sizes[i]->h >= *h)) {
 				/* Mode with any dimension smaller or equal than current best ? */

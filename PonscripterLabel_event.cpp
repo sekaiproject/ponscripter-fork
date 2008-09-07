@@ -1008,6 +1008,15 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
             if (fullscreen_mode) menu_windowCommand("menu_window");
             else menu_fullCommand("menu_full");
         }
+        else if (event->keysym.sym == SDLK_w) {
+	    // If we're using a suitably hacked SDL, this will switch
+	    // to fullscreen mode with aspect ratio preservation for
+	    // widescreen displays.  Otherwise it'll just switch to
+	    // fullscreen mode.
+	    fullscreen_flags ^= 0x00100000;
+	    fullscreen_mode = false;
+	    menu_fullCommand("menu_full");
+        }
     }
 
 //#ifdef SKIP_TO_WAIT    

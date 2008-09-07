@@ -374,9 +374,9 @@ void PonscripterLabel::initSDL()
         screen_height  = screen_height * width / 320;
     }
 #endif
-
+    
     screen_surface = SDL_SetVideoMode(screen_width, screen_height, screen_bpp,
-        DEFAULT_VIDEO_SURFACE_FLAG | (fullscreen_mode ? SDL_FULLSCREEN : 0));
+        DEFAULT_VIDEO_SURFACE_FLAG | (fullscreen_mode ? fullscreen_flags : 0));
 
     /* ---------------------------------------- */
     /* Check if VGA screen is available. */
@@ -386,7 +386,7 @@ void PonscripterLabel::initSDL()
         screen_width  /= 2;
         screen_height /= 2;
         screen_surface = SDL_SetVideoMode(screen_width,screen_height,screen_bpp,
-            DEFAULT_VIDEO_SURFACE_FLAG | (fullscreen_mode? SDL_FULLSCREEN : 0));
+            DEFAULT_VIDEO_SURFACE_FLAG | (fullscreen_mode? fullscreen_flags : 0));
     }
 #endif
     underline_value = screen_height - 1;
@@ -432,16 +432,17 @@ PonscripterLabel::PonscripterLabel()
       music_cmd(getenv("PLAYER_CMD")),
       midi_cmd(getenv("MUSIC_CMD"))
 {
-    cdrom_drive_number = 0;
-    cdaudio_flag  = false;
-    enable_wheeldown_advance_flag = false;
+    cdrom_drive_number   = 0;
+    cdaudio_flag         = false;
     disable_rescale_flag = false;
-    edit_flag       = false;
-    fullscreen_mode = false;
-    window_mode     = false;
-    skip_to_wait    = 0;
-    sprite_info     = new AnimationInfo[MAX_SPRITE_NUM];
-    sprite2_info    = new AnimationInfo[MAX_SPRITE2_NUM];
+    edit_flag            = false;
+    fullscreen_mode      = false;
+    fullscreen_flags     = SDL_FULLSCREEN;
+    window_mode          = false;
+    skip_to_wait         = 0;
+    sprite_info          = new AnimationInfo[MAX_SPRITE_NUM];
+    sprite2_info         = new AnimationInfo[MAX_SPRITE2_NUM];
+    enable_wheeldown_advance_flag = false;
     for (int i = 0; i < MAX_SPRITE2_NUM; ++i)
         sprite2_info[i].affine_flag = true;
     global_speed_modifier = 100;

@@ -41,7 +41,7 @@ SDL_CONFIG=sdl-config
 SMPEG_CONFIG=smpeg-config
 FREETYPE_CONFIG=freetype-config
 
-VERSION=`awk -F\" '/ONS_VERSION/ {print $2}' version.h`
+VERSION=`awk '/define VER_NUMBER/ {print $3}' version.h`
 
 # Parse options
 prev=

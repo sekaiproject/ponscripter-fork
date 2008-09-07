@@ -135,6 +135,10 @@ typedef struct SDL_Surface {
 #define SDL_SRCALPHA	0x00010000	/* Blit uses source alpha blending */
 #define SDL_PREALLOC	0x01000000	/* Surface uses preallocated memory */
 
+/* Haeleth extension */    
+#define SDLEXT_ASPECT   0x00100000      /* Preserve aspect ratio if possible */
+/* End extension */    
+
 /* Evaluates to true if the surface needs to be locked before access */
 #define SDL_MUSTLOCK(surface)	\
   (surface->offset ||		\

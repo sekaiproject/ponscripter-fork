@@ -427,6 +427,7 @@ private:
     pstring wm_icon_string;
     pstring wm_edit_string;
     bool   fullscreen_mode;
+    Uint32 fullscreen_flags;
     bool   window_mode;
 
     bool btntime2_flag;
