@@ -370,3 +370,67 @@ int PonscripterLabel::haeleth_sayCommand(const pstring& cmd)
     fflush(stdout);
     return RET_CONTINUE;
 }
+
+/* vsp[2]_when auto,   <int>[, <int>]
+ * vsp[2]_when manual, <int>[, <int>]
+ * vsp[2]_when always, <int>[, <int>]
+ *
+ * Control sprite visibility automatically.  "auto" means the named
+ * sprite or sprite range is displayed in auto mode and hidden
+ * otherwise; "manual" does the opposite; "always" disables automatic
+ * visibility controls.
+ */
+int PonscripterLabel::vsp_whenCommand(const pstring& cmd)
+{
+    int mode;
+    pstring s = script_h.readStrExpr().as_string();
+    if (s == "auto") {
+        mode = 1;
+    }
+    else if (s == "manual") {
+        mode = 2;
+    }
+    else if (s == "always") {
+        mode = 0;
+    }
+    else {
+        s.format("Expected `auto', `manual', or `always' after %s, found `%s'",
+                 (const char*) cmd, (const char*) s);
+        errorAndCont(s);
+        return RET_CONTINUE;
+    }
+        
+    AnimationInfo* arr;
+    int max;
+    if (cmd == "vsp_when") {
+        arr = sprite_info;
+        max = MAX_SPRITE_NUM;
+    }
+    else {
+        arr = sprite2_info;
+        max = MAX_SPRITE2_NUM;
+    }
+    int from = script_h.readIntValue();
+    int to = script_h.hasMoreArgs() ? script_h.readIntValue() : from;
+    if (from > to) { int tmp = to; to = from; from = tmp; }
+    if (from < 0) {
+        s.format("index for %s out of range: expected 0..%d, got %d",
+                 (const char*) cmd, max - 1, from);
+        errorAndCont(s);
+    }
+    else if (to >= max) {
+        s.format("index for %s out of range: expected 0..%d, got %d",
+                 (const char*) cmd, max - 1, to);
+        errorAndCont(s);
+    }
+    else for (int i = from; i <= to; ++i) {
+        arr[i].enablemode = mode;
+        if (arr[i].enabled(mode == 1 ?  automode_flag :
+                           mode == 2 ? !automode_flag :
+                                       true))
+            dirty_rect.add(arr == sprite_info ? arr[i].pos :
+                                                arr[i].bounding_rect);
+    }
+
+    return RET_CONTINUE;
+}

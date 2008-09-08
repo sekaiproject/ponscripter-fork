@@ -51,7 +51,7 @@ int PonscripterLabel::loadSaveFile2(SaveFileType file_type, int file_version)
 	parseTaggedString(&cursor_info[0]);
 	setupAnimationInfo(&cursor_info[0]);
 	if (cursor_info[0].image_surface)
-	    cursor_info[0].visible = true;
+	    cursor_info[0].visible(true);
     }
 
     cursor_info[1].remove();
@@ -60,7 +60,7 @@ int PonscripterLabel::loadSaveFile2(SaveFileType file_type, int file_version)
 	parseTaggedString(&cursor_info[1]);
 	setupAnimationInfo(&cursor_info[1]);
 	if (cursor_info[1].image_surface)
-	    cursor_info[1].visible = true;
+	    cursor_info[1].visible(true);
     }
 
     window_effect.effect   = readInt();
@@ -144,7 +144,7 @@ int PonscripterLabel::loadSaveFile2(SaveFileType file_type, int file_version)
 
 	sprite_info[i].pos.x = readInt() * screen_ratio1 / screen_ratio2;
 	sprite_info[i].pos.y = readInt() * screen_ratio1 / screen_ratio2;
-	sprite_info[i].visible = readInt() == 1;
+	sprite_info[i].visible(readInt() == 1);
 	sprite_info[i].current_cell = readInt();
 	if (file_version >= 203) readInt(); // -1
     }
@@ -360,7 +360,7 @@ int PonscripterLabel::loadSaveFile2(SaveFileType file_type, int file_version)
 	    sprite2_info[i].scale_x = readInt();
 	    sprite2_info[i].scale_y = readInt();
 	    sprite2_info[i].rot = readInt();
-	    sprite2_info[i].visible = readInt() == 1;
+	    sprite2_info[i].visible(readInt() == 1);
 	    j = readInt();
 	    sprite2_info[i].trans = j == -1 ? 256 : j;
 	    sprite2_info[i].blending_mode = readInt();
@@ -494,7 +494,7 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
 		 output_flag);
 	writeInt(sprite_info[i].pos.y * screen_ratio2 / screen_ratio1,
 		 output_flag);
-	writeInt(sprite_info[i].visible ? 1 : 0, output_flag);
+	writeInt(sprite_info[i].showing() ? 1 : 0, output_flag);
 	writeInt(sprite_info[i].current_cell, output_flag);
 	writeInt(-1, output_flag);
     }
@@ -637,7 +637,7 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
 	writeInt(sprite2_info[i].scale_x, output_flag);
 	writeInt(sprite2_info[i].scale_y, output_flag);
 	writeInt(sprite2_info[i].rot, output_flag);
-	writeInt(sprite2_info[i].visible, output_flag);
+	writeInt(sprite2_info[i].showing(), output_flag);
 	if (sprite2_info[i].trans == 256)
 	    writeInt(-1, output_flag);
 	else

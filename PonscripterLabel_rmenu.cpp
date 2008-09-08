@@ -200,7 +200,7 @@ void PonscripterLabel::executeSystemMenu()
 
 void PonscripterLabel::executeSystemSkip()
 {
-    skip_flag = true;
+    setSkipMode(true);
     if (!(shelter_event_mode & WAIT_BUTTON_MODE))
         shelter_event_mode &= ~WAIT_TIMER_MODE;
 
@@ -210,8 +210,7 @@ void PonscripterLabel::executeSystemSkip()
 
 void PonscripterLabel::executeSystemAutomode()
 {
-    automode_flag = true;
-    skip_flag = false;
+    setAutoMode(true);
     printf("systemcall_automode: change to automode\n");
     leaveSystemCall();
 }
@@ -554,7 +553,7 @@ void PonscripterLabel::setupLookbackButton()
         if (lookback_sp[0] >= 0) {
             button->button_type = ButtonElt::SPRITE_BUTTON;
             button->sprite_no = lookback_sp[0];
-            sprite_info[button->sprite_no].visible = true;
+            sprite_info[button->sprite_no].visible(true);
             button->image_rect = sprite_info[button->sprite_no].pos;
         }
         else {
@@ -573,7 +572,7 @@ void PonscripterLabel::setupLookbackButton()
         }
     }
     else if (lookback_sp[0] >= 0) {
-        sprite_info[lookback_sp[0]].visible = false;
+        sprite_info[lookback_sp[0]].visible(false);
     }
 
     /* ---------------------------------------- */
@@ -590,7 +589,7 @@ void PonscripterLabel::setupLookbackButton()
         if (lookback_sp[1] >= 0) {
             button->button_type = ButtonElt::SPRITE_BUTTON;
             button->sprite_no = lookback_sp[1];
-            sprite_info[button->sprite_no].visible = true;
+            sprite_info[button->sprite_no].visible(true);
             button->image_rect = sprite_info[button->sprite_no].pos;
         }
         else {
@@ -611,7 +610,7 @@ void PonscripterLabel::setupLookbackButton()
         }
     }
     else if (lookback_sp[1] >= 0) {
-        sprite_info[lookback_sp[1]].visible = false;
+        sprite_info[lookback_sp[1]].visible(false);
     }
 }
 
@@ -632,10 +631,10 @@ void PonscripterLabel::executeSystemLookback()
             event_mode = IDLE_EVENT_MODE;
             deleteButtons();
             if (lookback_sp[0] >= 0)
-                sprite_info[lookback_sp[0]].visible = false;
+                sprite_info[lookback_sp[0]].visible(false);
 
             if (lookback_sp[1] >= 0)
-                sprite_info[lookback_sp[1]].visible = false;
+                sprite_info[lookback_sp[1]].visible(false);
 
             leaveSystemCall();
             return;
@@ -652,10 +651,10 @@ void PonscripterLabel::executeSystemLookback()
         current_text_buffer = current_text_buffer->previous;
         if (current_text_buffer->empty()) {
             if (lookback_sp[0] >= 0)
-                sprite_info[lookback_sp[0]].visible = false;
+                sprite_info[lookback_sp[0]].visible(false);
 
             if (lookback_sp[1] >= 0)
-                sprite_info[lookback_sp[1]].visible = false;
+                sprite_info[lookback_sp[1]].visible(false);
 
             leaveSystemCall();
             return;

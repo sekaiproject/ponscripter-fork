@@ -294,7 +294,7 @@ PonscripterLabel::refreshSurface(SDL_Surface* surface, SDL_Rect* clip_src,
 		top = z_order;
 	    
 	    for (i = MAX_SPRITE_NUM - 1; i > top; --i)
-		if (sprite_info[i].image_surface && sprite_info[i].visible)
+		if (sprite_info[i].image_surface && sprite_info[i].showing())
 		    drawTaggedSurface(surface, &sprite_info[i], clip);
 	}
 
@@ -314,7 +314,7 @@ PonscripterLabel::refreshSurface(SDL_Surface* surface, SDL_Rect* clip_src,
             if (!all_sprite2_hide_flag) {
                 for (i = MAX_SPRITE2_NUM - 1; i >= 0; --i)
                     if (sprite2_info[i].image_surface &&
-			sprite2_info[i].visible)
+			sprite2_info[i].showing())
                         drawTaggedSurface(surface, &sprite2_info[i], clip);
             }
             SDL_BlitSurface(surface, &clip, accumulation_comp_surface, &clip);
@@ -335,7 +335,7 @@ PonscripterLabel::refreshSurface(SDL_Surface* surface, SDL_Rect* clip_src,
 		top = 0;
 
 	    for (i = z_order; i >= top; --i)
-		if (sprite_info[i].image_surface && sprite_info[i].visible)
+		if (sprite_info[i].image_surface && sprite_info[i].showing())
 		    drawTaggedSurface(surface, &sprite_info[i], clip);
 	}
 	if (!windowback_flag) {
@@ -343,7 +343,7 @@ PonscripterLabel::refreshSurface(SDL_Surface* surface, SDL_Rect* clip_src,
             if (!all_sprite2_hide_flag) {
                 for (i = MAX_SPRITE2_NUM - 1; i >= 0; --i)
                     if (sprite2_info[i].image_surface &&
-			sprite2_info[i].visible)
+			sprite2_info[i].showing())
                         drawTaggedSurface(surface, &sprite2_info[i], clip);
             }
 	    if (nega_mode == 1) makeNegaSurface(surface, clip);
@@ -390,7 +390,7 @@ PonscripterLabel::refreshSprite(int sprite_no, bool active_flag, int cell_no,
 				SDL_Rect* check_dst_rect)
 {
     if (sprite_info[sprite_no].image_name
-        && (sprite_info[sprite_no].visible != active_flag
+        && (sprite_info[sprite_no].showing() != active_flag
             || (cell_no >= 0 && sprite_info[sprite_no].current_cell != cell_no)
             || AnimationInfo::doClipping(check_src_rect,
 					 &sprite_info[sprite_no].pos) == 0
@@ -398,7 +398,7 @@ PonscripterLabel::refreshSprite(int sprite_no, bool active_flag, int cell_no,
 					 &sprite_info[sprite_no].pos) == 0))
     {
         if (cell_no >= 0) sprite_info[sprite_no].setCell(cell_no);
-        sprite_info[sprite_no].visible = active_flag;
+        sprite_info[sprite_no].visible(active_flag);
         dirty_rect.add(sprite_info[sprite_no].pos);
     }
 }

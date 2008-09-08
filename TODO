@@ -1,13 +1,19 @@
 * Required for Narci2
 
-h_locate must add an ~x=,y=~ equivalent to the stored instructions if
-   the backlog is to work properly.
+-- Update save/load to work properly with vsp_when.
 
-* Upstream ONScripter
+-- Save/load widescreen setting.
+
+-- Make widescreen flush entire buffer (otherwise we get some random
+   stuff in the black bars on eee 901).
+
+   
+* Upstream ONScripter / ONScripter-En
 
 Merge in some changes.  We're missing useful functions like
    windowchip that are implemented there.
 
+   
 * Not gonna happen any time soon
 
 Kill pushed_variable, current_variable, and so forth

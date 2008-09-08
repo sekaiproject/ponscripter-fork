@@ -214,7 +214,9 @@ void PonscripterLabel::flushEventSub(SDL_Event &event)
 // The event handler for the mp3 fadeout event itself.  Simply sets the volume of the mp3 being played lower and lower until it's 0,
 // and until the requisite mp3 fadeout time has passed.  Recommend for integration.  [Seung Park, 20060621]
     else if (event.type == ONS_FADE_EVENT) {
-        if (skip_flag || draw_one_page_flag || ctrl_pressed_status || skip_to_wait) {
+        if (skip_flag || draw_one_page_flag ||
+            ctrl_pressed_status || skip_to_wait)
+        {
             mp3fadeout_duration = 0;
             if (mp3_sample) SMPEG_setvolume(mp3_sample, 0);
         }
@@ -403,7 +405,7 @@ void PonscripterLabel::mousePressEvent(SDL_MouseButtonEvent* event)
 
     if (automode_flag) {
         remaining_time = -1;
-        automode_flag  = false;
+        setAutoMode(false);
         return;
     }
 
@@ -421,7 +423,7 @@ void PonscripterLabel::mousePressEvent(SDL_MouseButtonEvent* event)
     current_button_state.x = event->x;
     current_button_state.y = event->y;
     current_button_state.down_flag = false;
-    skip_flag = false;
+    setSkipMode(false);
 
     if (event->button == SDL_BUTTON_RIGHT
         && event->type == SDL_MOUSEBUTTONUP
@@ -743,7 +745,7 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
     current_button_state.down_flag = false;
     if (automode_flag) {
         remaining_time = -1;
-        automode_flag  = false;
+        setAutoMode(false);
         return;
     }
 
@@ -767,7 +769,7 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
             || event->keysym.sym == SDLK_KP_ENTER
             || event->keysym.sym == SDLK_SPACE
             || event->keysym.sym == SDLK_s))
-        skip_flag = false;
+        setSkipMode(false);
 
     if (shift_pressed_status && event->keysym.sym == SDLK_q &&
 	current_mode == NORMAL_MODE) {
@@ -962,24 +964,25 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
     if (event_mode & (WAIT_INPUT_MODE | WAIT_TEXTBTN_MODE)
         && !key_pressed_flag) {
         if (event->keysym.sym == SDLK_s && !automode_flag) {
-            skip_flag = true;
-            printf("toggle skip to true\n");
+            setSkipMode(true);
+            //printf("toggle skip to true\n");
             key_pressed_flag = true;
             stopAnimation(clickstr_state);
             advancePhase();
         }
         else if (event->keysym.sym == SDLK_o) {
             draw_one_page_flag = !draw_one_page_flag;
-            printf("toggle draw one page flag to %s\n", (draw_one_page_flag ? "true" : "false"));
+            //printf("toggle draw one page flag to %s\n", (draw_one_page_flag ? "true" : "false"));
             if (draw_one_page_flag) {
                 stopAnimation(clickstr_state);
                 advancePhase();
             }
         }
-        else if (event->keysym.sym == SDLK_a && mode_ext_flag && !automode_flag) {
-            automode_flag = true;
-            skip_flag = false;
-            printf("change to automode\n");
+        else if (event->keysym.sym == SDLK_a && mode_ext_flag &&
+                 !automode_flag)
+        {
+            setAutoMode(true);
+            //printf("change to automode\n");
             key_pressed_flag = true;
             stopAnimation(clickstr_state);
             advancePhase();

@@ -280,6 +280,8 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["voicevol"]         = &PonscripterLabel::voicevolCommand;
     dict["vsp"]              = &PonscripterLabel::vspCommand;
     dict["vsp2"]             = &PonscripterLabel::vspCommand;
+    dict["vsp_when"]         = &PonscripterLabel::vsp_whenCommand;
+    dict["vsp2_when"]        = &PonscripterLabel::vsp_whenCommand;
     dict["wait"]             = &PonscripterLabel::waitCommand;
     dict["waittimer"]        = &PonscripterLabel::waittimerCommand;
     dict["wave"]             = &PonscripterLabel::waveCommand;
@@ -890,11 +892,11 @@ void PonscripterLabel::resetSub()
     refresh_shadow_text_mode = REFRESH_NORMAL_MODE | REFRESH_SHADOW_MODE |
                                REFRESH_TEXT_MODE;
     erase_text_window_mode = 1;
-    skip_flag    = false;
-    monocro_flag = false;
-    nega_mode = 0;
+    skip_flag      = false;
+    monocro_flag   = false;
+    nega_mode      = 0;
     clickstr_state = CLICK_NONE;
-    trap_mode = TRAP_NONE;
+    trap_mode      = TRAP_NONE;
     trap_dist.trunc(0);
 
     saveon_flag = true;
@@ -1057,12 +1059,12 @@ void PonscripterLabel::mouseOverCheck(int x, int y)
             curr_btn.show_flag = 0;
             check_src_rect = curr_btn.image_rect;
             if (curr_btn.isSprite()) {
-                sprite_info[curr_btn.sprite_no].visible = true;
+                sprite_info[curr_btn.sprite_no].visible(true);
                 sprite_info[curr_btn.sprite_no].setCell(0);
             }
             else if (curr_btn.isTmpSprite()) {
                 curr_btn.show_flag = 1;
-                curr_btn.anim[0]->visible = true;
+                curr_btn.anim[0]->visible(true);
                 curr_btn.anim[0]->setCell(0);
             }
             else if (curr_btn.anim[1]) {
@@ -1089,7 +1091,7 @@ void PonscripterLabel::mouseOverCheck(int x, int y)
             check_dst_rect = new_btn.image_rect;
             if (new_btn.isSprite()) {
                 sprite_info[new_btn.sprite_no].setCell(1);
-                sprite_info[new_btn.sprite_no].visible = true;
+                sprite_info[new_btn.sprite_no].visible(true);
                 if (new_btn.button_type == ButtonElt::EX_SPRITE_BUTTON) {
                     decodeExbtnControl(new_btn.exbtn_ctl,
                                        &check_src_rect, &check_dst_rect);
@@ -1097,7 +1099,7 @@ void PonscripterLabel::mouseOverCheck(int x, int y)
             }
             else if (new_btn.isTmpSprite()) {
                 new_btn.show_flag = 1;
-                new_btn.anim[0]->visible = true;
+                new_btn.anim[0]->visible(true);
                 new_btn.anim[0]->setCell(1);
             }
             else if (new_btn.button_type == ButtonElt::NORMAL_BUTTON ||
@@ -1164,8 +1166,9 @@ void PonscripterLabel::executeLabel()
             continue;
         }
 
-        if (kidokuskip_flag && skip_flag && kidokumode_flag &&
-            !script_h.isKidoku()) skip_flag = false;
+        if (kidokuskip_flag && skip_flag && kidokumode_flag
+            && !script_h.isKidoku())
+            setSkipMode(false);
 
         const char* current = script_h.getCurrent();
         int ret = ScriptParser::parseLine();
@@ -1572,7 +1575,7 @@ PonscripterLabel::getSelectableSentence(const pstring& buffer, Fontinfo* info,
     anim->file_name = buffer;
     anim->pos.x   = Sint16(floor(info->GetX() * screen_ratio1 / screen_ratio2));
     anim->pos.y   = info->GetY() * screen_ratio1 / screen_ratio2;
-    anim->visible = true;
+    anim->visible(true);
 
     setupAnimationInfo(anim, info);
     rv.select_rect = rv.image_rect = anim->pos;
@@ -1645,8 +1648,8 @@ PonscripterLabel::decodeExbtnControl(const pstring& ctl_string,
             sprite_info[sprite_no].pos.y = getNumberFromBuffer(&ctl_str) *
                                            screen_ratio1 / screen_ratio2;
             dirty_rect.add(rect);
-            sprite_info[sprite_no].visible = true;
-            dirty_rect.add(sprite_info[sprite_no].pos);
+            if (sprite_info[sprite_no].visible(true))
+                dirty_rect.add(sprite_info[sprite_no].pos);
         }
     }
 }
@@ -1664,7 +1667,7 @@ void PonscripterLabel::loadCursor(int no, const char* str, int x, int y,
     if (filelog_flag) script_h.file_log.add(cursor_info[no].file_name);
     cursor_info[no].abs_flag = abs_flag;
     if (cursor_info[no].image_surface)
-        cursor_info[no].visible = true;
+        cursor_info[no].visible(true);
     else
         cursor_info[no].remove();
 }
@@ -1773,8 +1776,7 @@ void PonscripterLabel::quit()
 
 void PonscripterLabel::disableGetButtonFlag()
 {
-    btndown_flag = false;
-
+    btndown_flag     = false;
     getzxc_flag      = false;
     gettab_flag      = false;
     getpageup_flag   = false;
@@ -1796,3 +1798,42 @@ int PonscripterLabel::getNumberFromBuffer(const char** buf)
     return ret;
 }
 
+void PonscripterLabel::setAutoMode(bool mode)
+{
+    if (mode) setSkipMode(false);
+    if (mode != automode_flag) {
+        automode_flag = mode;
+        for (int i = 0; i < MAX_SPRITE_NUM; ++i) {
+            switch (sprite_info[i].enablemode) {
+            case 1: // enable in automode
+                if (sprite_info[i].enabled(mode))
+                    dirty_rect.add(sprite_info[i].pos);
+                break;
+            case 2: // enable outside automode
+                if (sprite_info[i].enabled(!mode))
+                    dirty_rect.add(sprite_info[i].pos);
+                break;
+            }
+        }
+        for (int i = 0; i < MAX_SPRITE2_NUM; ++i) {
+            switch (sprite2_info[i].enablemode) {
+            case 1: // enable in automode
+                if (sprite2_info[i].enabled(mode))
+                    dirty_rect.add(sprite2_info[i].bounding_rect);
+                break;
+            case 2: // enable outside automode
+                if (sprite2_info[i].enabled(!mode))
+                    dirty_rect.add(sprite2_info[i].bounding_rect);
+                break;
+            }
+        }
+        // Haeleth note: this seems to be necessary to cut short the
+        // auto-mode timer on exiting auto mode.
+        if (!mode) advancePhase(0);
+    }
+}
+
+void PonscripterLabel::setSkipMode(bool mode)
+{
+    skip_flag = mode;
+}

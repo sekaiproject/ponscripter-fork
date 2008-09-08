@@ -48,9 +48,9 @@
 AnimationInfo::AnimationInfo()
 {
     image_surface = NULL;
-    alpha_buf = NULL;
-    trans_mode = TRANS_TOPLEFT;
-    affine_flag = false;
+    alpha_buf     = NULL;
+    trans_mode    = TRANS_TOPLEFT;
+    affine_flag   = false;
     reset();
 }
 
@@ -65,10 +65,13 @@ void AnimationInfo::reset()
 {
     remove();
 
-    trans    = 256;
-    pos.x    = pos.y = 0;
-    visible  = false;
+    trans = 256;
+    pos.x = pos.y = 0;
     abs_flag = true;
+    showing_ = false;
+    visible_ = false;
+    enabled_ = true;
+    enablemode = 0;
 
     scale_x = scale_y = rot = 0;
     blending_mode = 0;
@@ -740,4 +743,15 @@ void AnimationInfo::setupImage(SDL_Surface* surface, SDL_Surface* surface_m,
     }
 
     SDL_UnlockSurface(surface);
+}
+
+
+bool AnimationInfo::update_showing()
+{
+    bool do_show = visible_ && enabled_;
+    if (showing_ != do_show) {
+        showing_ = do_show;
+        return true;
+    }
+    return false;   
 }

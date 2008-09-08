@@ -1,13 +1,7 @@
-NB. Some of these are actually Narci2-specific.
-
-
 MAJOR BUGS
 
 * Click-to-display-a-full-page doesn't work in OS X 10.4+ unless
   coalesced updates are disabled.
-
-* Some fades repeat randomly (doesn't happen in Linux, does in
-  Solaris) (can't duplicate this again - WTF was it?)
 
 
 MINOR BUGS
@@ -15,21 +9,26 @@ MINOR BUGS
 * FontInfo doesn't store accurate information on extremes, so
   getFullArea(), line_space() etc don't actually return the area
   filled by existing text.
+  (TODO: need to check whether this still applies)
 
 * Built-in save/load menus are broken when encoding is Shift_JIS
+  (TODO: need to check whether this still applies)
 
 
-AESTHETIC
+HEISENBUGS
 
-* "... ..." needs kerning
+* In Narci2, enabling auto mode and then fast-forwarding may have
+  caused me to end up with no text showing and nothing happening till
+  I clicked.  This was at the top of the first lift, IIRC.
+  (TODO: try to duplicate this.)
+
+* Some fades repeat randomly (doesn't happen in Linux, does in
+  Solaris) (can't duplicate this again - WTF was it?)
 
 
 FEATURES
 
 * SHY (U+00AD) support would be nice... ;)
-
-* OSFs in other styles (bold/bold-italic).  Proportional figures in
-  sans styles?
 
 * Subpixel rendering when running windowed on an LCD?  (Okay, now I'm
   getting silly...)

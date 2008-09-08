@@ -81,7 +81,6 @@ int PonscripterLabel::waitCommand(const pstring& cmd)
     return RET_WAIT;
 }
 
-
 int PonscripterLabel::vspCommand(const pstring& cmd)
 {
     // Haeleth extension: allow vsp <sprite1>,<sprite2>,<value> like csp
@@ -91,17 +90,18 @@ int PonscripterLabel::vspCommand(const pstring& cmd)
     if (script_h.hasMoreArgs()) { no2 = vis; vis = script_h.readIntValue(); }
     if (no2 < no1) { int swap = no2; no2 = no1; no1 = swap; }
     if (no2 >= MAX_SPRITE_NUM) no2 = MAX_SPRITE_NUM - 1;
-    if (cmd == "vsp2") for (int no = no1; no <= no2; ++no) {
-	sprite2_info[no].visible = vis;
-	dirty_rect.add(sprite2_info[no].bounding_rect);
+    if (cmd == "vsp2") {
+        for (int no = no1; no <= no2; ++no)
+            if (sprite2_info[no].visible(vis))
+                dirty_rect.add(sprite2_info[no].bounding_rect);
     }
-    else for (int no = no1; no <= no2; ++no) {
-	sprite_info[no].visible = vis;
-	dirty_rect.add(sprite_info[no].pos);
+    else {
+        for (int no = no1; no <= no2; ++no)
+            if (sprite_info[no].visible(vis))
+                dirty_rect.add(sprite_info[no].pos);
     }
     return RET_CONTINUE;
 }
-
 
 int PonscripterLabel::voicevolCommand(const pstring& cmd)
 {
@@ -330,7 +330,7 @@ int PonscripterLabel::strspCommand(const pstring& cmd)
 
     ai->trans_mode = AnimationInfo::TRANS_STRING;
     ai->trans = 256;
-    ai->visible = true;
+    ai->visible(true);
     ai->is_single_line  = false;
     ai->is_tight_region = false;
     setupAnimationInfo(ai, &fi);
@@ -437,7 +437,7 @@ int PonscripterLabel::sp_rgb_gradationCommand(const pstring& cmd)
 
     SDL_UnlockSurface(surface);
 
-    if (si->visible)
+    if (si->showing())
         dirty_rect.add(si->pos);
 
     return RET_CONTINUE;
@@ -461,7 +461,7 @@ int PonscripterLabel::spreloadCommand(const pstring& cmd)
     parseTaggedString(si);
     setupAnimationInfo(si);
 
-    if (si->visible)
+    if (si->showing())
         dirty_rect.add(si->pos);
 
     return RET_CONTINUE;
@@ -525,10 +525,12 @@ int PonscripterLabel::spbtnCommand(const pstring& cmd)
 	button.sprite_no = sprite_no;
 
 	if (sprite_info[sprite_no].image_surface
-	    || sprite_info[sprite_no].trans_mode == AnimationInfo::TRANS_STRING)
+	    || sprite_info[sprite_no].trans_mode ==
+                  AnimationInfo::TRANS_STRING)
 	{
-	    button.image_rect = button.select_rect = sprite_info[sprite_no].pos;
-	    sprite_info[sprite_no].visible = true;
+	    button.image_rect = button.select_rect =
+                sprite_info[sprite_no].pos;
+	    sprite_info[sprite_no].visible(true);
 	}
 
 	buttons[no] = button;
@@ -540,7 +542,7 @@ int PonscripterLabel::spbtnCommand(const pstring& cmd)
 
 int PonscripterLabel::skipoffCommand(const pstring& cmd)
 {
-    skip_flag = false;
+    setSkipMode(false);
 
     return RET_CONTINUE;
 }
@@ -833,8 +835,8 @@ int PonscripterLabel::selectCommand(const pstring& cmd)
             return RET_CONTINUE;
         }
 
-        skip_flag = false;
-        automode_flag = false;
+        setSkipMode(false);
+        setAutoMode(false);
         sentence_font.SetXY(old_x, old_y);
 
         flush(refreshMode());
@@ -1445,8 +1447,7 @@ int PonscripterLabel::menu_fullCommand(const pstring& cmd)
 
 int PonscripterLabel::menu_automodeCommand(const pstring& cmd)
 {
-    automode_flag = true;
-    skip_flag = false;
+    setAutoMode(true);
     printf("menu_automode: change to automode\n");
 
     return RET_CONTINUE;
@@ -1461,9 +1462,9 @@ int PonscripterLabel::lspCommand(const pstring& cmd)
     int no = script_h.readIntValue();
     AnimationInfo& si = sprite2 ? sprite2_info[no] : sprite_info[no];
     
-    if (si.visible) dirty_rect.add(sprite2 ? si.bounding_rect : si.pos);
+    if (si.showing()) dirty_rect.add(sprite2 ? si.bounding_rect : si.pos);
 
-    si.visible = !hidden;
+    si.visible(!hidden);
     si.setImageName(script_h.readStrValue());
     si.pos.x = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
     si.pos.y = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
@@ -1481,7 +1482,7 @@ int PonscripterLabel::lspCommand(const pstring& cmd)
 	si.calcAffineMatrix();
     }
     
-    if (si.visible) dirty_rect.add(sprite2 ? si.bounding_rect : si.pos);
+    if (si.showing()) dirty_rect.add(sprite2 ? si.bounding_rect : si.pos);
 
     return RET_CONTINUE;
 }
@@ -1553,7 +1554,7 @@ int PonscripterLabel::logspCommand(const pstring& cmd)
     int sprite_no = script_h.readIntValue();
 
     AnimationInfo &si = sprite_info[sprite_no];
-    if (si.visible) dirty_rect.add(si.pos);
+    if (si.showing()) dirty_rect.add(si.pos);
 
     si.remove();
     si.file_name = cmd == "logsp2utf" ? "^" : "";
@@ -1596,8 +1597,8 @@ int PonscripterLabel::logspCommand(const pstring& cmd)
     sentence_font.is_newline_accepted = true;
     setupAnimationInfo(&si);
     sentence_font.is_newline_accepted = false;
-    si.visible = true;
-    dirty_rect.add(si.pos);
+    if (si.visible(true))
+        dirty_rect.add(si.pos);
 
     return RET_CONTINUE;
 }
@@ -1646,8 +1647,8 @@ int PonscripterLabel::loadgameCommand(const pstring& cmd)
 
         saveon_flag = true;
         internal_saveon_flag = true;
-        skip_flag = false;
-        automode_flag = false;
+        setSkipMode(false);
+        setAutoMode(false);
         deleteButtons();
         select_links.clear();
         key_pressed_flag = false;
@@ -1697,12 +1698,12 @@ int PonscripterLabel::ldCommand(const pstring& cmd)
             parseTaggedString(&tachi_info[no]);
             setupAnimationInfo(&tachi_info[no]);
             if (tachi_info[no].image_surface) {
-                tachi_info[no].visible = true;
                 tachi_info[no].pos.x
 		    = screen_width * (no + 1) / 4 - tachi_info[no].pos.w / 2;
                 tachi_info[no].pos.y
 		    = underline_value - tachi_info[no].image_surface->h + 1;
-                dirty_rect.add(tachi_info[no].pos);
+                if (tachi_info[no].visible(true))
+                    dirty_rect.add(tachi_info[no].pos);
             }
         }
 
@@ -1944,7 +1945,7 @@ int PonscripterLabel::getspsizeCommand(const pstring& cmd)
 int PonscripterLabel::getspmodeCommand(const pstring& cmd)
 {
     Expression e = script_h.readIntExpr();
-    e.mutate(sprite_info[script_h.readIntValue()].visible);
+    e.mutate(sprite_info[script_h.readIntValue()].showing());
     return RET_CONTINUE;
 }
 
@@ -2290,7 +2291,7 @@ int PonscripterLabel::exbtnCommand(const pstring& cmd)
         && (sprite_info[sprite_no].image_surface ||
             sprite_info[sprite_no].trans_mode == AnimationInfo::TRANS_STRING)) {
         button->image_rect = button->select_rect = sprite_info[sprite_no].pos;
-        sprite_info[sprite_no].visible = true;
+        sprite_info[sprite_no].visible(true);
     }
 
     return RET_CONTINUE;
@@ -2567,7 +2568,7 @@ int PonscripterLabel::cspCommand(const pstring& cmd)
     
     if (no1 == -1)
         for (int i = 0; i < max; i++) {
-            if (si[i].visible)
+            if (si[i].showing())
                 dirty_rect.add(csp2 ? si[i].bounding_rect : si[i].pos);
 
             if (si[i].image_name) {
@@ -2578,9 +2579,8 @@ int PonscripterLabel::cspCommand(const pstring& cmd)
             if (!csp2) buttonsRemoveSprite(i);
             si[i].remove();
         }
-    else for (int no = no1; no <= no2; ++no)
-	if (no >= 0 && no < max) {
-        if (si[no].visible)
+    else for (int no = no1; no <= no2; ++no) if (no >= 0 && no < max) {
+        if (si[no].showing())
             dirty_rect.add(csp2 ? si[no].bounding_rect : si[no].pos);
 
         if (!csp2) buttonsRemoveSprite(no);
@@ -2634,7 +2634,7 @@ int PonscripterLabel::clickCommand(const pstring& cmd)
         return RET_CONTINUE;
     }
     else {
-        skip_flag  = false;
+        setSkipMode(false);
         event_mode = WAIT_INPUT_MODE;
         key_pressed_flag = false;
         return RET_WAIT | RET_REREAD;
@@ -2781,7 +2781,7 @@ int PonscripterLabel::btnwaitCommand(const pstring& cmd)
     }
     else {
         shortcut_mouse_line = buttons.begin();
-        skip_flag = false;
+        setSkipMode(false);
 
         if (exbtn_d_button.exbtn_ctl) {
             SDL_Rect check_src_rect = { 0, 0, screen_width, screen_height };
@@ -3156,7 +3156,7 @@ int PonscripterLabel::allspresumeCommand(const pstring& cmd)
 {
     all_sprite_hide_flag = false;
     for (int i = 0; i < MAX_SPRITE_NUM; i++) {
-        if (sprite_info[i].visible)
+        if (sprite_info[i].showing())
             dirty_rect.add(sprite_info[i].pos);
     }
 
@@ -3168,7 +3168,7 @@ int PonscripterLabel::allsphideCommand(const pstring& cmd)
 {
     all_sprite_hide_flag = true;
     for (int i = 0; i < MAX_SPRITE_NUM; i++) {
-        if (sprite_info[i].visible)
+        if (sprite_info[i].showing())
             dirty_rect.add(sprite_info[i].pos);
     }
 
@@ -3179,7 +3179,7 @@ int PonscripterLabel::allsp2resumeCommand(const pstring& cmd)
 {
     all_sprite2_hide_flag = false;
     for (int i = 0; i < MAX_SPRITE2_NUM; i++) {
-        if (sprite2_info[i].visible)
+        if (sprite2_info[i].showing())
             dirty_rect.add(sprite2_info[i].bounding_rect);
     }
 
@@ -3191,7 +3191,7 @@ int PonscripterLabel::allsp2hideCommand(const pstring& cmd)
 {
     all_sprite2_hide_flag = true;
     for (int i = 0; i < MAX_SPRITE2_NUM; i++) {
-        if (sprite2_info[i].visible)
+        if (sprite2_info[i].showing())
             dirty_rect.add(sprite2_info[i].bounding_rect);
     }
 

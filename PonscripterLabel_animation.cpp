@@ -32,22 +32,25 @@ int PonscripterLabel::proceedAnimation()
 
     for (i = 0; i < 3; i++) {
         anim = &tachi_info[i];
-        if (anim->visible && anim->is_animatable) {
-            minimum_duration = estimateNextDuration(anim, anim->pos, minimum_duration);
+        if (anim->showing() && anim->is_animatable) {
+            minimum_duration = estimateNextDuration(anim, anim->pos,
+                                                    minimum_duration);
         }
     }
 
     for (i = MAX_SPRITE_NUM - 1; i >= 0; i--) {
         anim = &sprite_info[i];
-        if (anim->visible && anim->is_animatable) {
-            minimum_duration = estimateNextDuration(anim, anim->pos, minimum_duration);
+        if (anim->showing() && anim->is_animatable) {
+            minimum_duration = estimateNextDuration(anim, anim->pos,
+                                                    minimum_duration);
         }
     }
 
     for (i = MAX_SPRITE2_NUM - 1; i >= 0; i--) {
         anim = &sprite2_info[i];
-        if (anim->visible && anim->is_animatable) {
-            minimum_duration = estimateNextDuration(anim, anim->pos, minimum_duration);
+        if (anim->showing() && anim->is_animatable) {
+            minimum_duration = estimateNextDuration(anim, anim->pos,
+                                                    minimum_duration);
         }
     }
     
@@ -59,14 +62,15 @@ int PonscripterLabel::proceedAnimation()
         else if (clickstr_state == CLICK_NEWPAGE)
             anim = &cursor_info[CURSOR_NEWPAGE_NO];
 
-        if (anim->visible && anim->is_animatable) {
+        if (anim->showing() && anim->is_animatable) {
             SDL_Rect dst_rect = anim->pos;
             if (!anim->abs_flag) {
                 dst_rect.x += int(floor(sentence_font.GetX() * screen_ratio1 / screen_ratio2));
                 dst_rect.y += sentence_font.GetY() * screen_ratio1 / screen_ratio2;
             }
 
-            minimum_duration = estimateNextDuration(anim, dst_rect, minimum_duration);
+            minimum_duration = estimateNextDuration(anim, dst_rect,
+                                                    minimum_duration);
         }
     }
 
@@ -103,21 +107,21 @@ void PonscripterLabel::resetRemainingTime(int t)
 
     for (i = 0; i < 3; i++) {
         anim = &tachi_info[i];
-        if (anim->visible && anim->is_animatable) {
+        if (anim->showing() && anim->is_animatable) {
             anim->remaining_time -= t;
         }
     }
 
     for (i = MAX_SPRITE_NUM - 1; i >= 0; i--) {
         anim = &sprite_info[i];
-        if (anim->visible && anim->is_animatable) {
+        if (anim->showing() && anim->is_animatable) {
             anim->remaining_time -= t;
         }
     }
 
     for (i = MAX_SPRITE2_NUM - 1; i >= 0; i--) {
         anim = &sprite2_info[i];
-        if (anim->visible && anim->is_animatable) {
+        if (anim->showing() && anim->is_animatable) {
             anim->remaining_time -= t;
         }
     }
@@ -130,7 +134,7 @@ void PonscripterLabel::resetRemainingTime(int t)
         else if (clickstr_state == CLICK_NEWPAGE)
             anim = &cursor_info[CURSOR_NEWPAGE_NO];
 
-        if (anim->visible && anim->is_animatable) {
+        if (anim->showing() && anim->is_animatable) {
             anim->remaining_time -= t;
         }
     }

@@ -145,6 +145,7 @@ public:
     void resetSub(); // used if reset
 
     bool skip_flag;
+    void setSkipMode(bool mode);
     bool draw_one_page_flag;
     bool key_pressed_flag;
     int  shift_pressed_status;
@@ -166,7 +167,8 @@ public:
     int haeleth_ligate_controlCommand(const pstring& cmd);
     int haeleth_sayCommand(const pstring& cmd);
     int gettextspeedCommand(const pstring& cmd);
-
+    int vsp_whenCommand(const pstring& cmd);
+    
     // regular NScripter stuff
     int wavestopCommand(const pstring& cmd);
     int waveCommand(const pstring& cmd);
@@ -402,6 +404,7 @@ private:
     // Global definitions
     long internal_timer;
     bool automode_flag;
+    void setAutoMode(bool mode);
     long automode_time;
     long autoclick_time;
     long remaining_time;

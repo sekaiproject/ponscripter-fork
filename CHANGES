@@ -1,3 +1,14 @@
+2008-09-09
+
+  New command `vsp_when' allows sprite visibility to be linked
+  automatically to auto-mode status.
+
+  Fix auto-mode so that all sprites start animating again immediately
+  when the player terminates auto-mode during a page pause.
+
+  Hack SDL to add a fixed-aspect-ratio mode for widescreen displays.
+
+
 2008-03-26
 
   Add h_textheight command to facilitate footnote positioning in

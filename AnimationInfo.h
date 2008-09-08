@@ -68,14 +68,31 @@ public:
     pstring mask_file_name;
 
     /* Variables from AnimationInfo */
-    bool   visible;
-    bool   abs_flag;
-    bool   affine_flag;
-    int    trans;
+    bool abs_flag;
+    bool affine_flag;
+    int  trans;
     pstring image_name;
     SDL_Surface*   image_surface;
     unsigned char* alpha_buf;
 
+    /* Automatic visibility toggles.
+       HIDE_IF_* means to set visible to false when the state becomes true,
+       and true when it becomes false; HIDE_UNLESS_* does the opposite.
+       The effect if both are set for any given state is undefined. */
+private:
+    bool visible_;  // records whether visibility is desired
+    bool enabled_;  // records whether visibility is enabled modewise
+    bool showing_;  // whether actually visible right now
+    bool update_showing();
+public:
+    // Get current actual visibility.
+    bool showing() { return showing_; }
+
+    // Setters; return value is whether showing() has changed.
+    int enablemode; // used by ONScripterLabel to decide how to call enabled()
+    bool visible(bool flag) { visible_ = flag; return update_showing(); } 
+    bool enabled(bool flag) { enabled_ = flag; return update_showing(); }
+    
     /* Variables for extended sprite (lsp2, drawsp2, etc.) - Mion: ogapee2008 */
     int scale_x, scale_y, rot;
     int mat[2][2], inv_mat[2][2];
