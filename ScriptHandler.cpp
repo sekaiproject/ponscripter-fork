@@ -830,7 +830,14 @@ int ScriptHandler::readScript(const pstring& path)
                 global_variable_border = global_variable_border * 10
 		                       + *buf++ - '0';
         }
-	else {
+        else if (!strncmp(buf, "-*-", 3)) {
+            buf++;
+            while (*buf != '\n' &&
+                   !(*buf == '-' && buf[1] == '*' && buf[2] == '-'))
+                buf++;
+            if (*buf != '\n') buf += 3;
+        }
+        else {
             break;
         }
 
@@ -840,7 +847,9 @@ int ScriptHandler::readScript(const pstring& path)
         }
 
         buf++;
+        while (*buf == ' ' || *buf == '\t') ++buf;
     }
+
     // game ID check
     if (*buf++ == ';') {
         while (*buf == ' ' || *buf == '\t') ++buf;

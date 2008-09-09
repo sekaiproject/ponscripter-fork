@@ -42,7 +42,7 @@ extern "C" void c2pstrcpy(Str255 dst, const char* src);
 #endif
 
 #define SAVEFILE_VERSION_MAJOR 2
-#define SAVEFILE_VERSION_MINOR 5
+#define SAVEFILE_VERSION_MINOR 6
 
 #define READ_LENGTH 4096
 

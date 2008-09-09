@@ -34,13 +34,21 @@ int PonscripterLabel::loadSaveFile2(SaveFileType file_type, int file_version)
     readInt(); // 1
 
     if (file_type == Ponscripter) {
-	Fontinfo::default_encoding = readInt();
+        if (file_version >= 206) {
+            int i = readInt() - 1; // length of Ponscripter data
+            Fontinfo::default_encoding = readInt();
+            while (i--) readInt(); // unknown Ponscripter data
+        }
+        else {
+            Fontinfo::default_encoding = readInt();
+        }
     }
     
     sentence_font.is_bold = readInt() == 1;
     sentence_font.is_shadow = readInt() == 1;
 
     readInt(); // 0
+    
     rmode_flag = readInt() == 1;
     sentence_font.color.r = readInt();
     sentence_font.color.g = readInt();
@@ -144,7 +152,10 @@ int PonscripterLabel::loadSaveFile2(SaveFileType file_type, int file_version)
 
 	sprite_info[i].pos.x = readInt() * screen_ratio1 / screen_ratio2;
 	sprite_info[i].pos.y = readInt() * screen_ratio1 / screen_ratio2;
-	sprite_info[i].visible(readInt() == 1);
+        int visible_flags = readInt();
+	sprite_info[i].visible(visible_flags & 1);
+	sprite_info[i].enabled(visible_flags & 2);
+        sprite_info[i].enablemode = visible_flags >> 2;
 	sprite_info[i].current_cell = readInt();
 	if (file_version >= 203) readInt(); // -1
     }
@@ -360,7 +371,12 @@ int PonscripterLabel::loadSaveFile2(SaveFileType file_type, int file_version)
 	    sprite2_info[i].scale_x = readInt();
 	    sprite2_info[i].scale_y = readInt();
 	    sprite2_info[i].rot = readInt();
-	    sprite2_info[i].visible(readInt() == 1);
+
+            int visible_flags = readInt();
+            sprite2_info[i].visible(visible_flags & 1);
+            sprite2_info[i].enabled(visible_flags & 2);
+            sprite2_info[i].enablemode = visible_flags >> 2;
+
 	    j = readInt();
 	    sprite2_info[i].trans = j == -1 ? 256 : j;
 	    sprite2_info[i].blending_mode = readInt();
@@ -417,6 +433,7 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
     writeInt(1, output_flag);
 
     // Ponscripter additions
+    writeInt(1, output_flag);
     writeInt(Fontinfo::default_encoding, output_flag);
     // End Ponscripter additions
     
@@ -424,6 +441,7 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
     writeInt((sentence_font.is_shadow ? 1 : 0), output_flag);
 
     writeInt(0, output_flag);
+    
     writeInt((rmode_flag) ? 1 : 0, output_flag);
     writeInt(sentence_font.color.r, output_flag);
     writeInt(sentence_font.color.g, output_flag);
@@ -494,7 +512,7 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
 		 output_flag);
 	writeInt(sprite_info[i].pos.y * screen_ratio2 / screen_ratio1,
 		 output_flag);
-	writeInt(sprite_info[i].showing() ? 1 : 0, output_flag);
+	writeInt(sprite_info[i].savestate(), output_flag);
 	writeInt(sprite_info[i].current_cell, output_flag);
 	writeInt(-1, output_flag);
     }
@@ -637,7 +655,7 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
 	writeInt(sprite2_info[i].scale_x, output_flag);
 	writeInt(sprite2_info[i].scale_y, output_flag);
 	writeInt(sprite2_info[i].rot, output_flag);
-	writeInt(sprite2_info[i].showing(), output_flag);
+	writeInt(sprite2_info[i].savestate(), output_flag);
 	if (sprite2_info[i].trans == 256)
 	    writeInt(-1, output_flag);
 	else

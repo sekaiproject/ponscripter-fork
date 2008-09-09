@@ -1,11 +1,10 @@
 * Required for Narci2
 
 -- Update save/load to work properly with vsp_when.
+   (done; not tested)
 
--- Save/load widescreen setting.
-
--- Make widescreen flush entire buffer (otherwise we get some random
-   stuff in the black bars on eee 901).
+-- Fix widescreen hack: sometimes we get bits of the desktop showing
+   in the black bars (particularly when starting in fullscreen mode)
 
    
 * Upstream ONScripter / ONScripter-En

@@ -703,6 +703,7 @@ pstring getGameId(ScriptHandler& script_h)
             script_h.skipToken();
     }
     script_h.popCurrent();
+
     if (caption || versionstr) {
         caption.trim();
         versionstr.trim();
@@ -1691,10 +1692,12 @@ void PonscripterLabel::loadEnvData()
     cdaudio_on_flag     = true;
     default_cdrom_drive = "";
     kidokumode_flag     = true;
-
+    fullscreen_flags    = SDL_FULLSCREEN;
+    
     if (loadFileIOBuf("envdata") == 0) {
+        bool do_fullscreen = false;
         if (readInt() == 1 && window_mode == false)
-            menu_fullCommand("menu_full");
+            do_fullscreen = true;
         if (readInt() == 0)
             volume_on_flag = false;
         text_speed_no = readInt();
@@ -1711,6 +1714,15 @@ void PonscripterLabel::loadEnvData()
         music_volume = DEFAULT_VOLUME - readInt();
         if (readInt() == 0)
             kidokumode_flag = false;
+        readChar(); // 0
+        readInt();  // 1000
+        
+        if (readInt() == 0x534e4f50) {
+            // Ponscripter extras
+            fullscreen_flags = readInt();
+        }
+        
+        if (do_fullscreen) menu_fullCommand("menu_full");
     }
     else {
         default_env_font = DEFAULT_ENV_FONT;
@@ -1737,6 +1749,10 @@ void PonscripterLabel::saveEnvData()
         writeInt(kidokumode_flag ? 1 : 0, output_flag);
         writeChar(0, output_flag); // ?
         writeInt(1000, output_flag);
+
+        // Ponscripter extras
+        writeInt(0x534e4f50, output_flag);
+        writeInt(fullscreen_flags, output_flag);
 
         if (i == 1) break;
         allocFileIOBuf();

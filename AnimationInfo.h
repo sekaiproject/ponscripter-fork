@@ -92,6 +92,8 @@ public:
     int enablemode; // used by ONScripterLabel to decide how to call enabled()
     bool visible(bool flag) { visible_ = flag; return update_showing(); } 
     bool enabled(bool flag) { enabled_ = flag; return update_showing(); }
+
+    int savestate() { return visible_ | (enabled_ << 1) | (enablemode << 2); }
     
     /* Variables for extended sprite (lsp2, drawsp2, etc.) - Mion: ogapee2008 */
     int scale_x, scale_y, rot;
