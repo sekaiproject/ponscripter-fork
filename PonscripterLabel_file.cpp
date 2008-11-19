@@ -196,7 +196,7 @@ void PonscripterLabel::saveMagicNumber(bool output_flag)
 int PonscripterLabel::saveSaveFile(int no)
 {
     // make save data structure on memory
-    if (no < 0 || saveon_flag && internal_saveon_flag) {
+    if (no < 0 || (saveon_flag && internal_saveon_flag)) {
         file_io_buf_ptr = 0;
         saveMagicNumber(false);
         saveSaveFile2(false);

@@ -2275,8 +2275,8 @@ int PonscripterLabel::exbtnCommand(const pstring& cmd)
         bool cellcheck_flag = cmd == "cellcheckexbtn";
         sprite_no = script_h.readIntValue();
         no = script_h.readIntValue();
-        if (cellcheck_flag && (sprite_info[sprite_no].num_of_cells < 2) ||
-	    !cellcheck_flag && (sprite_info[sprite_no].num_of_cells == 0)) {
+        if ((cellcheck_flag && (sprite_info[sprite_no].num_of_cells < 2)) ||
+	    (!cellcheck_flag && (sprite_info[sprite_no].num_of_cells == 0))) {
             script_h.readStrValue();
             return RET_CONTINUE;
         }

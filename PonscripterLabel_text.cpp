@@ -141,6 +141,7 @@ PonscripterLabel::drawChar(const char* text, Fontinfo* info, bool flush_flag,
 
     if (lookback_flag) {
 	current_text_buffer->addBytes(text, bytes);
+        if (text[0] == '~') current_text_buffer->addBytes(text, bytes);
 //TextBuffer_dumpstate(1);
     }
     return bytes;
@@ -173,7 +174,7 @@ PonscripterLabel::drawString(const char* str, rgb_t color, Fontinfo* info,
             continue;
         }
 
-        if (*str == 0x0a || *str == '\\' && info->is_newline_accepted) {
+        if (*str == 0x0a || (*str == '\\' && info->is_newline_accepted)) {
             info->newLine();
             str++;
         }
@@ -411,7 +412,7 @@ int PonscripterLabel::textCommand()
         && (line_enter_status == 0
             || (line_enter_status == 1
                 && (script_h.readStrBuf(string_buffer_offset) == '['
-                    || zenkakko_flag && encoding->DecodeChar(script_h.getStrBuf(string_buffer_offset)) == 0x3010 /*Åy */)))) {
+                    || (zenkakko_flag && encoding->DecodeChar(script_h.getStrBuf(string_buffer_offset)) == 0x3010 /*Åy */))))) {
         gosubReal(pretextgosub_label, script_h.getCurrent());
         line_enter_status = 1;
         return RET_CONTINUE;

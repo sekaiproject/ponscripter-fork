@@ -401,8 +401,8 @@ int ScriptParser::nextCommand(const pstring& cmd)
     int val = e.as_int();
 
     if (break_flag
-        || nest_infos.back().step > 0 && val > nest_infos.back().to
-        || nest_infos.back().step < 0 && val < nest_infos.back().to) {
+        || (nest_infos.back().step > 0 && val > nest_infos.back().to)
+        || (nest_infos.back().step < 0 && val < nest_infos.back().to)) {
         break_flag = false;
 	nest_infos.pop_back();
     }
@@ -867,8 +867,8 @@ int ScriptParser::forCommand(const pstring& cmd)
         ni.step = 1;
     }
 
-    break_flag = ni.step > 0 && ni.var.as_int() > ni.to
-	      || ni.step < 0 && ni.var.as_int() < ni.to;
+    break_flag = (ni.step > 0 && ni.var.as_int() > ni.to)
+              || (ni.step < 0 && ni.var.as_int() < ni.to);
     
     /* ---------------------------------------- */
     /* Step forward callee's label info */

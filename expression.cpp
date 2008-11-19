@@ -147,11 +147,12 @@ void Expression::mutate(int newval, int offset, bool as_array)
     else if (type_ == Array) {
 	require_variable();
 	h_index_t i = index_;
-	if (offset != MAX_INT)
+	if (offset != MAX_INT) {
 	    if (as_array)
 		i.push_back(offset);
 	    else
 		i.back() += offset;
+        }
 	h.arrays.find(intval_)->second.setValue(i, newval);
     }
     else

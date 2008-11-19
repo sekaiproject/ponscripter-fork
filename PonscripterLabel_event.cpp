@@ -427,8 +427,8 @@ void PonscripterLabel::mousePressEvent(SDL_MouseButtonEvent* event)
 
     if (event->button == SDL_BUTTON_RIGHT
         && event->type == SDL_MOUSEBUTTONUP
-        && (rmode_flag && event_mode & WAIT_TEXT_MODE
-            || event_mode & WAIT_BUTTON_MODE)) {
+        && ((rmode_flag && (event_mode & WAIT_TEXT_MODE))
+            || (event_mode & WAIT_BUTTON_MODE))) {
         current_button_state.button  = -1;
         volatile_button_state.button = -1;
         if (event_mode & WAIT_TEXT_MODE) {
@@ -452,16 +452,17 @@ void PonscripterLabel::mousePressEvent(SDL_MouseButtonEvent* event)
 
 #if SDL_VERSION_ATLEAST(1, 2, 5)
     else if (event->button == SDL_BUTTON_WHEELUP
-             && (event_mode & WAIT_TEXT_MODE
-                 || usewheel_flag && event_mode & WAIT_BUTTON_MODE
+             && ((event_mode & WAIT_TEXT_MODE)
+                 || (usewheel_flag && (event_mode & WAIT_BUTTON_MODE))
                  || system_menu_mode == SYSTEM_LOOKBACK)) {
         current_button_state.button  = -2;
         volatile_button_state.button = -2;
         if (event_mode & WAIT_TEXT_MODE) system_menu_mode = SYSTEM_LOOKBACK;
     }
     else if (event->button == SDL_BUTTON_WHEELDOWN
-             && (enable_wheeldown_advance_flag && event_mode & WAIT_TEXT_MODE
-                 || usewheel_flag && event_mode & WAIT_BUTTON_MODE
+             && ((enable_wheeldown_advance_flag &&
+                  (event_mode & WAIT_TEXT_MODE))
+                 || (usewheel_flag && (event_mode & WAIT_BUTTON_MODE))
                  || system_menu_mode == SYSTEM_LOOKBACK)) {
         if (event_mode & WAIT_TEXT_MODE) {
             current_button_state.button  = 0;
@@ -796,11 +797,11 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
 			    event->keysym.sym == SDLK_KP_ENTER);
     const bool space_lclick = spclclk_flag || !useescspc_flag;
     const bool space_key = event->keysym.sym == SDLK_SPACE;
-    if (wait_button_mode && (key_or_btn && enter_key ||
-			     space_lclick && space_key)) {
+    if (wait_button_mode && ((key_or_btn && enter_key) ||
+			     (space_lclick && space_key))) {
 	if (event->keysym.sym == SDLK_RETURN   ||
 	    event->keysym.sym == SDLK_KP_ENTER ||
-	    spclclk_flag && event->keysym.sym == SDLK_SPACE)
+	    (spclclk_flag && event->keysym.sym == SDLK_SPACE))
 	{
 	    current_button_state.button = 
 	    volatile_button_state.button = current_over_button;
@@ -836,22 +837,22 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
         else if (!spclclk_flag && useescspc_flag && event->keysym.sym == SDLK_SPACE) {
             current_button_state.button = -11;
         }
-        else if ((!getcursor_flag && event->keysym.sym == SDLK_LEFT ||
+        else if (((!getcursor_flag && event->keysym.sym == SDLK_LEFT) ||
                   event->keysym.sym == SDLK_h) &&
                  (event_mode & WAIT_TEXT_MODE ||
-                  usewheel_flag && !getcursor_flag &&
-		  event_mode & WAIT_BUTTON_MODE || 
+                  (usewheel_flag && !getcursor_flag &&
+                   event_mode & WAIT_BUTTON_MODE) || 
                   system_menu_mode == SYSTEM_LOOKBACK))
 	{
 	    current_button_state.button  = -2;
             volatile_button_state.button = -2;
             if (event_mode & WAIT_TEXT_MODE) system_menu_mode = SYSTEM_LOOKBACK;
         }
-        else if ((!getcursor_flag && event->keysym.sym == SDLK_RIGHT ||
+        else if (((!getcursor_flag && event->keysym.sym == SDLK_RIGHT) ||
                   event->keysym.sym == SDLK_l) &&
-                 (enable_wheeldown_advance_flag &&
-		  event_mode & WAIT_TEXT_MODE ||
-		  usewheel_flag && event_mode & WAIT_BUTTON_MODE||
+                 ((enable_wheeldown_advance_flag &&
+                   event_mode & WAIT_TEXT_MODE) ||
+		  (usewheel_flag && event_mode & WAIT_BUTTON_MODE) ||
                   system_menu_mode == SYSTEM_LOOKBACK))
 	{
 	    if (event_mode & WAIT_TEXT_MODE) {
@@ -863,14 +864,14 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
                 volatile_button_state.button = -3;
             }
         }
-	else if ((!getcursor_flag && event->keysym.sym == SDLK_UP ||
+	else if (((!getcursor_flag && event->keysym.sym == SDLK_UP) ||
                   event->keysym.sym == SDLK_k ||
                   event->keysym.sym == SDLK_p) &&
                  event_mode & WAIT_BUTTON_MODE){
             shiftCursorOnButton(1);
             return;
         }
-        else if ((!getcursor_flag && event->keysym.sym == SDLK_DOWN ||
+        else if (((!getcursor_flag && event->keysym.sym == SDLK_DOWN) ||
                   event->keysym.sym == SDLK_j ||
                   event->keysym.sym == SDLK_n) &&
                  event_mode & WAIT_BUTTON_MODE){
@@ -883,8 +884,8 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
         else if (getpagedown_flag && event->keysym.sym == SDLK_PAGEDOWN) {
             current_button_state.button = -13;
         }
-        else if (getenter_flag && event->keysym.sym == SDLK_RETURN
-                 || getenter_flag && event->keysym.sym == SDLK_KP_ENTER) {
+        else if ((getenter_flag && event->keysym.sym == SDLK_RETURN)
+                 || (getenter_flag && event->keysym.sym == SDLK_KP_ENTER)) {
             current_button_state.button = -19;
         }
         else if (gettab_flag && event->keysym.sym == SDLK_TAB) {

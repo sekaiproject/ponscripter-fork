@@ -5,7 +5,7 @@
 #define __DEFS_H__
 
 #ifdef __GNUC__
-#define USE_HASH
+//#define USE_HASH // blasted deprecation
 #endif
 
 #include <stdlib.h>

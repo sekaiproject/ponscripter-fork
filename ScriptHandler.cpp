@@ -1155,7 +1155,7 @@ int ScriptHandler::parseInt(const char** buf)
         int alias_no = 0;
         bool direct_num_flag = false;
         bool num_alias_flag  = false;
-        bool hex_num_flag = (*buf)[0] == '0' & (*buf)[1] == 'x';
+        bool hex_num_flag = (*buf)[0] == '0' && (*buf)[1] == 'x';
         if (hex_num_flag) *buf += 2;
 
         const char* buf_start = *buf;
