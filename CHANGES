@@ -1,3 +1,9 @@
+2008-11-18
+
+  Fix fatal error caused by ~~ in a script becoming ~ in the lookback
+  buffer.
+
+
 2008-09-09
 
   New command `vsp_when' allows sprite visibility to be linked
