@@ -1,7 +1,6 @@
 Herewith a brief explanation of the key points wherein Ponscripter
 differs from the ONScripter-En you know and love.
 
-
 In no particular order, I'm afraid.
 
 
@@ -17,8 +16,9 @@ names, as follows:
 
 Ponscripter can still play NScripter games, though it is not as
 compatible as ONScripter in this regard; NScripter mode has not been
-extensively tested.  In general, if you're using Ponscripter, you
-should make the effort to port it.  Unicode is a Good Thing.
+extensively tested.  In general, if you're using Ponscripter to run a
+game, you should make the effort to port the code.  Unicode is a Good
+Thing.
 
 (If you wish to adapt an NScripter game to behave differently with
 Ponscripter while still working with NScripter and ONScripter, you can
@@ -47,7 +47,7 @@ REALLY good reason why you absolutely HAVE to use special characters
 in your filenames and there is simply NO possibility that you could
 just take a deep breath and rename the files to something sensible,
 then feel free to either implement this feature yourself, or show me
-how important it is to you in Euros.  :)
+how important it is to you in hard currency.  :)
 
 
 /---------------------------------------------------------------------
@@ -86,7 +86,9 @@ If the gameid directive is absent, Ponscripter tries to determine the
 game's name from a `caption' or `versionstr' command in the *define
 section (if both are found, it takes the shorter).  If that also
 fails, a semi-unique identifier is generated from the length of the
-script.
+script.  I don't think I've implemented "game.id" files à la
+ONScripter-En; there's little point, as Ponscripter is only intended
+to be used when the script is modifiable.
 
 
 /---------------------------------------------------------------------
@@ -184,8 +186,9 @@ you might use a line like
   ^``He told me he'd `never leave me,'|'' she sobbed.\
 
 Some recent versions of NScripter have a limited form of ASCII text
-support with lines introduced by the > character.  This syntax is not
-currently recognised, not even in NScripter mode.
+support with lines introduced by the > character.  The behaviour of
+this mode is ill-thought-out and essentially useless; this syntax is
+not currently recognised, not even in NScripter mode.
   
 
 /---------------------------------------------------------------------
@@ -714,6 +717,13 @@ against external SDLs will disable the functionality.  Note that an
 external SDL is used by default if present, so you may have to pass
 the --with-internal-sdl flag to configure if you wish your builds to
 contain this feature.
+
+In practice this doesn't really work all that well, and I may remove
+it from future versions.  People are better off figuring out how to
+make their video driver preserve aspect ratios.  Thankfully this is
+getting easier (e.g. the feature is now available in Intel's Linux
+drivers, which lack was what prompted me to try to fix this in the
+first place!)
 
 
 /---------------------------------------------------------------------

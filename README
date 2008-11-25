@@ -74,17 +74,9 @@ build environment with GNU make -- on Windows this means MinGW + MSYS
 -- and is only extensively tested using the GNU compiler suite.  Most
 of my testing is carried out on the following platforms:
 
-* Ubuntu 8.04     x86_64 (primary development platform)
+* Ubuntu 8.10     x86_64 (primary development platform)
 * MacOS X 10.4    i386   (built as universal binary)
-* Windows Vista   i386
-
-Releases are also confirmed to build and launch on the following
-secondary platforms/configurations:
-
-* Ubuntu 8.04     i386
-* Ubuntu 7.10     x86_64 (using Intel compiler)
-* Windows 2000    i386
-* Solaris 10      x86_64
+* Windows 2000    i386   (build platform for Win32 version)
 
 
 === OS X ISSUES
