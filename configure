@@ -155,7 +155,7 @@ do
 	  --help                   display this message
 	  --prefix=DIR             install in prefix DIR (default is /usr/local)
 	  --make=NAME              use GNU make executable with the given name
-	  --unsupported-compiler   don't insist on using known compilers
+	  --unsupported-compiler   don't check for known compilers
 	
 	Library options (force compilation of included dependencies):
 	  --with-internal-libs        don't check for any system libraries
@@ -202,6 +202,8 @@ then
     # too.
     internalise_SDL
 fi
+
+echo "Configuring Ponscripter $VERSION"
 
 # Platform
 $echo_n "Checking platform type... ${nobr}"
@@ -717,9 +719,10 @@ Linux)   INTERNAL_LDFLAGS="-ldl -lasound" ;;
 FreeBSD) INTERNAL_LDFLAGS="-L/usr/X11R6/lib -lX11 -lXi -lXrandr" ;;
 NetBSD)  INTERNAL_LDFLAGS="\$(foreach x,11 i randr ext render,/usr/X11R6/lib/libX\$(x).a) -lossaudio" ;;
 OpenBSD) INTERNAL_LDFLAGS="-L/usr/X11R6/lib -lX11 -lXi -lXrandr -lossaudio" ;;
-Solaris) INTERNAL_LDFLAGS="-lX11 -lXext" ;;
+Solaris) INTERNAL_LDFLAGS="-lX11 -lXext"
+         EXTRA_DEPS="-DCONST_ICONV" ;;
 esac
-cat >> Makefile <<-_EOF
+cat >> Makefile <<_EOF
 
 LIBS = -Lextlib/lib \\
        $LINKSDL_image \$(if \$(findstring true,$INTERNAL_SDL_IMAGE),$LINKjpeg $LINKpng $LINKz) \\
@@ -729,7 +732,7 @@ LIBS = -Lextlib/lib \\
        \$(shell $FREETYPE_CONFIG --libs) \\
        $LINKbz2 \$(if \$(findstring true,$INTERNAL_SDL),$INTERNAL_LDFLAGS)
 
-DEFS = -DLINUX -DUSE_OGG_VORBIS
+DEFS = -DLINUX -DUSE_OGG_VORBIS $EXTRA_DEPS
 _EOF
 ;; esac
 if [ "$POSIX" = "Linux" ]
