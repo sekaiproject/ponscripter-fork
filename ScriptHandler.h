@@ -26,11 +26,6 @@
 #ifndef __SCRIPT_HANDLER_H__
 #define __SCRIPT_HANDLER_H__
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <vector>
-
 #include "defs.h"
 #include "BaseReader.h"
 #include "expression.h"

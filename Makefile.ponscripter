@@ -87,7 +87,7 @@ endif
 
 resources.cpp: embed$(EXESUFFIX) $(filter-out =%,$(RESOURCES))
 	-$(RM) $@
-	./embed $(patsubst =%,%,$(RESOURCES)) > $@
+	./embed$(EXESUFFIX) $(patsubst =%,%,$(RESOURCES)) > $@
 
 embed$(EXESUFFIX): embed.cpp
 	$(CXX) $< -o $@

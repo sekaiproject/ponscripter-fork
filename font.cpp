@@ -20,12 +20,13 @@
    Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+#include "defs.h"
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_OUTLINE_H
 #include FT_TRUETYPE_IDS_H
-#include <stdio.h>
-#include <math.h>
+
 #include "font.h"
 
 

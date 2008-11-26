@@ -24,6 +24,7 @@ if [ -z "$MAKE"   ]; then MAKE=make; fi
 if [ -z "$AR"     ]; then AR=ar; fi
 if [ -z "$RANLIB" ]; then RANLIB=ranlib; fi
 UNSUPPORTED_COMPILER=false
+CROSSCOMPILE=false
 INTERNAL_LIBS=false
 INTERNAL_SDL=false
 INTERNAL_SDL_IMAGE=false
@@ -207,17 +208,18 @@ echo "Configuring Ponscripter $VERSION"
 
 # Platform
 $echo_n "Checking platform type... ${nobr}"
+BUILDPLATFORM=`./config.guess`
 if [ -n "$PLATFORM" ]
 then 
     PLATFORM=`$echo_n "$PLATFORM${nobr}" | tr '[:upper:]' '[:lower:]'`
     if ./config.sub $PLATFORM >/dev/null 2>&1; then PLATFORM=`./config.sub $PLATFORM`; fi
 else
-    PLATFORM=`./config.guess`
+    PLATFORM=$BUILDPLATFORM
 fi
 SYS=Posix
 POSIX=Vanilla
 case "$PLATFORM" in
-*mingw*)   echo "MinGW";    SYS=MinGW ;;
+*mingw*)   echo "MinGW";    SYS=MinGW; WINDRES=windres ;;
 *darwin*)  echo "Mac OS X"; SYS=MacOSX ;;
 *linux*)   echo "Linux";    POSIX=Linux ;;
 *solaris*) echo "Solaris";  POSIX=Solaris ;;
@@ -233,9 +235,33 @@ case "$PLATFORM" in
            INTERNAL_OGGLIBS=true
            CC="gcc -mno-cygwin"
            CXX="g++ -mno-cygwin"
+           WINDRES=windres
            SYS=MinGW ;;
 *)         echo "$PLATFORM (unsupported; using vanilla Posix build instructions)" ;;
 esac
+
+if [ $PLATFORM != $BUILDPLATFORM ]
+then
+    case $PLATFORM in
+        *mingw*)
+            echo "Trying to cross-compile from $BUILDPLATFORM; this is fragile"
+            internalise_SDL
+            INTERNAL_BZIP2=true
+            INTERNAL_FREETYPE=true
+            INTERNAL_LIBPNG=true
+            INTERNAL_LIBJPEG=true
+            INTERNAL_OGGLIBS=true
+            CC=i586-mingw32msvc-gcc
+            CXX=i586-mingw32msvc-g++
+            WINDRES=i586-mingw32msvc-windres
+            RANLIB=i586-mingw32msvc-ranlib
+            CROSSCOMPILE=true
+            ;;
+        *)
+            echo "Note: detected platform is $BUILDPLATFORM; expect trouble"
+            ;;
+    esac
+fi
 
 # Compiler (gcc, g++, icpc)
 if [ -z "$CC" ]; then CC=gcc; fi
@@ -245,7 +271,7 @@ then
 else
     $echo_n "Checking C compiler... ${nobr}"
     case "`($CC --version) 2>/dev/null | head -1`" in
-    gcc* | *apple*gcc*) echo gcc ;;
+    gcc* | *apple*gcc* | *-gcc??GCC*) echo gcc ;;
     icc*) echo icc ;;
     *)  echo "error"
         cat <<-_ERR
@@ -270,7 +296,7 @@ if not $UNSUPPORTED_COMPILER
 then
     $echo_n "Checking C++ compiler... ${nobr}"
     case "`($CXX --version) 2>/dev/null | head -1`" in
-    g++* | *apple*g++*) echo g++ ;;
+    g++* | *apple*g++* | *-g++??GCC*) echo g++ ;;
     icpc*) echo icpc ;;
     *)  echo "error"
         cat <<-_ERR
@@ -632,6 +658,22 @@ _EOF
     exit
 fi
 
+OURLDFLAGS=
+OURINCLUDE=
+OURINCS=
+OURLIBS=
+OURPATH=
+if $INTERNAL_BZIP2  || $INTERNAL_FREETYPE || $INTERNAL_LIBJPEG || \
+   $INTERNAL_LIBPNG || $INTERNAL_OGGLIBS  || $INTERNAL_SDL     || \
+   $INTERNAL_SDL_IMAGE || $INTERNAL_SDL_MIXER || $INTERNAL_SMPEG
+then
+    OURLDFLAGS="-L\$(shell pwd)/extlib/lib"
+    OURINCLUDE="-I\$(shell pwd)/extlib/include"
+    OURINCS="-Iextlib/include \$(shell [ -d extlib/include/SDL ] && echo -Iextlib/include/SDL)"
+    OURLIBS="-Lextlib/lib"
+    OURPATH="\$(shell pwd)/extlib/bin:"
+fi
+
 
 $echo_n "Writing Makefile... ${nobr}"
 
@@ -669,10 +711,10 @@ INTERNAL_LIBPNG=\$(findstring true,$INTERNAL_LIBPNG)
 INTERNAL_LIBJPEG=\$(findstring true,$INTERNAL_LIBJPEG)
 INTERNAL_OGGLIBS=\$(findstring true,$INTERNAL_OGGLIBS)
 
-export PATH     :=   \$(shell pwd)/extlib/bin:\$(PATH)
-export CFLAGS   := -I\$(shell pwd)/extlib/include \$(CFLAGS)
-export CPPFLAGS := -I\$(shell pwd)/extlib/include \$(CPPFLAGS)
-export LDFLAGS  := -L\$(shell pwd)/extlib/lib \$(LDFLAGS)
+export PATH     := $OURPATH\$(PATH)
+export CFLAGS   := $OURINCLUDE \$(CFLAGS)
+export CPPFLAGS := $OURINCLUDE \$(CPPFLAGS)
+export LDFLAGS  := $OURLDFLAGS \$(LDFLAGS)
 
 export CC      := $CC
 export CXX     := $CXX
@@ -683,16 +725,25 @@ export RANLIB  := $RANLIB
 
 # Ponscripter variables
 PSCFLAGS = $CFLAGSEXTRA
-INCS = -Iextlib/include \$(shell $SDL_CONFIG --cflags)      \\
-                        \$(shell $SMPEG_CONFIG --cflags)    \\
-                        \$(shell $FREETYPE_CONFIG --cflags) \\
-       \$(shell [ -d extlib/include/SDL ] && echo -Iextlib/include/SDL)
+INCS = $OURINCS \$(shell $SDL_CONFIG --cflags)      \\
+                \$(shell $SMPEG_CONFIG --cflags)    \\
+                \$(shell $FREETYPE_CONFIG --cflags)
 _EOF
 case "$SYS" in 
 MinGW)
-cat >> Makefile <<_EOF
+if $CROSSCOMPILE
+then cat >> Makefile <<_EOF
 
-LIBS = -Lextlib/lib \\
+export FORCE_INT_SIZES := yes
+OTHERCONFIG    := --host=i586-mingw32msvc --disable-sdltest 
+SDLOTHERCONFIG := --host=i586-mingw32msvc
+
+_EOF
+fi
+cat >> Makefile <<_EOF
+export WINDRES := $WINDRES
+
+LIBS = $OURLIBS \\
        -static -Wl,--start-group \\
        \$(filter-out -lSDLmain,\$(shell $SDL_CONFIG --static-libs)) \\
        \$(shell $SMPEG_CONFIG --libs) \$(shell $FREETYPE_CONFIG --libs) \\
@@ -707,7 +758,7 @@ _EOF
 MacOSX)
 cat >> Makefile <<_EOF
 
-LIBS = -Lextlib/lib \\
+LIBS = $OURLIBS \\
        \$(shell $SDL_CONFIG --static-libs) \\
        \$(shell $SMPEG_CONFIG --libs)      \\
        \$(shell $FREETYPE_CONFIG --libs)   \\
@@ -731,7 +782,7 @@ Solaris) INTERNAL_LDFLAGS="-lX11 -lXext"
 esac
 cat >> Makefile <<_EOF
 
-LIBS = -Lextlib/lib \\
+LIBS = $OURLIBS \\
        $LINKSDL_image \$(if \$(findstring true,$INTERNAL_SDL_IMAGE),$LINKjpeg $LINKpng $LINKz) \\
        $LINKSDL_mixer \$(if  \$(or \$(findstring true,$INTERNAL_SDL_MIXER),\$(findstring true,$EXPLICIT_OGGLIBS)),$LINKvorbisfile $LINKvorbis $LINKogg) \\
        \$(shell $SDL_CONFIG --libs)      \\
@@ -754,9 +805,9 @@ cat >> Makefile <<_EOF
 .SUFFIXES: $OBJ .cpp .h .c
 
 ifdef DEBUG
-PSCFLAGS += -g -ggdb3 -O0 -Wall -Wpointer-arith -Werror
+PSCFLAGS += -g -ggdb3 -O0 -Wall -Wno-parentheses -Wpointer-arith -Werror
 else
-PSCFLAGS += -O3 -Wpointer-arith -Wno-uninitialized -Werror -fomit-frame-pointer -pipe 
+PSCFLAGS += -O3 -Wpointer-arith -Wno-parentheses -Wno-uninitialized -Werror -fomit-frame-pointer -pipe 
 endif
 
 TARGET = ponscr$EXE
@@ -805,7 +856,7 @@ then cat >> Makefile <<_EOF
 
 RCFILE ?= ponscr.rc
 win32rc.o: \$(RCFILE)
-	windres \$< -o \$@
+	\$(WINDRES) \$< -o \$@
 
 %.rc: %.rc.in version.h
 	ver=\`awk '/define VER_NUMBER/ { print $\$3 }' version.h\`; \\

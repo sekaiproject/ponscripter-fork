@@ -4,12 +4,17 @@
 #ifndef __DEFS_H__
 #define __DEFS_H__
 
-#ifdef __GNUC__
-//#define USE_HASH // blasted deprecation
-#endif
+// Disable annoying "feature" of newish glibcs.  TODO: fix this properly by
+// checking all fread, fwrite return values (like it matters!)
+#undef _FORTIFY_SOURCE
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
+
+#ifdef __GNUC__
+//#define USE_HASH // blasted deprecation
+#endif
 
 #include <algorithm>
 #include <utility>

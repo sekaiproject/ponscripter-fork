@@ -6,6 +6,8 @@
 dim ?0[10][5][2]
 numalias testnum, 72
 numalias teststr, 72
+numalias wantstr, 73
+numalias answer,  74
 
 ; This is ignored by Ponscripter
 numalias PONSCRIPTER, 0
@@ -33,15 +35,12 @@ h_mapfont 0, "default.ttf"
 !s0
 setwindow 8,16,30,23,20,20,0,2,20,1,1,#999999,0,0,639,479
 mov %testnum,0
+mov $wantstr,"NScr"
 mov $teststr,"Test"
-
-;; TEMP
-mpegplay "umineko_op.mpg",1
-;; end TEMP
 
 ; Test itoa, itoa2, atoi, mid, split, and various `if' statements
 ; Correct output: ○○○○○
-test
+test "○○○○○"
 for %0=210 to 214: movl ?0[7][%0-210], %0, %0, %0: next
 itoa $5, ?0[7][3][1]
 itoa2 $6, ?0[7][3][1]
@@ -62,7 +61,7 @@ if $6 = "2" & %7 * 2 = %8 * 3 puttext "○": skip 2
 ; Test user subs and parameter handling
 ; Correct output: 風　24601　61　365　42　婆
 ; Note that many versions of ONScripter fail this test!
-test
+test "風　２４６０１　６１　３６５　４２　婆"
 mov %61,365
 mov $42,"婆"
 testsub "風", 24601, %61, $42
@@ -75,17 +74,28 @@ goto *enddefinition
 
 ; Test `for' loops and array handling
 ; Correct output: 30　42　54　66
-test
+test "３０　４２　５４　６６"
 for %0=0 to 4: movl ?0[8][%0], %0, %0, %0: next
 for %50=0 to 6 step 2
   mov ?0[8][2][0], ?0[8][2][0] + 1
   ?0[8][2][0]%50　/
 next
+　
+
+; Test kinsoku
+test "モリソン「この世に悪があるとすれば、それは人の心だ"
+モリソン「この世に悪があるとすれば、それは人の心/
+だ」
+test "モリソン「この世に悪があるとすれば、それは人の心"
+モリソン「この世に悪があるとすれば、それは人の/
+心だ」
 \
 
 end
 
 *test
+getparam $answer
 inc %testnum
+$wantstr／%testnum　$answer
 $teststr／%testnum　/
 return

@@ -26,12 +26,6 @@
 #ifndef __SCRIPT_PARSER_H__
 #define __SCRIPT_PARSER_H__
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <time.h>
-
 #include "ScriptHandler.h"
 #include "NsaReader.h"
 #include "DirectReader.h"

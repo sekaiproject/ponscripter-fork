@@ -55,6 +55,8 @@ $(EB)/sdl-config: $(SDLSRC)/Makefile
 	    sed -e 's/\(-lmingw32 -lSDLmain.*\)$$/\1 -lwinmm/' $@.tmp > $@; \
 	    rm $@.tmp; \
 	fi # Fix for annoying Windows breakage
+	@chmod +x $(EB)/sdl-config # for some reason this isn't happening when
+	                           # cross-compiling to MinGW
 
 #-- SDL_image -----------------------------------------------------------------
 

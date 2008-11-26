@@ -21376,8 +21376,13 @@ cat >>confdefs.h <<_ACEOF
 #define SIZEOF_LONG_LONG $ac_cv_sizeof_long_long
 _ACEOF
 
-
-
+# Hack to force cross-compiling to work
+if test x$FORCE_INT_SIZES = "xyes" ; then
+    ac_cv_sizeof_short=2
+    ac_cv_sizeof_int=4
+    ac_cv_sizeof_long=4
+    ac_cv_sizeof_long_long=8
+fi    
 
 if test x$has_int16_t = "xyes" ; then
         SIZE16="int16_t"
