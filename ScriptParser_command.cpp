@@ -309,19 +309,28 @@ int ScriptParser::rmenuCommand(const pstring& cmd)
 
 int ScriptParser::returnCommand(const pstring& cmd)
 {
-    if (nest_infos.empty() || nest_infos.back().nest_mode != NestInfo::LABEL)
+    if (nest_infos.empty() ||
+        (nest_infos.back().nest_mode != NestInfo::LABEL &&
+         nest_infos.back().nest_mode != NestInfo::TEXTGOSUB))
         errorAndExit("return: not in gosub");
 
-    current_label_info =
-	script_h.getLabelByAddress(nest_infos.back().next_script);
-    current_line =
-	script_h.getLineByAddress(nest_infos.back().next_script);
+    const bool is_text = nest_infos.back().nest_mode == NestInfo::TEXTGOSUB;
+    const char* const next_script = nest_infos.back().next_script;
+    
+    current_label_info = script_h.getLabelByAddress(next_script);
+    current_line       = script_h.getLineByAddress(next_script);
 
-    const char *buf = script_h.getNext();
-    if (buf[0] == 0x0a || buf[0] == ':' || buf[0] == ';')
-	script_h.setCurrent(nest_infos.back().next_script);
-    else
-	setCurrentLabel(script_h.readStrValue());
+    if (is_text) {
+        script_h.setCurrent(next_script);
+        string_buffer_restore = nest_infos.back().to;
+    }
+    else {
+        const char *buf = script_h.getNext();
+        if (buf[0] == 0x0a || buf[0] == ':' || buf[0] == ';')
+            script_h.setCurrent(next_script);
+        else
+            setCurrentLabel(script_h.readStrValue());
+    }
 
     nest_infos.pop_back();
 
@@ -790,6 +799,13 @@ void ScriptParser::gosubReal(const pstring& label, const char* next_script)
     setCurrentLabel(label);
 }
 
+void ScriptParser::gosubDoTextgosub()
+{
+    nest_infos.push_back(NestInfo(script_h, script_h.getCurrent(),
+                                  string_buffer_offset + 1));
+    setCurrentLabel(textgosub_label);
+}
+
 
 int ScriptParser::gosubCommand(const pstring& cmd)
 {
@@ -813,7 +829,9 @@ int ScriptParser::globalonCommand(const pstring& cmd)
 
 int ScriptParser::getparamCommand(const pstring& cmd)
 {
-    if (nest_infos.empty() || nest_infos.back().nest_mode != NestInfo::LABEL)
+    if (nest_infos.empty() ||
+        (nest_infos.back().nest_mode != NestInfo::LABEL &&
+         nest_infos.back().nest_mode != NestInfo::TEXTGOSUB))
         errorAndExit("getparam: not in a subroutine");
 
     bool more_args;

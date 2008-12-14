@@ -152,7 +152,7 @@ protected:
 	typedef std::vector<NestInfo> vector;
 	typedef vector::iterator iterator;
 	
-        enum { LABEL = 0, FOR = 1 } nest_mode;
+        enum { LABEL = 0, FOR = 1, TEXTGOSUB = 2 } nest_mode;
         const char* next_script; // used in gosub and for
 	Expression var; // used in for
         int to, step; // used in for
@@ -161,6 +161,10 @@ protected:
 	    : nest_mode(LABEL), next_script(ns), var(h) {}
 	NestInfo(Expression e, const char* ns = 0)
 	    : nest_mode(FOR), next_script(ns), var(e) {}
+
+        NestInfo(ScriptHandler& h, const char* cs, int string_buffer_offset)
+            : nest_mode(TEXTGOSUB), next_script(cs), var(h),
+              to(string_buffer_offset) {}
     };
     const char* last_tilde;
     NestInfo::vector nest_infos;
@@ -215,6 +219,7 @@ protected:
     bool zenkakko_flag;
 
     int string_buffer_offset;
+    int string_buffer_restore;
 
     ScriptHandler::LabelInfo current_label_info;
     int current_line;
@@ -228,6 +233,7 @@ protected:
     int    underline_value;
 
     void gosubReal(const pstring& label, const char* next_script);
+    void gosubDoTextgosub();
     void setCurrentLabel(const pstring& label);
     void readToken();
 

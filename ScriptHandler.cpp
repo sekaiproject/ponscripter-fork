@@ -1244,7 +1244,8 @@ int ScriptHandler::parseIntExpression(const char** buf)
         readNextOp(buf, &op[1], &num[2]);
         if (op[1] == OP_INVALID) break;
 
-        if (!(op[0] & 0x04) && (op[1] & 0x04)) { // if priority of op[1] is higher than op[0]
+        if (!(op[0] & 0x04) && (op[1] & 0x04)) {
+            // if priority of op[1] is higher than op[0]
             num[1] = calcArithmetic(num[1], op[1], num[2]);
         }
         else {

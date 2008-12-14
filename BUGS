@@ -6,6 +6,12 @@ MAJOR BUGS
 * Click-to-display-a-full-page doesn't work in OS X 10.4+ unless
   coalesced updates are disabled.
 
+* Problems using fullscreen mode under Compiz on Nezumi.  The symptom
+  is that the game flickers into fullscreen mode and then pops
+  straight back into a window.  Something to do with the Workarounds
+  plugin, but I've tried disabling workarounds individually and failed
+  to isolate the cause.  :(
+
 
 MINOR BUGS
 
@@ -30,6 +36,9 @@ HEISENBUGS
 
 
 FEATURES
+
+* Interpolation of %variables and $strings; we can then use #% and #$
+  for literal % and $.
 
 * SHY (U+00AD) support would be nice... ;)
 

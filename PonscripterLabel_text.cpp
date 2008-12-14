@@ -345,13 +345,35 @@ int PonscripterLabel::clickWait(bool display_char)
 	    ++num_chars_in_sentence;
 	}
         if (textgosub_label) {
+            // Haeleth: fix @ bug, 20081214.
+            //
+            // The problem Agilis observed was caused by a buggy regex
+            // in the Narci2 build system, but it seemed better to fix
+            // the underlying issue that required the source to be
+            // massaged with a regex in the first place.
+            //
+            // The issue was that when a textgosub routine was
+            // defined, the first @ on a line would cause a gosub with
+            // the return point being defined as the next command
+            // (i.e. the next line).
+            //
+            // The fix is to extend the gosub system to allow saving a
+            // point within the string buffer, return to the _current_
+            // command after the gosub, and then jump to that point.
+            
+//            const char* next_text = script_h.getCurrent()
+//                                  + string_buffer_offset;
+            const char* next_text = c + 1;
+            
             saveoffCommand("saveoff");
-
             textgosub_clickstr_state =
-		(script_h.getNext()[0] == 0x0a) ? CLICK_WAITEOL : CLICK_WAIT;
+		(next_text[0] == 0x0a)
+                ? CLICK_WAITEOL : CLICK_WAIT;
 
-            gosubReal(textgosub_label, script_h.getNext());
-            indent_offset = 0;
+//            gosubReal(textgosub_label, next_text);
+            gosubDoTextgosub();
+            
+            indent_offset = 0;        // Do we want to reset all these?
             line_enter_status = 0;
             string_buffer_offset = 0;
             return RET_CONTINUE;
@@ -412,7 +434,7 @@ int PonscripterLabel::textCommand()
         && (line_enter_status == 0
             || (line_enter_status == 1
                 && (script_h.readStrBuf(string_buffer_offset) == '['
-                    || (zenkakko_flag && encoding->DecodeChar(script_h.getStrBuf(string_buffer_offset)) == 0x3010 /*y */))))) {
+                    || (zenkakko_flag && encoding->DecodeChar(script_h.getStrBuf(string_buffer_offset)) == 0x3010 /* left lenticular bracket */))))) {
         gosubReal(pretextgosub_label, script_h.getCurrent());
         line_enter_status = 1;
         return RET_CONTINUE;
@@ -433,6 +455,11 @@ int PonscripterLabel::textCommand()
 
 int PonscripterLabel::processText()
 {
+    if (string_buffer_restore > 0) {
+        string_buffer_offset = string_buffer_restore;
+        string_buffer_restore = -1;
+    }
+
     if (event_mode & (WAIT_INPUT_MODE | WAIT_SLEEP_MODE)) {
         draw_cursor_flag = false;
         if (clickstr_state == CLICK_WAIT) {

@@ -226,10 +226,31 @@ following commands exist:
 Undefines all substitutions, including the curly-quotation-mark
 shortcuts that are defined by default.
 
+* h_ligate default
+
+Defines all sets described below.
+
 * h_ligate basic
   
 Redefines the curly-quotation-mark shortcuts.
 
+* h_ligate specials
+
+Defines the following set of escape sequences for printing characters
+that sometimes have special meanings:
+    #@   @
+    #/   /
+    #\   \
+    #_   _
+    #^   ^
+    #`   `
+    #!   !
+    ##   #
+
+Note that #~ will NOT work.  Formatting tags are parsed at an earlier
+stage, before text ever gets anywhere near the ligature expansion
+stage.  Use ~~ for a literal tilde.
+    
 * h_ligate punctuation
   
 Defines the following shortcuts:
@@ -698,32 +719,6 @@ and fix the numerous portability issues in the above, or even to
 provide binary packages for popular free operating systems.  (With
 dependencies on a binary Ponscripter package, of course, which you're
 welcome to provide yourself.)
-
-
-/---------------------------------------------------------------------
-|  Widescreen fix
-
-Some widescreen displays don't provide an easy way to preserve aspect
-ratios.
-
-The current Ponscripter includes a workaround for this: pressing "w"
-ingame will switch to fullscreen mode and toggle a flag that, when
-set, causes aspect ratio to be preserved.
-
-Since I'm lazy, I implemented this the simplest possible way, which
-was to hack SDL itself.  This therefore only works if Ponscripter is
-compiled with the internal SDL from extlib/src/SDL-1.2.13; linking
-against external SDLs will disable the functionality.  Note that an
-external SDL is used by default if present, so you may have to pass
-the --with-internal-sdl flag to configure if you wish your builds to
-contain this feature.
-
-In practice this doesn't really work all that well, and I may remove
-it from future versions.  People are better off figuring out how to
-make their video driver preserve aspect ratios.  Thankfully this is
-getting easier (e.g. the feature is now available in Intel's Linux
-drivers, which lack was what prompted me to try to fix this in the
-first place!)
 
 
 /---------------------------------------------------------------------

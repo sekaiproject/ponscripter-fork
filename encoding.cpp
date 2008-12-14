@@ -90,33 +90,44 @@ void
 DefaultLigatures(int which)
 {
     if (which & 1) {
-        AddLigature("`", 0x2018);
-        AddLigature("``", 0x201c);
-        AddLigature("'", 0x2019);
-        AddLigature("''", 0x201d);
+        AddLigature("`",    0x2018);
+        AddLigature("``",   0x201c);
+        AddLigature("'",    0x2019);
+        AddLigature("''",   0x201d);
     }
 
     if (which & 2) {
-        AddLigature("...", 0x2026);
-        AddLigature("--", 0x2013);
-        AddLigature("---", 0x2014);
-        AddLigature("(c)", 0x00a9);
-        AddLigature("(r)", 0x00ae);
+        AddLigature("...",  0x2026);
+        AddLigature("--",   0x2013);
+        AddLigature("---",  0x2014);
+        AddLigature("(c)",  0x00a9);
+        AddLigature("(r)",  0x00ae);
         AddLigature("(tm)", 0x2122);
-        AddLigature("++", 0x2020);
-        AddLigature("+++", 0x2021);
-        AddLigature("**", 0x2022);
-        AddLigature("%_", 0x00a0);
-        AddLigature("%.", 0x2009);
-        AddLigature("%-", 0x2011);
+        AddLigature("++",   0x2020);
+        AddLigature("+++",  0x2021);
+        AddLigature("**",   0x2022);
+        AddLigature("%_",   0x00a0);
+        AddLigature("%.",   0x2009);
+        AddLigature("%-",   0x2011);
     }
 
     if (which & 4) {
-        AddLigature("ff", 0xfb00);
-        AddLigature("fi", 0xfb01);
-        AddLigature("fl", 0xfb02);
-        AddLigature("ffi", 0xfb03);
-        AddLigature("ffl", 0xfb04);
+        AddLigature("ff",   0xfb00);
+        AddLigature("fi",   0xfb01);
+        AddLigature("fl",   0xfb02);
+        AddLigature("ffi",  0xfb03);
+        AddLigature("ffl",  0xfb04);
+    }
+
+    if (which & 8) {
+        AddLigature("#@",   '@');
+        AddLigature("#/",   '/');
+        AddLigature("#\\",  '\\');
+        AddLigature("#_",   '_');
+        AddLigature("#^",   '^');
+        AddLigature("#`",   '`');
+        AddLigature("#!",   '!');
+        AddLigature("##",   '#');
     }
 }
 

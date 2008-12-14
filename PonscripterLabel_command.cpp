@@ -1656,6 +1656,7 @@ int PonscripterLabel::loadgameCommand(const pstring& cmd)
         indent_offset = 0;
         line_enter_status = 0;
         string_buffer_offset = 0;
+        string_buffer_restore = 0;
 
         refreshMouseOverButton();
 
@@ -1868,7 +1869,8 @@ int PonscripterLabel::gettextCommand(const pstring& cmd)
 
 int PonscripterLabel::gettagCommand(const pstring& cmd)
 {
-    if (nest_infos.empty() || nest_infos.back().nest_mode != NestInfo::LABEL)
+    if (nest_infos.empty() ||
+        nest_infos.back().nest_mode != NestInfo::TEXTGOSUB)
         errorAndExit("gettag: not in a subroutine, e.g. pretextgosub");
 
     bool end_flag = false;

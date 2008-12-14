@@ -1,3 +1,14 @@
+2008-12-14
+
+  Fix infinite loop caused by a line of the form "^\n" when a
+  pretextgosub hook is defined.
+
+  Make @ behave as expected when embedded in lines, even when a
+  textgosub hook is defined.
+
+  Add shortcuts #@, #\, etc, for printing literal characters.
+
+
 2008-11-18
 
   Fix fatal error caused by ~~ in a script becoming ~ in the lookback

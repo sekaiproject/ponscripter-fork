@@ -164,7 +164,36 @@ int PonscripterLabel::loadSaveFile2(SaveFileType file_type, int file_version)
 
     // nested info
     int num_nest = readInt();
-    if (num_nest > 0) {
+    if (num_nest < 0) {
+        // New, simpler, extensible format
+        while (num_nest++ < 0) {
+            int mode = readInt();
+            const char* addr = script_h.getAddress(readInt());
+            switch (mode) {
+            case NestInfo::LABEL:
+                nest_infos.push_back(NestInfo(script_h, addr));
+                break;
+
+            case NestInfo::TEXTGOSUB:
+                nest_infos.push_back(NestInfo(script_h, addr, readInt()));
+                break;
+
+            case NestInfo::FOR: {
+		NestInfo info(Expression(script_h, Expression::Int, true,
+					 readInt()), addr);
+		info.to	  = readInt();
+		info.step = readInt();
+                nest_infos.push_back(info);
+                break;
+            }
+
+            default:
+                errorAndExit("encountered unknown nesting mode");
+            }
+        }
+    }
+    else if (num_nest > 0) {
+        // Legacy save format; TODO: remove support when no longer needed
 	file_io_buf_ptr += (num_nest - 1) * 4;
 	while (num_nest > 0) {
 	    i = readInt();
@@ -523,21 +552,30 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
     int num_nest = 0;
     NestInfo::iterator info = nest_infos.begin();
     while (info != nest_infos.end()) {
-	if (info->nest_mode == NestInfo::LABEL) num_nest++;
-	else if (info->nest_mode == NestInfo::FOR) num_nest += 4;
+        ++num_nest;
 	++info;
     }
-    writeInt(num_nest, output_flag);
+    writeInt(-num_nest, output_flag);
     info = nest_infos.begin();
     while (info != nest_infos.end()) {
-	if (info->nest_mode == NestInfo::LABEL) {
-	    writeInt(script_h.getOffset(info->next_script), output_flag);
-	}
-	else if (info->nest_mode == NestInfo::FOR) {
+        writeInt(info->nest_mode, output_flag);
+        writeInt(script_h.getOffset(info->next_script), output_flag);
+        switch (info->nest_mode) {
+        case NestInfo::LABEL:
+            break;
+
+        case NestInfo::TEXTGOSUB:
+            writeInt(info->to, output_flag);
+            break;
+        
+	case NestInfo::FOR:
 	    writeInt(info->var.var_no(), output_flag);
 	    writeInt(info->to, output_flag);
 	    writeInt(info->step, output_flag);
-	    writeInt(-script_h.getOffset(info->next_script), output_flag);
+            break;
+
+        default:
+            errorAndExit("encountered unhandled nesting mode");
 	}
 	++info;
     }

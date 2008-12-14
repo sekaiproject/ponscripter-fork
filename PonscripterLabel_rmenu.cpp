@@ -453,6 +453,7 @@ void PonscripterLabel::executeSystemYesNo()
                 indent_offset = 0;
                 line_enter_status    = 0;
                 string_buffer_offset = 0;
+                string_buffer_restore = -1;
 		break_flag = false;
 
                 if (loadgosub_label)

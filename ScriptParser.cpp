@@ -210,6 +210,7 @@ void ScriptParser::reset()
     mode_ext_flag  = false;
     zenkakko_flag  = false;
     string_buffer_offset = 0;
+    string_buffer_restore = -1;
 
     break_flag = false;
     trans_mode = AnimationInfo::TRANS_TOPLEFT;

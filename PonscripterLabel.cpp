@@ -1141,12 +1141,17 @@ void PonscripterLabel::executeLabel()
                 loops = 0;
                 last_pointer = script_h.getCurrent();
             }
-            
-            printf("*****  executeLabel %s:%d/%d:%d:%d *****\n",
+
+            pstring cmd = script_h.getStrBuf();
+            cmd.trunc(32);
+            for (int i = 0; i < cmd.length(); ++i)
+                if (cmd[i] == ' ' || cmd[i] == '\n') { cmd.trunc(i); break; }
+            printf("*****  executeLabel %s:%d/%d:%d:%d [%s] *****\n",
                    (const char*) current_label_info.name,
                    current_line,
                    current_label_info.num_of_lines,
-                   string_buffer_offset, display_mode);
+                   string_buffer_offset, display_mode,
+                   (const char*) cmd);
         }
 
         if (script_h.readStrBuf(0) == '~') {
@@ -1364,7 +1369,16 @@ int PonscripterLabel::parseLine()
             sentence_font.newLine();
         }
         //event_mode = IDLE_EVENT_MODE;
-        line_enter_status = 0;
+
+        // haeleth 20081214.
+        // Fixing infinite loop on line matching /^\^$/ with pretextgosub
+        //
+        // Before, we always reset line_enter_status to 0.  Now we
+        // only do so if it was > 1, i.e. if something has been printed.
+        // This prevents an infinite loop where the same line is visited
+        // again and again with line_enter_status == 0.
+        if (line_enter_status > 1)
+            line_enter_status = 0;
     }
 
     return ret;
