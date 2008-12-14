@@ -801,9 +801,15 @@ void ScriptParser::gosubReal(const pstring& label, const char* next_script)
 
 void ScriptParser::gosubDoTextgosub()
 {
-    nest_infos.push_back(NestInfo(script_h, script_h.getCurrent(),
-                                  string_buffer_offset + 1));
-    setCurrentLabel(textgosub_label);
+    char next = script_h.readStrBuf(string_buffer_offset + 1);
+    if (next == '\n' || next == 0) {
+        gosubReal(textgosub_label, script_h.getNext());
+    }
+    else {
+        nest_infos.push_back(NestInfo(script_h, script_h.getCurrent(),
+                                      string_buffer_offset + 1));
+        setCurrentLabel(textgosub_label);
+    }
 }
 
 

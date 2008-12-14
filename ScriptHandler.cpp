@@ -41,6 +41,8 @@ BaseReader* ScriptHandler::cBR = NULL;
 FILE* cout = stdout;
 FILE* cerr = stderr;
 
+static bool warned_unmarked = false;
+
 ScriptHandler::ScriptHandler()
     : variable_data(VARIABLE_RANGE + 1),
       game_identifier()
@@ -151,8 +153,12 @@ readTokenTop:
              || ch == '[' || ch == '('
              || ch == '!' || ch == '#' || ch == ',' || ch == '"') {
         // text
-//	if (ch != '!')
-//	    errorWarning("unmarked text found - this may be deprecated soon");
+	if (ch != '!' and !warned_unmarked) {
+	    errorWarning("unmarked text found - please use " +
+                         pstring(encoding->TextMarker()) + " at the start of "
+                         "text lines (I won't mention this again)");
+            warned_unmarked = true;
+        }
         bool loop_flag = true;
         bool ignore_click_flag = false;
         do {
@@ -203,7 +209,8 @@ readTokenTop:
                 ch = *buf;
             }
         }
-        while (ch != 0x0a && ch != '\0' && loop_flag && ch != encoding->TextMarker()) /*nop*/;
+        while (ch != 0x0a && ch != '\0' && loop_flag &&
+               ch != encoding->TextMarker()) /*nop*/;
         if (loop_flag && ch == 0x0a && !(textgosub_flag && linepage_flag)) {
             string_buffer += ch;
             if (!no_kidoku) markAsKidoku(buf++);
@@ -212,9 +219,6 @@ readTokenTop:
         text_flag = true;
     }
     else if (ch == encoding->TextMarker()) {
-//if (buf[1] == '~') {
-//    cerr << "Text: " + string(buf, 20) << eol;
-//}
         ch = *++buf;
         while (ch != encoding->TextMarker() && ch != 0x0a && ch != '\0') {
             if ((ch == '\\' || ch == '@') && (buf[1] == 0x0a || buf[1] == 0)) {

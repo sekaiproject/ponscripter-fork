@@ -8,6 +8,8 @@
 
   Add shortcuts #@, #\, etc, for printing literal characters.
 
+  Add ponscripter-mode.el (Emacs syntax highlighting)
+
 
 2008-11-18
 

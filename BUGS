@@ -40,7 +40,7 @@ FEATURES
 * Interpolation of %variables and $strings; we can then use #% and #$
   for literal % and $.
 
-* SHY (U+00AD) support would be nice... ;)
+* SHY (U+00AD) support would be nice.  Also non-breaking hyphens.
 
 * Subpixel rendering when running windowed on an LCD?  (Okay, now I'm
   getting silly...)

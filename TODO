@@ -1,12 +1,3 @@
-* Required for Narci2
-
--- Update save/load to work properly with vsp_when.
-   (done; not tested)
-
--- Fix widescreen hack: sometimes we get bits of the desktop showing
-   in the black bars (particularly when starting in fullscreen mode)
-
-   
 * Upstream ONScripter / ONScripter-En
 
 Merge in some changes.  We're missing useful functions like

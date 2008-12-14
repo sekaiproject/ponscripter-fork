@@ -287,9 +287,9 @@ tilde.
 
 Where a tag block appears in display text, its effects last until the
 end of the current screen; to apply a style to multiple screens, use
-h_fontstyle (see below). Tag blocks can also be embedded to style text
-buttons, menu items, etc., in which case they last to the end of the
-string in which they appear.
+h_fontstyle (see below), or repeat the tag block. Tag blocks can also
+be embedded to style text buttons, menu items, etc., in which case
+they last to the end of the string in which they appear.
 
 The following tags are recognised (N represents an arbitrary decimal
 integer):
@@ -354,7 +354,7 @@ FONT SIZE AND POSITION TAGS
 As an example of the usage of these tags, Narcissu 2's omake mode
 displays page headings at the top of each screen with code like
 
-  ^!s0~i %120 x-20 y-40~ Concept~i %100~!sd
+  ^!s0~i %120 x-20 y-40~ Concept~i =0~!sd
 
 Here the !s0 and !sd are the usual NScripter commands.  The first tag
 block selects italic text, 120% of the regular font size, and shifts
@@ -363,7 +363,9 @@ the italic effect and resets the font size to normal.
 
 This syntax was chosen for convenience of implementation, not for
 elegance; the author apologises for the similarity of complex
-formatting commands to Perl scripts.
+formatting commands to Perl scripts.  A decent syntax-highlighting
+editor, such as Emacs with the included ponscripter-mode, will take
+much of the pain out of getting tags right.
 
 
 INDENTATION TAGS
