@@ -111,6 +111,17 @@ public:
     int max_param; // used by bar
     int max_width; // used by bar
 
+    // The movie subtitle implementation means that an AnimationInfo
+    // is used from another thread.  This appears to be causing
+    // segfaults in some rare not-too-well-understood conditions.
+    // Mutexes lead to some nasty double frees, probably because this
+    // class doesn't have a copy constructor (sigh), so for now we'll
+    // use a nasty hacky fix that might just work if we're lucky.
+    // Please don't go thinking I consider this a good solution!
+private:
+    int locked;
+public:
+    
     AnimationInfo();
     ~AnimationInfo();
     void reset();

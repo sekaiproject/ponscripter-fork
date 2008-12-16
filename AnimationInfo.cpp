@@ -51,6 +51,7 @@ AnimationInfo::AnimationInfo()
     alpha_buf     = NULL;
     trans_mode    = TRANS_TOPLEFT;
     affine_flag   = false;
+    locked        = 0;
     reset();
 }
 
@@ -61,8 +62,28 @@ AnimationInfo::~AnimationInfo()
 }
 
 
+#ifdef _WIN32
+#define msleep _sleep
+#else
+#define msleep(x) usleep(x * 1000)
+#endif
+
 void AnimationInfo::reset()
 {
+    // This is stupid and ugly, but it seems to work well enough.
+    // See lame excuses in header.
+    int prevent_deadlock = 0;
+    if (locked)
+        fprintf(stderr, "Resetting an AnimationInfo that's still in use! Don't worry, I noticed in time.\n");
+    while (locked) {
+        msleep(1);
+        if (++prevent_deadlock > 2000) {
+            fprintf(stderr, "AnimationInfo is deadlocked, expect trouble\n");
+            locked = 0;
+            break;
+        }
+    }
+    
     remove();
 
     trans = 256;
@@ -241,6 +262,8 @@ void AnimationInfo::blendOnSurface(SDL_Surface* dst_surface, int dst_x, int dst_
 
     /* ---------------------------------------- */
 
+    ++locked;
+
     SDL_LockSurface(dst_surface);
     SDL_LockSurface(image_surface);
 
@@ -279,6 +302,8 @@ void AnimationInfo::blendOnSurface(SDL_Surface* dst_surface, int dst_x, int dst_
 
     SDL_UnlockSurface(image_surface);
     SDL_UnlockSurface(dst_surface);
+
+    --locked;
 }
 
 
