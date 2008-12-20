@@ -354,7 +354,7 @@ int ScriptParser::pretextgosubCommand(const pstring& cmd)
 int ScriptParser::numaliasCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)
-	errorAndExit("numalias: numalias: not in the define section");
+	errorAndExit("numalias: not in the define section");
     pstring label = script_h.readStrValue();
     label.tolower();
     int no = script_h.readIntValue();
@@ -363,6 +363,27 @@ int ScriptParser::numaliasCommand(const pstring& cmd)
     // Ponscripter actually defines as 1.
     if (!script_h.is_ponscripter && label == "ponscripter") no = 1;
     script_h.addNumAlias(label, no);
+    return RET_CONTINUE;
+}
+
+
+// Extension: watch variables
+//
+int ScriptParser::watch_varCommand(const pstring& cmd)
+{
+    if (current_mode != DEFINE_MODE)
+	errorAndExit("watch_var: not in the define section");
+
+    Expression e = script_h.readExpr();
+    if (script_h.hasMoreArgs())
+        errorAndCont("Too many arguments to " + cmd);
+    
+    if (e.is_textual()) {
+        errorAndCont("watch_var not implemented for string variables");
+    }
+    else {
+        script_h.variable_data[e.var_no()].watch_int_variable = e.var_no();
+    }
     return RET_CONTINUE;
 }
 

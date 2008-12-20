@@ -62,6 +62,7 @@ public:
     /* Command */
     int zenkakkoCommand(const pstring& cmd);
     int windowbackCommand(const pstring& cmd);
+    int watch_varCommand(const pstring& cmd);
     int versionstrCommand(const pstring& cmd);
     int usewheelCommand(const pstring& cmd);
     int useescspcCommand(const pstring& cmd);

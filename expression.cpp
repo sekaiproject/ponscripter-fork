@@ -119,7 +119,7 @@ int Expression::as_int() const
     else if (type_ == Array)
 	return h.arrays.find(intval_)->second.getValue(index_);
     else if (type_ == Int)
-	return h.variable_data[intval_].num;
+	return h.variable_data[intval_].get_num();
     else if (is_textual())
 	return as_string();
     throw "Error: invalid expression type";

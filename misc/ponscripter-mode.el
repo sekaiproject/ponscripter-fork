@@ -39,7 +39,8 @@
    ))
 
 (defvar ponscripter-syntactic-keywords
-  (list '("^[^^]*?\\(;\\)" 1 "<"))) ; semicolon only begins comment outside text
+  (list '("^\\(?:[^^\"]\\|\\^.*?\\^\\|\".*?\"\\)*?\\(;\\)"
+          1 "<"))) ; semicolon only begins comment outside text
 
 (defvar ponscripter-mode-syntax-table
   (let ((table (make-syntax-table)))

@@ -47,6 +47,9 @@ ScriptHandler::ScriptHandler()
     : variable_data(VARIABLE_RANGE + 1),
       game_identifier()
 {
+    for (int i = 0; i < VARIABLE_RANGE; ++i)
+        variable_data[i].owner = this;
+    
     script_buffer = NULL;
     kidoku_buffer = NULL;
     label_log.filename = "NScrllog.dat";
@@ -636,11 +639,11 @@ void ScriptHandler::setNumVariable(int no, int val)
 
     VariableData &vd = variable_data[no];
     if (vd.num_limit_flag) {
-        if (val < vd.num_limit_lower) val = vd.num;
-        else if (val > vd.num_limit_upper) val = vd.num;
+        if (val < vd.num_limit_lower) val = vd.get_num();
+        else if (val > vd.num_limit_upper) val = vd.get_num();
     }
 
-    vd.num = val;
+    vd.set_num(val);
 }
 
 
@@ -1145,7 +1148,7 @@ int ScriptHandler::parseInt(const char** buf)
             current_variable.var_no = VARIABLE_RANGE;
 
         current_variable.type = VAR_INT;
-        return variable_data[current_variable.var_no].num;
+        return variable_data[current_variable.var_no].get_num();
     }
     else if (**buf == '?') {
 	array_ref arr = parseArray(buf);

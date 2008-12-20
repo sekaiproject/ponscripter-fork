@@ -1,3 +1,9 @@
+2008-12-19
+
+  New command `watch_var' logs all changes to an (integer) variable,
+  so you can figure out why on earth it's got the wrong value.
+
+
 2008-12-16
 
   Fix occasional segfaults during subtitled movies.  This is a quick

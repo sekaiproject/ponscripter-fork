@@ -554,7 +554,8 @@ void PonscripterLabel::variableEditMode(SDL_KeyboardEvent* event)
         switch (variable_edit_mode) {
         case EDIT_VARIABLE_INDEX_MODE:
             variable_edit_index = variable_edit_num;
-            variable_edit_num = script_h.variable_data[variable_edit_index].num;
+            variable_edit_num =
+                script_h.variable_data[variable_edit_index].get_num();
             if (variable_edit_num < 0) {
                 variable_edit_num  = -variable_edit_num;
                 variable_edit_sign = -1;
@@ -632,7 +633,8 @@ void PonscripterLabel::variableEditMode(SDL_KeyboardEvent* event)
         switch (variable_edit_mode) {
         case EDIT_VARIABLE_NUM_MODE:
 	    var_name.format("%%%d", variable_edit_index);
-	    p = script_h.variable_data[variable_edit_index].num; break;
+	    p = script_h.variable_data[variable_edit_index].get_num();
+            break;
 
         case EDIT_MP3_VOLUME_MODE:
             var_name = "MP3 Volume"; p = music_volume; break;

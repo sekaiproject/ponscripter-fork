@@ -615,6 +615,16 @@ soft-subbed at present.
 
 
 /---------------------------------------------------------------------
+|  Miscellaneous new commands
+
+watch_var %var
+
+  Prints a line to stderr giving details of every change made to %var.
+  Useful for confirming that a variable is unused, or for tracking
+  down unexpected changes.
+
+
+/---------------------------------------------------------------------
 |  Enhanced OS X support
 
 OS X support in Ponscripter is enhanced in the same way as in
@@ -655,9 +665,9 @@ optional!)
 
 On ancient versions of Windows that do not support the required APIs
 (basically just Windows 95 without IE 5), this behaviour will
-theoretically degrade gracefully to the standard ONScripter behaviour,
-though I have not actually checked whether such platforms are even 
-capable of running Ponscripter in the first place.
+theoretically degrade gracefully to the standard ONScripter behaviour.
+It's probably safe to assume that nobody will ever find out if this
+works.
 
 
 /---------------------------------------------------------------------
@@ -671,10 +681,10 @@ size/position tags.
 
   Glyph caching
 
+ONScripter has two independent glyph caches.  Ponscripter has none.
 You may theoretically notice slightly poorer performance rendering
-long runs of text.  In practice I haven't noticed any effect at all,
-and removing both independent glyph caches has simplified the code
-considerably.
+long runs of text, but I haven't observed any difference, and the code
+is much simpler now they're gone.
 
 
 /---------------------------------------------------------------------
@@ -720,7 +730,7 @@ turn could be something as simple as
 and fix the numerous portability issues in the above, or even to
 provide binary packages for popular free operating systems.  (With
 dependencies on a binary Ponscripter package, of course, which you're
-welcome to provide yourself.)
+also welcome to provide.)
 
 
 /---------------------------------------------------------------------

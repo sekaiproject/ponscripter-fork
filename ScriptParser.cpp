@@ -148,6 +148,7 @@ func_lut_t::func_lut_t() {
     dict["useescspc"]       = &ScriptParser::useescspcCommand;
     dict["usewheel"]        = &ScriptParser::usewheelCommand;
     dict["versionstr"]      = &ScriptParser::versionstrCommand;
+    dict["watch_var"]       = &ScriptParser::watch_varCommand;
     dict["windowback"]      = &ScriptParser::windowbackCommand;
     dict["windoweffect"]    = &ScriptParser::effectCommand;
     dict["zenkakko"]        = &ScriptParser::zenkakkoCommand;
@@ -552,7 +553,7 @@ pstring ScriptParser::readStr()
 void ScriptParser::writeVariables(int from, int to, bool output_flag)
 {
     for (int i = from; i < to; i++) {
-        writeInt(script_h.variable_data[i].num, output_flag);
+        writeInt(script_h.variable_data[i].get_num(), output_flag);
         writeStr(script_h.variable_data[i].str, output_flag);
     }
 }
@@ -561,7 +562,7 @@ void ScriptParser::writeVariables(int from, int to, bool output_flag)
 void ScriptParser::readVariables(int from, int to)
 {
     for (int i = from; i < to; i++) {
-        script_h.variable_data[i].num = readInt();
+        script_h.variable_data[i].set_num(readInt());
         script_h.variable_data[i].str = readStr();
     }
 }

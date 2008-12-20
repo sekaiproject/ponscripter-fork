@@ -231,21 +231,35 @@ public:
     /* ---------------------------------------- */
     /* Variable */
     struct VariableData {
+    private:
         int num;
+    public:
+        ScriptHandler* owner;
+        int watch_int_variable;
+        pstring str;
         bool num_limit_flag;
         int num_limit_upper;
         int num_limit_lower;
-        pstring str;
+
+        int get_num() const {
+            return num;
+        }
+        void set_num(int val) {
+            if (watch_int_variable >= 0)
+                fprintf(stderr, "WATCH (line %d): %%%d: %d -> %d\n",
+                        owner->getLineByAddress(owner->getCurrent(), true),
+                        watch_int_variable, num, val);
+            num = val;
+        }
 
         VariableData() {
+            watch_int_variable = -1;
             reset(true);
         };
         void reset(bool limit_reset_flag)
         {
-            num = 0;
-            if (limit_reset_flag)
-                num_limit_flag = false;
-
+            set_num(0);
+            if (limit_reset_flag) num_limit_flag = false;
             if (str) str.trunc(0);
         };
     };
