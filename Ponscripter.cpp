@@ -38,7 +38,7 @@ static void optionHelp()
 #ifndef MACOSX
     printf("  -r, --root path\tset the root path to the archives\n");
     printf("  -s, --save path\tset the path to use for saved games"
-           "(default: same as root path)\n");
+           "(default: platform-dependent)\n");
 #else
     printf("  -r, --root path\tset the root path to the archives"
            "(default: Resources in Ponscripter bundle)\n");
