@@ -1,0 +1,484 @@
+.TH ponscripter 7
+.
+.SH NAME
+ponscripter \- Ponscripter developer notes
+.
+.SH DESCRIPTION
+.
+.BR Ponscripter
+is an interpreter for visual-novel-type games, derived from the
+.BR NScripter
+standard but modified significantly to improve support for Western
+languages (at the cost of diminished support for Japanese).
+.
+.SS NScripter implementations
+.
+.BR NScripter
+is a popular novel-game engine written by Naoki Takahashi.
+.
+It is gratis even for commercial use, but it is closed-source and
+only supported on Microsoft Windows.
+.
+This interpreter defines the NScripter standard, which is not at all
+well documented.
+.
+Since it has been used to drive a large number of popular commercial
+and amateur games, this has inspired a number of open-source cloning
+efforts.
+.
+.PP
+Ogapee's
+.BR ONScripter
+is the most significant of these.
+.
+It supports a wide range of platforms, including handheld
+devices.
+.
+When the attention of the English-speaking fan translation community
+turned to NScripter games, ONScripter was the interpreter they chose
+to adapt to better support the English language.
+.
+The official ONScripter source code can be compiled with basic English
+support; as ONScripter development is aimed more at supporting new
+Japanese games and new platforms than at supporting localisation, the
+English-speaking community also maintains a branch called
+.BR ONScripter-En
+which has a number of improvements of interest to us, including better
+English support as standard.
+.
+.PP
+.BR Ponscripter
+is a fork of ONScripter-En that drops any attempt to remain in synch
+with the upstream source code, and instead concentrates on providing
+even better support for Western languages.
+.
+It is no longer fully NScripter-compatible, but remains an easy
+target to port NScripter games to when localising them.
+.
+.PP
+The remainder of this manpage documents the syntax and structure of a
+Ponscripter game.
+.
+Attention is drawn to areas that differ from NScripter: it thus serves
+to some extent as documentation of NScripter as well, which is
+otherwise somewhat lacking in English (insani provide a command
+reference, which is excellent as far as it goes \- the Japanese source
+covers only a subset of today's NScripter \- but gives little
+information on general syntax and structure.)
+.
+There is probably no single exhaustive set of NScripter documentation
+in existence, and this is no exception; it is probably seriously
+incomplete, but will hopefully be better than nothing.
+.
+.SS Game format
+.
+Ponscripter games consist of a directory containing scripts, either in
+NScripter format or an extended derived format, plus other files
+(graphics, sound, fonts, etc) on which the script depends; these may
+be packed into archives in the NScripter NSA or SAR formats.
+.
+.PP
+Unlike other NScripter-derived interpreters, which attempt to a
+greater or lesser degree to support Japanese filenames, Ponscripter
+requires that all files have plain ASCII names.
+.
+It's the only way to be portable.
+.
+.PP
+Ponscripter is able to read two styles of script: native and legacy.
+.
+Native scripts are encoded in UTF-8, and provide all the features
+documented below.
+.
+Legacy scripts are an attempt to provide a modicum of
+backwards-compatibility: they are NScripter-format scripts, in CP932
+(Microsoft's version of Shift_JIS) with some of the same extensions as
+provided by ONScripter-En.
+.
+Many Ponscripter features are disabled when processing a legacy
+script.
+.
+There is little reason to use them, unless you want to try to play an
+unported NScripter game using proportional fonts.
+.
+It's better to port where possible.
+.
+.PP
+Script formats are distinguished by filename.
+.
+The following filenames are sought, in this order:
+.
+.TP 4
+.BR 0.utf
+Native script in human-readable form.
+.
+Can be multipart: the script used is the concatenation of all files
+with names matching the regular expression
+.BR [0\-9][0\-9]?\e.utf
+arranged in ascending numerical order.
+.
+.TP 4
+.BR 0.txt
+Legacy script in human-readable form.
+.
+Can be multipart, as for native scripts.
+.
+.TP 4
+.BR nscr_sec.dat
+Legacy script, trivially obfuscated using bitwise addition modulo 2
+against the fixed key
+.BR \*(lq\ex79\ex57\ex0d\ex80\ex04\*(rq .
+.
+.TP 4
+.BR nscript.___
+Legacy script, trivially obfuscated using a key file.
+.
+The key must be supplied using the
+.BR \-\-key\-exe
+parameter to
+.BR ponscr (6).
+.
+This file is used to construct a simple permutation table holding the
+plaintext equivalents to each byte of the obfuscated file.
+.
+.TP 4
+.BR pscript.dat
+Native script, trivially obfuscated by xoring every byte against the
+single byte
+.BR 0x84 .
+.
+This is the only form of obfuscation supported for native scripts.
+.
+It provides no security, but protects tinkerers from accidental
+spoilers.
+.
+.TP 4
+.BR nscript.dat
+Legacy script, trivially obfuscated as for
+.IR pscript.dat .
+.
+.SS Script syntax
+.
+Scripts are line-based.
+.
+There are two types of line: commands and text.
+.
+.PP
+A
+.BR "text line"
+begins with the text delimiter, which is ^ in native scripts and \` in
+legacy scripts.
+.
+All other lines are
+.BR "command lines" ,
+unless they begin with a number, a character outside the ASCII range,
+or a character in the set
+.BR [@\e/%?$[(!#,\(dq] ,
+in which case they are assumed to be unmarked text lines.
+.
+Such lines are valid if they contain
+.I only
+!-commands; otherwise a
+warning is issued, and the behaviour is undefined.
+.
+.PP
+(Unmarked text derives from NScripter, where traditionally only
+Japanese text could be displayed at all and thus no marker was
+necessary; the \` text marker was introduced in ONScripter as a means
+of supporting English text, and replaced in Ponscripter with ^ to free
+up \` for other uses.
+.
+NScripter has subsequently introduced > as a text marker, but the
+semantics associated with this are dreadfully limited, and I see no
+purpose in supporting it.
+.
+The presence in Ponscripter of support for unmarked text is thus a
+historical accident, and it will probably be removed at some point in
+the future.)
+.
+.SS Syntax of COMMAND lines
+.
+Command lines are structured in a fairly similar way to BASIC.
+.
+Commands are interpreted sequentially, one to a line; multiple
+commands may be placed on a single line, where required, by separating
+them with colons.
+.
+Most commands take one or more parameters, which are supplied after
+the command name as comma-separated lists \- parentheses are not used.
+.
+The following broad lexical categories are used:
+.
+.TP 2
+.B Comments
+are introduced with a semicolon, and last to the end of the line.
+.
+.TP 2
+.B Barewords
+have the same syntax as identifiers in most programming languages: the
+first character must be in the set
+.BR [A-Za-z_] ,
+and the remainder must be in the set
+.BR [A-Za-z0-9_] .
+.
+.IP 2
+A bareword at the start of a line, or immediately following a colon,
+is assumed to be a command.
+.
+Otherwise their interpretation is context-sensitive.
+.
+NScripter has two main contexts (number and string), plus a number of
+special-case commands with unique syntax that use barewords.
+.
+.IP \(bu
+If an alias exists of the desired type (a
+.BR numalias " in number context, or a " stralias
+in string context) then the bareword acts as a constant, and the value
+of the alias is substituted.
+.
+.IP \(bu
+In string context where no stralias exists, the bareword itself is
+treated as a string; it will be transformed to lower case and
+substituted directly.
+.
+.IP \(bu
+In number context where no numalias exists, a warning is issued and 0 is
+substituted.
+.
+.IP \(bu
+Some commands, such as
+.BR rmenu ", " ld ", and " systemcall ,
+look for barewords directly for certain parameters; in these cases
+aliases are not resolved.
+.
+.TP 2
+.B String literals
+are formed in two ways.
+.
+They may be enclosed in regular double quotes, or in pairs of the text
+delimiter (^ in native scripts, \` in legacy scripts).
+.
+The two forms have slightly different semantics.
+.
+Strings enclosed in text delimiters support
+.BR ~ -tags
+(described under `syntax of text lines' below) to apply text
+formatting, while tildes are literal characters in double-quoted
+strings.
+.
+.IP "" 2
+In ONScripter, and previous versions of Ponscripter, double-quoted
+strings had semantics similar to unmarked text \- in particular,
+whitespace was ignored.
+.
+.IR "This is not the case in Ponscripter" ,
+and the \(dq^...\(dq quoting format no longer has any special purpose,
+though it is still supported for compatibility reasons (it is
+equivalent to a double-quoted string).
+.
+.TP 2
+.B Numeric literals
+are straightforward.
+.
+Unlike NScripter, which accepts only integer literals, Ponscripter
+also understands the C-style
+.BI 0x NN
+notation for hexadecimal numbers.
+.
+.TP 2
+.B Label literals
+have the general format
+.BI * bareword\fR.
+They are used as the targets for jump commands
+.RB ( goto ", " csel ,
+etc) and for the construction of subroutines with commands such as
+.BR defsub ", " textgosub ,
+etc.
+.
+.IP "" 2
+A label literal as a command defines a label location.
+.
+Where a command takes a label as a parameter, Ponscripter actually
+reads the parameter in string context and jumps to the named label;
+variables can be used, and in such cases the variable's value should
+not contain a leading
+.BR * .
+.
+(It's also possible to use barewords, constants, or string literals,
+but if the target is fixed it's easier for everyone if you use a
+label.)
+.
+.SS Syntax of TEXT lines
+.
+Text lines contain literal text, which is displayed `as is', and a
+variety of tags, which have a rich variety of syntax for historical
+reasons.
+.
+Note that the syntax described above for command lines does not apply
+to text lines.
+.
+In particular, comments cannot be embedded in lines; semicolons are
+literal characters.
+
+.\" ...TODO describe...
+
+.SS Script structure
+.
+Scripts are conventionally divided into three sections:
+.BR directives ", " define ", and " game .
+.
+.PP
+In reality these are parsing modes, rather than lexical sections, and
+control flow can be mixed up with unscrupulous use of
+.BR goto and skip
+commands, but best practice is to keep concerns strictly separate.
+.
+A skeleton script thus has the following form:
+.
+.IP "" 2
+.I ; directives
+.br
+*define
+.br
+.I ; define section
+.br
+.B game
+.br
+*start
+.br
+.I ; game section
+.br
+.B end
+.
+.SS DIRECTIVES
+The
+.BR directives
+section is optional.
+.
+It consists of one or two directive lines at the very top of the first
+script file; these are processed during interpreter initialisation.
+.
+.PP
+The first directive line begins with a semicolon and contains one or
+more comma-separated tags:
+.
+.TP
+.BI mode NUM
+Sets screen mode to the 4:3 resolution with horizontal dimension
+.IR NUM .
+Values of
+.IR NUM
+recognised are 800 (x600), 640 (x480), 400 (x300), and 320 (x240).
+The default is 640.
+.
+.TP
+.BI value NUM
+Sets global variable border to
+.IR NUM .
+If the
+.BR globalon
+command is used, all variables with indices greater than
+.IR NUM
+become global.
+.
+The default is 200.
+.
+.TP
+.BI \-*\- " anything " \-*\-
+Tags of this format are used by popular text editors such as
+.BR emacs (1)
+to specify details of a file, such as the major editing mode to use.
+.
+Ponscripter ignores everything between the
+.BR \-*\-
+delimiters, so users of such editors can use this feature as expected.
+.
+.PP
+The second directive line, if present, has the form
+.IP "" 2
+.BI ;gameid " Name of game"
+.PP
+and is used to specify the name of the game.
+.
+The gameid thus specified is used when automatically generating a
+saved-game path (see the
+.BR \-\-save
+option in
+.BR ponscr (6)
+).
+.
+Ideally you should always specify a gameid with this directive.
+.
+If you don't, Ponscripter tries to determine the name of the game by
+looking for a
+.BR caption or versionstr
+command; if that also fails, a semi-unique identifier is generated
+based on the length of the script.
+.
+A complete directives section might thus have the form
+.IP "" 2
+;mode800,value500,-*- ponscripter -*-
+.br
+;gameid My Ponscripter game
+.PP
+which would specify a game called `My Ponscripter game' that used an
+800x600 display, treated all variables indexed 500 and above as
+globals, and would, when opened in
+.BR emacs (1),
+be edited with ponscripter\-mode.el (which is supplied with
+Ponscripter, but must be installed manually).
+.
+.SS The DEFINE section
+.
+The
+.BR define
+section is mandatory, and is typically placed at the start of the
+first script file, after any directives section and before the game
+section.
+.
+It is introduced with the label
+.BR *define ,
+and continues until a
+.BR game
+command is encountered.
+.
+.PP
+Code in this section is evaluated non-interactively at startup, and
+again if the
+.BR definereset
+command is used.
+.
+It contains definitions of things like aliases, arrays, windows,
+subroutines, fonts and so forth.
+.
+Most of the commands valid in this section are invalid in game code,
+and vice versa.
+.
+.SS The GAME section
+.
+The
+.BR game
+section is mandatory, and typically follows the define section and
+makes up the bulk of the script.
+.
+It is introduced with the
+.BR game
+command, and processing remains in game mode until an
+.BR end
+command (which terminates the program) or a
+.BR definereset
+command (which resets the interpreter completely, and transfers
+control back to the
+.BR *define
+label).
+.
+Upon entering the game section, control is transferred immediately to
+the
+.BR *start
+label, which must exist.  Typically this is placed immediately after the
+.BR game
+command.
+
+.SH SEE ALSO
+.
+.BR ponscr (6)

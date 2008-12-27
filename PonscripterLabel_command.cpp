@@ -1027,7 +1027,6 @@ int PonscripterLabel::puttextCommand(const pstring& cmd)
     if (s[0] == encoding->TextMarker()) s.remove(0, 1);
 
     script_h.getStrBuf() = s;
-    string_buffer_offset = 0;
     ret = processText();
     if (script_h.readStrBuf(string_buffer_offset) == 0x0a) {
         ret = RET_CONTINUE; // suppress RET_CONTINUE | RET_NOREAD

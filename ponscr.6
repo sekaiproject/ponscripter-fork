@@ -1,8 +1,8 @@
 .TH ponscr 6
-
+.
 .SH NAME
 ponscr \- the Ponscripter novel-game interpreter
-
+.
 .SH SYNOPSIS
 .B ponscr
 [
@@ -10,190 +10,215 @@ ponscr \- the Ponscripter novel-game interpreter
 ] [
 .I OPTIONS
 ]
-
+.
 .SH DESCRIPTION
-Ponscripter is an interpreter for visual-novel-type games. It is
-derived from the free ONScripter interpreter, but has been adapted
-significantly to improve support for Western languages (at the cost of
-diminished support for Japanese).
-
-Ponscripter games consist of a directory containing scripts, either in
-NScripter format or an extended derived format, plus other files
-(graphics, sound, fonts, etc) on which the script depends; these may
-be packed into archives in the NScripter .nsa or .sar formats.
-
+.
+This manpage documents the
+.BR ponscr
+command itself.
+.
+For an overview of NScripter-family interpreter operation and details
+of how Ponscripter differs from other implementations, see
+.BR ponscripter (7).
+.PP
 .BR ponscr
 should be invoked in one of two ways: either from within a game
 directory, or from an arbitrary location with a game directory
 specified as an option.
-
+.PP
 On Unix-like operating systems other than Mac OS X, it is recommended
-that you use the second option.  Game packagers will ideally provide
-wrapper scripts that launch
+that you use the second option.
+.
+Game packagers will ideally provide wrapper scripts that launch
 .BR ponscr
 indirectly, so users will not have to know anything about the
 underlying interpreter.
-
+.PP
 On Mac OS X, the recommended approach is to create an application
 bundle containing a Ponscripter binary and the game data in the
 bundle's Resources directory; things will then \*(lqjust work\*(rq.
-
+.PP
 On Microsoft Windows, the simplest approach is to store a Ponscripter
 binary in the game directory.
-
+.
 .SH OPTIONS
-
+.
 The following command-line options are recognised by
 .BR ponscr ,
 in additional to the standard
 .BR \-\-help " and " \-\-version
 flags which should need no further introduction:
-
+.
 .TP
 .BI \-r " path\fR,\fP " \-\-root \ path
 Execute the game located at
 .IR path .
-
+.IP
 If this option is not specified, any positional parameter will be
 used; otherwise the default behaviour on most platforms is to look for
 a game in the current working directory.
-
+.
 .TP
 .BI \-s " path\fR\fP " \-\-save \ path
 Set the path to use for saved data.
-
+.IP
 This option should not normally be used; a sensible default will be
-generated.  On most Unix-like platforms, saved games will be stored in
+generated.
+.
+On most Unix-like platforms, saved games will be stored in
 .BI ~/. GAME
-(where GAME is the name of the game being played).  On Mac OS X, 
+(where GAME is the name of the game being played).
+.
+On Mac OS X, 
 .BI ~/Library/Preferences/ GAME
-is used instead.  Under Microsoft Windows, data is stored in
+is used instead.
+.
+Under Microsoft Windows, data is stored in
 .BI %COMMON_APPDATA%\e GAME\fR.
-
+.
 .TP
 .BR \-d ", " \-\-debug
-Enable debugging output. Repeating this option may increase the
-verbosity even further.
-
+Enable debugging output.
+.
+Repeating this option may increase the verbosity even further.
+.
 .TP
 .BI \-\-cdaudio
 Use CD audio, if available.
 (TODO: explain.)
-
+.
 .TP
 .BI \-\-cdnumber \ number
 Choose the CD-ROM drive number.
 (TODO: explain.)
-
+.
 .TP
 .BI \-\-registry \ file
 Ponscripter simulates NScripter's Windows registry access commands by
-reading from a fixed text file. This option is used to specify that
-file.
-
+reading from a fixed text file.
+.
+This option is used to specify that file.
+.IP
 (This applies even on Microsoft Windows; real registry access is not
 supported, period.)
-
+.
 .TP
 .BI \-\-dll \ file
 Ponscripter simulates access to arbitrary NScripter DLL extensions by
-reading predefined function results from a fixed text file.  This is
-enough to make games
+reading predefined function results from a fixed text file.
+.
+This is enough to make games
 .IR work ,
-though not enough to make them work properly. Proper support for some
-extensions may be built into Ponscripter itself.
-
+though not enough to make them work properly.
+.
+Proper support for some extensions may be built into Ponscripter
+itself.
+.IP
 (This applies even on Microsoft Windows; real DLL extensions are not
 supported, period.)
-
+.
 .TP
 .BI \-\-fullscreen
 Force Ponscripter to start in fullscreen mode.
-
+.
 .TP
 .BI \-\-window
 Force Ponscripter to start in windowed mode.
-
+.
 .TP
 .BI \-\-force\-button\-shortcut
 Disables four NScripter commands:
 .BR spclclk ", " getenter ", " getcursor ", and " useescspc .
+.IP
 (This option was inherited from ONScripter; the reason for it is lost
 in the mists of time.)
-
+.
 .TP
 .BI \-\-force\-png\-alpha
 Always use alpha channels for PNG transparency, even if an image looks
-as though it might contain an NScripter-style mask.  See NOTES.
-
+as though it might contain an NScripter-style mask.
+.
+See NOTES.
+.
 .TP
 .BI \-\-force\-png\-nscmask
 Always use NScripter-style masks for PNG transparency, even if an
-image contains an alpha channel.  See NOTES.
-
+image contains an alpha channel.
+.
+See NOTES.
+.
 .TP
 .BI \-\-enable\-wheeldown\-advance
-Allow mouse\-wheel\-down events to advance text.
-
+Allow mouse-wheel-down events to advance text.
+.
 .TP
 .BI \-\-disable\-rescale
-(TODO: document)
-
+This is an ONScripter option that I've never used. (TODO: what does it
+do?)
+.
 .TP
 .BI \-\-key\-exe \ file
-(TODO: document)
-
+Specify key file to use to read obfuscated
+.BR nscript.___
+files and their accompanying archives.
+.
+This option is provided only for use with legacy games; native
+Ponscripter games cannot be obfuscated with this method.
+.
 .TP
 .BI \-\-edit
-(TODO: document)
-
+This is an ONScripter option that I've never used. (TODO: what does it
+do?)
+.
 .SH BUGS
-
+.
 On Microsoft Windows, all output to stdout and stderr is stored in
 files in the
 .B %COMMON_APPDATA%\ePonscripter
 directory, which are clobbered each time the program is launched and
-deleted upon termination if empty.  Output is never printed to the
-console, even if the interpreter was launched from the command line,
-and the behaviour if multiple instances are launched at the same time
-is undefined.
-
+deleted upon termination if empty.
+.
+Output is never printed to the console, even if the interpreter was
+launched from the command line, and the behaviour if multiple
+instances are launched at the same time is undefined.
+.PP
 Most fatal error messages are printed to stderr, which for 99% of
 users means the interpreter dies silently with no hint as to the
-cause.  They should be displayed with some kind of popup dialog;
-preferably a platform-native one, where feasible.
-
+cause.
+.
+They should be displayed with some kind of popup dialog; preferably a
+platform-native one, where feasible.
+.PP
 The entire design of this interpreter is arguably a bug.
-
+.
 .SH NOTES
-
+.
 .SS PNG transparency
-
+.
 The behaviour of PNG images is not well-defined, since NScripter does
-not support them directly.  Historically, some interpreters/plugins
-have expected them to use alpha channels for transparency, while
-others have expected them to use NScripter-style masks like BMP files
-do (i.e. the bitmap is double width, with the left-hand side being the
-full-colour image, and the right-hand side being a greyscale mask).
-
+not support them directly.
+.
+Historically, some interpreters/plugins have expected them to use
+alpha channels for transparency, while others have expected them to
+use NScripter-style masks like BMP files do (i.e. the bitmap is double
+width, with the left-hand side being the full-colour image, and the
+right-hand side being a greyscale mask).
+.PP
 By default, Ponscripter uses a heuristic approach: if a PNG has an
 alpha channel that is not completely opaque, that is used, otherwise
-an NScripter-style mask is used if present.  If this fails to work for
-some images, and you cannot fix the images in question directly, then
-you can use the \-\-force\-png\-alpha or \-\-force\-png\-nscmask
-options to overrule the automatic detection.
-
+an NScripter-style mask is used if present.
+.
+If this fails to work for some images, and you cannot fix the images
+in question directly, then you can use the \-\-force\-png\-alpha or
+\-\-force\-png\-nscmask options to overrule the automatic detection.
+.
 .SH SEE ALSO
-
+.
+.BR ponscripter (7)
+.PP
 .BR "NScripter documentation" ,
 for a description of the basic operation of NScripter-style games and
 documentation of most of the functionality supported.  Most NScripter
 references are only available in Japanese, but there is some
 English-language documentation at
 .IR http://nscripter.insani.org .
-
-The
-.BR MANUAL
-file in the Ponscripter source distribution, for a description of the
-many ways in which Ponscripter differs from NScripter.  This will be
-translated into a more useful format in due course.

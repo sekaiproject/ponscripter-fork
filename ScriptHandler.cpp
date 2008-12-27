@@ -64,12 +64,10 @@ ScriptHandler::ScriptHandler()
     // Prefer Ponscripter files over NScripter files, and prefer
     // unencoded files over encoded files.
     script_filenames.push_back(ScriptFilename("0.utf",        0, UTF8));
-    script_filenames.push_back(ScriptFilename("0.txt",        0, CP932));
     script_filenames.push_back(ScriptFilename("00.utf",       0, UTF8));
+    script_filenames.push_back(ScriptFilename("0.txt",        0, CP932));
     script_filenames.push_back(ScriptFilename("00.txt",       0, CP932));
-    script_filenames.push_back(ScriptFilename("pscr_sec.dat", 2, UTF8));
     script_filenames.push_back(ScriptFilename("nscr_sec.dat", 2, CP932));
-    script_filenames.push_back(ScriptFilename("pscript.___",  3, UTF8));
     script_filenames.push_back(ScriptFilename("nscript.___",  3, CP932));
     script_filenames.push_back(ScriptFilename("pscript.dat",  1, UTF8));
     script_filenames.push_back(ScriptFilename("nscript.dat",  1, CP932));
@@ -157,10 +155,8 @@ readTokenTop:
              || ch == '!' || ch == '#' || ch == ',' || ch == '"') {
         // text
 	if (ch != '!' and !warned_unmarked) {
-	    errorWarning("unmarked text found - please use " +
-                         pstring(encoding->TextMarker()) + " at the start of "
-                         "text lines (I won't mention this again)");
-            warned_unmarked = true;
+	    errorWarning("unmarked text found");
+//            warned_unmarked = true;
         }
         bool loop_flag = true;
         bool ignore_click_flag = false;
@@ -243,7 +239,8 @@ readTokenTop:
 
 	    int bytes;
 	    // NOTE: we don't substitute ligatures at this stage.
-            string_buffer += encoding->Encode(encoding->DecodeChar(buf, bytes));
+            string_buffer += encoding->Encode(encoding->DecodeChar(buf,
+                                                                   bytes));
             buf += bytes;
             ch = *buf;
         }
@@ -1037,6 +1034,10 @@ pstring ScriptHandler::parseStr(const char** buf)
 
         current_variable.type |= VAR_CONST;
 
+        // haeleth 20081226: there should be no reason to have any
+        // form of string that mimics unmarked text.
+        end_status |= END_1BYTE_CHAR;
+        
 	return pstring(start, len);
     }
     else if (**buf == encoding->TextMarker()) {

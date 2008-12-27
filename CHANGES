@@ -1,3 +1,17 @@
+2008-12-26
+
+  Write some manpages at last.
+
+  Fix `puttext' command.
+
+  "Quoted" strings now treat their contents as English text
+  (preserving spaces when printed, etc).  There is no longer any
+  meaningful distinction between "^Quoted" and "Quoted" strings
+  (indeed, due to an unfortunate bug, there probably never was).  The
+  distinction between "Quoted" and ^Quoted^ remains: ~tags~ are only
+  parsed in the latter.
+
+  
 2008-12-19
 
   New command `watch_var' logs all changes to an (integer) variable,
