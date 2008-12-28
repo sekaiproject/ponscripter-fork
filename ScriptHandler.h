@@ -50,8 +50,7 @@ public:
     ScriptFilename::vec script_filenames;
     
     enum { END_NONE  = 0,
-           END_COMMA = 1,
-           END_1BYTE_CHAR = 2 };
+           END_COMMA = 1 };
     struct LabelInfo {
 	typedef std::vector<LabelInfo> vec;
 	typedef vec::iterator iterator;
@@ -171,9 +170,6 @@ public:
     bool isText();
     bool compareString(const char* buf);
 
-    // FIXME: this is nasty:
-    inline bool end1ByteChar() { return end_status & END_1BYTE_CHAR; }
-    
     void skipLine(int no = 1);
     void setLinepage(bool val);
 

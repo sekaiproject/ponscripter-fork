@@ -23,7 +23,6 @@
 (defvar ponscripter-font-lock-keywords
   (list
    '("\\^.*?\\^"          . font-lock-string-face)        ; ^strings^
-;  '("`.*?`"              . font-lock-string-face)        ; `strings`
    '("~[^~]+~"            . font-lock-constant-face)      ; ~tags~
    '("~~"                 . font-lock-keyword-face)       ; literal ~
    '("~"                  . font-lock-warning-face)       ; unpaired ~
@@ -33,7 +32,7 @@
    '("![swd][0-9]+"       . font-lock-constant-face)      ; !s, !w, !d
    '("!sd"                . font-lock-constant-face)      ; !sd
    '("#[0-9a-f]\\{6\\}"   . font-lock-constant-face)      ; #nnnnnn
-   '("^[ \t]*\\([`^>]\\)" 1 font-lock-builtin-face)       ; ^text
+   '("^[ \t]*\\([`^]\\)"  1 font-lock-builtin-face)       ; ^text
    '("[\\@_]"             . font-lock-builtin-face)       ; \, @, _
    '("/$"                 . font-lock-builtin-face)       ; / at eol
    ))

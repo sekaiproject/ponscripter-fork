@@ -368,6 +368,10 @@ fi
 
 # Libraries
 
+rm -rf .configtest
+mkdir .configtest
+cd .configtest
+
 if $INTERNAL_SDL
 then
     SDL_CONFIG=./extlib/bin/sdl-config
@@ -387,10 +391,6 @@ else
 	internalise_SDL
     fi
 fi
-
-rm -rf .configtest
-mkdir .configtest
-cd .configtest
 
 if not $INTERNAL_SDL_IMAGE
 then

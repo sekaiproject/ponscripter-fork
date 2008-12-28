@@ -156,6 +156,7 @@ readTokenTop:
         // text
 	if (ch != '!' and !warned_unmarked) {
 	    errorWarning("unmarked text found");
+            // TODO: make this more robust; permit only !-directives
 //            warned_unmarked = true;
         }
         bool loop_flag = true;
@@ -225,7 +226,30 @@ readTokenTop:
                 ch = *buf;
                 break;
             }
-   
+
+            // Interpolate expressions.
+            if (ch == '{' &&
+                (buf[1] == '%' || buf[1] == '$' || buf[1] == '?'))
+            {
+                const char* start = buf + 1;
+                while (*buf && *buf != '\n' && *buf != '}') ++buf;
+                if (*buf != '}')
+                    errorAndExit("interpolation missing }");
+                pstring var_expr(start, buf++ - start);
+                const char* var_iter = var_expr;
+                if (var_expr[0] == '$') {
+                    pstring val = parseStr(&var_iter);
+                    if (val[0] == encoding->TextMarker()) val.remove(0, 1);
+                    string_buffer += val;
+                }
+                else {
+                    string_buffer += stringFromInteger(parseInt(&var_iter),
+                                                       -1);
+                }   
+                ch = *buf;
+                continue;
+            }
+            
             if (encoding->UseTags() && ch == '~' && (ch = *++buf) != '~') {
                 while (ch != '~') {
                     int l;
@@ -252,7 +276,6 @@ readTokenTop:
         }
 
         text_flag   = true;
-        end_status |= END_1BYTE_CHAR;
     }
     else if ((ch >= 'a' && ch <= 'z')
              || (ch >= 'A' && ch <= 'Z')
@@ -1033,11 +1056,6 @@ pstring ScriptHandler::parseStr(const char** buf)
         if (**buf == '"') (*buf)++;
 
         current_variable.type |= VAR_CONST;
-
-        // haeleth 20081226: there should be no reason to have any
-        // form of string that mimics unmarked text.
-        end_status |= END_1BYTE_CHAR;
-        
 	return pstring(start, len);
     }
     else if (**buf == encoding->TextMarker()) {
@@ -1066,7 +1084,6 @@ pstring ScriptHandler::parseStr(const char** buf)
         if (**buf == encoding->TextMarker()) (*buf)++;
 
         current_variable.type |= VAR_CONST;
-        end_status |= END_1BYTE_CHAR;
 	return s;
     }
     else if (**buf == '#') { // for color

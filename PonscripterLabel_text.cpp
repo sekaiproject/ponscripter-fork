@@ -503,11 +503,6 @@ int PonscripterLabel::processText()
 
     new_line_skip_flag = false;
 
-    while ((!script_h.end1ByteChar()
-            && script_h.readStrBuf(string_buffer_offset) == ' ')
-           || script_h.readStrBuf(string_buffer_offset) == '\t')
-	string_buffer_offset++;
-
     char ch = script_h.readStrBuf(string_buffer_offset);
 
     if (ch == '@') { // wait for click
@@ -533,7 +528,8 @@ int PonscripterLabel::processText()
                 int t = 0;
                 while (script_h.readStrBuf(string_buffer_offset) >= '0'
                        && script_h.readStrBuf(string_buffer_offset) <= '9') {
-                    t = t * 10 + script_h.readStrBuf(string_buffer_offset) -'0';
+                    t = t * 10 +
+                        script_h.readStrBuf(string_buffer_offset) -'0';
                     string_buffer_offset++;
                 }
                 sentence_font.wait_time = t;
@@ -584,8 +580,8 @@ int PonscripterLabel::processText()
     }
     else if (ch == '#') {
         char hexchecker;
-        for (int tmpctr = 0; tmpctr <= 5; tmpctr++) {
-            hexchecker = script_h.readStrBuf(string_buffer_offset + tmpctr + 1);
+        for (int i = 0; i <= 5; ++i) {
+            hexchecker = script_h.readStrBuf(string_buffer_offset + i + 1);
             if (!((hexchecker >= '0' && hexchecker <= '9') ||
 		  (hexchecker >= 'a' && hexchecker <= 'f') ||
 		  (hexchecker >= 'A' && hexchecker <= 'F')))

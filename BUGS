@@ -3,11 +3,8 @@ actually exist any more.  Consider this "notes", really.
 
 MAJOR BUGS
 
-* A distinction is still being made between END_1BYTE_CHAR and another
-  state.  This other state appears not to be useful: its main
-  attribute seems to be that whitespace is ignored.  This should
-  probably be removed, and the END_1BYTE_CHAR behaviour made
-  universal.  TODO: confirm that this will never be undesirable.
+* Unmarked text is still permitted.  (It now serves no purpose, so far
+  as I know.)
 
 * Click-to-display-a-full-page doesn't work in OS X 10.4+ unless
   coalesced updates are disabled.
