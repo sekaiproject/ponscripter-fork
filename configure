@@ -826,8 +826,7 @@ distclean: clean pdistclean \$(DISTCLEAN_TARGETS)
 
 install:
 	./install-sh -c -s \$(TARGET) \$(PREFIX)/bin/\$(TARGET)
-	./install-sh -c -m 644 ponscr.6 \$(PREFIX)/man/man6/ponscr.6
-	./install-sh -c -m 644 ponscripter.7 \$(PREFIX)/man/man7/ponscripter.7
+	./install-man \$(PREFIX)
 
 dist:
 	mkdir -p ~dist_temp/ponscripter-$VERSION

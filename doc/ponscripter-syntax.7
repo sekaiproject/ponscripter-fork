@@ -1,0 +1,184 @@
+.TH ponscripter-syntax 7
+.
+.SH NAME
+ponscripter-syntax \- description of Ponscripter syntax
+.
+.SH DESCRIPTION
+.
+This page documents the syntax of Ponscripter scripts.
+.
+See
+.BR ponscripter (7)
+for an overview of available documentation.
+.
+.PP
+Scripts are line-based.
+.
+There are two types of line: commands and text.
+.
+.PP
+A
+.BR "text line"
+begins with the text delimiter, which is ^ in native scripts and \` in
+legacy scripts.
+.
+All other lines are
+.BR "command lines" ,
+unless they begin with a number, a character outside the ASCII range,
+or a character in the set
+.BR [@\e/%?$[(!#,\(dq] ,
+in which case they are assumed to be unmarked text lines.
+.
+Such lines are valid if they contain
+.I only
+!-commands; otherwise a
+warning is issued, and the behaviour is undefined.
+.
+.PP
+(Unmarked text derives from NScripter, where traditionally only
+Japanese text could be displayed at all and thus no marker was
+necessary; the \` text marker was introduced in ONScripter as a means
+of supporting English text, and replaced in Ponscripter with ^ to free
+up \` for other uses.
+.
+NScripter has subsequently introduced > as a text marker, but the
+semantics associated with this are dreadfully limited, and I see no
+purpose in supporting it.
+.
+The presence in Ponscripter of support for unmarked text is thus a
+historical accident, and it will probably be removed at some point in
+the future.)
+.
+.SS Syntax of COMMAND lines
+.
+Command lines are structured in a fairly similar way to BASIC.
+.
+Commands are interpreted sequentially, one to a line; multiple
+commands may be placed on a single line, where required, by separating
+them with colons.
+.
+Most commands take one or more parameters, which are supplied after
+the command name as comma-separated lists \- parentheses are not used.
+.
+The following broad lexical categories are used:
+.
+.TP 2
+.B Comments
+are introduced with a semicolon, and last to the end of the line.
+.
+.TP 2
+.B Barewords
+have the same syntax as identifiers in most programming languages: the
+first character must be in the set
+.BR [A-Za-z_] ,
+and the remainder must be in the set
+.BR [A-Za-z0-9_] .
+.
+.IP "" 2
+A bareword at the start of a line, or immediately following a colon,
+is assumed to be a command.
+.
+Otherwise their interpretation is context-sensitive.
+.
+NScripter has two main contexts (number and string), plus a number of
+special-case commands with unique syntax that use barewords.
+.
+.IP \(bu
+If an alias exists of the desired type (a
+.BR numalias " in number context, or a " stralias
+in string context) then the bareword acts as a constant, and the value
+of the alias is substituted.
+.
+.IP \(bu
+In string context where no stralias exists, the bareword itself is
+treated as a string; it will be transformed to lower case and
+substituted directly.
+.
+.IP \(bu
+In number context where no numalias exists, a warning is issued and 0 is
+substituted.
+.
+.IP \(bu
+Some commands, such as
+.BR rmenu ", " ld ", and " systemcall ,
+look for barewords directly for certain parameters; in these cases
+aliases are not resolved.
+.
+.TP 2
+.B String literals
+are formed in two ways.
+.
+They may be enclosed in regular double quotes, or in pairs of the text
+delimiter (^ in native scripts, \` in legacy scripts).
+.
+The two forms have slightly different semantics.
+.
+Strings enclosed in text delimiters support
+.BR ~ -tags
+(described under `syntax of text lines' below) to apply text
+formatting, while tildes are literal characters in double-quoted
+strings.
+.
+.IP "" 2
+In ONScripter, and previous versions of Ponscripter, double-quoted
+strings had semantics similar to unmarked text \- in particular,
+whitespace was ignored.
+.
+.IR "This is not the case in Ponscripter" ,
+and the \(dq^...\(dq quoting format no longer has any special purpose,
+though it is still supported for compatibility reasons (it is
+equivalent to a double-quoted string).
+.
+.TP 2
+.B Numeric literals
+are straightforward.
+.
+Unlike NScripter, which accepts only integer literals, Ponscripter
+also understands the C-style
+.BI 0x NN
+notation for hexadecimal numbers.
+.
+.TP 2
+.B Label literals
+have the general format
+.BI * bareword\fR.
+They are used as the targets for jump commands
+.RB ( goto ", " csel ,
+etc) and for the construction of subroutines with commands such as
+.BR defsub ", " textgosub ,
+etc.
+.
+.IP "" 2
+A label literal as a command defines a label location.
+.
+Where a command takes a label as a parameter, Ponscripter actually
+reads the parameter in string context and jumps to the named label;
+variables can be used, and in such cases the variable's value should
+not contain a leading
+.BR * .
+.
+(It's also possible to use barewords, constants, or string literals,
+but if the target is fixed it's easier for everyone if you use a
+label.)
+.
+.\" TODO: variables; expressions
+.\" which includes weird stuff like (filename) "string_if_viewed" "else_string"
+.
+.SS Syntax of TEXT lines
+.
+Text lines contain literal text, which is displayed `as is', and a
+variety of tags, which have a rich variety of syntax for historical
+reasons.
+.
+Note that the syntax described above for command lines does not apply
+to text lines.
+.
+In particular, comments cannot be embedded in lines; semicolons are
+literal characters.
+
+.\" ...TODO describe...
+
+.SH SEE ALSO
+.
+.BR ponscripter (7),
+.BR ponscr (6)
