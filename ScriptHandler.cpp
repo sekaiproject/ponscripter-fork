@@ -228,13 +228,13 @@ readTokenTop:
             }
 
             // Interpolate expressions.
-            if (ch == '{' &&
+            if (ch == '<' &&
                 (buf[1] == '%' || buf[1] == '$' || buf[1] == '?'))
             {
                 const char* start = buf + 1;
-                while (*buf && *buf != '\n' && *buf != '}') ++buf;
-                if (*buf != '}')
-                    errorAndExit("interpolation missing }");
+                while (*buf && *buf != '\n' && *buf != '>') ++buf;
+                if (*buf != '>')
+                    errorAndExit("interpolation missing >");
                 pstring var_expr(start, buf++ - start);
                 const char* var_iter = var_expr;
                 if (var_expr[0] == '$') {
@@ -746,31 +746,62 @@ int ScriptHandler::readScriptSub(FILE* fp, char** buf, int encrypt_mode)
 }
 
 
-int ScriptHandler::readScript(const pstring& path)
+int ScriptHandler::readScript(const pstring& path, const char* prefer_name)
 {
     archive_path = path;
+    if (path.ends_with(DELIMITER))
+        archive_path.trunc(path.length() - pstring(DELIMITER).length());
 
     FILE* fp = NULL;
     int encrypt_mode = 0;
     encoding_t enc = UTF8;
 
-    for (ScriptFilename::iterator ft = script_filenames.begin();
-	 ft != script_filenames.end(); ++ft) {
-	if ((fp = fopen(path + ft->filename, "rb")) != NULL) {
-	    encrypt_mode = ft->encryption;
-	    enc = ft->encoding;
-	    if (enc == UTF8) {
-		encoding = new UTF8Encoding;
-		is_ponscripter = true;
-	    }
-	    else {
-		encoding = new CP932Encoding;
-		is_ponscripter = false;
-	    }
-	    break;
-	}
+    pstring fname = "";
+    if (prefer_name) {
+        fname = prefer_name;
+        
+        // If we don't have a path, add archive_path.
+        if (fname.find(DELIMITER) < 0)
+            fname = archive_path + DELIMITER + fname;
+        
+        if ((fp = fopen(fname, "rb")) != NULL) {
+            pstring lname = fname;
+            lname.tolower();
+            if (lname.ends_with(".txt")) {
+                enc = CP932;
+            }
+            else if (lname.ends_with("/nscript.dat")) {
+                enc = CP932;
+                encrypt_mode = 1;
+            }
+            else if (lname.ends_with("/pscript.dat")) {
+                encrypt_mode = 1;
+            }
+            else if (lname.ends_with("/nscr_sec.dat")) {
+                enc = CP932;
+                encrypt_mode = 2;
+            }
+            else if (lname.ends_with(".___")) {
+                enc = CP932;
+                encrypt_mode = 3;
+            }
+        }
+        else {
+            fprintf(stderr, "Can't find script named `%s'\n", prefer_name);
+            return -1;
+        }
     }
-
+    else {
+        for (ScriptFilename::iterator ft = script_filenames.begin();
+             ft != script_filenames.end(); ++ft) {
+            if ((fp = fopen(path + ft->filename, "rb")) != NULL) {
+                encrypt_mode = ft->encryption;
+                enc = ft->encoding;
+                break;
+            }
+        }
+    }
+    
     if (fp == NULL) {
 #ifdef MACOSX
         // Note: \p Pascal strings require compilation with -fpascal-strings
@@ -784,10 +815,19 @@ int ScriptHandler::readScript(const pstring& path)
         return -1;
     }
 
+    if (enc == UTF8) {
+        encoding = new UTF8Encoding;
+        is_ponscripter = true;
+    }
+    else {
+        encoding = new CP932Encoding;
+        is_ponscripter = false;
+    }
+    
     fseek(fp, 0, SEEK_END);
     int estimated_buffer_length = ftell(fp) + 1;
 
-    if (encrypt_mode == 0) {
+    if (encrypt_mode == 0 && !fname) {
         fclose(fp);
         for (int i = 1; i < 100; i++) {
 	    pstring filename;
@@ -813,7 +853,7 @@ int ScriptHandler::readScript(const pstring& path)
 
     current_script = script_buffer = p_script_buffer;
     tmp_script_buf = new char[TMP_SCRIPT_BUF_LEN];
-    if (encrypt_mode > 0) {
+    if (encrypt_mode > 0 || fname) {
         fseek(fp, 0, SEEK_SET);
         readScriptSub(fp, &p_script_buffer, encrypt_mode);
         fclose(fp);

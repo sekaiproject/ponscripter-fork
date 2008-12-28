@@ -299,12 +299,12 @@ void ScriptParser::reset()
 }
 
 
-int ScriptParser::open()
+int ScriptParser::open(const char* preferred_script)
 {
     ScriptHandler::cBR = new DirectReader(archive_path, key_table);
     ScriptHandler::cBR->open();
 
-    if (script_h.readScript(archive_path)) return -1;
+    if (script_h.readScript(archive_path, preferred_script)) return -1;
 
     switch (script_h.screen_size) {
     case ScriptHandler::SCREEN_SIZE_800x600:

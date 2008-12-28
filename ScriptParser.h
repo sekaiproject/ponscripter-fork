@@ -54,7 +54,7 @@ public:
     virtual ~ScriptParser();
 
     void reset();
-    int open();
+    int open(const char* preferred_script);
     int parseLine();
 
     void saveGlobalData();

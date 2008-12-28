@@ -1,12 +1,18 @@
 2008-12-28
 
   Implement variable interpolation in text lines, with the syntax
-  {$var}, {%var}, {?var[0]}.  {|$var} etc can be used if literal
-  output is required.
+  <$var>, <%var>, <?var[0]>.  <|$ etc can be used if literal output is
+  required.
 
   Remove altogether the distinction between END_1BYTE_CHAR and other
   end states.  The only thing it was doing was causing whitespace to
   be ignored (often unexpectedly) when printing text.
+
+  Add a command-line option to specify a script filename.  Among other
+  things, this will make it much easier to have a range of different
+  test scripts.  The relatively unimportant -s flag has been
+  repurposed for this; the old -s can still be accessed with its long
+  name --save.
 
 
 2008-12-26

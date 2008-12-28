@@ -718,7 +718,7 @@ pstring getGameId(ScriptHandler& script_h)
     return caption;
 }
 
-int PonscripterLabel::init()
+int PonscripterLabel::init(const char* preferred_script)
 {
     // On Mac OS X, archives may be stored in the application bundle.
     // On other platforms the location will either be in the EXE
@@ -734,7 +734,7 @@ int PonscripterLabel::init()
         script_h.setKeyTable(key_table);
     }
 
-    if (open()) return -1;
+    if (open(preferred_script)) return -1;
 
     // Try to determine an appropriate location for saved games.
     if (!script_h.save_path)

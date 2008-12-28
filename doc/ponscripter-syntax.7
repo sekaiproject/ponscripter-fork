@@ -1,5 +1,8 @@
 .TH ponscripter-syntax 7
 .
+.\" This currently doesn't format well with WoMan.
+.\" Problems: `.IP "" n', `\(dq'
+.
 .SH NAME
 ponscripter-syntax \- description of Ponscripter syntax
 .
@@ -12,9 +15,26 @@ See
 for an overview of available documentation.
 .
 .PP
+Note that this cannot be considered NScripter documentation.
+.
+NScripter itself is largely unspecified.
+.
+Ponscripter's implementation is ultimately based on observation and
+documentation rather than on reverse-engineering as such: it
+inevitably adopts different parsing strategies, and is significantly
+more liberal in what it accepts.
+.
+Not all differences are described below.
+.
+With this disclaimer out of the way: the documentation.
+.
+.SS Fundamentals
 Scripts are line-based.
 .
 There are two types of line: commands and text.
+.
+These have little in common, and will be treated separately in what
+follows.
 .
 .PP
 A
@@ -35,39 +55,70 @@ Such lines are valid if they contain
 warning is issued, and the behaviour is undefined.
 .
 .PP
-(Unmarked text derives from NScripter, where traditionally only
-Japanese text could be displayed at all and thus no marker was
-necessary; the \` text marker was introduced in ONScripter as a means
-of supporting English text, and replaced in Ponscripter with ^ to free
-up \` for other uses.
+(Unmarked text is a historical accident, and will probably be removed
+at some point in the future.
 .
-NScripter has subsequently introduced > as a text marker, but the
-semantics associated with this are dreadfully limited, and I see no
-purpose in supporting it.
+It derives from NScripter, where traditionally there was no
+intersection between printable characters and command characters; the
+\` text marker was introduced in ONScripter as a means of supporting
+English text, and replaced in Ponscripter with ^ to free up \` for
+other uses.
 .
-The presence in Ponscripter of support for unmarked text is thus a
-historical accident, and it will probably be removed at some point in
-the future.)
+NScripter has subsequently introduced > as its own `English text'
+marker, but the associated semantics are useless, and I shall say no
+more of this.)
 .
-.SS Syntax of COMMAND lines
+.SS Context in command lines
 .
-Command lines are structured in a fairly similar way to BASIC.
+NScripter is a context-sensitive language.
 .
-Commands are interpreted sequentially, one to a line; multiple
-commands may be placed on a single line, where required, by separating
-them with colons.
+Each parameter to a command is parsed differently based on the type of
+that parameter.
 .
-Most commands take one or more parameters, which are supplied after
-the command name as comma-separated lists \- parentheses are not used.
+The major types are
+.BR string \ and \ integer ,
+with labels and barewords being special cases of string parameters.
 .
-The following broad lexical categories are used:
+.PP
+String expressions do not merely have a different type from integer
+expressions, as in other languages: they have a distinct syntax.
+.
+Some string expressions can be parsed as integer expressions, but then
+leave code unparsed that will cause a syntax error when it is reached.
+.
+It is therefore impossible, in the general case, to parse a line of
+code unless it is known in advance what context each parameter is
+using.
+.
+.PP
+For example, given the following definitions:
+.IP "" 2
+numalias foo, 100
+.br
+stralias foo, ^bar^
+.PP
+the constant `foo' would have the value 100 in integer context, but
+would have the value `bar' in string context.
+.
+(In label context, e.g. as the parameter to a
+.BR goto ,
+it would refer to the label `*bar'.)
+.
+.PP
+See the next section for more on constants, and `Expression syntax'
+below for details of the syntax accepted in each context.
+.
+.SS Lexical categories
+.
+The following broad lexical categories are used in command lines
+(parenthesised names are used in syntax descriptions below):
 .
 .TP 2
 .B Comments
 are introduced with a semicolon, and last to the end of the line.
 .
 .TP 2
-.B Barewords
+.BR Barewords \ (\fIbareword\fR)
 have the same syntax as identifiers in most programming languages: the
 first character must be in the set
 .BR [A-Za-z_] ,
@@ -79,9 +130,6 @@ A bareword at the start of a line, or immediately following a colon,
 is assumed to be a command.
 .
 Otherwise their interpretation is context-sensitive.
-.
-NScripter has two main contexts (number and string), plus a number of
-special-case commands with unique syntax that use barewords.
 .
 .IP \(bu
 If an alias exists of the desired type (a
@@ -105,7 +153,7 @@ look for barewords directly for certain parameters; in these cases
 aliases are not resolved.
 .
 .TP 2
-.B String literals
+.BR String\ literals \ (\fIstring_lit\fR)
 are formed in two ways.
 .
 They may be enclosed in regular double quotes, or in pairs of the text
@@ -130,7 +178,7 @@ though it is still supported for compatibility reasons (it is
 equivalent to a double-quoted string).
 .
 .TP 2
-.B Numeric literals
+.BR Numeric\ literals \ (\fInum_lit\fR)
 are straightforward.
 .
 Unlike NScripter, which accepts only integer literals, Ponscripter
@@ -139,30 +187,125 @@ also understands the C-style
 notation for hexadecimal numbers.
 .
 .TP 2
-.B Label literals
+.BR Label\ literals \ (\fIlabel\fR)
 have the general format
 .BI * bareword\fR.
-They are used as the targets for jump commands
+.
+They are used when a string represents the target for a jump command
 .RB ( goto ", " csel ,
 etc) and for the construction of subroutines with commands such as
 .BR defsub ", " textgosub ,
 etc.
 .
 .IP "" 2
-A label literal as a command defines a label location.
+They also have a special meaning at the start of a line: rather than
+being interpreted as command names, label literals declare a label,
+i.e. the source code location referenced by jump and
+subroutine-construction commands.
 .
-Where a command takes a label as a parameter, Ponscripter actually
-reads the parameter in string context and jumps to the named label;
-variables can be used, and in such cases the variable's value should
-not contain a leading
-.BR * .
+.IP "" 2
+(In NScripter, label literals are a distinct type.
 .
-(It's also possible to use barewords, constants, or string literals,
-but if the target is fixed it's easier for everyone if you use a
-label.)
+In ONScripter they are, other than in command position, interchangable
+with strings lacking the initial asterisk, and may be considered a
+special bareword syntax that suppresses alias substitution.
 .
-.\" TODO: variables; expressions
-.\" which includes weird stuff like (filename) "string_if_viewed" "else_string"
+This (unintentionally) permits things like computed
+.BR goto s.)
+.
+.TP 2
+.BR Variables " (\fIint_var\fR, \fIstring_var\fR)"
+take the form of a sigil followed by either a number, a bareword
+(which must have been defined with
+.BR numalias ),
+or an integer variable (with sigil) for indirect access.
+.
+The sigils are
+.BR %
+for integer variables,
+.BR ?
+for integer arrays, and
+.BR $
+for string variables.
+.
+.IP "" 2
+Hence 
+.BR %200 ", " $foo ", " $%foo ", " ?bar[10][5] .
+.IP "" 2
+This last example illustrates the subscript syntax for a
+multidimensional array.  (See documentation of the
+.BR dim
+command for details of arrays.)
+.
+.SS Expression syntax
+.
+.TP 2
+.BR Integer\ expressions " (\fIint_expr\fR)"
+.\" ScriptHandler::readInt/parseIntExpression/readNextOp/parseInt
+are similar to those in other languages.
+.
+There are two operator precedence levels:
+.BR + " and " \-
+are low precedence, while
+.BR * ", " / ", and " mod
+are high precedence.
+.
+Terms may be parenthesised to override normal precedence rules, and a
+unary minus may be used to negate a term.
+.
+.TP 2
+.BR String\ expressions " (\fIstring_expr\fR)"
+.\" ScriptHandler::readStr/parseStr
+are simpler.
+.
+Their grammar is as follows:
+.IP "" 4
+.BR string_expr " ::="
+.IR string_term " + " string_term
+.br
+.BR string_term " ::="
+.IR file_cond " | " string_elt
+.br
+.BR file_cond "   ::="
+.RI "( " string_term " ) " string_term " " string_term
+.br
+.BR string_elt "  ::="
+.IR string_lit " | " string_var " | " label " | " bareword
+.
+.IP "" 2
+The only part of the above that should not be obvious, given the
+descriptions under `Lexical categories' above, is the
+.I file_cond
+term.
+.
+This is only useful when the
+.BR filelog
+command is in effect.
+.
+The parenthesised string is interpreted as the name of an image file.
+.
+If the player has viewed this file, the first of the subsequent terms
+is used; otherwise, the second is used.
+.
+.TP 2
+.B Conditional expressions
+.
+.SS Syntax of COMMAND lines
+.
+The above lexemes and expressions are combined to construct command
+lines, which are structured in a fairly similar way to BASIC.
+.
+Commands are interpreted sequentially, one to a line; multiple
+commands may be placed on a single line, where required, by separating
+them with colons.
+.
+.PP
+A command consists either of a label literal, which creates a label at
+that point in the script, or a command name (in the form of a
+bareword).
+.
+Most commands take parameters in the form of a comma-separated list of
+expressions \- parentheses are not used.
 .
 .SS Syntax of TEXT lines
 .
@@ -175,9 +318,19 @@ to text lines.
 .
 In particular, comments cannot be embedded in lines; semicolons are
 literal characters.
-
+.
 .\" ...TODO describe...
-
+.
+.SH BUGS
+.
+This whole syntax may be considered a bug: it is inconvenient,
+irregular, and needlessly difficult to parse.
+.
+Don't blame me: I didn't design it, I'm just documenting it.
+.
+If you want a similar tool with sane syntax, try something like
+Ren'Py.
+.
 .SH SEE ALSO
 .
 .BR ponscripter (7),

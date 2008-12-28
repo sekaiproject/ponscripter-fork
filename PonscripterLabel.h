@@ -138,7 +138,7 @@ public:
     void setKeyEXE(const char* path);
     void setMaskType(int mask_type) { png_mask_type = mask_type; }
     
-    int  init();
+    int  init(const char* preferred_script);
     int  eventLoop();
 
     void reset(); // used if definereset

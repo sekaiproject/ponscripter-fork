@@ -5,11 +5,7 @@ ponscr \- the Ponscripter novel-game interpreter
 .
 .SH SYNOPSIS
 .B ponscr
-[
-.BI \-r \ game\-directory
-] [
-.I OPTIONS
-]
+.RI [ OPTIONS ]\ [ script-path ]
 .
 .SH DESCRIPTION
 .
@@ -43,7 +39,35 @@ binary in the game directory.
 .
 .SH OPTIONS
 .
-The following command-line options are recognised by
+Up to two positional options may be provided.
+.
+If two are provided, the first is given an implicit
+.BR \-r ,
+and the second an implicit
+.BR \-s .
+If only one is provided, and there has already been a
+.BR \-r
+option, then it is given an implicit
+.BR \-s ;
+otherwise it is given an implicit
+.BR \-r ,
+unless it contains a / character, in which case it is divided into a
+filename and a path, with the path given an implicit
+.BR \-r
+and the filename an implicit
+.BR \-s .
+In both cases, these assignments are overridden by any explicit
+.BR \-r \ or \ \-s
+options.
+.
+.PP
+(Executive summary:
+.BR ponscr
+will probably do what you want unless you ask for something
+ambiguous.)
+.
+.PP
+The following named options are recognised by
 .BR ponscr ,
 in additional to the standard
 .BR \-\-help " and " \-\-version
@@ -59,7 +83,26 @@ used; otherwise the default behaviour on most platforms is to look for
 a game in the current working directory.
 .
 .TP
-.BI \-s " path\fR\fP " \-\-save \ path
+.BI \-s " file\fR,\fP " \-\-script \ file
+Use the script named
+.IR file .
+If a path is given, it is interpreted relative to the current working
+directory; if no path is given, the file is sought in the root path
+(determined as described above).
+.
+.IP
+If this option is not provided at all, a script file is sought
+automatically in the root path.
+.
+The filenames searched for, and their corresponding formats, are
+described in
+.BR ponscripter (7).
+The same naming conventions are observed if this option is used,
+except that multipart scripts cannot currently be loaded this way, and
+unobfuscated scripts may have non-numeric names.
+.
+.TP
+.BI \-\-save \ path
 Set the path to use for saved data.
 .IP
 This option should not normally be used; a sensible default will be

@@ -287,6 +287,15 @@ struct CBString : public tagbstring {
     // len doesn't overflow the buffer, which is probably foolish.
     void add (const char * s, int len);
     void add (const unsigned char * s, int len) { add((const char*) s, len); }
+
+    bool starts_with (const CBString& what) const {
+        int len = what.length();
+        return this->midstr(0, len) == what;
+    }
+    bool ends_with (const CBString& what) const {
+        int len = what.length();
+        return this->midstr(slen - len, len) == what;
+    }
 // -haeleth	    
 
 	// Accessors

@@ -35,16 +35,10 @@ static void optionHelp()
     printf("      --cdnumber no\tchoose the CD-ROM drive number\n");
     printf("      --registry file\tset a registry file\n");
     printf("      --dll file\tset a dll file\n");
-#ifndef MACOSX
     printf("  -r, --root path\tset the root path to the archives\n");
-    printf("  -s, --save path\tset the path to use for saved games"
+    printf("  -s, --script path\tset the script filename\n");
+    printf("      --save path\tset the path to use for saved games"
            "(default: platform-dependent)\n");
-#else
-    printf("  -r, --root path\tset the root path to the archives"
-           "(default: Resources in Ponscripter bundle)\n");
-    printf("  -s, --save path\tset the path to use for saved games"
-           "(default: folder in ~/Library/Preferences)\n");
-#endif
     printf("      --fullscreen\tstart in fullscreen mode\n");
     printf("      --window\t\tstart in window mode\n");
     printf("      --force-button-shortcut\tignore useescspc and getenter "
@@ -80,6 +74,7 @@ int main(int argc, char** argv)
 #endif
 {
     PonscripterLabel ons;
+    pstring preferred_script = "";
 
 #ifdef PSP
     ons.disableRescale();
@@ -123,7 +118,12 @@ int main(int argc, char** argv)
                 argv++;
                 ons.setArchivePath(argv[0]);
             }
-            else if (!strcmp(argv[0] + 1, "s") || !strcmp(argv[0] + 1, "-save")) {
+            else if (!strcmp(argv[0] + 1, "s") || !strcmp(argv[0] + 1, "-script")) {
+                argc--;
+                argv++;
+                preferred_script = argv[0];
+            }
+            else if (!strcmp(argv[0] + 1, "-save")) {
                 argc--;
                 argv++;
                 ons.setSavePath(argv[0]);
@@ -161,10 +161,27 @@ int main(int argc, char** argv)
                 printf(" unknown option %s\n", argv[0]);
             }
         }
-        else if (!ons.hasArchivePath()) {
-            ons.setArchivePath(argv[0]);
-            argc--;
-            argv++;
+        else if (!ons.hasArchivePath() || !preferred_script) {
+            // Split parameter appropriately.
+            pstring path = argv[0];
+            pstring file = "";
+            int i = path.reversefind(DELIMITER, path.length());
+            if (ons.hasArchivePath()) {
+                file = path;
+                path = "";
+            }
+            else if (i >= 0) {
+                file = path.midstr(i + 1, path.length() - i);
+                path.trunc(i);
+            }
+                
+            if (path) ons.setArchivePath(path);
+            if (file) {
+                if (preferred_script)
+                    optionHelp();
+                else
+                    preferred_script = file;
+            }
         }
         else {
             optionHelp();
@@ -177,7 +194,7 @@ int main(int argc, char** argv)
     // ----------------------------------------
     // Run Ponscripter
 
-    if (ons.init()) exit(-1);
+    if (ons.init(preferred_script)) exit(-1);
 
     ons.eventLoop();
 

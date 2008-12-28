@@ -194,7 +194,7 @@ public:
 			     bool is_zero_inserted = false);
     
     int readScriptSub(FILE* fp, char** buf, int encrypt_mode);
-    int readScript(const pstring& path);
+    int readScript(const pstring& path, const char* prefer_name);
     int labelScript();
 
     LabelInfo lookupLabel(const pstring& label);
