@@ -934,7 +934,7 @@ void PonscripterLabel::resetSub()
     sentence_font_info.reset();
 
     // Initialize character sets
-    DefaultLigatures(1);
+    DefaultLigatures(9);
     indent_chars.clear();
     indent_chars.insert(0x0028);
     indent_chars.insert(0x2014);

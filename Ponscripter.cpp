@@ -24,6 +24,7 @@
  */
 
 #include "PonscripterLabel.h"
+#include <sys/stat.h>
 #include "version.h"
 
 static void optionHelp()
@@ -170,9 +171,23 @@ int main(int argc, char** argv)
                 file = path;
                 path = "";
             }
-            else if (i >= 0) {
-                file = path.midstr(i + 1, path.length() - i);
-                path.trunc(i);
+            else {
+                // If the item is visible and a directory, take it as
+                // the archive path; otherwise assume it must be a
+                // script filename.
+                struct stat info;
+                if (stat(path, &info) == -1 ||
+                    !S_ISDIR(info.st_mode))
+                {
+                    if (i >= 0) {
+                        file = path.midstr(i + 1, path.length() - i);
+                        path.trunc(i);
+                    }
+                    else {
+                        file = path;
+                        path = "";
+                    }
+                }
             }
                 
             if (path) ons.setArchivePath(path);
@@ -194,7 +209,9 @@ int main(int argc, char** argv)
     // ----------------------------------------
     // Run Ponscripter
 
-    if (ons.init(preferred_script)) exit(-1);
+    const char* s = preferred_script;
+    if (*s == 0) s = NULL;
+    if (ons.init(s)) exit(-1);
 
     ons.eventLoop();
 

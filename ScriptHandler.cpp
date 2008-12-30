@@ -749,8 +749,8 @@ int ScriptHandler::readScriptSub(FILE* fp, char** buf, int encrypt_mode)
 int ScriptHandler::readScript(const pstring& path, const char* prefer_name)
 {
     archive_path = path;
-    if (path.ends_with(DELIMITER))
-        archive_path.trunc(path.length() - pstring(DELIMITER).length());
+    if (path && !path.ends_with(DELIMITER))
+        archive_path += DELIMITER;
 
     FILE* fp = NULL;
     int encrypt_mode = 0;
@@ -762,7 +762,7 @@ int ScriptHandler::readScript(const pstring& path, const char* prefer_name)
         
         // If we don't have a path, add archive_path.
         if (fname.find(DELIMITER) < 0)
-            fname = archive_path + DELIMITER + fname;
+            fname = archive_path + fname;
         
         if ((fp = fopen(fname, "rb")) != NULL) {
             pstring lname = fname;
@@ -794,7 +794,7 @@ int ScriptHandler::readScript(const pstring& path, const char* prefer_name)
     else {
         for (ScriptFilename::iterator ft = script_filenames.begin();
              ft != script_filenames.end(); ++ft) {
-            if ((fp = fopen(path + ft->filename, "rb")) != NULL) {
+            if ((fp = fopen(archive_path + ft->filename, "rb")) != NULL) {
                 encrypt_mode = ft->encryption;
                 enc = ft->encoding;
                 break;

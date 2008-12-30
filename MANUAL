@@ -11,8 +11,7 @@ NScripter script files and Ponscripter script files have different
 names, as follows:
 
   *.txt        -> *.utf
-  nscript.*    -> pscript.*
-  nscr_sec.dat -> pscr_sec.dat
+  nscript.dat  -> pscript.dat
 
 Ponscripter can still play NScripter games, though it is not as
 compatible as ONScripter in this regard; NScripter mode has not been

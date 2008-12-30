@@ -5,7 +5,7 @@ ponscr \- the Ponscripter novel-game interpreter
 .
 .SH SYNOPSIS
 .B ponscr
-.RI [ OPTIONS ]\ [ script-path ]
+.RI [ OPTIONS ]\ [ script-path ]\ [ script-file ]
 .
 .SH DESCRIPTION
 .
@@ -39,32 +39,19 @@ binary in the game directory.
 .
 .SH OPTIONS
 .
-Up to two positional options may be provided.
-.
-If two are provided, the first is given an implicit
-.BR \-r ,
-and the second an implicit
+Up to two positional options may be provided, to give the root path
+and script filename, like
+.BR \-r " and " \-s .
+If a parameter names a directory, it is given an implicit
+.BR \-r ;
+otherwise, it is given an implicit
 .BR \-s .
-If only one is provided, and there has already been a
-.BR \-r
-option, then it is given an implicit
-.BR \-s ;
-otherwise it is given an implicit
-.BR \-r ,
-unless it contains a / character, in which case it is divided into a
-filename and a path, with the path given an implicit
-.BR \-r
-and the filename an implicit
-.BR \-s .
-In both cases, these assignments are overridden by any explicit
-.BR \-r \ or \ \-s
-options.
-.
-.PP
-(Executive summary:
+If a filename is encountered that includes a path, and no root path
+has been provided at this point, then
 .BR ponscr
-will probably do what you want unless you ask for something
-ambiguous.)
+assumes that the file is located in the root path.
+.
+If you don't get the effect you expected, use explicit options.
 .
 .PP
 The following named options are recognised by

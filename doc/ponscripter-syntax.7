@@ -31,44 +31,40 @@ With this disclaimer out of the way: the documentation.
 .SS Fundamentals
 Scripts are line-based.
 .
-There are two types of line: commands and text.
+There are two parsing modes: command mode and text mode.
 .
-These have little in common, and will be treated separately in what
-follows.
+Parsing of each line begins in command mode, and switches to text mode
+for the rest of the line if a text command is encountered.
 .
 .PP
-A
-.BR "text line"
-begins with the text delimiter, which is ^ in native scripts and \` in
-legacy scripts.
+A third mode, `unmarked text', exists for legacy reasons.
 .
-All other lines are
-.BR "command lines" ,
-unless they begin with a number, a character outside the ASCII range,
-or a character in the set
-.BR [@\e/%?$[(!#,\(dq] ,
-in which case they are assumed to be unmarked text lines.
+This mode is similar to text mode, and is entered if an invalid
+character is encountered at the start of a command: that is, a number,
+a character outside the ASCII range, or anything in the set
+.BR [@\e/%?$[(!#,\(dq] .
 .
 Such lines are valid if they contain
 .I only
-!-commands; otherwise a
-warning is issued, and the behaviour is undefined.
+!-commands; otherwise a warning is issued, and the behaviour is
+undefined.
 .
 .PP
-(Unmarked text is a historical accident, and will probably be removed
-at some point in the future.
-.
-It derives from NScripter, where traditionally there was no
+(This mode derives from NScripter, where traditionally there was no
 intersection between printable characters and command characters; the
 \` text marker was introduced in ONScripter as a means of supporting
 English text, and replaced in Ponscripter with ^ to free up \` for
 other uses.
 .
-NScripter has subsequently introduced > as its own `English text'
-marker, but the associated semantics are useless, and I shall say no
-more of this.)
+Since there is no use for unmarked text, and it complicates parsing,
+it is deprecated and will be removed without notice at some point in
+the future.)
 .
-.SS Context in command lines
+.PP
+The two parsing modes have little in common.  The following sections
+discuss command mode; text mode is then treated separately.
+.
+.SS Context
 .
 NScripter is a context-sensitive language.
 .
@@ -110,7 +106,7 @@ below for details of the syntax accepted in each context.
 .
 .SS Lexical categories
 .
-The following broad lexical categories are used in command lines
+The following broad lexical categories are used in command mode
 (parenthesised names are used in syntax descriptions below):
 .
 .TP 2
@@ -163,9 +159,8 @@ The two forms have slightly different semantics.
 .
 Strings enclosed in text delimiters support
 .BR ~ -tags
-(described under `syntax of text lines' below) to apply text
-formatting, while tildes are literal characters in double-quoted
-strings.
+(described under `text mode' below) to apply text formatting, while
+tildes are literal characters in double-quoted strings.
 .
 .IP "" 2
 In ONScripter, and previous versions of Ponscripter, double-quoted
@@ -237,6 +232,10 @@ multidimensional array.  (See documentation of the
 .BR dim
 command for details of arrays.)
 .
+.IP "" 2
+Variable syntax is expressed formally in the expression sections
+below.
+.
 .SS Expression syntax
 .
 .TP 2
@@ -250,8 +249,41 @@ are low precedence, while
 .BR * ", " / ", and " mod
 are high precedence.
 .
-Terms may be parenthesised to override normal precedence rules, and a
-unary minus may be used to negate a term.
+Parentheses and unary minus operate as normal.
+.
+.IP "" 2
+More formally:
+.
+.IP "" 4
+.BR int_expr "  ::="
+.IB int_term " \fR| " int_term \ *\fR|\fB/\fR|\fBmod \ int_expr
+.br
+.BR int_term "  ::="
+.IB int_unary " \fR| " int_unary \ +\fR|\fB\- \ int_term
+.br
+.BR int_unary " ::="
+.IR int_paren " | \fB\- " int_paren
+.br
+.BR int_paren " ::="
+.BI "( " int_expr " ) \fR| " int_elt
+.br
+.BR int_elt "   ::="
+.IR int_lit " | " int_var " | " int_array " | " bareword
+.br
+.BR int_var "   ::="
+.BI % int_elt
+.br
+.BR int_array " ::="
+.BI ? "int_elt subscript" \fR+
+.br
+.BR subscript " ::="
+.BI "[ " int_expr " ]"
+.br
+.BR int_lit "   ::="
+.IR [0\-9]+ " | \fB0x" [0-9a-f]+
+.br
+.BR bareword "  ::="
+.IR [a-z_][a-z_0-9]+
 .
 .TP 2
 .BR String\ expressions " (\fIstring_expr\fR)"
@@ -261,16 +293,25 @@ are simpler.
 Their grammar is as follows:
 .IP "" 4
 .BR string_expr " ::="
-.IR string_term " + " string_expr
+.IB string_term " | " string_term " + " string_expr
 .br
 .BR string_term " ::="
 .IR file_cond " | " string_elt
 .br
 .BR file_cond "   ::="
-.RI "( " string_term " ) " string_term " " string_term
+.BI "( " string_term " ) " string_term " " string_term
 .br
 .BR string_elt "  ::="
 .IR string_lit " | " string_var " | " label " | " bareword
+.br
+.BR string_var "  ::="
+.BI $ int_elt
+.br
+.BR label "       ::="
+.BI * [a-z_0-9]+
+.br
+.BR string_lit "  ::="
+.BI \(dq [^\(dq]*? \(dq "\fR | " ^ [^^]*? ^
 .
 .IP "" 2
 The only part of the above that should not be obvious, given the
@@ -290,36 +331,321 @@ is used; otherwise, the second is used.
 .TP 2
 .B Conditional expressions
 .
-.SS Syntax of COMMAND lines
+are effectively a special syntax associated with the
+.BR if / notif
+commands.
 .
-The above lexemes and expressions are combined to construct command
-lines, which are structured in a fairly similar way to BASIC.
+They are somewhat lacking compared to conditionals in most languages:
+in particular, multiple terms may be combined only with an `and'
+operator, with no `or' available.
+.
+.IP "" 2
+Either strings or integers may be compared.
+.
+The ordering of strings is deliberately left undefined; it may change
+without warning in the future.
+.
+However, for any given Ponscripter version, the ordering will be the
+same across all platforms and regardless of users' locale settings.
+.
+.IP "" 2
+Formally:
+.
+.IP "" 4
+.BR conditional " ::="
+.IR cond_term " | " cond_term " \fB& " conditional
+.br
+.BR cond_term "   ::="
+.IB expression " ==\fR|\fB!=\fR|\fB>\fR|\fB<\fR|\fB>=\fR|\fB<= " expression
+.br
+.BR expression "  ::="
+.IR int_expr " | " string_expr
+.
+.SS Command syntax
+.
+The above lexemes and expressions are combined in a fairly similar way
+to BASIC.
 .
 Commands are interpreted sequentially, one to a line; multiple
 commands may be placed on a single line, where required, by separating
 them with colons.
 .
 .PP
-A command consists either of a label literal, which creates a label at
-that point in the script, or a command name (in the form of a
-bareword).
+There are several forms of command:
 .
-Most commands take parameters in the form of a comma-separated list of
-expressions \- parentheses are not used.
+.IP \(bu
+.BR Procedure\ call s
+consist of a bareword, normally followed by a parameter list: this is
+a comma-separated list of expressions (parentheses are not used).
 .
-.SS Syntax of TEXT lines
+.IP \(bu
+.BR Label s
+consist of a label literal, which serves as a name for that point in
+the script.
 .
-Text lines contain literal text, which is displayed `as is', and a
-variety of tags, which have a rich variety of syntax for historical
-reasons.
+.IP \(bu
+.BR Text
+commands consist of a text delimiter, which switches the interpreter
+into text mode for the remainder of the line; see next section.
 .
-Note that the syntax described above for command lines does not apply
-to text lines.
+.\" TODO any others (e.g. ~)
 .
-In particular, comments cannot be embedded in lines; semicolons are
-literal characters.
+.SS Text mode
 .
-.\" ...TODO describe...
+As described above, text commands begin with a text marker
+.RB ( ^
+in native scripts,
+.B \`
+in legacy scripts).
+.
+The remainder of the line is then parsed in text mode.
+.
+.PP
+Most characters in text mode represent themselves and are printed
+verbatim; this includes the newline at the end of each line, unless
+it is explicitly suppressed with
+.BR / .
+.
+It also includes characters with special meanings in command mode,
+such as colons and semicolons.
+.
+However, there are also a fair number of control characters with
+special meanings.
+.
+Since text syntax was not so much designed as gradually accumulated,
+there is very little consistency in how these control characters are
+chosen and how they are printed literally.
+.
+Read on for details.
+.
+.SS Text control
+.
+Single characters with special meanings.
+.
+These characters may all be printed literally by prefixing them with
+a single hash character, i.e.
+.BR #@ ", " #_ ,
+etc.
+.
+.TP 2
+.BR @
+Waits for click, then continues printing text as though nothing had
+happened.
+.
+.IP "" 2
+(Unlike in many ONScripter builds, the behaviour of
+.BR @
+is not altered by the definition of a
+.BR textgosub
+routine.)
+.
+.TP 2
+.BR \e
+Waits for a click, then clears text window and begin a new page.
+.
+.TP 2
+.BR _
+If a character has the
+.BR clickstr
+nature, prefixing it with an underscore suppresses that behaviour;
+otherwise it does nothing whatsoever.
+.
+.IP "" 2
+.BR clickstr
+is evil, so you should never need to use this.
+.
+.TP 2
+.BR /
+At the end of a line, ends a text command without beginning a new line
+of display text.
+.
+This control only has any effect
+.I immediately
+before a newline character.
+.
+Anywhere else in a line, even if only whitespace follows, it prints a
+literal slash.
+.
+.SS Speed control
+.
+Multi-character control codes controlling text speed.
+.
+.PP
+Whitespace after these codes is ignored; you can cause it to be
+treated literally by adding a trailing separator character, i.e.
+.BR !sd|
+etc.
+.
+.PP
+If one of these sequences would appear in literal text, it can be
+escaped by prefixing it with a single hash character, i.e.
+.BR #!sd
+etc.
+.
+.PP
+Due to existing conventions for script layout, these codes are also
+valid as standalone commands without a preceding text marker; in this
+case they must be the only thing on their line apart from whitespace.
+.
+.TP 2
+.BI !s NUM
+Sets text speed; this is equivalent to the commmand
+.IP "" 4
+.BI textspeed \ NUM
+.IP "" 2
+but has a more convenient syntax in cases where the speed must change
+within a single line.
+.
+.IP "" 2
+Lower speeds are faster; 0 means there should be no delay between
+characters.
+.
+.TP 2
+.BI !sd
+Resets text speed to the current player-selected default.
+.
+.TP 2
+.BI !w NUM
+Inserts a pause of NUM milliseconds.
+.
+It cannot be truncated by clicking, but can be skipped with any of the
+normal skip commands.
+.
+.TP 2
+.BI !d NUM
+As
+.BR !w ,
+but can also be truncated by clicking.
+.
+.SS Colour tags
+.
+.BI # RRGGBB\fR,
+where
+.IR RR ", " GG ", and " BB
+are each two hex digits, modifies the current text foreground colour
+in the obvious way.
+.
+A literal hash character can be inserted with
+.BR ## .
+.
+.SS Formatting tags
+.
+.\" ~foo~
+.
+.SS Ligatures and shortcuts
+.
+To assist in typing Unicode scripts with ASCII keyboards, Ponscripter
+has the ability to replace sequences of characters with Unicode
+symbols.
+.
+This facility is also used to implement the hash-escaping of
+single-character control codes, and can be used to add ligatures
+automatically.
+.
+It is only enabled in native scripts; none of this is possible in
+legacy mode.
+.
+.PP
+A multi-character sequence can be inserted literally by use of a
+separator character, e.g.
+.BR `|`
+to insert two separate open single quotes.
+.
+.PP
+By default, the following character sequences are defined, in addition
+to the hash escapes described above:
+.
+.IP "" 2
+.BR \`\`
+\-> open double quotes
+.br
+.BR \'\'
+\-> close double quotes
+.br
+.BR \`
+\-> open single quote
+.br
+.BR \'
+\-> close single quote / apostrophe
+.
+.PP
+Additional sequences can be defined by use of the
+.BR h_ligate
+command.
+.
+In particular,
+.IP "" 2
+h_ligate punctuation
+.PP
+defines the following shortcuts:
+.IP "" 2
+.BR ... \ \->
+ellipsis
+.br
+.BR \-\-
+\-> en dash
+.br
+.BR \-\-\-
+\-> em dash
+.br
+.BR (c)
+\-> copyright symbol
+.br
+.BR (r)
+\-> registered trademark symbol
+.br
+.BR (tm)
+\-> trademark symbol
+.br
+.BR ++
+\-> dagger
+.br
+.BR +++
+\-> double dagger
+.br
+.BR **
+\-> bullet
+.br
+.BR %_
+\-> non-breaking space
+.br
+.BR %\-
+\-> non-breaking hyphen
+.br
+.BR %\. \ \->
+thin space
+.PP
+A full set of `f' ligatures can be defined with
+.IP "" 2
+h_ligate f_ligatures
+.PP
+However, this includes the less common `ffi' and `ffl' ligatures; if
+you're using a font that omits these, you will want to define the
+common ligatures manually with something like
+.IP "" 2
+h_ligate \(dqfi\(dq, 0xfb01
+.br
+h_ligate \(dqfl\(dq, 0xfb02
+.
+.SS Variable interpolation
+.
+Unlike in vanilla NScripter, merely including the name of a variable
+in text does not cause it to be interpolated; this is because frankly
+it seems to be more common to want something like
+.BR $500
+to be literal text representing a sum of money.
+.
+Instead, variables will be interpolated if enclosed in angle brackets:
+.BR <$foo> ", " <?100[%index]> ,
+and so forth.
+.
+The variable's sigil must immediately follow the opening angle
+bracket, and only variables can be interpolated, not arbitrary
+expressions.
+.
+To include a literal sequence of an angle bracket followed by a sigil
+character, use a separator character,
+.BR <|% .
 .
 .SH BUGS
 .

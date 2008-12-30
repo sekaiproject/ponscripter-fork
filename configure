@@ -812,7 +812,7 @@ endif
 
 TARGET = ponscr$EXE
 
-.PHONY: all clean distclean
+.PHONY: all clean distclean install dist
 all: \$(TARGET)
 
 include Makefile.extlibs
@@ -824,7 +824,7 @@ distclean: clean pdistclean \$(DISTCLEAN_TARGETS)
 	         extlib/share extlib/man
 	rm -f Makefile
 
-install:
+install: all
 	./install-sh -c -s \$(TARGET) \$(PREFIX)/bin/\$(TARGET)
 	./install-man \$(PREFIX)
 
