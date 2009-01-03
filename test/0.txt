@@ -32,6 +32,13 @@ game
 if PONSCRIPTER = 0 skip 2
 h_mapfont 0, "default.ttf"
 
+
+
+mov $0, "#ff0000"
+ÇÌÇ¢ÅA$0 Ç‚Ç≈Å`\
+end
+
+
 !s0
 setwindow 8,16,30,23,20,20,0,2,20,1,1,#999999,0,0,639,479
 mov %testnum,0

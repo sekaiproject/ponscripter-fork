@@ -186,7 +186,7 @@ notation for hexadecimal numbers.
 have the general format
 .BI * bareword\fR.
 .
-They are used when a string represents the target for a jump command
+They are used to represent the target for a jump command
 .RB ( goto ", " csel ,
 etc) and for the construction of subroutines with commands such as
 .BR defsub ", " textgosub ,
@@ -199,14 +199,32 @@ i.e. the source code location referenced by jump and
 subroutine-construction commands.
 .
 .IP "" 2
-(In NScripter, label literals are a distinct type.
+(In NScripter, label literals are a distinct type that can only be
+used where a command is expecting a label.
 .
-In ONScripter they are, other than in command position, interchangable
-with strings lacking the initial asterisk, and may be considered a
-special bareword syntax that suppresses alias substitution.
+ONScripter also accepts them wherever a string is expected:
+.IR *foo
+means roughly the same thing as
+.IR "foo" .)
 .
-This (unintentionally) permits things like computed
-.BR goto s.)
+.TP 2
+.BR Colour\ literals \ (\fIcolour\fR)
+have the general format
+.BI # RRGGBB
+where
+.IR RR ", " GG ", and " BB
+are each two hex digits.
+.
+They are used to represent colours in the obvious way.
+.
+.IP "" 2
+(In NScripter, colour literals are a distinct type that can only be
+used where a command is expecting a colour.
+.
+ONScripter also accepts them wherever a string is expected:
+.IR #RRGGBB
+means exactly the same thing as
+.IR \(dq#RRGGBB\(dq .)
 .
 .TP 2
 .BR Variables " (\fIint_var\fR, \fIstring_var\fR)"
@@ -302,7 +320,7 @@ Their grammar is as follows:
 .BI "( " string_term " ) " string_term " " string_term
 .br
 .BR string_elt "  ::="
-.IR string_lit " | " string_var " | " label " | " bareword
+.IR string_lit " | " string_var " | " label " | " colour " | " bareword
 .br
 .BR string_var "  ::="
 .BI $ int_elt
