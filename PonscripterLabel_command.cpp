@@ -349,7 +349,7 @@ int PonscripterLabel::stopCommand(const pstring& cmd)
 
 int PonscripterLabel::sp_rgb_gradationCommand(const pstring& cmd)
 {
-    int no = script_h.readIntValue();
+    int no       = script_h.readIntValue();
     int upper_r  = script_h.readIntValue();
     int upper_g  = script_h.readIntValue();
     int upper_b  = script_h.readIntValue();
@@ -1405,15 +1405,12 @@ int PonscripterLabel::menu_windowCommand(const pstring& cmd)
 {
     if (fullscreen_mode) {
 #if !defined (PSP)
-	// Haeleth 080807: switch modes the hard way to get aspect ratio
-	// correction.
-//        if (!SDL_WM_ToggleFullScreen(screen_surface)) {
+        if (!SDL_WM_ToggleFullScreen(screen_surface)) {
             SDL_FreeSurface(screen_surface);
             screen_surface = SDL_SetVideoMode(screen_width, screen_height, screen_bpp, DEFAULT_VIDEO_SURFACE_FLAG);
             SDL_Rect rect = { 0, 0, screen_width, screen_height };
             flushDirect(rect, refreshMode());
-//        }
-
+        }
 #endif
         fullscreen_mode = false;
     }
@@ -1426,16 +1423,13 @@ int PonscripterLabel::menu_fullCommand(const pstring& cmd)
 {
     if (!fullscreen_mode) {
 #if !defined (PSP)
-	// Haeleth 080807: switch modes the hard way to get aspect ratio
-	// correction.
-        //if (!SDL_WM_ToggleFullScreen(screen_surface)) {
+        if (!SDL_WM_ToggleFullScreen(screen_surface)) {
             SDL_FreeSurface(screen_surface);
             screen_surface = SDL_SetVideoMode(screen_width, screen_height,
 	            screen_bpp, DEFAULT_VIDEO_SURFACE_FLAG | fullscreen_flags);
             SDL_Rect rect = { 0, 0, screen_width, screen_height };
             flushDirect(rect, refreshMode());
-        //}
-
+        }
 #endif
         fullscreen_mode = true;
     }
@@ -1803,7 +1797,7 @@ int PonscripterLabel::humanorderCommand(const pstring& cmd)
     int ret = leaveTextDisplayMode();
     if (ret != RET_NOMATCH) return ret;
 
-    pstring buf = script_h.readStrValue();
+    pstring buf = script_h.readStrValue() + "   ";
     int i;
     for (i = 0; i < 3; i++) {
         if (buf[i] == 'l') human_order[i] = 0;

@@ -21,8 +21,8 @@ NScripter itself is largely unspecified.
 .
 Ponscripter's implementation is ultimately based on observation and
 documentation rather than on reverse-engineering as such: it
-inevitably adopts different parsing strategies, and is significantly
-more liberal in what it accepts.
+inevitably adopts different parsing strategies, and is more liberal in
+what it accepts.
 .
 Not all differences are described below.
 .
@@ -56,7 +56,7 @@ intersection between printable characters and command characters; the
 English text, and replaced in Ponscripter with ^ to free up \` for
 other uses.
 .
-Since there is no use for unmarked text, and it complicates parsing,
+Since unmarked text serves no useful purpose, and complicates parsing,
 it is deprecated and will be removed without notice at some point in
 the future.)
 .
@@ -95,10 +95,6 @@ stralias foo, ^bar^
 .PP
 the constant `foo' would have the value 100 in integer context, but
 would have the value `bar' in string context.
-.
-(In label context, e.g. as the parameter to a
-.BR goto ,
-it would refer to the label `*bar'.)
 .
 .PP
 See the next section for more on constants, and `Expression syntax'
@@ -286,10 +282,10 @@ More formally:
 .BI "( " int_expr " ) \fR| " int_elt
 .br
 .BR int_elt "   ::="
-.IR int_lit " | " int_var " | " int_array " | " bareword
+.IR int_lit " | " int_var " | " bareword
 .br
 .BR int_var "   ::="
-.BI % int_elt
+.BI % int_elt " \fR| " int_array
 .br
 .BR int_array " ::="
 .BI ? "int_elt subscript" \fR+
@@ -367,6 +363,20 @@ However, for any given Ponscripter version, the ordering will be the
 same across all platforms and regardless of users' locale settings.
 .
 .IP "" 2
+Several operators accept variant forms:
+.BR && \ for \ & ,
+.BR = \ for \ == ,
+and
+.BR <> \ for \ != .
+In each case, there is no semantic difference between the two.
+.
+.IP "" 2
+One other type of term is permitted: a function-like
+.BR fchk ,
+which takes a string, interprets it as the filename of a picture,
+and returns true iff that picture has been displayed.
+.
+.IP "" 2
 Formally:
 .
 .IP "" 4
@@ -374,6 +384,9 @@ Formally:
 .IR cond_term " | " cond_term " \fB& " conditional
 .br
 .BR cond_term "   ::="
+.IR comp_term " | \fBfchk " string_expr
+.br
+.BR comp_term "   ::="
 .IB expression " ==\fR|\fB!=\fR|\fB>\fR|\fB<\fR|\fB>=\fR|\fB<= " expression
 .br
 .BR expression "  ::="
@@ -432,7 +445,8 @@ special meanings.
 .
 Since text syntax was not so much designed as gradually accumulated,
 there is very little consistency in how these control characters are
-chosen and how they are printed literally.
+chosen, when exactly in the parsing process they are interpreted, and
+how they are printed literally.
 .
 Read on for details.
 .
@@ -548,7 +562,197 @@ A literal hash character can be inserted with
 .
 .SS Formatting tags
 .
-.\" ~foo~
+All formatting other than text colour is performed with formatting tag
+blocks.
+.
+These are delimited with tildes; a literal tilde can be inserted with
+a double tilde
+.RI ( not
+.BR #~ ...
+that would be consistent.)
+.
+Any number of tags can be combined within a single block, optionally
+separated with whitespace.
+.
+.PP
+.B Font selection tags
+.PP
+.
+The tags in this section, with the exception of
+.BR c ,
+assume that Ponscripter's eight font slots are assigned according to
+the following convention:
+.IP "" 2
+0 \- text book regular
+.br
+1 \- text book italic
+.br
+2 \- text bold regular
+.br
+3 \- text bold italic
+.br
+4 \- display book regular
+.br
+5 \- display book italic 
+.br
+6 \- display bold regular
+.br
+7 \- display bold italic
+.PP
+If fonts are assigned in any other way, tags such as
+.BR b \ and \ i
+will not behave as documented.
+.
+.TP 2
+.BI c N
+Selects the font in slot
+.IR N .
+.
+.TP 2
+.BI d
+Selects the default style (equivalent to
+.BR c0 )
+.
+.TP 2
+.BI r
+Disables italics (default)
+.
+.TP 2
+.BI i
+Toggles italics
+.
+.TP 2
+.BI t
+Disables bold weight
+.
+.TP 2
+.BI b
+Toggles bold weight
+.
+.TP 2
+.BI f
+Selects text face (default)
+.
+.TP 2
+.BI s
+Toggles display face
+.
+.PP
+.B Text size
+.PP
+.
+In this section, the
+.BR base
+size refers to the font size defined for the active window; the
+.BR current
+size should be self-explanatory.
+.
+.TP 2
+.BI = N
+Set font size to exactly
+.I N
+pixels (0 restores it to the base font size)
+.
+.TP 2
+.BI % N
+Set font size to
+.IR N %
+of the base font size
+.
+.TP 2
+.BI + N
+Increase the current font size by
+.I N
+pixels
+.
+.TP 2
+.BI - N
+Decrease the current font size by
+.I N
+pixels
+.
+.PP
+.B Text position
+.
+.TP 2
+.BI x N
+Set the horizontal text output position to
+.I N
+pixels right of the left margin
+.
+.TP 2
+.BI y N
+Set the vertical text output position to
+.I N
+pixels down from the top margin
+.
+.TP 2
+.BI x+ N
+Shift the horizontal text output position
+.I N
+pixels to the right
+.
+.TP 2
+.BI x- N
+Shift the horizontal text output position
+.I N
+pixels to the left
+.
+.TP 2
+.BI y+ N
+Shift the vertical text output position
+.I N
+pixels down
+.
+.TP 2
+.BI y- N
+Shift the vertical text output position
+.I N
+pixels up
+.
+.PP
+.B Indentation
+.PP
+.
+.\" TODO: document
+\" INDENTATION TAGS
+
+\"   n  Set indent at current x position. Subsequent newlines on the same
+\"      screen will line up with this.
+  
+\"   u  Cancel any indent setting.
+
+\" In addition to these tags, screens that begin with certain characters
+\" (including opening quotes and em dashes) have indents set
+\" automatically.  These characters can be overridden with the
+\" "h_indentstr" command, though there will usually be no need to do
+\" this.
+
+\" Indentation example:
+
+\" ^**%.Item 1; if this text wraps, it will go back to the left margin.
+\" ^**%.~n~Item 2; if this text wraps it will line up with the bullet.~u~
+\" ^If there wasn't a ~~u~~ at the end of the last line, this would also 
+\" ^line up with the bullet.\
+.
+.PP
+.B Formatting examples
+.PP
+.
+As an example of the usage of these tags, Narcissu 2's omake mode
+displays page headings at the top of each screen with code like
+.IP "" 2
+.RB ^\fI!s0 ~i\ %120\ x-20\ y-40~ \ Heading ~i\ =0~ \fI!sd
+.br
+br2 120
+.PP
+Here the !s0 and !sd are the usual NScripter commands.
+.
+The first tag block selects italic text, 120% of the regular font
+size, and shifts the output position up and to the left.
+.
+The second tag block cancels the italic effect and resets the font
+size to normal.
 .
 .SS Ligatures and shortcuts
 .
@@ -565,9 +769,11 @@ legacy mode.
 .
 .PP
 A multi-character sequence can be inserted literally by use of a
-separator character, e.g.
+separator character (either a Unicode ZWNJ or a |), e.g.
 .BR `|`
 to insert two separate open single quotes.
+.
+A literal | can be inserted with ||.
 .
 .PP
 By default, the following character sequences are defined, in addition
@@ -633,7 +839,9 @@ ellipsis
 .BR %\. \ \->
 thin space
 .PP
-A full set of `f' ligatures can be defined with
+A
+.I full
+set of `f' ligatures can be defined with
 .IP "" 2
 h_ligate f_ligatures
 .PP
@@ -653,18 +861,56 @@ it seems to be more common to want something like
 .BR $500
 to be literal text representing a sum of money.
 .
-Instead, variables will be interpolated if enclosed in angle brackets:
-.BR <$foo> ", " <?100[%index]> ,
+Instead, variables will be interpolated if enclosed in braces:
+.BR {$foo} ", " {?100[%index]} ,
 and so forth.
 .
-The variable's sigil must immediately follow the opening angle
-bracket, and only variables can be interpolated, not arbitrary
-expressions.
+The variable's sigil must immediately follow the opening angle brace,
+and only variables can be interpolated, not arbitrary expressions.
 .
-To include a literal sequence of an angle bracket followed by a sigil
+This is not to be confused with NScripter's rather less useful brace
+syntax (variable assignments), which is not supported.
+.
+.PP
+To include a literal sequence of a left brace followed by a sigil
 character, use a separator character,
-.BR <|% .
+.BR {|% .
 .
+.PP
+Certain control codes are recognised after variable interpolation,
+since they are parsed at a later stage of processing: these are text
+controls, speed controls, colour tags, and ligatures/shortcuts.
+.
+In particular \- and in contrast to NScripter \- you can do things
+like use
+.IP "" 2
+^!w{%var}
+.PP
+to wait for a variable length of time.
+.
+.PP
+.
+Variable interpolations are not expanded recursively.
+.
+Likewise, formatting codes are not processed during interpolation;
+however, if the string was delimited with ^ rather than \(dq, they
+will have been processed when the string was read, and will therefore
+work as intended.
+.
+That is to say,
+.IP "" 2
+mov $var, \(dq~b~\(dq
+.br
+^foo{$var}bar\e
+.br
+; prints \(dqfoo~b~bar\(dq
+.IP "" 2
+mov $var, ^~b~^
+.br
+^foo{$var}bar\e
+.br
+.RB ;\ prints\ \(dqfoo bar \(dq
+
 .SH BUGS
 .
 This whole syntax may be considered a bug: it is inconvenient,

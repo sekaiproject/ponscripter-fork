@@ -7,87 +7,14 @@ In no particular order, I'm afraid.
 /---------------------------------------------------------------------
 |  Filenames
 
-NScripter script files and Ponscripter script files have different
-names, as follows:
-
-  *.txt        -> *.utf
-  nscript.dat  -> pscript.dat
-
-Ponscripter can still play NScripter games, though it is not as
-compatible as ONScripter in this regard; NScripter mode has not been
-extensively tested.  In general, if you're using Ponscripter to run a
-game, you should make the effort to port the code.  Unicode is a Good
-Thing.
-
-(If you wish to adapt an NScripter game to behave differently with
+If you wish to adapt an NScripter game to behave differently with
 Ponscripter while still working with NScripter and ONScripter, you can
 keep the script in the old Shift_JIS format and define a numalias
 PONSCRIPTER as 0; Ponscripter will sneakily modify the definition to
 give it the value 1 instead, so you can use "if PONSCRIPTER == 1" to
 execute code conditionally depending on the interpreter in use.  Note
 however that most of the features described below are not available in
-compatibility mode.  This might actually be most useful for displaying
-an error message in games known NOT to work with Ponscripter... ^^;)
-
----//---
-
-An additional point to note is that while ONScripter makes some feeble
-and generally unreliable attempts to access files with Japanese names,
-Ponscripter deliberately restricts filenames to ASCII.  (You can
-probably still access files with Japanese names if those files are
-within archives, since the .nsa and .sar formats specify CP932 for
-filename encodings; but you can't if they're sitting there in the
-filesystem, since the filesystem could be encoded in any of a
-bazillion different incompatible ways, and we don't even try to
-guess.)
-
-If this is really, really a problem for you, and you have a really,
-REALLY good reason why you absolutely HAVE to use special characters
-in your filenames and there is simply NO possibility that you could
-just take a deep breath and rename the files to something sensible,
-then feel free to either implement this feature yourself, or show me
-how important it is to you in hard currency.  :)
-
-
-/---------------------------------------------------------------------
-|  Directives
-
-NScripter files can optionally begin with a resolution directive,
-which is usually omitted for 640x480 games and included in 800x600
-games: it takes the form of a comment at the very start of the file,
-either
-
-  ;mode640
-  
-or
- 
-  ;mode800
-
-As with ONScripter-En, in Ponscripter this directive can additionally
-be followed by a second directive, which takes the form
-
-  ;gameid Your name here
-
-This second directive, if present, must be preceded by a resolution
-directive.  It is used on most platforms to name a folder for the
-game's saved data, which will typically be:
-
-  OS X: ~/Library/Application Support/[gameid]
-  Linux: ~/.[gameid]
-  Win2k/XP: C:\Documents and Settings\All Users\Application Data\[gameid]
-  Vista: C:\ProgramData\[gameid]
-
-(Note that on OS X and *nix saved games are per-user, while on Windows
-they are currently shared between all users.  This latter could easily
-be changed if so desired.)
-
-If the gameid directive is absent, Ponscripter tries to determine the
-game's name from a `caption' or `versionstr' command in the *define
-section (if both are found, it takes the shorter).  If that also
-fails, a semi-unique identifier is generated from the length of the
-script.  I don't think I've implemented "game.id" files à la
-ONScripter-En; there's little point, as Ponscripter is only intended
-to be used when the script is modifiable.
+compatibility mode.
 
 
 /---------------------------------------------------------------------
@@ -150,47 +77,6 @@ measure.
 
 
 /---------------------------------------------------------------------
-|  Syntax changes
-
-The most major change is that [O]NScripter files are encoded in
-Shift_JIS, while Ponscripter files must be encoded in UTF-8.
-
-In ONscripter, ASCII text is marked with the ` character in one of
-three ways:
-  some_command "`ASCII parameter"
-  some_command `ASCII parameter`
-  `ASCII display text\
-
-In Ponscripter, all these examples use the ^ character instead:
-  some_command "^UTF-8 text"
-  some_command ^UTF-8 text^
-  ^UTF-8 display text\
-
-The reason for this change is that in order to make typing English
-text convenient, Ponscripter introduces ASCII shortcuts for some
-common characters:
-
-  `single curly quotes'
-  ``double curly quotes''   (or ``double curly quotes")
-
-Naturally you can also use the proper UTF-8 characters, but most
-keyboards can't type them conveniently.
-
-To type two consecutive quotation marks, use a ZWNJ (zero-width
-non-joiner) to separate them.  Since there are probably no keyboards
-that can type a ZWNJ, the character | serves this purpose; to get a |
-in your text, use ||.  Hence, to write text with nested quotations,
-you might use a line like
-
-  ^``He told me he'd `never leave me,'|'' she sobbed.\
-
-Some recent versions of NScripter have a limited form of ASCII text
-support with lines introduced by the > character.  The behaviour of
-this mode is ill-thought-out and essentially useless; this syntax is
-not currently recognised, not even in NScripter mode.
-  
-
-/---------------------------------------------------------------------
 |  h_ligate <string>, <int>
 |  h_ligate <string>, <string>
 |  h_ligate <string>, remove
@@ -217,175 +103,12 @@ If the second parameter is the bareword "remove" (without quotation
 marks), any defined ligature/shortcut for the first parameter will be
 undefined.
 
-Some built-in sets define the shortcuts I personally use.  The
-following commands exist:
-
-* h_ligate none
-  
-Undefines all substitutions, including the curly-quotation-mark
-shortcuts that are defined by default.
-
-* h_ligate default
-
-Defines all sets described below.
-
-* h_ligate basic
-  
-Redefines the curly-quotation-mark shortcuts.
-
-* h_ligate specials
-
-Defines the following set of escape sequences for printing characters
-that sometimes have special meanings:
-    #@   @
-    #/   /
-    #\   \
-    #_   _
-    #^   ^
-    #`   `
-    #!   !
-    ##   #
-
-Note that #~ will NOT work.  Formatting tags are parsed at an earlier
-stage, before text ever gets anywhere near the ligature expansion
-stage.  Use ~~ for a literal tilde.
-    
-* h_ligate punctuation
-  
-Defines the following shortcuts:
-    ...   ellipsis
-    --    en dash
-    ---   em dash
-    (c)   copyright symbol
-    (r)   registered trademark symbol
-    (tm)  trademark symbol
-    ++    dagger
-    +++   double dagger
-    **    bullet
-    %_    non-breaking space
-    %-    non-breaking hyphen
-    %.    thin space
-
-* h_ligate f_ligatures
-
-Defines the fi, fl, ff, ffi, and ffl ligatures.
+Some built-in sets define the shortcuts I personally use.
 
 Note that these shortcuts are not processed in clickstr, and I doubt
 they're processed in clickstr tests either.  Write your scripts in
 full UTF-8 if you want to use the clickstr feature.  (But preferably
 just don't use it; it's nasty.)
-
-
-/---------------------------------------------------------------------
-|  Style tags
-
-Text appearance is controlled with inline tag blocks.  A tag block is
-delimited by ~tildes~, and contains any number of tags, which may
-optionally be separated with spaces.  Use ~~ to insert a literal
-tilde.
-
-Where a tag block appears in display text, its effects last until the
-end of the current screen; to apply a style to multiple screens, use
-h_fontstyle (see below), or repeat the tag block. Tag blocks can also
-be embedded to style text buttons, menu items, etc., in which case
-they last to the end of the string in which they appear.
-
-The following tags are recognised (N represents an arbitrary decimal
-integer):
-
-FONT STYLE TAGS
-
-  cN  Select font in slot N
-
-  d   Default style (equivalent to c0)
-  
-  r   Selects regular style (default)
-  i   Toggles italic style
-  t   Selects book weight (default)
-  b   Toggles bold weight
-  f   Selects text face (default)
-  s   Toggles display face
-  
-These latter six tags deserve explanation.  They assume the following
-font slot assignment convention:
-
-  0   text book regular
-  1   text book italic
-  2   text bold regular
-  3   text bold italic
-  4   display book regular
-  5   display book italic 
-  6   display bold regular
-  7   display bold italic
-
-The ~d~ tag selects slot 0.  The remaining tags combine to select
-other slots. In practice, all most users will need to know is "do
-italics like ~i~this~i~".
-
-For advanced users, it will be obvious that the implementation uses
-bitmasks. The following example illustrates how tags interact:
-
-  ^This is ~i~emphasised~i~.  So is ~i~this~r~.
-  ^(The two are functionally identical.)\
-  ^Regular text ~s~display ~bi~bold italic display ~t~italic display
-  ^~si~regular text.\
-
-
-FONT SIZE AND POSITION TAGS
-
-  =N  Set font size to N pixels (0 sets it to the base font size)
-  %N  Set font size to N% of the _base_ font size (as defined for the
-      window)
-  
-  +N  Increase the _current_ font size by N pixels
-  -N  Decrease the _current_ font size by N pixels
-  
-  xN  Set the horizontal text output position to N pixels right of the
-      left margin
-  yN  Set the vertical text output position to N pixels down from the
-      top margin
-  
-  x+N  Shift the horizontal text output position N pixels to the right
-  x-N  Shift the horizontal text output position N pixels to the left
-  y+N  Shift the vertical text output position N pixels down
-  y-N  Shift the vertical text output position N pixels up
-
-As an example of the usage of these tags, Narcissu 2's omake mode
-displays page headings at the top of each screen with code like
-
-  ^!s0~i %120 x-20 y-40~ Concept~i =0~!sd
-
-Here the !s0 and !sd are the usual NScripter commands.  The first tag
-block selects italic text, 120% of the regular font size, and shifts
-the output position up and to the left.  The second tag block cancels
-the italic effect and resets the font size to normal.
-
-This syntax was chosen for convenience of implementation, not for
-elegance; the author apologises for the similarity of complex
-formatting commands to Perl scripts.  A decent syntax-highlighting
-editor, such as Emacs with the included ponscripter-mode, will take
-much of the pain out of getting tags right.
-
-
-INDENTATION TAGS
-
-  n  Set indent at current x position. Subsequent newlines on the same
-     screen will line up with this.
-  
-  u  Cancel any indent setting.
-
-In addition to these tags, screens that begin with certain characters
-(including opening quotes and em dashes) have indents set
-automatically.  These characters can be overridden with the
-"h_indentstr" command, though there will usually be no need to do
-this.
-
-Indentation example:
-
-^**%.Item 1; if this text wraps, it will go back to the left margin.
-^**%.~n~Item 2; if this text wraps it will line up with the bullet.~u~
-^If there wasn't a ~~u~~ at the end of the last line, this would also 
-^line up with the bullet.\
 
 
 /---------------------------------------------------------------------

@@ -69,6 +69,9 @@ If this option is not specified, any positional parameter will be
 used; otherwise the default behaviour on most platforms is to look for
 a game in the current working directory.
 .
+The exception is OS X, where the Resources directory of the current
+application bundle is checked first if appropriate.
+.
 .TP
 .BI \-s " file\fR,\fP " \-\-script \ file
 Use the script named
@@ -97,7 +100,9 @@ generated.
 .
 On most Unix-like platforms, saved games will be stored in
 .BI ~/. GAME
-(where GAME is the name of the game being played).
+(where GAME is the name of the game being played, or a semi-unique
+default if no name was provided; see `DIRECTIVES' in
+.BR ponscripter (7).)
 .
 On Mac OS X, 
 .BI ~/Library/Preferences/ GAME

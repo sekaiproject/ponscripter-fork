@@ -3,7 +3,14 @@
 Merge in some changes.  We're missing useful functions like
    windowchip that are implemented there.
 
+
+* WBNI
+
+Sane parser.  Maybe even bytecode.  Should be more or less feasible
+   now; doc/prototypes could be used to generate a Yacc-type grammar,
+   I think...
+
    
 * Not gonna happen any time soon
 
-Kill pushed_variable, current_variable, and so forth
+Kill current_variable.  Purge it with fire.

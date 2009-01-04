@@ -8,7 +8,7 @@
 2008-12-28
 
   Implement variable interpolation in text lines, with the syntax
-  <$var>, <%var>, <?var[0]>.  <|$ etc can be used if literal output is
+  {$var}, {%var}, {?var[0]}.  {|$ etc can be used if literal output is
   required.
 
   Remove altogether the distinction between END_1BYTE_CHAR and other

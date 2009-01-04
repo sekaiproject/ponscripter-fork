@@ -228,13 +228,13 @@ readTokenTop:
             }
 
             // Interpolate expressions.
-            if (ch == '<' &&
+            if (ch == '{' &&
                 (buf[1] == '%' || buf[1] == '$' || buf[1] == '?'))
             {
                 const char* start = buf + 1;
-                while (*buf && *buf != '\n' && *buf != '>') ++buf;
-                if (*buf != '>')
-                    errorAndExit("interpolation missing >");
+                while (*buf && *buf != '\n' && *buf != '}') ++buf;
+                if (*buf != '}')
+                    errorAndExit("interpolation missing }");
                 pstring var_expr(start, buf++ - start);
                 const char* var_iter = var_expr;
                 if (var_expr[0] == '$') {
