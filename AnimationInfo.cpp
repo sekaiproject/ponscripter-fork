@@ -63,7 +63,8 @@ AnimationInfo::~AnimationInfo()
 
 
 #ifdef _WIN32
-#define msleep _sleep
+#include <windows.h>
+#define msleep Sleep
 #else
 #define msleep(x) usleep(x * 1000)
 #endif
