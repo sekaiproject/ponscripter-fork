@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GameDefinitionFile xmlns="urn:schemas-microsoft-com:GameDescription.v1"
+   xmlns:baseTypes="urn:schemas-microsoft-com:GamesExplorerBaseTypes.v1">
+  <GameDefinition gameID="{3CBFAE8F-3A74-438E-8B43-7DCEFD10AF30}">
+    <Name>Narcissu Side 2nd</Name>
+    <!-- <ReleaseDate>2009-02-01</ReleaseDate> -->
+    <Version>
+      <VersionNumber versionNumber="1.0.0.0"/>
+    </Version>
+    <WindowsExperienceIndex minimum="1" recommended="1"/>
+    <Genres>
+      <Genre>Visual Novel</Genre>
+    </Genres>
+    <GameExecutables>
+      <GameExecutable path="Narcissu2.exe"/>
+    </GameExecutables>
+    
+  </GameDefinition>
+</GameDefinitionFile>

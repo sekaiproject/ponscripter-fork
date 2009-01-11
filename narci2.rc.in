@@ -23,3 +23,6 @@ FILETYPE 1
        VALUE "Translation", 0x0809, 0x04B0
    }
 }
+
+__GDF_XML DATA narci2.gdf
+__GDF_THUMBNAIL DATA narci2-boxart.png
