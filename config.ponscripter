@@ -7,7 +7,7 @@ PSCFLAGS := $(PSCFLAGS) -D 'DEFAULT_WM_TITLE="Narcissu Side 2nd"'
 NARCI = true
 RESOURCES = $(GAME).png =icon.png
 RCFILE = $(GAME).rc
-RCDEPS = $(GAME).gdf $(GAME)-boxart.png
+RCDEPS = $(GAME).gdf $(GAME)-boxart.png $(GAME).ico
 
 .PHONY: final
 final: ponscr$(EXESUFFIX)

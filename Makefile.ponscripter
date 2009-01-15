@@ -74,7 +74,7 @@ PonscripterLabel_rmenu$(OBJSUFFIX): $(SCRIPTER_H)
 PonscripterLabel_sound$(OBJSUFFIX): $(SCRIPTER_H)
 PonscripterLabel_text$(OBJSUFFIX): $(SCRIPTER_H)
 pstring$(OBJSUFFIX): $(ENCODING_H)
-resources$(OBJSUFFIX): $(EXTRADEPS) resources.h
+resources$(OBJSUFFIX): $(EXTRADEPS) resources.h 
 SarReader$(OBJSUFFIX): SarReader.h DirectReader.h BaseReader.h $(ENCODING_H)
 ScriptHandler$(OBJSUFFIX): $(HANDLER_H)
 ScriptParser_command$(OBJSUFFIX): $(PARSER_H)
