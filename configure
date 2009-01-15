@@ -856,7 +856,7 @@ if [ "$SYS" = "MinGW" ]
 then cat >> Makefile <<_EOF
 
 RCFILE ?= ponscr.rc
-win32rc.o: \$(RCFILE)
+win32rc.o: \$(RCFILE) \$(RCDEPS)
 	\$(WINDRES) \$< -o \$@
 
 %.rc: %.rc.in version.h
