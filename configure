@@ -1,7 +1,7 @@
 #! /bin/sh
 
 # Autoconf is ugly and complex. This is still ugly, but at least it's
-# simple, and should be good enough for most plausible build cases.
+# simple, and should be good enough for most common build cases.
 
 # ---------- Utility definitions ----------
 
@@ -25,6 +25,7 @@ if [ -z "$AR"     ]; then AR=ar; fi
 if [ -z "$RANLIB" ]; then RANLIB=ranlib; fi
 UNSUPPORTED_COMPILER=false
 CROSSCOMPILE=false
+STRIPFLAG=-s
 INTERNAL_LIBS=false
 INTERNAL_SDL=false
 INTERNAL_SDL_IMAGE=false
@@ -778,7 +779,14 @@ FreeBSD) INTERNAL_LDFLAGS="-L/usr/X11R6/lib -lX11 -lXi -lXrandr" ;;
 NetBSD)  INTERNAL_LDFLAGS="\$(foreach x,11 i randr ext render,/usr/X11R6/lib/libX\$(x).a) -lossaudio" ;;
 OpenBSD) INTERNAL_LDFLAGS="-L/usr/X11R6/lib -lX11 -lXi -lXrandr -lossaudio" ;;
 Solaris) INTERNAL_LDFLAGS="-lX11 -lXext"
-         EXTRA_DEPS="-DCONST_ICONV" ;;
+         # Thanks for the unnecessary and incompatible iconv library, GNU.
+	 if $INTERNAL_SDL && test -f /usr/local/include/iconv.h; then
+	     INTERNAL_LDFLAGS="$INTERNAL_LDFLAGS -L/usr/local/lib -liconv"
+	 fi
+         EXTRA_DEPS="-DCONST_ICONV"
+	 # Stripping binaries can break them, so we don't.
+	 STRIPFLAG=
+	 ;;
 esac
 cat >> Makefile <<_EOF
 
@@ -825,7 +833,7 @@ distclean: clean pdistclean \$(DISTCLEAN_TARGETS)
 	rm -f Makefile
 
 install: all
-	./install-sh -c -s \$(TARGET) \$(PREFIX)/bin/\$(TARGET)
+	./install-sh -c $STRIPFLAG \$(TARGET) \$(PREFIX)/bin/\$(TARGET)
 	./install-man \$(PREFIX)
 
 dist:

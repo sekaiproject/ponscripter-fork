@@ -7,7 +7,18 @@ This is the usual
   sudo make install
 
 This will use gcc by default; to use icc, start with
+
   CC=icc ./configure
+
+If you have problems, try using internal libraries as described below.
+You may need to tweak linker flags manually -- unfortunately SDL is
+not very good at reporting which libraries it depends on.  (On
+Solaris, for example, it will happily use GNU's iconv headers, and
+then forget to reveal that it requires libiconv.)
+
+Other compilers are unsupported; some (Microsoft's cl and Sun
+WorkShop) are known not to work.
+
 
 * TO BUILD A RELATIVELY REDISTRIBUTABLE PONSCRIPTER BINARY
 
@@ -15,7 +26,7 @@ This will use gcc by default; to use icc, start with
   make
 
 This will statically link as many libraries as possible into the
-executable, which makes life better on systems with very primitive
+executable, which makes life better on systems with primitive
 application installation methods, such as OS X and Windows.
  
 If you are compiling Ponscripter for a system with modern package
@@ -24,10 +35,13 @@ specific Linux distribution - then it will make more sense to omit the
 --with-internal-libs, compile a dynamically linked executable, and
 have your package depend on the regular platform-specific packages for
 SDL, Freetype, and all the other dependencies.  This will simplify
-your life considerably.
+your life somewhat.
 
 
 * NOTES
 
 For Windows builds, use a MinGW toolchain in the MSYS environment.
+
+
+* KNOWN BUGS
 

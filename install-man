@@ -4,9 +4,8 @@
 PREFIX=$1
 for t in doc/*.[0-9]
 do
-    # Are these portable, or should I really be using sed?   ^_^;
-    FILE=${t##*/}
-    NUM=${t#${t%[0-9]}}
+    FILE=`expr $t : '^.*/\(.*\)$'`
+    NUM=`expr $t : '^.*\.\([0-9]*\)$'`
     
     ./install-sh -c -m 644 $t $PREFIX/man/man$NUM/$FILE
 done
