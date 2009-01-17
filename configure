@@ -784,7 +784,7 @@ cat >> Makefile <<_EOF
 
 LIBS = $OURLIBS \\
        $LINKSDL_image \$(if \$(findstring true,$INTERNAL_SDL_IMAGE),$LINKjpeg $LINKpng $LINKz) \\
-       $LINKSDL_mixer \$(if  \$(or \$(findstring true,$INTERNAL_SDL_MIXER),\$(findstring true,$EXPLICIT_OGGLIBS)),$LINKvorbisfile $LINKvorbis $LINKogg) \\
+       $LINKSDL_mixer \$(if  \$(findstring true,$INTERNAL_SDL_MIXER$EXPLICIT_OGGLIBS),$LINKvorbisfile $LINKvorbis $LINKogg) \\
        \$(shell $SDL_CONFIG --libs)      \\
        \$(shell $SMPEG_CONFIG --libs)    \\
        \$(shell $FREETYPE_CONFIG --libs) \\
