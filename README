@@ -36,6 +36,11 @@ them will be a very low priority indeed.
 
 To put it another way, consider what you want:
 
+Q. Do you just want to play games that are specifically designed
+  for Ponscripter?
+
+A. Use Ponscripter.
+
 Q. Are you are a user or developer who wants a portable game engine
   that works well with both Japanese and English games, and that
   strives to implement an NScripter-compatible system conforming to
@@ -58,21 +63,15 @@ Q. Are you a translator or developer who wants pretty Western text on
 A. Porting an existing game to Ponscripter _might_ be easier than
   rewriting from scratch in Ren'Py.
 
-This is still very much a work in progress.  What little documentation
-there is can be found in the file "MANUAL".
-
 
 --- A DIRE WARNING
-
-Ponscripter is a mess of fragile hacks.  It extends ONScripter by
-brute force, not by elegant design.
 
 Ponscripter deliberately breaks compatibility with ONScripter.  For
 example, it is sometimes able to read ONScripter saved games, but
 ONScripter will almost never be able to read Ponscripter saved games.
 
-If you use this program, you do so at your own risk, and Haeleth will
-not be held liable for any damage that ensues.
+If you use this program with games that were not designed for it, you
+do so at your own risk.
 
 Also, do NOT bother Ogapee with any bugs or problems you encounter.
 This is a heavily modified fork.  I have fiddled around with the
@@ -94,9 +93,13 @@ Most of my testing is carried out on the following platforms:
 * Ubuntu 8.10     i386   (low-spec test platform)
 * MacOS X 10.4    i386   (built as universal binary)
 
-Note that I no longer build or test on any version of Microsoft
-Windows.  The Win32 binaries I provide are cross-compiled on a Linux
-host, and some basic tests are performed with Wine, but nothing more.
+Note that I no longer regularly build or test on any version of
+Microsoft Windows.  The Win32 binaries I provide are normally
+cross-compiled on a Linux host.
+
+I have tried to keep the code portable.  It has at various times
+worked on most BSDs and on Solaris 10.  However, these are not tested
+regularly.
 
 === OS X ISSUES
 
@@ -128,6 +131,7 @@ to the NScripter world in the first place.
 The following people (in alphabetical order) have contributed 
 noteworthy patches and bug reports that have enhanced Ponscripter:
 
+  Agilis
   Mion of Sonozaki Futago-tachi
   Roine Gustafsson
   Roto
@@ -140,7 +144,7 @@ record straight!
 --- LICENSING
 
 ONScripter is copyright © 2001-2007 Ogapee.  The Ponscripter fork is
-copyright © 2006-2008 Haeleth.
+copyright © 2006-2009 Haeleth.
 
 Ponscripter is licensed under the GNU General Public License, version
 2 or (at your option) any later version.  See COPYING for details.

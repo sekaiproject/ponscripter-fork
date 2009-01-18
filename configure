@@ -6,7 +6,7 @@
 # ---------- Utility definitions ----------
 
 # Moderately portable echo
-case "`echo 'x\c'`" in
+case `echo 'x\c'` in
 'x\c') echo_n="echo -n"; nobr= ;;
 *)     echo_n="echo";    nobr="\c" ;;
 esac
@@ -42,8 +42,10 @@ EXPLICIT_OGGLIBS=false
 SDL_CONFIG=sdl-config
 SMPEG_CONFIG=smpeg-config
 FREETYPE_CONFIG=freetype-config
+EXTLIB=./extlib
+MAKEFILE=src/Makefile
 
-VERSION=`awk '/define VER_NUMBER/ {print $3}' version.h`
+VERSION=`awk '/define VER_NUMBER/ {print $3}' src/version.h`
 
 # Parse options
 prev=
@@ -186,8 +188,8 @@ internalise_SDL() {
     INTERNAL_SDL_IMAGE=true
     INTERNAL_SDL_MIXER=true
     INTERNAL_SMPEG=true
-    SDL_CONFIG=./extlib/bin/sdl-config
-    SMPEG_CONFIG=./extlib/bin/smpeg-config
+    SDL_CONFIG=$EXTLIB/bin/sdl-config
+    SMPEG_CONFIG=$EXTLIB/bin/smpeg-config
 }
 
 if $INTERNAL_LIBS
@@ -209,11 +211,13 @@ echo "Configuring Ponscripter $VERSION"
 
 # Platform
 $echo_n "Checking platform type... ${nobr}"
-BUILDPLATFORM=`./config.guess`
+BUILDPLATFORM=`util/config.guess`
 if [ -n "$PLATFORM" ]
 then 
     PLATFORM=`$echo_n "$PLATFORM${nobr}" | tr '[:upper:]' '[:lower:]'`
-    if ./config.sub $PLATFORM >/dev/null 2>&1; then PLATFORM=`./config.sub $PLATFORM`; fi
+    if util/config.sub $PLATFORM >/dev/null 2>&1
+    then PLATFORM=`util/config.sub $PLATFORM`
+    fi
 else
     PLATFORM=$BUILDPLATFORM
 fi
@@ -375,7 +379,7 @@ cd .configtest
 
 if $INTERNAL_SDL
 then
-    SDL_CONFIG=./extlib/bin/sdl-config
+    SDL_CONFIG=$EXTLIB/bin/sdl-config
 else
     $echo_n "Checking for system SDL... ${nobr}"
     VER=`($SDL_CONFIG --version) 2>/dev/null`
@@ -566,7 +570,7 @@ rm -rf .configtest
 
 if $INTERNAL_SMPEG
 then
-    SMPEG_CONFIG=./extlib/bin/smpeg-config
+    SMPEG_CONFIG=$EXTLIB/bin/smpeg-config
 else
     $echo_n "Checking for system libsmpeg... ${nobr}"
     VER=`($SMPEG_CONFIG --version) 2>/dev/null`
@@ -574,13 +578,13 @@ else
     then echo "yes"
     else echo "no"
 	INTERNAL_SMPEG=true
-	SMPEG_CONFIG=./extlib/bin/smpeg-config
+	SMPEG_CONFIG=$EXTLIB/bin/smpeg-config
     fi
 fi
 
 if $INTERNAL_FREETYPE
 then
-    FREETYPE_CONFIG=./extlib/bin/freetype-config
+    FREETYPE_CONFIG=$EXTLIB/bin/freetype-config
 else
     $echo_n "Checking for system Freetype... ${nobr}"
     VER=`($FREETYPE_CONFIG --ftversion) 2>/dev/null`
@@ -601,7 +605,7 @@ else
 	        INTERNAL_FREETYPE=true ;;
     esac
     if $INTERNAL_FREETYPE
-    then FREETYPE_CONFIG=./extlib/bin/freetype-config
+    then FREETYPE_CONFIG=$EXTLIB/bin/freetype-config
     fi
 fi
 
@@ -643,7 +647,7 @@ genlink $INTERNAL_OGGLIBS   vorbisfile
 genlink $INTERNAL_SDL_MIXER SDL_mixer
 genlink $INTERNAL_BZIP2     bz2
 
-if [ -n "$MLIB" -a ! -d extlib ]
+if [ -n "$MLIB" -a ! -d src/extlib ]
 then
     cat <<_EOF
 
@@ -688,7 +692,7 @@ MinGW)  EXE=.exe ; OBJ=.o ; LIB=.a ; W32=true ;;
 esac
 
 
-cat > Makefile <<_EOF
+cat > $MAKEFILE <<_EOF
 # -*- makefile-gmake -*-
 #
 # THIS IS A GENERATED FILE - changes will not be kept if configure is
@@ -702,8 +706,6 @@ OBJSUFFIX=$OBJ
 LIBSUFFIX=$LIB
 EXESUFFIX=$EXE
 
-PREFIX ?= $PREFIX
-
 # Extra handling for internal libraries.
 EXTRADEPS=$DEPS
 INTERNAL_SDL=\$(findstring true,$INTERNAL_SDL)
@@ -711,11 +713,6 @@ INTERNAL_SMPEG=\$(findstring true,$INTERNAL_SMPEG)
 INTERNAL_LIBPNG=\$(findstring true,$INTERNAL_LIBPNG)
 INTERNAL_LIBJPEG=\$(findstring true,$INTERNAL_LIBJPEG)
 INTERNAL_OGGLIBS=\$(findstring true,$INTERNAL_OGGLIBS)
-
-export PATH     := $OURPATH\$(PATH)
-export CFLAGS   := $OURINCLUDE \$(CFLAGS)
-export CPPFLAGS := $OURINCLUDE \$(CPPFLAGS)
-export LDFLAGS  := $OURLDFLAGS \$(LDFLAGS)
 
 export CC      := $CC
 export CXX     := $CXX
@@ -733,7 +730,7 @@ _EOF
 case "$SYS" in 
 MinGW)
 if $CROSSCOMPILE
-then cat >> Makefile <<_EOF
+then cat >> $MAKEFILE <<_EOF
 
 export FORCE_INT_SIZES := yes
 OTHERCONFIG    := --host=i586-mingw32msvc --disable-sdltest 
@@ -741,7 +738,7 @@ SDLOTHERCONFIG := --host=i586-mingw32msvc
 
 _EOF
 fi
-cat >> Makefile <<_EOF
+cat >> $MAKEFILE <<_EOF
 export WINDRES := $WINDRES
 
 LIBS = $OURLIBS \\
@@ -757,7 +754,7 @@ EXT_OBJS = SDL_win32_main.o win32rc.o
 _EOF
 ;;
 MacOSX)
-cat >> Makefile <<_EOF
+cat >> $MAKEFILE <<_EOF
 
 LIBS = $OURLIBS \\
        \$(shell $SDL_CONFIG --static-libs) \\
@@ -788,7 +785,7 @@ Solaris) INTERNAL_LDFLAGS="-lX11 -lXext"
 	 STRIPFLAG=
 	 ;;
 esac
-cat >> Makefile <<_EOF
+cat >> $MAKEFILE <<_EOF
 
 LIBS = $OURLIBS \\
        $LINKSDL_image \$(if \$(findstring true,$INTERNAL_SDL_IMAGE),$LINKjpeg $LINKpng $LINKz) \\
@@ -802,12 +799,12 @@ DEFS = -DLINUX -DUSE_OGG_VORBIS $EXTRA_DEPS
 _EOF
 ;; esac
 if [ "$POSIX" = "Linux" ]
-then cat >> Makefile <<_EOF
+then cat >> $MAKEFILE <<_EOF
 
 SDL_MIXER_FLAGS = --enable-music-native-midi-gpl
 _EOF
 fi
-cat >> Makefile <<_EOF
+cat >> $MAKEFILE <<_EOF
 
 .SUFFIXES:
 .SUFFIXES: $OBJ .cpp .h .c
@@ -818,9 +815,7 @@ else
 PSCFLAGS += -O3 -Wpointer-arith -Wno-parentheses -Wno-uninitialized -Werror -fomit-frame-pointer -pipe 
 endif
 
-TARGET = ponscr$EXE
-
-.PHONY: all clean distclean install dist
+.PHONY: all clean distclean
 all: \$(TARGET)
 
 include Makefile.extlibs
@@ -832,42 +827,16 @@ distclean: clean pdistclean \$(DISTCLEAN_TARGETS)
 	         extlib/share extlib/man
 	rm -f Makefile
 
-install: all
-	./install-sh -c $STRIPFLAG \$(TARGET) \$(PREFIX)/bin/\$(TARGET)
-	./install-man \$(PREFIX)
-
-dist:
-	mkdir -p ~dist_temp/ponscripter-$VERSION
-	cp *.c *.cpp *.h BUGS CHANGES COPYING INSTALL README MANUAL \
-	   Makefile.extlibs Makefile.ponscripter \
-	   default.ico default.png ponscr.rc config.ponscripter \
-	   configure config.guess config.sub install-sh \
-	   ~dist_temp/ponscripter-$VERSION/.
-	test -f config.ponscripter.dist && cp config.ponscripter.dist \
-	           ~dist_temp/ponscripter-$VERSION/config.ponscripter
-	test -f README.dist && cp README.dist \
-	           ~dist_temp/ponscripter-$VERSION/README
-	cd ~dist_temp; \
-	    tar cf ../ponscripter-$VERSION-src.tar ponscripter-$VERSION
-	bzip2 -9 ponscripter-$VERSION-src.tar
-	if svn export extlib ~dist_temp/ponscripter-$VERSION/extlib; then \
-	    cd ~dist_temp; \
-	    tar cf ../ponscripter-$VERSION-fullsrc.tar ponscripter-$VERSION; \
-	    cd ..; \
-	    bzip2 -9 ponscripter-$VERSION-fullsrc.tar; \
-	fi
-	rm -rf ~dist_temp
-
 _EOF
 
 if [ "$SYS" = "MinGW" ]
-then cat >> Makefile <<_EOF
+then cat >> $MAKEFILE <<_EOF
 
 RCFILE ?= ponscr.rc
 win32rc.o: \$(RCFILE) \$(RCDEPS)
 	\$(WINDRES) \$< -o \$@
 
-%.rc: %.rc.in version.h
+%.rc: resources/%.rc.in version.h
 	ver=\`awk '/define VER_NUMBER/ { print $\$3 }' version.h\`; \\
 	y=\`expr substr $\$ver 1 4\`; \\
 	m=\`expr substr $\$ver 5 2 | sed s/^0// \`; \\
@@ -878,6 +847,69 @@ SDL_win32_main.o: SDL_win32_main.c
 	\$(CC) \$(INCS) \$(DEFS) -c \$< -o \$@
 _EOF
 fi
+
+cat > Makefile <<_EOF
+# -*- makefile-gmake -*-
+#
+# THIS IS A GENERATED FILE - changes will not be kept if configure is
+# run again.  If you wish to customise it, please be sure to give your
+# version a different filename.
+#
+# Top-level makefile for Ponscripter
+
+.PHONY: all install uninstall pclean clean distclean dist
+
+export TARGET   := ponscr$EXE
+export PREFIX   ?= $PREFIX
+export PATH     := $OURPATH \$(PATH)
+export CFLAGS   := $OURINCLUDE \$(CFLAGS)
+export CPPFLAGS := $OURINCLUDE \$(CPPFLAGS)
+export LDFLAGS  := $OURLDFLAGS \$(LDFLAGS)
+
+
+all:
+	\$(MAKE) -C src all
+
+install: all
+	util/install-sh -c $STRIPFLAG src/\$(TARGET) \$(PREFIX)/bin/\$(TARGET)
+	util/install-man install \$(PREFIX) doc/*.[0-9]
+
+uninstall:
+	\$(RM) \$(PREFIX)/bin/\$(TARGET)
+	util/install-man remove \$(PREFIX) doc/*.[0-9]
+
+pclean:
+	\$(MAKE) -C src pclean
+
+clean:
+	\$(MAKE) -C src clean
+
+distclean:
+	\$(MAKE) -C src distclean
+	\$(RM) Makefile
+	\$(RM) ponscripter.spec
+	\$(RM) \$(DIST)*.tar.bz2
+	\$(RM) -r \$(DIST)
+
+ponscripter.spec: ponscripter.spec.in util/pander-to-rpm-stupidity
+	sed 's/^Version:/& $VERSION/' \$< > \$@
+	util/pander-to-rpm-stupidity CHANGES >> \$@
+
+DIST = ponscripter-$VERSION
+dist: ponscripter.spec
+	\$(RM) \$(DIST)*.tar.bz2
+	\$(RM) -r \$(DIST)
+	svn export --depth files . \$(DIST)
+	svn export --depth files src \$(DIST)/src
+	for t in src/resources misc doc util test debian; do \\
+	    svn export \$\$t \$(DIST)/\$\$t;                 \\
+	done
+	cp ponscripter.spec \$(DIST)
+	tar cjf \$(DIST)-minimal.tar.bz2 \$(DIST)
+	svn export src/extlib \$(DIST)/src/extlib
+	tar cjf \$(DIST).tar.bz2 \$(DIST)
+
+_EOF
 
 echo "done"
 echo "Now run \"$MAKE\" to build Ponscripter."

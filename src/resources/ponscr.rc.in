@@ -1,0 +1,26 @@
+ONSCRICON ICON "resources/default.ico"
+
+1 VERSIONINFO
+FILEVERSION @Y@, @M@, @D@, 0
+PRODUCTVERSION @Y@, 7, @D@, 0
+FILEFLAGS 32
+FILEOS 4
+FILETYPE 1
+{
+   BLOCK "StringFileInfo" {
+       BLOCK "080904b0" {
+           VALUE "FileDescription", "Proportional ONScripter"
+           VALUE "OriginalFilename", "ponscr.exe"
+           VALUE "CompanyName", "Studio OGA/insani/Haeleth"
+           VALUE "FileVersion", "@Y@-@M@-@D@"
+           VALUE "LegalCopyright", "Copyright (c) 1998-2007 Studio O.G.A, 2005-6 insani, 2006-@Y@ Haeleth."
+           VALUE "ProductName", "Ponscripter"
+           VALUE "ProductVersion", "@Y@-@M@-@D@"
+           VALUE "SpecialBuild", "A fork of ONScripter with enhanced support for international text."
+           VALUE "Comments", "Ponscripter is a fork of Ogapee's ONScripter. It's licensed under the GNU General Public License: see GPL.txt for details."
+       }
+   }
+   BLOCK "VarFileInfo" {
+       VALUE "Translation", 0x0809, 0x04B0
+   }
+}

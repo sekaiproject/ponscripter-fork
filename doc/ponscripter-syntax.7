@@ -282,7 +282,7 @@ More formally:
 .BI "( " int_expr " ) \fR| " int_elt
 .br
 .BR int_elt "   ::="
-.IR int_lit " | " int_var " | " bareword
+.IR num_lit " | " int_var " | " bareword
 .br
 .BR int_var "   ::="
 .BI % int_elt " \fR| " int_array
@@ -293,7 +293,7 @@ More formally:
 .BR subscript " ::="
 .BI "[ " int_expr " ]"
 .br
-.BR int_lit "   ::="
+.BR num_lit "   ::="
 .IR [0\-9]+ " | \fB0x" [0-9a-f]+
 .br
 .BR bareword "  ::="
@@ -881,12 +881,24 @@ Certain control codes are recognised after variable interpolation,
 since they are parsed at a later stage of processing: these are text
 controls, speed controls, colour tags, and ligatures/shortcuts.
 .
-In particular \- and in contrast to NScripter \- you can do things
-like use
+In particular \- and in contrast to NScripter \- things like
 .IP "" 2
 ^!w{%var}
 .PP
-to wait for a variable length of time.
+will be interpreted as a command to wait for however long is specified
+in the given variable.
+.
+This should be considered an undefined behaviour, and will probably
+change in future; rather than rely on it, you should use the
+.BR wait
+command (and so forth) for variable timings, and in the unlikely event
+that you actually intend to print the literal string
+.BR !w
+followed by the value of
+.BR %var ,
+you should write
+.BR #!w{%var}
+to avoid ambiguity.
 .
 .PP
 .

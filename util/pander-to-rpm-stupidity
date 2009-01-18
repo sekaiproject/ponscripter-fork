@@ -1,0 +1,25 @@
+#! /usr/bin/perl -n
+#
+# RPM is braindead and stupid because it pointlessly insists on having
+# dates formatted in a totally non-standard way that is unnecessarily
+# difficult to generate and parse.  (Why, in the name of all that's
+# good and holy, does it need to be told what the WEEKDAY NAME is?!
+# If it needs to know that, it should damn well calculate it itself,
+# instead of expecting ME to remember what day the 25th of February
+# 2008 was.)
+#
+# Sigh.  We must therefore use a script to translate the changelog
+# from sensible ISO dates into the silly format RPM uses.
+
+use Date::Format;
+
+BEGIN { $empty = 0 }
+
+s/^(\d+)-(\d+)-(\d+)\s*(.*?)\s*$/
+    $v = $4 || 'Haeleth <haeleth@haeleth.net>';
+    $empty = 1;
+    $e = $empty ? "\n" : "";
+    strftime "$e* %a %b %d %Y $v\n", @{[0,0,0, $3, $2-1, $1-1900]}
+/e;
+s/^  (\S)/- $1/ and $empty = 0 if $empty;
+print unless $empty = /^\s*$/;

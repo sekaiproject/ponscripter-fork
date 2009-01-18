@@ -1,0 +1,14 @@
+Source: ponscripter
+Section: games
+Priority: optional
+Maintainer: Haeleth <haeleth@haeleth.net>
+Build-Depends: debhelper (>> 3.0.0)
+Standards-Version: 3.6.2
+
+Package: ponscripter
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: NScripter-like novel-game interpreter with Unicode support
+ Ponscripter is an interpreter for visual-novel-type games, derived
+ from ONScripter but modified significantly to improve support for
+ Western languages (at the cost of diminished support for Japanese).

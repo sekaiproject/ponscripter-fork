@@ -27,21 +27,18 @@ WorkShop) are known not to work.
 
 This will statically link as many libraries as possible into the
 executable, which makes life better on systems with primitive
-application installation methods, such as OS X and Windows.
+application installation methods, such as OS X and Windows, and when
+building binaries for use on multiple platforms.
  
 If you are compiling Ponscripter for a system with modern package
-management - for example, if you are creating a binary package for a
-specific Linux distribution - then it will make more sense to omit the
---with-internal-libs, compile a dynamically linked executable, and
-have your package depend on the regular platform-specific packages for
-SDL, Freetype, and all the other dependencies.  This will simplify
-your life somewhat.
+management and a well-defined environment -- for example, if you are
+creating a binary package for a single specific Linux distribution --
+then it may make more sense to omit the --with-internal-libs, compile
+a dynamically linked executable, and have your package depend on the
+regular platform-specific packages for SDL, Freetype, and all the
+other dependencies.
 
 
 * NOTES
 
 For Windows builds, use a MinGW toolchain in the MSYS environment.
-
-
-* KNOWN BUGS
-

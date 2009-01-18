@@ -1,3 +1,12 @@
+2009-01-18
+
+  Refactor source tree into something sane.
+
+  Improve Vista support.
+
+  Add packaging support for RPM- and DEB-based Linux distributions.
+
+
 2008-12-29
 
   Tweak script filename detection.

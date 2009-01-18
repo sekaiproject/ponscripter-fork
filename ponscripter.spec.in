@@ -1,0 +1,43 @@
+Name: ponscripter
+Version:
+Release: 0
+BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
+# Ponscripter itself is GPLv2+; libraries under extlib have various licenses
+License: GPLv2+ and LGPLv2+ and BSD and zlib and IJG
+URL: http://dev.haeleth.net/ponscripter
+Group: Amusements/Games
+Source: http://dev.haeleth.net/ponscripter/ponscripter-%{version}.tar.bz2
+Summary: Interpreter for NScripter-like novel games with Unicode support
+%description 
+Ponscripter is an interpreter for visual-novel-type games, derived
+from ONScripter but modified significantly to improve support for
+Western languages (at the cost of diminished support for Japanese).
+
+%prep
+%setup
+
+%build
+env CC="gcc $RPM_OPT_FLAGS" CXX="g++ $RPM_OPT_FLAGS" ./configure --with-internal-libs --prefix=$RPM_BUILD_ROOT/usr
+make
+
+%install
+rm -rf $RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT/usr/share/man
+make install
+gzip $RPM_BUILD_ROOT/usr/share/man/man*/*.[67]
+mkdir -p $RPM_BUILD_ROOT/usr/share/doc/ponscripter
+cp CHANGES README COPYING $RPM_BUILD_ROOT/usr/share/doc/ponscripter
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(0755,root,root)
+%dir /usr/share/doc/ponscripter
+/usr/bin/ponscr
+%defattr(0644,root,root)
+/usr/share/man/man6/*.6.gz
+/usr/share/man/man7/*.7.gz
+/usr/share/doc/ponscripter/*
+
+%changelog

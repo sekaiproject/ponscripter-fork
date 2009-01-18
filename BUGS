@@ -6,16 +6,19 @@ MAJOR BUGS
 * Unmarked text is still permitted.  (It now serves no purpose, so far
   as I know.)
 
-* Click-to-display-a-full-page doesn't work in OS X 10.4+ unless
-  coalesced updates are disabled.
-
 * Problems using fullscreen mode under Compiz on Nezumi.  The symptom
   is that the game flickers into fullscreen mode and then pops
   straight back into a window.  Something to do with the Workarounds
   plugin, but I've tried disabling workarounds individually and failed
   to isolate the cause.  :(
 
+  
 MINOR BUGS
+
+* Click-to-display-a-full-page doesn't work in OS X 10.4+ unless
+  coalesced updates are disabled.
+
+* Build uses nonportable "grep -q"
 
 * FontInfo doesn't store accurate information on extremes, so
   getFullArea(), line_space() etc don't actually return the area
@@ -34,26 +37,10 @@ HEISENBUGS
   (TODO: try to duplicate this.)
 
 * Some fades repeat randomly (doesn't happen in Linux, does in
-  Solaris) (can't duplicate this again - WTF was it?)
+  Solaris) (can't duplicate this again; may have been an issue with
+  old SDL)
 
 
 FEATURES
 
-* Interpolation of %variables and $strings; we can then use #% and #$
-  for literal % and $.
-
 * SHY (U+00AD) support would be nice.  Also non-breaking hyphens.
-
-* Subpixel rendering when running windowed on an LCD?  (Okay, now I'm
-  getting silly...)
-
-
-NOTES
-
-text_info appears to be the "surface" used to store the text
-layer. While in text mode, glyphs are also rendered directly to the
-screen, but they are stored on text_info for later use.  Adjusting
-this so that glyphs were only ever rendered to text_info -- and that
-constantly overlayed on the screen -- would make it easier to arrange
-for things like high-resolution glyph positioning (render to high-res
-text layer, downsample).

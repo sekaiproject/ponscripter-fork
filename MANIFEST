@@ -1,18 +1,28 @@
-configure       Not an autoconf script
-install-sh      A portable implementation of install(1)
-install-man     A wrapper for the above that installs doc/*
+configure                    Not an autoconf script
+ponscripter.spec.in          Builds RPM specification file
+
+src/                         The source code
+src/extlib                   Bundled libraries
+
+util/
+    install-sh               A portable implementation of install(1)
+    install-man              A wrapper for the above that installs doc/*
+    config.guess             Detects system type
+    config.sub               Canonicalises system type
+    osx_build.sh             Wraps build system to produce fat binaries
+    pander-to-rpm-stupidity  Panders to RPM stupidity
 
 doc/
-    ponscr.6                Documentation of Ponscripter program invocation
-    ponscripter.7           Overview of Ponscripter and game structure
-    ponscripter-syntax.7    Documentation of Ponscripter syntax
+    ponscr.6                 Documentation of Ponscripter program invocation
+    ponscripter.7            Overview of Ponscripter and game structure
+    ponscripter-syntax.7     Documentation of Ponscripter syntax
 
 misc/
-    ponscripter-mode.el     Emacs major mode for editing Ponscripter scripts
+    ponscripter-mode.el      Emacs major mode for editing Ponscripter scripts
 
 fonts/
-    face*.ttf   Free fonts suitable for use with Ponscripter
+    face*.ttf                Free fonts suitable for use with Ponscripter
 
 test/
-    0.txt       A basic and utterly inadequate test program
-    README      A basic and utterly inadequate description of the test program
+    0.txt                    A basic and utterly inadequate test program
+    README                   A basic and utterly inadequate description thereof

@@ -1,0 +1,18 @@
+#! /bin/sh
+# Install all manual pages.
+
+ACTION=$1
+PREFIX=$2
+if test -d $PREFIX/share/man && test ! -d $PREFIX/man
+then PREFIX=$PREFIX/share
+fi
+shift 2
+for t
+do
+    FILE=`expr $t : '^.*/\(.*\)$'`
+    NUM=`expr $t : '^.*\.\([0-9]*\)$'`
+    if test "x$ACTION" = "xinstall"
+    then util/install-sh -c -m 644 $t $PREFIX/man/man$NUM/$FILE
+    else rm -f $PREFIX/man/man$NUM/$FILE
+    fi
+done
