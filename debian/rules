@@ -9,7 +9,7 @@ configure: configure-stamp
 
 configure-stamp:
 	dh_testdir
-	./configure --with-internal-libs
+	./configure --with-internal-libs --prefix=debian/ponscripter/usr
 	touch configure-stamp
 
 build: build-stamp
@@ -28,10 +28,8 @@ clean:
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k 
-	dh_installdirs
-	mkdir -p $(CURDIR)/debian/testpack/usr/bin
-	cp $(CURDIR)/src/ponscr $(CURDIR)/debian/testpack/usr/bin
+	dh_clean -k
+	$(MAKE) install-bin
 
 binary-indep: build install
 binary-arch: build install
@@ -40,7 +38,6 @@ binary-arch: build install
 	dh_installchangelogs CHANGES
 	dh_installdocs README
 	dh_installman doc/*.[0-9]
-	dh_install --sourcedir=debian/testpack
 	dh_strip
 	dh_compress
 	dh_fixperms

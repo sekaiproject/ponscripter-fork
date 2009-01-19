@@ -41,3 +41,5 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/doc/ponscripter/*
 
 %changelog
+* Sun Jan 18 2009 Peter Jolly <haeleth@haeleth.net>
+- Initial release
