@@ -857,7 +857,7 @@ cat > Makefile <<_EOF
 #
 # Top-level makefile for Ponscripter
 
-.PHONY: all install uninstall pclean clean distclean dist
+.PHONY: all install uninstall pclean clean distclean distdir dist deb rpm
 
 export TARGET   := ponscr$EXE
 export PREFIX   ?= $PREFIX
@@ -896,7 +896,7 @@ ponscripter.spec: ponscripter.spec.in util/pander-to-rpm-stupidity
 	util/pander-to-rpm-stupidity CHANGES >> \$@
 
 DIST = ponscripter-$VERSION
-dist: ponscripter.spec
+distdir: ponscripter.spec
 	\$(RM) \$(DIST)*.tar.bz2
 	\$(RM) -r \$(DIST)
 	svn export --depth files . \$(DIST)
@@ -905,9 +905,19 @@ dist: ponscripter.spec
 	    svn export \$\$t \$(DIST)/\$\$t;                 \\
 	done
 	cp ponscripter.spec \$(DIST)
+
+dist: distdir
+	\$(RM) -r \$(DIST)/src/extlib
 	tar cjf \$(DIST)-minimal.tar.bz2 \$(DIST)
-	svn export src/extlib \$(DIST)/src/extlib
+	-svn export src/extlib \$(DIST)/src/extlib
 	tar cjf \$(DIST).tar.bz2 \$(DIST)
+
+deb: distdir
+	-svn export src/extlib \$(DIST)/src/extlib
+	cd \$(DIST); dpkg-buildpackage
+
+rpm: dist
+	rpmbuild -ta \$(DIST).tar.bz2
 
 _EOF
 

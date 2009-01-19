@@ -1,7 +1,7 @@
 Source: ponscripter
 Section: games
 Priority: optional
-Maintainer: Haeleth <haeleth@haeleth.net>
+Maintainer: Peter Jolly <haeleth@haeleth.net>
 Build-Depends: debhelper (>> 3.0.0)
 Standards-Version: 3.6.2
 

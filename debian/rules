@@ -30,7 +30,8 @@ install: build
 	dh_testroot
 	dh_clean -k 
 	dh_installdirs
-	$(MAKE) PREFIX=$(CURDIR)/debian/testpack install
+	mkdir -p $(CURDIR)/debian/testpack/usr/bin
+	cp $(CURDIR)/src/ponscr $(CURDIR)/debian/testpack/usr/bin
 
 binary-indep: build install
 binary-arch: build install
@@ -39,6 +40,7 @@ binary-arch: build install
 	dh_installchangelogs CHANGES
 	dh_installdocs README
 	dh_installman doc/*.[0-9]
+	dh_install --sourcedir=debian/testpack
 	dh_strip
 	dh_compress
 	dh_fixperms
