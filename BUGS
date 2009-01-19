@@ -15,6 +15,8 @@ MAJOR BUGS
   
 MINOR BUGS
 
+* Debian package still doesn't include the binary for some reason :(
+
 * Click-to-display-a-full-page doesn't work in OS X 10.4+ unless
   coalesced updates are disabled.
 
