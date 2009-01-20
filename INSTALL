@@ -1,44 +1,129 @@
-* TO BUILD PONSCRIPTER FOR YOUR USE
+  CONTENTS
 
-This is the usual
+Prerequisites
+Compilers
+Packages
+Building
+OS X and fat binaries
+Build options
+Common problems
+
+
+  PREREQUISITES
+
+Building Ponscripter requires the following as a bare minimum:
+
+  - A Unix-type environment with Bourne shell and standard utilities
+  - GNU make
+  - Suitable C and C++ compilers (see COMPILERS below)
+
+For Microsoft Windows, this means you need MinGW and MSYS.
+  
+If you want to use the minimal source package, you will additionally
+need development versions of the following dependencies:
+
+  - SDL
+  - SDL_image, with at least PNG, JPEG, and BMP support
+  - SDL_mixer, with at least Ogg Vorbis support
+  - smpeg
+  - bzip2
+  - Freetype
+
+If in doubt, just use the full source package, which includes all
+dependencies.
+
+
+  COMPILERS
+
+Compilation is only extensively tested with the GNU Compiler
+Collection.  Some success has been achieved with compatible compilers
+such as Intel's.
+
+The Sun Workshop compilers are known NOT to work.
+
+Microsoft's C++ compiler will not work with the Ponscripter build
+system, but should theoretically be capable of building the program.
+  
+  
+  PACKAGES
+
+Two versions of the source code are provided.
+
+The minimal package contains only Ponscripter code.  You must ensure
+that all dependencies are met yourself.
+
+The full package includes all dependencies, and will build any it
+needs.
+
+In general it doesn't make any difference which you have.  The bundled
+libraries in the full package will be ignored if your system can meet
+the dependencies, and the configure script will tell you if you have
+the minimal package and dependencies are unmet.
+
+
+  BUILDING
+
+Building Ponscripter is done in the usual way:
 
   ./configure
   make
-  sudo make install
 
-This will use gcc by default; to use icc, start with
+On Unix-like platforms you will then want to run
 
-  CC=icc ./configure
+  make install
 
-If you have problems, try using internal libraries as described below.
-You may need to tweak linker flags manually -- unfortunately SDL is
-not very good at reporting which libraries it depends on.  (On
-Solaris, for example, it will happily use GNU's iconv headers, and
-then forget to reveal that it requires libiconv.)
-
-Other compilers are unsupported; some (Microsoft's cl and Sun
-WorkShop) are known not to work.
+with suitable privileges; this will install the binary and manpages.
 
 
-* TO BUILD A RELATIVELY REDISTRIBUTABLE PONSCRIPTER BINARY
+  OS X AND FAT BINARIES
 
-  ./configure --with-internal-libs
-  make
+To build a fat binary on Mac OS X, ignore the above instructions, and
+instead run
 
-This will statically link as many libraries as possible into the
-executable, which makes life better on systems with primitive
-application installation methods, such as OS X and Windows, and when
-building binaries for use on multiple platforms.
- 
-If you are compiling Ponscripter for a system with modern package
-management and a well-defined environment -- for example, if you are
-creating a binary package for a single specific Linux distribution --
-then it may make more sense to omit the --with-internal-libs, compile
-a dynamically linked executable, and have your package depend on the
-regular platform-specific packages for SDL, Freetype, and all the
-other dependencies.
+  util/osx_build.sh
+
+This will create three files (ponscr.ppc, ponscr.intel, and ponscr)
+under src.  The third is your fat binary.
+  
+
+  BUILD OPTIONS
+
+Run
+
+  ./configure --help
+
+for a summary of available options.
+
+The two most likely to be useful are --prefix (if e.g. you want to
+install to your home directory rather than /usr/local) and
+--with-internal-libs (if you want to use only bundled libraries, not
+anything your OS provides).
+
+Reasons for using the latter include building a binary that will work
+on multiple Linux distros, or working round library incompatibilities.
 
 
-* NOTES
+  COMMON PROBLEMS
 
-For Windows builds, use a MinGW toolchain in the MSYS environment.
+  Linking Errors
+
+The linking stage of the build sometimes fails with unresolved
+symbols.
+
+This is normally SDL's fault -- sdl-config often fails to include
+libraries that SDL is actually depending on.  For example, if ESD is
+installed on Ubuntu, SDL will happily link against it without
+mentioning the fact.
+
+The workaround is to run the linking step manually (copy and paste the
+failing command from the error output), and add the necessary options
+yourself (in the above case, simply tacking on "-lesd" is all that's
+required).
+
+  Stuttering Sound
+
+Some platforms ship an SDL that doesn't like Ponscripter; the symptom
+is nasty stuttering sound.  I have observed this on Fedora.  Using
+--with-internal-libs to force the use of the bundled SDL library
+solved the problem.
+

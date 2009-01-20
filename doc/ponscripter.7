@@ -1,4 +1,4 @@
-.TH ponscripter 7
+.TH ponscripter 7 2009-01-19 Ponscripter "Ponscripter manual"
 .
 .SH NAME
 ponscripter \- Ponscripter developer notes
@@ -12,9 +12,25 @@ standard but modified significantly to improve support for Western
 languages (at the cost of diminished support for Japanese).
 .
 .PP
-.B TODO: list manpages and what they're for.
-.B Currently we have
-.BR ponscr (6),\  ponscripter-syntax (7).
+Ponscripter documentation is split into a number of sections.
+.
+.PP
+This manpage provides an overview of Ponscripter itself and the
+overall structure of a Ponscripter game.
+.
+The other sections are:
+.
+.TP 4
+.BR ponscr (6)
+The ponscr binary: Invocation, usage, and platform-specific notes.
+.
+.TP 4
+.BR ponscr-syntax (7)
+Syntax of a Ponscripter script.
+.
+.TP 4
+.BR ponscr-ext (7)
+Commands that don't exist in NScripter or ONScripter.
 .
 .SS NScripter implementations
 .
@@ -58,6 +74,11 @@ the best possible support for Western languages.
 .
 It is no longer fully NScripter-compatible, but remains an easy target
 to port NScripter games to when localising them.
+.
+.PP
+The main enhancements are support for Unicode and for formatted text,
+including multiple fonts and styles, with proportional spacing,
+kerning, ligatures, arbitrary text size and position, etc.
 .
 .SS Game format
 .
@@ -300,7 +321,15 @@ label.
 .
 .SH SEE ALSO
 .
-.BR ponscr (6)
+.BR ponscr (6), ponscr-syntax (7), ponscr-ext (7)
+.
+.PP
+.BR "NScripter documentation" ,
+for a description of the basic operation of NScripter-style games and
+documentation of most of the functionality supported.  Most NScripter
+references are only available in Japanese, but there is some
+English-language documentation at
+.IR http://nscripter.insani.org .
 .
 .\" Local variables:
 .\" mode: outline-minor

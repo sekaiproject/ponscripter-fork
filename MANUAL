@@ -1,21 +1,4 @@
-Herewith a brief explanation of the key points wherein Ponscripter
-differs from the ONScripter-En you know and love.
-
-In no particular order, I'm afraid.
-
-
-/---------------------------------------------------------------------
-|  Filenames
-
-If you wish to adapt an NScripter game to behave differently with
-Ponscripter while still working with NScripter and ONScripter, you can
-keep the script in the old Shift_JIS format and define a numalias
-PONSCRIPTER as 0; Ponscripter will sneakily modify the definition to
-give it the value 1 instead, so you can use "if PONSCRIPTER == 1" to
-execute code conditionally depending on the interpreter in use.  Note
-however that most of the features described below are not available in
-compatibility mode.
-
+This document is obsolete; it's being migrated to the manpages.
 
 /---------------------------------------------------------------------
 |  h_mapfont <int>, <string>, [metrics file]

@@ -2,7 +2,7 @@
  *
  *  PonscripterLabel_ext.cpp - Ponscripter extensions to the NScripter API
  *
- *  Copyright (c) 2006-7 Peter Jolly
+ *  Copyright (c) 2006-9 Peter Jolly
  *
  *  haeleth@haeleth.net
  *

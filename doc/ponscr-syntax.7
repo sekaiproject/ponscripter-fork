@@ -1,10 +1,12 @@
-.TH ponscripter-syntax 7
+.TH ponscr-syntax 7 2009-01-19 Ponscripter "Ponscripter manual"
 .
 .\" This currently doesn't format well with WoMan.
 .\" Problems: `.IP "" n', `\(dq'
 .
+.if n .ad l
+.nh
 .SH NAME
-ponscripter-syntax \- description of Ponscripter syntax
+ponscr-syntax \- description of Ponscripter syntax
 .
 .SH DESCRIPTION
 .
@@ -12,7 +14,7 @@ This page documents the syntax of Ponscripter scripts.
 .
 See
 .BR ponscripter (7)
-for an overview of available documentation.
+for an overview of other documentation.
 .
 .PP
 Note that this cannot be considered NScripter documentation.
@@ -89,9 +91,11 @@ using.
 .PP
 For example, given the following definitions:
 .IP "" 2
-numalias foo, 100
+.B numalias
+foo, 100
 .br
-stralias foo, ^bar^
+.B stralias
+foo, ^bar^
 .PP
 the constant `foo' would have the value 100 in integer context, but
 would have the value `bar' in string context.
@@ -414,12 +418,18 @@ a comma-separated list of expressions (parentheses are not used).
 consist of a label literal, which serves as a name for that point in
 the script.
 .
+There is also a form of anonymous label, represented by a single
+.B ~
+character, which is used by the
+.B jumpf
+and
+.B jumpb
+commands.
+.
 .IP \(bu
 .BR Text
 commands consist of a text delimiter, which switches the interpreter
 into text mode for the remainder of the line; see next section.
-.
-.\" TODO any others (e.g. ~)
 .
 .SS Text mode
 .
@@ -583,25 +593,30 @@ The tags in this section, with the exception of
 assume that Ponscripter's eight font slots are assigned according to
 the following convention:
 .IP "" 2
-0 \- text book regular
+0 \- text regular
 .br
-1 \- text book italic
+1 \- text italic
 .br
-2 \- text bold regular
+2 \- text bold
 .br
 3 \- text bold italic
 .br
-4 \- display book regular
+4 \- display regular
 .br
-5 \- display book italic 
+5 \- display italic 
 .br
-6 \- display bold regular
+6 \- display bold
 .br
 7 \- display bold italic
 .PP
 If fonts are assigned in any other way, tags such as
 .BR b \ and \ i
 will not behave as documented.
+.
+Font slots are assigned using the
+.B h_mapfont
+command, which is documented in
+.BR ponscr-ext (7)
 .
 .TP 2
 .BI c N
@@ -712,28 +727,32 @@ pixels up
 .
 .PP
 .B Indentation
-.PP
 .
-.\" TODO: document
-\" INDENTATION TAGS
-
-\"   n  Set indent at current x position. Subsequent newlines on the same
-\"      screen will line up with this.
-  
-\"   u  Cancel any indent setting.
-
-\" In addition to these tags, screens that begin with certain characters
-\" (including opening quotes and em dashes) have indents set
-\" automatically.  These characters can be overridden with the
-\" "h_indentstr" command, though there will usually be no need to do
-\" this.
-
-\" Indentation example:
-
-\" ^**%.Item 1; if this text wraps, it will go back to the left margin.
-\" ^**%.~n~Item 2; if this text wraps it will line up with the bullet.~u~
-\" ^If there wasn't a ~~u~~ at the end of the last line, this would also 
-\" ^line up with the bullet.\
+.TP 2
+.BI "n "
+Set the indent to the current horizontal position.
+.
+New text lines will start from this offset until the end of the
+current page.
+.
+.TP 2
+.BI "u "
+Reset the indent to the left margin.
+.
+This will only affect
+.I subsequent
+line breaks; to end an indented section within a page, position this
+at the end of the last line of the indented section.
+.
+.PP
+In addition to these tags, the indent is set automatically when the
+first character of a page is an indent character.
+.
+The set of indent characters can be configured with the
+.B h_indentstr
+command (described in
+.BR ponscr-ext (7)).
+By default it includes opening quotes and em dashes.
 .
 .PP
 .B Formatting examples
@@ -744,7 +763,8 @@ displays page headings at the top of each screen with code like
 .IP "" 2
 .RB ^\fI!s0 ~i\ %120\ x-20\ y-40~ \ Heading ~i\ =0~ \fI!sd
 .br
-br2 120
+.B br2
+120
 .PP
 Here the !s0 and !sd are the usual NScripter commands.
 .
@@ -753,6 +773,19 @@ size, and shifts the output position up and to the left.
 .
 The second tag block cancels the italic effect and resets the font
 size to normal.
+.
+.PP
+An example of indentation:
+.IP "" 2
+^**%.Item 1
+.br
+^Not indented
+.br
+.RB ^**%. ~n~ Item\ 2
+.br
+.RB ^Indented ~u~
+.br
+^Not indented
 .
 .SS Ligatures and shortcuts
 .
@@ -768,8 +801,16 @@ It is only enabled in native scripts; none of this is possible in
 legacy mode.
 .
 .PP
-A multi-character sequence can be inserted literally by use of a
-separator character (either a Unicode ZWNJ or a |), e.g.
+A shortcut is a mapping of a sequence of characters to a Unicode
+codepoint.
+.
+As text is rendered, it is checked for known sequences; if one is
+found, and the corresponding Unicode character has a glyph in the
+current font, then that is substituted.
+.
+.PP
+A shortcut sequence can be inserted literally by separating the
+characters with either a Unicode ZWNJ or a | character, e.g.
 .BR `|`
 to insert two separate open single quotes.
 .
@@ -795,63 +836,8 @@ to the hash escapes described above:
 .PP
 Additional sequences can be defined by use of the
 .BR h_ligate
-command.
-.
-In particular,
-.IP "" 2
-h_ligate punctuation
-.PP
-defines the following shortcuts:
-.IP "" 2
-.BR ... \ \->
-ellipsis
-.br
-.BR \-\-
-\-> en dash
-.br
-.BR \-\-\-
-\-> em dash
-.br
-.BR (c)
-\-> copyright symbol
-.br
-.BR (r)
-\-> registered trademark symbol
-.br
-.BR (tm)
-\-> trademark symbol
-.br
-.BR ++
-\-> dagger
-.br
-.BR +++
-\-> double dagger
-.br
-.BR **
-\-> bullet
-.br
-.BR %_
-\-> non-breaking space
-.br
-.BR %\-
-\-> non-breaking hyphen
-.br
-.BR %\. \ \->
-thin space
-.PP
-A
-.I full
-set of `f' ligatures can be defined with
-.IP "" 2
-h_ligate f_ligatures
-.PP
-However, this includes the less common `ffi' and `ffl' ligatures; if
-you're using a font that omits these, you will want to define the
-common ligatures manually with something like
-.IP "" 2
-h_ligate \(dqfi\(dq, 0xfb01
-.br
-h_ligate \(dqfl\(dq, 0xfb02
+command: see
+.BR ponscr-ext (7).
 .
 .SS Variable interpolation
 .
@@ -883,7 +869,7 @@ controls, speed controls, colour tags, and ligatures/shortcuts.
 .
 In particular \- and in contrast to NScripter \- things like
 .IP "" 2
-^!w{%var}
+.RI ^ !w {%var}
 .PP
 will be interpreted as a command to wait for however long is specified
 in the given variable.
@@ -911,15 +897,18 @@ work as intended.
 .
 That is to say,
 .IP "" 2
-mov $var, \(dq~b~\(dq
+.B mov
+$var, \(dq~b~\(dq
 .br
-^foo{$var}bar\e
+.RI ^foo {$var} bar\e
 .br
 ; prints \(dqfoo~b~bar\(dq
 .IP "" 2
-mov $var, ^~b~^
+.B mov
+$var,
+.RB ^ ~b~ ^
 .br
-^foo{$var}bar\e
+.RI ^foo {$var} bar\e
 .br
 .RB ;\ prints\ \(dqfoo bar \(dq
 
@@ -935,5 +924,4 @@ Ren'Py.
 .
 .SH SEE ALSO
 .
-.BR ponscripter (7),
-.BR ponscr (6)
+.BR ponscripter (7)

@@ -1,70 +1,33 @@
 CONTENTS
 
-1. Overview
-2. A dire warning
-3. Compatibility (incl. platform-specific issues)
+1. Introduction
+2. Disclaimer
+3. Compatibility
 4. Acknowledgements
 5. Licensing
 
 
---- OVERVIEW
+--- INTRODUCTION
 
-Ponscripter is a fork of Ogapee's ONScripter, which in turn is an
-enhanced clone of NScripter.
+Ponscripter is an NScripter-style novel-game interpreter with an
+emphasis on supporting games in Western languages.  The goal is to
+provide an easy porting target for translation projects.
 
-While ONScripter adds basic support for Western text to the NScripter
-system, it does so only insofar as is easily done while retaining
-compatibility with unmodified Japanese games.  ONScripter-En takes
-things slightly further, but really good English support requires
-fundamental changes.  Hence Ponscripter, which builds on the
-ONScripter source code, but removes many Japanese-specific features
-(vertical text, ruby), makes some fundamental architectural changes to
-better support Western games (proportionally spaced text, scripts
-encoded as UTF-8 rather than Shift_JIS), and adds some generally nice
-features like support for multiple fonts and text styles in the
-process.
+If you want an multiplatform interpreter that strives to remain
+compatible with NScripter, try ONScripter-En (of which this is a fork)
+or the original ONScripter.
 
-The end result is a somewhat less stable and VASTLY less compatible
-engine -- but it sure does look a lot better when it works.
+If you want a novel-game system designed from the ground up for
+original Western-language games, try Ren'Py.
 
-I must repeat this for emphasis: unlike ONScripter-En, this engine is
-NOT designed for playing NScripter or ONScripter games!  While it is
-generally capable of running them to some extent, it is not fully
-compatible, and problems are very likely to occur.  Non-Ponscripter
-games may be considered essentially unsupported, and fixing bugs in
-them will be a very low priority indeed.
-
-To put it another way, consider what you want:
-
-Q. Do you just want to play games that are specifically designed
-  for Ponscripter?
-
-A. Use Ponscripter.
-
-Q. Are you are a user or developer who wants a portable game engine
-  that works well with both Japanese and English games, and that
-  strives to implement an NScripter-compatible system conforming to
-  all the games and technical documentation out there?
-
-A. Avoid Ponscripter like the plague and stick with ONScripter, or
-  ONScripter-En if you want better English support.
-
-Q. Are you an adventurous user who wants to experiment with an
-  unstable system that might in some circumstances be able to enhance
-  your gaming experience, or might break it in unexpected ways?
-
-A. Feel free to try Ponscripter on NScripter/ONScripter games.  But
-  back up your saved games first, and don't be at all surprised if it
-  doesn't work at all.
-
-Q. Are you a translator or developer who wants pretty Western text on
-  Windows, MacOS X, and X11, and is willing to work to get it?
-
-A. Porting an existing game to Ponscripter _might_ be easier than
-  rewriting from scratch in Ren'Py.
+Ponscripter documentation is provided in the form of a set of manual
+pages.  Start with ponscripter(7).  If you're on a proprietary system
+such as Microsoft Windows that does not support standard documentation
+formats, you should be able to access an HTML version of the
+documentation online.
 
 
---- A DIRE WARNING
+--- DISCLAIMER
 
 Ponscripter deliberately breaks compatibility with ONScripter.  For
 example, it is sometimes able to read ONScripter saved games, but
@@ -77,15 +40,10 @@ Also, do NOT bother Ogapee with any bugs or problems you encounter.
 This is a heavily modified fork.  I have fiddled around with the
 source code to the extent that many critical parts have been changed
 beyond all recognition.  It is unlikely that any bugs you find are
-anything to do with Ogapee.
+anything whatsoever to do with Ogapee.
 
 
 --- COMPATIBILITY
-
-The standard Ponscripter build requires a generally-POSIX-compatible
-build environment with GNU make -- on Windows this means MinGW + MSYS
--- and is only extensively tested using the GNU compiler suite, though
-on Linux at least it should also build with the Intel compiler.
 
 Most of my testing is carried out on the following platforms:
 
@@ -93,13 +51,17 @@ Most of my testing is carried out on the following platforms:
 * Ubuntu 8.10     i386   (low-spec test platform)
 * MacOS X 10.4    i386   (built as universal binary)
 
-Note that I no longer regularly build or test on any version of
-Microsoft Windows.  The Win32 binaries I provide are normally
-cross-compiled on a Linux host.
+Note that I do not regularly build or test on any version of Microsoft
+Windows.  The Win32 binaries I provide are cross-compiled on an Ubuntu
+host.  However, this is for practical rather than religious reasons; I
+do consider Windows to be a key target platform, and reports of
+problems building or running Ponscripter on Windows will be treated as
+seriously as any others.
 
 I have tried to keep the code portable.  It has at various times
-worked on most BSDs and on Solaris 10.  However, these are not tested
-regularly.
+worked on Fedora, openSUSE, most BSDs, and Solaris 10.  However, these
+platforms are not tested regularly.
+
 
 === OS X ISSUES
 
@@ -107,13 +69,6 @@ On OS X 10.4+, you will need to add a boolean key
 CGDisableCoalescedUpdates (with value "Yes") to your bundle's
 Info.plist in order for mouse clicks to cause a full page to display.
 This workaround will hopefully only be temporary.
-
-=== LINUX ISSUES
-
-The linking stage of the build sometimes fails with unresolved
-symbols.  I believe this is SDL's fault -- sdl-config often fails to
-include libraries that SDL is actually depending on.  You'll have to
-tweak things yourself.
 
 
 --- ACKNOWLEDGEMENTS
