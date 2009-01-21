@@ -10,4 +10,4 @@ BEGIN { $mode = shift }
 s(<\?I\s*(.*?)\?>){ ($i = $1) =~ s/(\$\w+)/$1/eeg; `$0 $mode doc/$i` }eg;
 s/<\?L(.*?)\?>/$1/g;
 s(<\?link\s*([^:]+):\s*(.*?)\s*\?>)
- {$mode eq 'man' ? uc "`$2'" : qq{<link linkend="$1">$2</link>}}eg;
+ { $mode eq 'man' ? uc "`$2'" : qq{<link linkend="$1">$2</link>} }eg;

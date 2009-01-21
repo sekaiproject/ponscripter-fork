@@ -2,9 +2,14 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
                "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd"
 [
-  <!ENTITY p  "ponscr">
-  <!ENTITY s6 "<manvolnum>6</manvolnum>">
-  <!ENTITY s7 "<manvolnum>7</manvolnum>">
+  <!ENTITY Ponscripter
+    "<application><emphasis role='bold'>Ponscripter</emphasis></application>">
+  <!ENTITY NScripter
+    "<application><emphasis role='bold'>NScripter</emphasis></application>">
+  <!ENTITY ONScripter
+    "<application><emphasis role='bold'>ONScripter</emphasis></application>">
+  <!ENTITY ONScripter-En
+    "<application><emphasis role='bold'>ONScripter-En</emphasis></application>">
   <?I $mode.entities ?>
 ]>
 

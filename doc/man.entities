@@ -1,3 +1,6 @@
+<!ENTITY p  "ponscr">
+<!ENTITY s6 "<manvolnum>6</manvolnum>">
+<!ENTITY s7 "<manvolnum>7</manvolnum>">
 <!ENTITY ponscripter.7
    "<citerefentry><refentrytitle>&p;ipter</refentrytitle>&s7;</citerefentry>">
 <!ENTITY ponscr.6

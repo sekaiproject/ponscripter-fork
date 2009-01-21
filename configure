@@ -910,14 +910,14 @@ pclean:
 clean: $CLEANDOC
 	\$(MAKE) -C src clean
 
-distclean:
+distclean: $CLEANDOC
 	\$(MAKE) -C src distclean
 	\$(RM) Makefile
 	\$(RM) ponscripter.spec
 	\$(RM) \$(DIST)*.tar.bz2
 	\$(RM) -r \$(DIST)
 
-ponscripter.spec: ponscripter.spec.in util/pander-to-rpm-stupidity
+ponscripter.spec: ponscripter.spec.in
 	sed 's/^Version:/& $VERSION/' \$< > \$@
 
 DIST = ponscripter-$VERSION
