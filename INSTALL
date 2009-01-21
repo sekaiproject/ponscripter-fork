@@ -18,7 +18,13 @@ Building Ponscripter requires the following as a bare minimum:
   - Suitable C and C++ compilers (see COMPILERS below)
 
 For Microsoft Windows, this means you need MinGW and MSYS.
-  
+
+Building the documentation (which is optional) requires two further
+tools:
+
+  - Perl
+  - xmlto
+
 If you want to use the minimal source package, you will additionally
 need development versions of the following dependencies:
 

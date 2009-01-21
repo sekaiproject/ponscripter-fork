@@ -1,0 +1,13 @@
+#! /usr/bin/perl -p
+# Generate manual.xml from templates.
+#
+# See manual.xml.in for excuses about the template system in general.
+#
+# I will not try to excuse the implementation, which has probably
+# earned me a special place in programmer hell.  :D
+
+BEGIN { $mode = shift }
+s(<\?I\s*(.*?)\?>){ ($i = $1) =~ s/(\$\w+)/$1/eeg; `$0 $mode doc/$i` }eg;
+s/<\?L(.*?)\?>/$1/g;
+s(<\?link\s*([^:]+):\s*(.*?)\s*\?>)
+ {$mode eq 'man' ? uc "`$2'" : qq{<link linkend="$1">$2</link>}}eg;

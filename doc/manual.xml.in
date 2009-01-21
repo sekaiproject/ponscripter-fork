@@ -1,0 +1,48 @@
+<?xml version='1.0'?> <!--*- nxml -*-->
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+               "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd"
+[
+  <!ENTITY p  "ponscr">
+  <!ENTITY s6 "<manvolnum>6</manvolnum>">
+  <!ENTITY s7 "<manvolnum>7</manvolnum>">
+  <?I $mode.entities ?>
+]>
+
+<!--
+  We use our own ad-hoc template system because there's no other obvious
+  way of making things nice to edit (e.g. with entities recognised, etc).
+
+  We define three processing instructions:
+  
+    <?I file ?> includes the named file (which is processed recursively).
+    
+    <?L text ?> simply inserts text contents literally.  This enables us
+                to pass XML to the editor that will be commented out in
+                the final version.
+
+    <?link id: text ?> inserts TEXT in man mode; in html mode, inserts
+                       <link linkend="id">text</link>.
+     
+  Sorry to any purists who are offended to see XML treated like this.
+  (You'll be even more outraged if you look at the implementation...)
+-->
+
+<book>
+<reference>
+  <referenceinfo>
+    <date>2009-01-20</date>
+    <productname>Ponscripter</productname>
+  </referenceinfo>
+
+  <title>Ponscripter manual</title>
+
+  <?I ponscripter.7.xml   ?>
+  <?I ponscr.6.xml        ?>
+  <?I ponscr-syntax.7.xml ?>
+  <?I ponscr-ext.7.xml    ?>
+
+  <?L <!-- ?><refentry><refnamediv><refname/><refpurpose/></refnamediv>
+  <refsect1><title/><para/></refsect1></refentry><?L --> ?>
+
+</reference>
+</book>

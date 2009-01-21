@@ -26,6 +26,10 @@ if [ -z "$RANLIB" ]; then RANLIB=ranlib; fi
 UNSUPPORTED_COMPILER=false
 CROSSCOMPILE=false
 STRIPFLAG=-s
+DEFAULTDOC=
+MAKEDOC=
+CLEANDOC=
+
 INTERNAL_LIBS=false
 INTERNAL_SDL=false
 INTERNAL_SDL_IMAGE=false
@@ -223,7 +227,7 @@ else
 fi
 SYS=Posix
 POSIX=Vanilla
-case "$PLATFORM" in
+case $PLATFORM in
 *mingw*)   echo "MinGW";    SYS=MinGW; WINDRES=windres ;;
 *darwin*)  echo "Mac OS X"; SYS=MacOSX ;;
 *linux*)   echo "Linux";    POSIX=Linux ;;
@@ -275,7 +279,7 @@ then
     echo "Unsupported compiler requested; please don't complain if anything doesn't work!"
 else
     $echo_n "Checking C compiler... ${nobr}"
-    case "`($CC --version) 2>/dev/null | head -1`" in
+    case `($CC --version) 2>/dev/null | head -1` in
     gcc* | *apple*gcc* | *-gcc??GCC*) echo gcc ;;
     icc*) echo icc ;;
     *)  echo "error"
@@ -290,7 +294,7 @@ else
 fi
 
 if [ -z "$CXX" ]
-then case "x$CC" in
+then case x$CC in
 xgcc | x) CXX=g++ ;;
 xicc) CXX=icpc ;;
 *) CXX=$CC ;;
@@ -300,7 +304,7 @@ fi
 if not $UNSUPPORTED_COMPILER
 then
     $echo_n "Checking C++ compiler... ${nobr}"
-    case "`($CXX --version) 2>/dev/null | head -1`" in
+    case `($CXX --version) 2>/dev/null | head -1` in
     g++* | *apple*g++* | *-g++??GCC*) echo g++ ;;
     icpc*) echo icpc ;;
     *)  echo "error"
@@ -314,17 +318,17 @@ then
     esac
 fi
 
-case "`($CXX --version) 2>/dev/null | head -1`" in
+case `($CXX --version) 2>/dev/null | head -1` in
 g++* | *apple*g++*) CFLAGSEXTRA=-Wall ;;
 esac
 
 # Make (must be GNU)
 $echo_n "Checking for GNU make... ${nobr}"
-case "`($MAKE -v) 2>/dev/null | head -1`" in
+case `($MAKE -v) 2>/dev/null | head -1` in
 GNU?Make*)
     echo "$MAKE" ;;
 *)
-    case "`(gmake -v) 2>/dev/null | head -1`" in
+    case `(gmake -v) 2>/dev/null | head -1` in
     GNU?Make*)
 	MAKE=gmake
 	echo "gmake" ;;
@@ -597,7 +601,7 @@ else
 	    if [ -n "$VER" ]; then VER=2; fi
 	fi
     fi
-    case "$VER" in
+    case $VER in
         1.*)    echo "too old"
                  INTERNAL_FREETYPE=true ;;
         [0-9]*) echo "yes" ;;
@@ -609,6 +613,25 @@ else
     fi
 fi
 
+$echo_n "Checking for xmlto... ${nobr}"
+if xmlto --version >/dev/null 2>/dev/null; then
+    echo "found"
+    $echo_n "Checking for perl... ${nobr}"
+    if perl --version >/dev/null 2>/dev/null; then
+        echo "found"
+        MAKEDOC="doc man html"
+        CLEANDOC="cleandoc"
+        case $SYS in
+            MinGW | MacOSX) DEFAULTDOC=html ;;
+            *)              DEFAULTDOC=man  ;;
+        esac
+    else
+        echo "no: documentation will not be built"
+    fi
+else
+    echo "no: documentation will not be built"
+fi
+    
 DEPS=
 MLIB=
 require() {
@@ -858,7 +881,7 @@ cat > Makefile <<_EOF
 # Top-level makefile for Ponscripter
 
 .PHONY: all install instaall-bin uninstall pclean clean \\
-        distclean distdir dist deb rpm
+        distclean distdir dist deb rpm $MAKEDOC clean-doc
 
 export TARGET   := ponscr$EXE
 export PREFIX   := $PREFIX
@@ -868,7 +891,7 @@ export CPPFLAGS := $OURINCLUDE \$(CPPFLAGS)
 export LDFLAGS  := $OURLDFLAGS \$(LDFLAGS)
 
 
-all:
+all: $DEFAULTDOC
 	\$(MAKE) -C src all
 
 install-bin: all
@@ -884,7 +907,7 @@ uninstall:
 pclean:
 	\$(MAKE) -C src pclean
 
-clean:
+clean: $CLEANDOC
 	\$(MAKE) -C src clean
 
 distclean:
@@ -924,6 +947,27 @@ rpm: dist
 	rpmbuild -ta \$(DIST).tar.bz2
 
 _EOF
+if test -n "$MAKEDOC"; then
+    cat >> Makefile <<_EOF
+$CLEANDOC:
+	\$(RM) doc/*.[67] doc/index.html doc/rn*.html doc/manual-*.xml
+
+doc: $DEFAULTDOC
+
+man:  doc/ponscripter.7
+html: doc/index.html
+
+doc/manual-%.xml: doc/manual.xml.in doc/%.entities doc/ponscr*.xml
+	util/xml-template \$* \$< > \$@
+
+doc/%.7: doc/manual-man.xml
+	xmlto man \$< -o doc
+
+doc/%.html: doc/manual-html.xml
+	xmlto html \$< -o doc
+
+_EOF
+fi
 
 echo "done"
 echo "Now run \"$MAKE\" to build Ponscripter."

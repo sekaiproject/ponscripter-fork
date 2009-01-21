@@ -1,0 +1,24 @@
+<?L <!-- ?><!DOCTYPE book PUBLIC "-*-nxml-*-" "">
+<book><reference><title/><?L --> ?>
+
+<refentry id="ponscripter.7">
+  
+  <refmeta>
+    <refentrytitle>ponscripter</refentrytitle>
+    <manvolnum>7</manvolnum>
+  </refmeta>
+  
+  <refnamediv>
+    <refname>ponscripter</refname>
+    <refpurpose>Ponscripter overview</refpurpose>
+  </refnamediv>
+
+  <refsect1>
+    <title>Description</title>
+    <para id="directives">
+    </para>
+  </refsect1>
+
+</refentry>
+
+<?L <!-- ?></reference></book><?L --> ?>

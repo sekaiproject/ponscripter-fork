@@ -1,0 +1,8 @@
+<!ENTITY ponscripter.7
+   "<citerefentry><refentrytitle>&p;ipter</refentrytitle>&s7;</citerefentry>">
+<!ENTITY ponscr.6
+   "<citerefentry><refentrytitle>&p;</refentrytitle>&s6;</citerefentry>">
+<!ENTITY ponscr-syntax.7
+   "<citerefentry><refentrytitle>&p;-syntax</refentrytitle>&s7;</citerefentry>">
+<!ENTITY ponscr-ext.7
+   "<citerefentry><refentrytitle>&p;-ext</refentrytitle>&s7;</citerefentry>">

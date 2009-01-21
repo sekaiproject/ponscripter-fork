@@ -1,65 +1,6 @@
 This document is obsolete; it's being migrated to the manpages.
 
 /---------------------------------------------------------------------
-|  h_mapfont <int>, <string>, [metrics file]
-
-This command must be used in the *define section.
-
-Ponscripter supports up to 8 fonts/styles at a time. The intended
-convention is that this should represent two typefaces (a text face
-and a display face), each with regular, italic, bold, and bold italic
-styles. Naturally this is not enforced, though the style tag system
-was devised with this convention in mind. (See "Style tags" below for
-more details.)
-
-Unlike ONScripter, there are no requirements as to the nature of the
-fonts used. They need not be TrueType, Japanese, monospaced, or called
-"default.ttf".
-
-By default, each style N is associated with a file "faceN.ttf", which
-may either be in the game folder (a la ONScripter's "default.ttf"), in
-a subfolder called "fonts", in the game's main archive, or embedded in
-the game EXE itself.  To use fonts with different names, or to use
-non-TrueType fonts, the mappings must be set manually with the
-h_mapfont command; user-defined fonts are sought in the same places as
-the default names.
-
-As you might expect, <int> is the font slot to be mapped (0-7), and
-<string> is the filename (relative to the game's data path) of the
-font to use; if the file so named does not exist, it is sought in the
-game's archive and finally in the EXE file; if no font is found, the
-game will crash at the point where that font face is first used (_not_
-when the directive is processed!).  The font formats supported are
-those supported by the Freetype library used by the game - in the
-official Ponscripter binaries this will normally mean TrueType,
-OpenType, and Type 1 fonts, but other formats can be compiled in if
-desired.
-
-For Type 1 fonts, the outlines and metrics for each font are stored in
-separate files: the outlines in either a .pfa or .pfb, and the metrics
-in a .afm.  Both files are required for acceptable output.  The .pfa
-or .pfb should be given as the font, and the .afm given in the extra
-<metrics file> parameter.
-
-For example, given a "fonts" subdirectory of the game's data directory
-that contains the standard GhostScript outline fonts, one could use
-the command
-
-  h_mapfont 2, "n021004l.pfb", "n021004l.afm"
-
-to assign URW Nimbus Roman Bold (a Times clone) to slot 2, which by
-convention is the bold weight of the text font.
-
-Note that fonts must still be stored as part of and distributed with
-the game. It is not possible to use fonts that are installed on the
-user's computer.
-
-For compatibility with ONScripter, if a font (mapped or otherwise) is
-not found, "default.ttf" in the game directory is tried as a fallback
-measure.
-
-
-/---------------------------------------------------------------------
 |  h_ligate <string>, <int>
 |  h_ligate <string>, <string>
 |  h_ligate <string>, remove
@@ -92,49 +33,6 @@ Note that these shortcuts are not processed in clickstr, and I doubt
 they're processed in clickstr tests either.  Write your scripts in
 full UTF-8 if you want to use the clickstr feature.  (But preferably
 just don't use it; it's nasty.)
-
-
-/---------------------------------------------------------------------
-|  h_fontstyle <string>
-
-Sets default font styling.  Equivalent to inserting ~d<string>~ at the
-start of every subsequent text display command.  Note that this has no
-effect on text sprites.
-
-Only font style tags are usable in h_fontstyle sections; font size and
-position tags are not supported.
-
-For example, to set an entire section of the game in your italic
-display font, use
-
-  h_fontstyle ^si^
-  ^Your text here\
-  ^Several pages in italic display style\
-  h_fontstyle ^d^
-
-
-/---------------------------------------------------------------------
-|  h_rendering <hinting>, <positioning>
-
-Configures text rendering.
-
-hinting:
-  none = glyphs are rendered completely unhinted (default)
-  full = glyphs are rendered with Freetype hinting
-  light = glyphs are rendered with alternative Freetype hinting
-
-  The optimum setting very much depends on the fonts in question and
-  on the precise settings with which Freetype was compiled.  In
-  general, Freetype hinting makes TrueType fonts look hideous, but it
-  does sometimes help with Type 1 fonts.
-
-positioning:
-  integer = character positions are aligned to whole pixels (default)
-  float = character positions use subpixel precision
-
-  Theoretically the float mode should give better spacing, but it's
-  broken and normally looks awful.  Feel free to try it if you feel
-  adventurous, though.
 
 
 /---------------------------------------------------------------------
@@ -436,13 +334,3 @@ and fix the numerous portability issues in the above, or even to
 provide binary packages for popular free operating systems.  (With
 dependencies on a binary Ponscripter package, of course, which you're
 also welcome to provide.)
-
-
-/---------------------------------------------------------------------
-|  Support
-
-ONScripter is GPL software, and so Ponscripter is as well.  Source
-code is therefore available.
-
-I cannot guarantee support beyond that, but naturally I will do my
-best to fix any bugs you find, if time permits.

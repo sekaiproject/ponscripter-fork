@@ -9,8 +9,6 @@
 # even this hacky mess is preferable to trying to set up and maintain
 # an Xcode project to do this stuff.
 
-cd src
-
 restart=true
 if [ "$1" == "continue" ]
 then

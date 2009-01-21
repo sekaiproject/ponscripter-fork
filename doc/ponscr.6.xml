@@ -1,0 +1,394 @@
+<?L <!-- ?><!DOCTYPE book PUBLIC "-*-nxml-*-" "">
+<book><reference><title/><?L --> ?>
+
+<refentry id="ponscr.6">
+  <refmeta>
+    <refentrytitle>ponscr</refentrytitle>
+    <manvolnum>6</manvolnum>
+  </refmeta>
+  
+  <refnamediv>
+    <refname>ponscr</refname>
+    <refpurpose>the Ponscripter novel-game interpreter</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>ponscr</command>
+      <arg choice="opt">
+        <replaceable class="option">options</replaceable>
+      </arg>
+      <arg choice="opt">
+        <replaceable class="parameter">script-path</replaceable>
+      </arg>
+      <arg choice="opt">
+        <replaceable class="parameter">script-file</replaceable>
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Description</title>
+    <para>
+      This manpage documents the <command>ponscr</command> command
+      itself.  See &ponscripter.7; for an overview of other
+      documentation.
+    </para>
+    <para><command>ponscr</command> should be invoked in one of two
+    ways: either from within a game directory, or from an arbitrary
+    location with a game directory specified as an option.
+    </para>
+    <para>
+      On Unix-like operating systems other than Mac OS X, it is
+      recommended that you use the second option.  Game packagers
+      will ideally provide wrapper scripts that launch
+      <command>ponscr</command> indirectly, so users will not have
+      to know anything about the underlying interpreter.
+    </para>
+    <para>
+      On Mac OS X, the recommended approach is to create an
+      application bundle containing a Ponscripter binary and the
+      game data in the bundle's Resources directory; things will
+      then "just work".
+    </para>
+    <para>
+      On Microsoft Windows, the simplest approach is to store a
+      Ponscripter binary in the game directory.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>Options</title>
+    <para>
+      Up to two positional options may be provided, to give the root
+      path and script filename, like <option>-r</option> and
+      <option>-s</option>.  If a parameter names a directory, it is
+      given an implicit <option>-r</option>; otherwise it is given
+      an implicit <option>-s</option>.  If a filename is encountered
+      that includes a path, and no root path has been provided at
+      this point, then <command>ponscr</command> assumes that the
+      path part of the filename should be the root path.
+    </para>
+    <para>
+      If that doesn't do what you expected, use explicit options.
+    </para>
+    <para>
+      The following named options are recognised by
+      <command>ponscr</command>, in addition to the standard
+      <option>--help</option> and <option>--version</option> flags
+      (which should need no explanation):
+    </para>
+
+    <variablelist>
+      
+      <varlistentry>
+        <term><option>-r</option> <replaceable>path</replaceable></term>
+        <term><option>--root</option> <replaceable>path</replaceable></term>
+        <listitem>
+          <simpara>
+            Execute the game located at <replaceable>path</replaceable>.
+          </simpara>
+          <simpara>
+            If this option is not specified, any positional
+            parameter will be used; otherwise the default behaviour
+            on most platforms is to look for a game in the current
+            working directory.  The exception is OS X, where the
+            Resources directory of the current application bundle is
+            checked first if appropriate.
+          </simpara>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>-s</option> <replaceable>file</replaceable></term>
+        <term><option>--script</option> <replaceable>file</replaceable></term>
+        <listitem>
+          <simpara>
+            Use the script named <replaceable>file</replaceable>.  If
+            a path is given, it is interpreted relative to the current
+            working directory; if no path is given, the file is sought
+            in the root path (determined as described above).
+          </simpara>
+          <simpara>
+            If this option is not provided at all, a script file is
+            sought automatically in the root path.  The filenames
+            searched for, and their corresponding formats, are
+            described in &ponscripter.7;.  The same naming conventions
+            are observed if this option is used, except that multipart
+            scripts cannot currently be loaded this way, and
+            unobfuscated scripts may have non-numeric names.
+          </simpara>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>--save</option> <replaceable>path</replaceable></term>
+        <listitem>
+          <simpara>
+            Set the path to use for saved data.
+          </simpara>
+          <simpara>
+            This option should not normally be used; a sensible
+            default will be generated.
+          </simpara>
+          <simpara>
+            On most Unix-like platforms, saved games will be stored in
+            <filename>~/.<varname>GAME</varname></filename> (where
+            <varname>GAME</varname> is the name of the game being
+            played, or a semi-unique default if no name was provided.
+            See <?link directives: directives?> in &ponscripter.7;.)
+          </simpara>
+          <simpara>
+            On Mac OS X,
+            <filename>~/Library/Preferences/<varname>GAME</varname></filename>
+            is used instead.
+          </simpara>
+          <simpara>
+            Under Microsoft Windows, data is stored in
+            <filename><varname>%COMMON_APPDATA%</varname>\<!--
+            --><varname>GAME</varname></filename>.
+          </simpara>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>-d</option></term>
+        <term><option>--debug</option></term>
+        <listitem>
+          <simpara>
+            Enable debugging output.  Repeating this option may
+            increase the verbosity even further.
+          </simpara>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>--cdaudio</option></term>
+        <listitem>
+          <simpara>
+            Use CD audio, if available.
+            <!-- TODO: explain -->
+          </simpara>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <option>--cdnumber</option> <replaceable>number</replaceable>
+        </term>
+        <listitem>
+          <simpara>
+            Choose the CD-ROM drive number.
+            <!-- TODO: explain -->
+          </simpara>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>--registry</option> <replaceable>file</replaceable></term>
+        <listitem>
+          <simpara>
+            Ponscripter simulates NScripter's Windows registry access
+            commands by reading from a fixed text file.  This option
+            is used to specify that file.
+          </simpara>
+          <simpara>
+            (This applies even on Microsoft Windows; real registry
+            access is not supported, period.)
+          </simpara>
+        </listitem>
+      </varlistentry>
+     
+      <varlistentry>
+        <term><option>--dll</option> <replaceable>file</replaceable></term>
+        <listitem>
+          <simpara>
+            Ponscripter simulates access to arbitrary NScripter DLL
+            extensions by reading predefined function results from a
+            fixed text file.  This is enough to make games work,
+            though often not enough to make them work
+            <emphasis>properly</emphasis>.
+          </simpara>
+          <simpara>
+            Proper support for some extensions may be built into
+            Ponscripter itself.
+          </simpara>
+          <simpara>
+            (This applies even on Microsoft Windows; real DLL
+            extensions are not supported, period.)
+          </simpara>
+        </listitem>
+      </varlistentry>
+      
+      <varlistentry>
+        <term><option>--fullscreen</option></term>
+        <listitem>
+          <simpara>
+            Force Ponscripter to start in fullscreen mode.
+          </simpara>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>--window</option></term>
+        <listitem>
+          <simpara>
+            Force Ponscripter to start in windowed mode.
+          </simpara>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>--force-png-alpha</option></term>
+        <listitem>
+          <simpara>
+            Always use alpha channels for PNG transparency, even if an
+            image looks as though it might contain an NScripter-style
+            mask.  See <?link png-notes: notes?> below.
+          </simpara>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>--force-png-nscmask</option></term>
+        <listitem>
+          <simpara>
+            Always use NScripter-style masks for PNG transparency,
+            even if an image contains an alpha channel.  See
+            <?link png-notes: notes?> below.
+          </simpara>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>--force-button-shortcut</option></term>
+        <listitem>
+          <simpara>
+            Disables four NScripter commands: <function>spclclk</function>,
+            <function>getenter</function>, <function>getcursor</function>,
+            and <function>useescspc</function>.
+          </simpara>
+          <simpara>
+            (This option was inherited from ONScripter; the reason for
+            it is lost in the mists of time.)
+          </simpara>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>--enable-wheeldown-advance</option></term>
+        <listitem>
+          <simpara>
+            Allow mouse-wheel-down events to advance text.
+          </simpara>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>--key-file</option> <replaceable>file</replaceable></term>
+        <listitem>
+          <simpara>
+            Specify key file to use to read obfuscated
+            <filename>nscript.___</filename> files and their
+            accompanying archives.  This option is provided only for
+            use with legacy games; native Ponscripter games cannot be
+            obfuscated with this method.  (What would the point be?
+            Anyone could adapt Ponscripter to extract the files.)
+          </simpara>
+        </listitem>
+      </varlistentry>
+      
+      <varlistentry>
+        <term><option>--disable-rescale</option></term>
+        <listitem>
+          <simpara>
+            This is an ONScripter option that I've never used.
+            <!-- TODO: what does it do? -->
+          </simpara>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>--edit</option></term>
+        <listitem>
+          <simpara>
+            This is an ONScripter option that I've never used.
+            <!-- TODO: what does it do? -->
+          </simpara>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </refsect1>
+
+  <refsect1>
+    <title>Bugs</title>
+    
+    <itemizedlist mark="bullet">
+      <listitem>
+        <para>
+          On Microsoft Windows, all output to
+          <filename>stdout</filename> and <filename>stderr</filename>
+          is stored in files in the
+          <filename><varname>%COMMON_APPDATA%</varname>\Ponscripter</filename>
+          directory.  These are clobbered each time the program is
+          launched and deleted upon termination if empty.  Output is
+          never printed to the console, even if the interpreter was
+          launched from the command line, and the behaviour if
+          multiple instances are launched at the same time is
+          undefined.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Most fatal error messages are printed to stderr, which for
+          99% of users means the interpreter dies silently with no
+          hint as to the cause.  They should be displayed with some
+          kind of popup dialog; preferably a platform-native one,
+          where feasible.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The entire design of this interpreter is arguably a bug.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </refsect1>
+
+  <refsect1>
+    <title>Notes</title>
+
+    <refsect2 id="png-notes">
+      <title>PNG transparency</title>
+      <para>
+        The behaviour of PNG images is not well-defined, since
+        NScripter does not support them directly.  Historically, some
+        interpreters/plugins have expected them to use alpha channels
+        for transparency, while others have expected them to use
+        NScripter-style masks like BMP files do (i.e. the bitmap is
+        double width, with the left-hand side being the full-colour
+        image, and the right-hand side being a greyscale mask).
+      </para>
+      <para>
+        By default, Ponscripter uses a heuristic approach: if a PNG
+        has an alpha channel that is not completely opaque, that is
+        used, otherwise an NScripter-style mask is used if present.
+        If this fails to work for some images, and you cannot fix the
+        images in question directly, then you can use the
+        <option>--force-png-alpha</option> or
+        <option>--force-png-nscmask</option> options to overrule the
+        automatic detection.
+      </para>
+    </refsect2>
+  </refsect1>
+
+  <refsect1>
+    <title>See Also</title>
+    <simpara>&ponscripter.7;</simpara>
+  </refsect1>
+  
+</refentry>
+
+<?L <!-- ?></reference></book><?L --> ?>
