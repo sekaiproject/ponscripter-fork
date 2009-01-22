@@ -1,4 +1,5 @@
 <!ENTITY p  "ponscr">
+<!ENTITY s1 "<manvolnum>1</manvolnum>">
 <!ENTITY s6 "<manvolnum>6</manvolnum>">
 <!ENTITY s7 "<manvolnum>7</manvolnum>">
 <!ENTITY ponscripter.7
@@ -9,3 +10,5 @@
    "<citerefentry><refentrytitle>&p;-syntax</refentrytitle>&s7;</citerefentry>">
 <!ENTITY ponscr-ext.7
    "<citerefentry><refentrytitle>&p;-ext</refentrytitle>&s7;</citerefentry>">
+<!ENTITY emacs.1
+   "<citerefentry><refentrytitle>emacs</refentrytitle>&s1;</citerefentry>">

@@ -950,14 +950,15 @@ _EOF
 if test -n "$MAKEDOC"; then
     cat >> Makefile <<_EOF
 $CLEANDOC:
-	\$(RM) doc/*.[67] doc/index.html doc/rn*.html doc/manual-*.xml
+	\$(RM) doc/*.[67] doc/index.html doc/rn*.html doc/manual*.xml \\
+               doc/version-number
 
 doc: $DEFAULTDOC
 
 man:  doc/ponscripter.7
 html: doc/index.html
 
-doc/manual-%.xml: doc/manual.xml.in doc/%.entities doc/ponscr*.xml
+doc/manual-%.xml: doc/manual.xml.in doc/%.entities doc/ponscr*.xml doc/version-number
 	util/xml-template \$* \$< > \$@
 
 doc/%.7: doc/manual-man.xml
@@ -965,6 +966,9 @@ doc/%.7: doc/manual-man.xml
 
 doc/%.html: doc/manual-html.xml
 	xmlto html \$< -o doc
+
+doc/version-number: src/version.h
+	awk '/define VER_NUMBER/ {print \$\$3}' \$< > \$@
 
 _EOF
 fi

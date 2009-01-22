@@ -2,6 +2,9 @@
 <book><reference><title/><?L --> ?>
 
 <refentry id="ponscr.6">
+  <refentryinfo>
+    <date><?D?></date>
+  </refentryinfo>
   <refmeta>
     <refentrytitle>ponscr</refentrytitle>
     <manvolnum>6</manvolnum>
@@ -34,9 +37,10 @@
       itself.  See &ponscripter.7; for an overview of other
       documentation.
     </para>
-    <para><command>ponscr</command> should be invoked in one of two
-    ways: either from within a game directory, or from an arbitrary
-    location with a game directory specified as an option.
+    <para>
+      <command>ponscr</command> should be invoked in one of two ways:
+      either from within a game directory, or from an arbitrary
+      location with a game directory specified as an option.
     </para>
     <para>
       On Unix-like operating systems other than Mac OS X, it is
@@ -49,7 +53,7 @@
       On Mac OS X, the recommended approach is to create an
       application bundle containing a Ponscripter binary and the
       game data in the bundle's Resources directory; things will
-      then "just work".
+      then <quote>just work</quote>.
     </para>
     <para>
       On Microsoft Windows, the simplest approach is to store a
@@ -121,7 +125,7 @@
         </listitem>
       </varlistentry>
 
-      <varlistentry>
+      <varlistentry id="option-save">
         <term><option>--save</option> <replaceable>path</replaceable></term>
         <listitem>
           <simpara>
@@ -145,8 +149,9 @@
           </simpara>
           <simpara>
             Under Microsoft Windows, data is stored in
-            <filename><varname>%COMMON_APPDATA%</varname>\<!--
-            --><varname>GAME</varname></filename>.
+            <filename>
+              <varname>%COMMON_APPDATA%</varname>\<varname>GAME</varname>
+            </filename>.
           </simpara>
         </listitem>
       </varlistentry>

@@ -1,0 +1,16 @@
+<?L <!-- ?><!DOCTYPE book PUBLIC "-*-nxml-*-" "">
+<book><reference><title/><?L --> ?>
+
+<refentry id="ponscr-ext.7">
+  <refentryinfo>
+    <date><?D?></date>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>ponscr-ext</refentrytitle>
+    <manvolnum>7</manvolnum>
+  </refmeta>
+  
+  
+</refentry>
+
+<?L <!-- ?></reference></book><?L --> ?>

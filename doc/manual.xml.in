@@ -17,26 +17,28 @@
   We use our own ad-hoc template system because there's no other obvious
   way of making things nice to edit (e.g. with entities recognised, etc).
 
-  We define three processing instructions:
+  We define some processing instructions:
   
-    <?I file ?> includes the named file (which is processed recursively).
+    ?I file   includes the named file (which is processed recursively).
     
-    <?L text ?> simply inserts text contents literally.  This enables us
-                to pass XML to the editor that will be commented out in
-                the final version.
+    ?L text   simply inserts text contents literally.  This enables us
+              to pass XML to the editor that will be commented out in
+              the final version.
 
-    <?link id: text ?> inserts TEXT in man mode; in html mode, inserts
-                       <link linkend="id">text</link>.
-     
+    ?link id: text   inserts TEXT in man mode; in html mode, inserts
+                     <link linkend="id">text</link>.
+
+    ?D        expands to the last-modified date of the current file
+                     
   Sorry to any purists who are offended to see XML treated like this.
-  (You'll be even more outraged if you look at the implementation...)
+  No doubt I should be using XSL, but life's too short.
 -->
 
 <book>
 <reference>
   <referenceinfo>
-    <date>2009-01-20</date>
     <productname>Ponscripter</productname>
+    <productnumber><?I version-number ?></productnumber>
   </referenceinfo>
 
   <title>Ponscripter manual</title>

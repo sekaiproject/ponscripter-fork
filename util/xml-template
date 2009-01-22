@@ -6,8 +6,25 @@
 # I will not try to excuse the implementation, which has probably
 # earned me a special place in programmer hell.  :D
 
+use POSIX 'strftime';
 BEGIN { $mode = shift }
-s(<\?I\s*(.*?)\?>){ ($i = $1) =~ s/(\$\w+)/$1/eeg; `$0 $mode doc/$i` }eg;
+
+# Process includes
+s(<\?I\s*(.*?)\?>){
+    for ($i = $1) { s/(\$\w+)/$1/eeg; s/^\s*|\s*$//g }
+    $d = strftime "%Y-%m-%d", gmtime((stat "doc/$i")[9]);
+    ($c = `$0 $mode doc/$i`) =~ s/<\?D\?>/$d/g; $c
+}eg;
+
+# Process literals
 s/<\?L(.*?)\?>/$1/g;
+
+# Process <?link?>
 s(<\?link\s*([^:]+):\s*(.*?)\s*\?>)
- { $mode eq 'man' ? uc "`$2'" : qq{<link linkend="$1">$2</link>} }eg;
+ {$mode eq'man'?"<quote>@{[uc$2]}</quote>":qq{<link linkend="$1">$2</link>}}eg;
+
+# Chomp certain annoying whitespace that messes up manpages
+s(  (para|name)> \s*\n\s* ([<&])                 ){$1>$2}gx;
+s( ([>;]) \s*\n\s* </((sim)?para|(file|var)name) ){$1</$2}gx;
+s(       (<programlisting[^>]*>) \n ){$1}gx;
+s( \n\s* (</programlisting>)        ){$1}gx;

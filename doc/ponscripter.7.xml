@@ -2,7 +2,9 @@
 <book><reference><title/><?L --> ?>
 
 <refentry id="ponscripter.7">
-  
+  <refentryinfo>
+    <date><?D?></date>
+  </refentryinfo>
   <refmeta>
     <refentrytitle>ponscripter</refentrytitle>
     <manvolnum>7</manvolnum>
@@ -17,7 +19,7 @@
     <title>Description</title>
     <para>
       &Ponscripter; is an interpreter for visual-novel-type games,
-      derived from the &NScripter; standard but modified significantly
+      derived from the &NScripter; design but modified significantly
       to improve support for Western languages (at the cost of
       diminished support for Japanese).
     </para>
@@ -110,9 +112,9 @@
         and position, etc.
       </para>
     </refsect2>
-      
+    
     <refsect2>
-      <title>Game format</title>
+      <title>Basic game structure</title>
       <para>
         Ponscripter games consist of a directory containing scripts,
         either in NScripter format or an extended derived format, plus
@@ -126,250 +128,286 @@
         Ponscripter requires that all files have plain ASCII names.
         It's the only way to be portable.
       </para>
-      
-      <para id="directives">
+    </refsect2>
+
+    <refsect2>
+      <title>Script files</title>
+      <para>
+        Ponscripter is able to read two styles of script: native and
+        legacy.  Native scripts are encoded in UTF-8, and provide
+        all the features documented below.  Legacy scripts are an
+        attempt to provide a modicum of backwards-compatibility:
+        they are NScripter-format scripts, in CP932 (Microsoft's
+        version of Shift_JIS) with some of the same extensions as
+        provided by ONScripter-En.  Many Ponscripter features are
+        disabled when processing a legacy script.  There is little
+        reason to use them, unless you want to try to play an
+        unported NScripter game using proportional fonts.  It's
+        better to port where possible.
+      </para>
+      <para>
+        Script formats are distinguished by filename.  The following
+        filenames are sought, in this order:
+        <variablelist>
+          <varlistentry>
+            <term><filename>0.utf</filename></term>
+            <listitem>
+              <simpara>
+                Native script in human-readable form.
+              </simpara>
+              <simpara>
+                Human-readable scripts can be multipart: the engine
+                checks all numbers from 1 to 99 (both with and
+                without leading zeroes, for numbers below 10), and
+                appends them to script 0.
+              </simpara>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><filename>0.txt</filename></term>
+            <listitem>
+              <simpara>
+                Legacy script in human-readable form.  Can be
+                multipart, as for native scripts.
+              </simpara>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><filename>nscr_sec.dat</filename></term>
+            <listitem>
+              <simpara>
+                Legacy script, trivially obfuscated by xoring against
+                a fixed cyclic key with hexadecimal representation
+                <literal>79 57 0D 80 04</literal>.
+              </simpara>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><filename>nscript.___</filename></term>
+            <listitem>
+              <simpara>
+                Legacy script, trivially obfuscated using a key
+                file.
+              </simpara>
+              <simpara>
+                The key must be supplied using the
+                <option>--key-exe</option> parameter to &ponscr.6;.
+                This file is used to construct a simple permutation
+                table holding the plaintext equivalents to each byte
+                of the obfuscated file.
+              </simpara>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><filename>pscript.dat</filename></term>
+            <listitem>
+              <simpara>
+                Native script, trivially obfuscated by xoring against
+                the constant byte <literal>0x84</literal>.
+              </simpara>
+              <simpara>
+                This is the only form of obfuscation supported for
+                native scripts.  It does not pretend to provide any
+                security, but protects careless tinkerers from
+                accidental spoilers.
+              </simpara>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><filename>nscript.dat</filename></term>
+            <listitem>
+              <simpara>
+                Legacy script, trivially obfuscated as for
+                <filename>pscript.dat</filename>.
+              </simpara>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Script structure</title>
+      <para>
+        Scripts are conventionally divided into three sections:
+        <firstterm>directives</firstterm>,
+        <firstterm>define</firstterm>, and
+        <firstterm>game</firstterm>.
+      </para>
+      <para>
+        In reality these are parsing modes, rather than lexical
+        sections, and control flow can be mixed up with unscrupulous
+        use of <function>goto</function> and <function>skip</function>
+        commands, but best practice is to keep concerns strictly
+        separate.
+      </para>
+      <para>
+        A skeleton script has the following form:
+        <programlisting>
+; directives
+*define
+; define section
+game
+*start
+; game section
+end
+        </programlisting>
+      </para>
+    </refsect2>
+
+    <refsect2 id="directives">
+      <title>The Directives section</title>
+      <para>
+        The directives section is optional.  It consists of one or two
+        directive lines at the very top of the first script file;
+        these are processed during interpreter initialisation.
+      </para>
+      <para>
+        The first directive line begins with a semicolon and contains
+        one or more comma-separated tags:
+        <variablelist>
+          <varlistentry>
+            <term><literal>mode</literal> <replaceable>NUM</replaceable></term>
+            <listitem>
+              <simpara>
+                Sets the screen mode to the 4:3 resolution with
+                horizontal dimension <replaceable>NUM</replaceable>.
+                Values recognised are <literal>800</literal> (by 600),
+                <literal>640</literal> (by 480),
+                <literal>400</literal> (by 300), and
+                <literal>320</literal> (by 240).  The default is
+                <literal>640</literal>.
+              </simpara>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><literal>value</literal> <replaceable>NUM</replaceable></term>
+            <listitem>
+              <simpara>
+                Sets the global variable border; variables with
+                indices greater than or equal to
+                <replaceable>NUM</replaceable> will become globals if
+                the <function>globalon</function> command is used.
+                The default is <literal>200</literal>.
+              </simpara>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>
+              <literal>-*-</literal>
+              <replaceable>anything</replaceable>
+              <literal>-*-</literal>
+            </term>
+            <listitem>
+              <simpara>
+                Tags of this format are used by popular text editors
+                such as &emacs.1; to identify the format of a file.
+              </simpara>
+              <simpara>
+                Ponscripter ignores everything between the
+                <literal>-*-</literal> delimiters, so users of such
+                editors can use this feature as expected.
+              </simpara>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </para>
+      <para>
+        The second directive line, if present, has the form
+        <programlisting>
+;gameid <replaceable>text</replaceable>
+        </programlisting>
+      </para>
+      <para>
+        This is used to specify the name of the game.  The
+        <firstterm>gameid</firstterm> thus defined is used when
+        automatically selecting a path for saved games and other
+        variable data (see <link
+        linkend="option-save"><option>--save</option></link> in
+        &ponscr.6;).
+      </para>
+      <para>
+        Ideally you should always specify a gameid with this
+        directive.  If you don't, Ponscripter tries to determine the
+        name of the game by looking for a <function>caption</function>
+        or <function>versionstr</function> command; if that also
+        fails, a semi-unique identifier is generated based on the
+        length of the script.
+      </para>
+      <para>
+        A complete directives section might thus have the form
+        <programlisting>
+;mode800,value500,-*- ponscripter -*-
+;gameid My Ponscripter game
+        </programlisting>
+        which would specify a game called <quote>My Ponscripter
+        game</quote> that used an 800x600 display, treated all
+        variables indexed 500 and above as globals, and would be
+        easily identified as a Ponscripter script.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>The Define section</title>
+      <para>
+        The define section is mandatory, and is typically placed at
+        the start of the first script file, after any directives
+        section and before the game section.
+      </para>
+      <para>
+        It is introduced with the label <code>*define</code>, and
+        continues until a <function>game</function> command is
+        encountered.
+      </para>
+      <para>
+        Code in this section is evaluated non-interactively at
+        startup, and then only touched again if the
+        <function>definereset</function> command is used.  It contains
+        definitions of things like aliases, arrays, windows,
+        subroutines, and fonts.  Most of the commands valid in this
+        section are invalid in game code, and vice versa.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>The Game section</title>
+      <para>
+        The game section is mandatory, and makes up the bulk of the
+        script.  It typically follows the define section.
+      </para>
+      <para>
+        It is introduced with the <function>game</function> command,
+        which transfers control immediately to the
+        <literal>*start</literal> label (which must exist, and is
+        normally the next thing in the script).
+      </para>
+      <para>
+        Processing then remains in game mode until an
+        <function>end</function> command, which terminates the
+        program, or a <function>definereset</function> command, which
+        returns processing to define mode at the
+        <literal>*define</literal> label.
       </para>
     </refsect2>
   </refsect1>
 
-<!--
-.PP
-Ponscripter is able to read two styles of script: native and legacy.
-.
-Native scripts are encoded in UTF-8, and provide all the features
-documented below.
-.
-Legacy scripts are an attempt to provide a modicum of
-backwards-compatibility: they are NScripter-format scripts, in CP932
-(Microsoft's version of Shift_JIS) with some of the same extensions as
-provided by ONScripter-En.
-.
-Many Ponscripter features are disabled when processing a legacy
-script.
-.
-There is little reason to use them, unless you want to try to play an
-unported NScripter game using proportional fonts.
-.
-It's better to port where possible.
-.
-.PP
-Script formats are distinguished by filename.
-.
-The following filenames are sought, in this order:
-.
-.TP 4
-.BR 0.utf
-Native script in human-readable form.
-.
-Can be multipart: the script used is the concatenation of all files
-with names matching the regular expression
-.BR [0\-9][0\-9]?\e.utf
-arranged in ascending numerical order.
-.
-.TP 4
-.BR 0.txt
-Legacy script in human-readable form.
-.
-Can be multipart, as for native scripts.
-.
-.TP 4
-.BR nscr_sec.dat
-Legacy script, trivially obfuscated using bitwise addition modulo 2
-against the fixed key
-.BR \*(lq\ex79\ex57\ex0d\ex80\ex04\*(rq .
-.
-.TP 4
-.BR nscript.___
-Legacy script, trivially obfuscated using a key file.
-.
-The key must be supplied using the
-.BR \-\-key\-exe
-parameter to
-.BR ponscr (6).
-.
-This file is used to construct a simple permutation table holding the
-plaintext equivalents to each byte of the obfuscated file.
-.
-.TP 4
-.BR pscript.dat
-Native script, trivially obfuscated by xoring every byte against the
-single byte
-.BR 0x84 .
-.
-This is the only form of obfuscation supported for native scripts.
-.
-It provides no security, but protects tinkerers from accidental
-spoilers.
-.
-.TP 4
-.BR nscript.dat
-Legacy script, trivially obfuscated as for
-.IR pscript.dat .
-.
-.SS Script structure
-.
-Scripts are conventionally divided into three sections:
-.BR directives ", " define ", and " game .
-.
-.PP
-In reality these are parsing modes, rather than lexical sections, and
-control flow can be mixed up with unscrupulous use of
-.BR goto " and " skip
-commands, but best practice is to keep concerns strictly separate.
-.
-A skeleton script thus has the following form:
-.
-.IP "" 2
-.I ; directives
-.br
-*define
-.br
-.I ; define section
-.br
-.B game
-.br
-*start
-.br
-.I ; game section
-.br
-.B end
-.
-.SS DIRECTIVES
-The
-.BR directives
-section is optional.
-.
-It consists of one or two directive lines at the very top of the first
-script file; these are processed during interpreter initialisation.
-.
-.PP
-The first directive line begins with a semicolon and contains one or
-more comma-separated tags:
-.
-.TP
-.BI mode NUM
-Sets screen mode to the 4:3 resolution with horizontal dimension
-.IR NUM .
-Values of
-.IR NUM
-recognised are 800 (x600), 640 (x480), 400 (x300), and 320 (x240).
-The default is 640.
-.
-.TP
-.BI value NUM
-Sets global variable border to
-.IR NUM .
-If the
-.BR globalon
-command is used, all variables with indices greater than
-.IR NUM
-become global.
-.
-The default is 200.
-.
-.TP
-.BI \-*\- " anything " \-*\-
-Tags of this format are used by popular text editors such as
-.BR emacs (1)
-to specify details of a file, such as the major editing mode to use.
-.
-Ponscripter ignores everything between the
-.BR \-*\-
-delimiters, so users of such editors can use this feature as expected.
-.
-.PP
-The second directive line, if present, has the form
-.IP "" 2
-.BI ;gameid " Name of game"
-.PP
-and is used to specify the name of the game.
-.
-The gameid thus specified is used when automatically generating a
-saved-game path (see the
-.BR \-\-save
-option in
-.BR ponscr (6)
-).
-.
-Ideally you should always specify a gameid with this directive.
-.
-If you don't, Ponscripter tries to determine the name of the game by
-looking for a
-.BR caption \ or \ versionstr
-command; if that also fails, a semi-unique identifier is generated
-based on the length of the script.
-.
-A complete directives section might thus have the form
-.IP "" 2
-;mode800,value500,-*- ponscripter -*-
-.br
-;gameid My Ponscripter game
-.PP
-which would specify a game called `My Ponscripter game' that used an
-800x600 display, treated all variables indexed 500 and above as
-globals, and would, when opened in
-.BR emacs (1),
-be edited with ponscripter\-mode.el (which is supplied with
-Ponscripter, but must be installed manually).
-.
-.SS The DEFINE section
-.
-is mandatory, and is typically placed at the start of the first script
-file, after any directives section and before the game section.
-.
-It is introduced with the label
-.BR *define ,
-and continues until a
-.BR game
-command is encountered.
-.
-.PP
-Code in this section is evaluated non-interactively at startup, and
-then only touched again if the
-.BR definereset
-command is used.
-.
-It contains definitions of things like aliases, arrays, windows,
-subroutines, fonts and so forth.
-.
-Most of the commands valid in this section are invalid in game code,
-and vice versa.
-.
-.SS The GAME section
-.
-is mandatory, and and makes up the bulk of the script.
-.
-It typically follows the define section.
-.
-.PP
-It is introduced with the
-.BR game
-command, which transfers control immediately to the
-.BR *start
-label (which must exist, and is typically the next thing in the
-script).
-.
-.PP
-Processing then remains in game mode until an
-.BR end
-command, which terminates the program, or a
-.BR definereset
-command, which returns processing to define mode at the
-.BR *define
-label.
-.
-.SH SEE ALSO
-.
-.BR ponscr (6), ponscr-syntax (7), ponscr-ext (7)
-.
-.PP
-.BR "NScripter documentation" ,
-for a description of the basic operation of NScripter-style games and
-documentation of most of the functionality supported.  Most NScripter
-references are only available in Japanese, but there is some
-English-language documentation at
-.IR http://nscripter.insani.org .
--->
+  <refsect1>
+    <title>See also</title>
+    <para>
+      <simplelist type='inline'>
+        <member>&ponscr.6;</member>
+        <member>&ponscr-syntax.7;</member>
+        <member>&ponscr-ext.7;</member>
+      </simplelist>
+    </para>
+    <para>
+      Existing NScripter documentation, for a description of the basic
+      operation of NScripter-style games and documentation of most of
+      the functionality supported.  Most NScripter references are only
+      available in Japanese, but there is some English-language
+      documentation at <ulink url='http://nscripter.insani.org'/>.
+    </para>
+  </refsect1>
   
 </refentry>
 

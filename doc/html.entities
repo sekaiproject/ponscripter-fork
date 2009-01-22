@@ -2,3 +2,5 @@
 <!ENTITY ponscr.6        "<link linkend='ponscr.6'>Invocation</link>">
 <!ENTITY ponscr-syntax.7 "<link linkend='ponscr-syntax.7'>Syntax</link>">
 <!ENTITY ponscr-ext.7    "<link linkend='ponscr-ext.7'>Extensions</link>">
+<!ENTITY emacs.1
+         "<ulink url='http://www.gnu.org/software/emacs'>Emacs</ulink>">
