@@ -21,10 +21,15 @@ s/<\?L(.*?)\?>/$1/g;
 
 # Process <?link?>
 s(<\?link\s*([^:]+):\s*(.*?)\s*\?>)
- {$mode eq'man'?"<quote>@{[uc$2]}</quote>":qq{<link linkend="$1">$2</link>}}eg;
+ {$mode eq 'man' ? "<quote>$2</quote>" : qq{<link linkend="$1">$2</link>} }eg;
 
 # Chomp certain annoying whitespace that messes up manpages
 s(  (para|name)> \s*\n\s* ([<&])                 ){$1>$2}gx;
 s( ([>;]) \s*\n\s* </((sim)?para|(file|var)name) ){$1</$2}gx;
 s(       (<programlisting[^>]*>) \n ){$1}gx;
 s( \n\s* (</programlisting>)        ){$1}gx;
+
+# Format <firstterm> with bold text.  Life's too short to figure out
+# how to do this with XSLT.
+s|(<firstterm[^>]*>)|$1<emphasis role="bold">|g;
+s|(</firstterm>)|</emphasis>$1|g;

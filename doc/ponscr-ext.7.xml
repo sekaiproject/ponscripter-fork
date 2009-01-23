@@ -1,15 +1,308 @@
 <?L <!-- ?><!DOCTYPE book PUBLIC "-*-nxml-*-" "">
-<book><reference><title/><?L --> ?>
+<book xmlns="http://docbook.org/ns/docbook"
+xmlns:xl="http://www.w3.org/1999/xlink"><reference><title/><?L --> ?>
 
-<refentry id="ponscr-ext.7">
-  <refentryinfo>
+<refentry xml:id="ponscr-ext.7">
+  <info>
     <date><?D?></date>
-  </refentryinfo>
+  </info>
   <refmeta>
     <refentrytitle>ponscr-ext</refentrytitle>
     <manvolnum>7</manvolnum>
   </refmeta>
+
+  <refnamediv>
+    <refname>ponscr-ext</refname>
+    <refpurpose>Ponscripter extension commands</refpurpose>
+  </refnamediv>
+
+  <refsect1>
+    <title>Description</title>
+    <para>
+      This page documents Ponscripter-specific extensions,
+      i.e. commands that are not present (or operate differently) in
+      NScripter or ONScripter.
+    </para>
+    <para>
+      See &ponscripter.7; for an overview of other documentation.
+    </para>
+  </refsect1>
   
+<!--
+.SS Detecting Ponscripter
+
+It may occasionally be desirable to have a single script that will
+load in both Ponscripter and other NScripter-type interpreters.
+
+(The test scripts in the Ponscripter distribution are an example of
+such a case.)
+
+.PP
+A script can detect whether it is running under Ponscripter by
+defining a numalias as follows:
+
+.IP "" 2
+.B numalias
+PONSCRIPTER, 0
+.PP
+Ponscripter treats this as a special case, and gives the numalias the
+value 1 instead, so platform-specific code can then be included by
+testing the value of PONSCRIPTER and branching as appropriate.
+
+.SS Fonts
+
+.TP 2
+.RI \fBh_mapfont \ slot ", " filename ", [" metrics "]"
+
+Maps 
+.I filename
+to font slot number
+.I slot
+(0-7).
+
+.IP "" 2
+For TrueType and OpenType fonts,
+.I filename
+should name the .TTF or .OTF file.
+
+For Type 1 fonts,
+.I filename
+should name the .PFA or .PFB file, and the
+.I metrics
+argument should be used to provide the corresponding .AFM file.
+
+.IP "" 2
+Filenames are relative to the game's data path.
+
+If a file is not found, it is then sought within a "fonts"
+subdirectory of the data path, then in the game's archive, and then
+the game binary itself is checked in case the font has been embedded
+there.
+
+Finally, for compatibility, Ponscripter checks for a file named
+"default.ttf" in the game's data path, and uses that if it exists.
+
+Note that at no stage does Ponscripter look at the fonts installed on
+the user's computer; games must distribute their own fonts.
+
+Note also that fonts are loaded lazily, so the point of failure if a
+file is missing will be when that font is first
+.IR used ,
+not when it is mapped.
+
+.IP "" 2
+The intended convention is that the eight font slots should represent
+two typefaces (a text face and a display face), each with regular,
+italic, bold, and bold-italic styles.
+
+These are assigned in ascending order: slot 0 (the default face)
+should be the regular text font, slot 1 the italic text font, slot 4
+the regular display font, etc.
+
+You can, of course, assign the fonts however you like.
+
+See "Font selection tags" in
+.BR ponscr-syntax (7)
+for details of font selection.
+
+.IP "" 2
+If a slot is used that has not had a font assigned to it, the default
+filename will be
+.RI face N .ttf,
+where
+.I N
+is the slot number.
+
+.TP 2
+.RI \fBh_rendering \ hinting ", " positioning ", [" rendermode "]"
+Configures Freetype text rendering.
+
+.IP "" 2
+The
+.I hinting
+parameter should be one of the following barewords:
+.IP "" 4
+.B none
+\- glyphs are unhinted (default)
+.br
+.B full
+\- Freetype hinting is used
+.br
+.B light
+\- Light hinting is used
+.IP "" 2
+The optimum settings depend on the fonts in use.
+
+In general, Freetype hinting makes TrueType fonts look hideous, but it
+does sometimes help with Type 1 fonts.
+
+.IP "" 2
+The
+.I positioning
+parameter should be one of the following barewords:
+.IP "" 4
+.B integer
+\- characters are aligned to whole pixels (default)
+.br
+.B float
+\- subpixel positioning is used
+.IP "" 2
+Float mode is broken, and generally looks awful.
+
+One day I'll fix it, and then it'll give better spacing than integer
+mode.
+
+.IP "" 2
+The optional
+.I rendermode
+parameter can be used to override the Freetype rendering mode.
+
+It should be one of the barewords
+.B light
+or
+.BR normal .
+
+By default, light rendering is used for light hinting, and normal
+rendering otherwise.
+
+You should have no reason to want anything else.
+
+.TP 2
+.RI \fBh_fontstyle \ string
+
+Sets the default text styling.
+
+This command is equivalent to inserting
+.BI ~d string ~
+at the start of every subsequent text display command (though it has
+no effect on sprites).
+
+.IP "" 2
+Only font style tags may be used; size and position tags are not
+supported.
+
+.IP "" 2
+For example, to set an entire section of the game in your italic
+display font, you could use the code
+
+.IP "" 4
+.B h_fontstyle
+^si^
+.br
+^Your text here\e
+.br
+^Several pages in italic display font\e
+.br
+.B h_fontstyle
+^d^  ; to reset
+
+.TP 2
+.RI "\fBh_ligate\fR [" input "], " action
+Add or remove shortcut sequences.
+
+(See "Ligatures and shortcuts" in
+.BR ponscr-syntax (7).)
+
+.IP "" 2
+
+
+In particular,
+.IP "" 2
+h_ligate punctuation
+.PP
+defines the following shortcuts:
+.IP "" 2
+.BR ... \ \->
+ellipsis
+.br
+.BR \-\-
+\-> en dash
+.br
+.BR \-\-\-
+\-> em dash
+.br
+.BR (c)
+\-> copyright symbol
+.br
+.BR (r)
+\-> registered trademark symbol
+.br
+.BR (tm)
+\-> trademark symbol
+.br
+.BR ++
+\-> dagger
+.br
+.BR +++
+\-> double dagger
+.br
+.BR **
+\-> bullet
+.br
+.BR %_
+\-> non-breaking space
+.br
+.BR %\-
+\-> non-breaking hyphen
+.br
+.BR %\. \ \->
+thin space
+.PP
+A
+.I full
+set of `f' ligatures can be defined with
+.IP "" 2
+h_ligate f_ligatures
+.PP
+However, this includes the less common `ffi' and `ffl' ligatures; if
+you're using a font that omits these, you will want to define the
+common ligatures manually with something like
+.IP "" 2
+h_ligate \(dqfi\(dq, 0xfb01
+.br
+h_ligate \(dqfl\(dq, 0xfb02
+
+.SS Text controls
+
+h_defwindow
+h_usewindow
+h_usewindow3
+h_locate
+h_indentstr
+h_centreline
+h_textextent
+h_textheight
+h_speedpercent
+gettextspeed
+
+.SS Sprite controls
+
+vsp_when
+vsp2_when
+logsp2utf
+
+.SS Debugging
+
+say
+watch_var
+
+.SS Soft subtitles
+
+mpeg (what's the command?)
+
+.SS Extensions to existing commands
+
+movz
+vsp
+csp
+amsp
+msp
+cell
+
+.SH SEE ALSO
+
+.BR ponscripter (7)
+-->
   
 </refentry>
 

@@ -29,6 +29,8 @@ STRIPFLAG=-s
 DEFAULTDOC=
 MAKEDOC=
 CLEANDOC=
+VALIDDOC=
+MAKEMAN=
 
 INTERNAL_LIBS=false
 INTERNAL_SDL=false
@@ -621,6 +623,7 @@ if xmlto --version >/dev/null 2>/dev/null; then
         echo "found"
         MAKEDOC="doc man html"
         CLEANDOC="cleandoc"
+        MAKEMAN=man
         case $SYS in
             MinGW | MacOSX) DEFAULTDOC=html ;;
             *)              DEFAULTDOC=man  ;;
@@ -631,7 +634,18 @@ if xmlto --version >/dev/null 2>/dev/null; then
 else
     echo "no: documentation will not be built"
 fi
-    
+
+if test -n "$MAKEDOC"; then
+    $echo_n "Checking for onvdl (optional)... ${nobr}"
+    case `onvdl 2>/dev/null | head -1` in
+        oNVDL*)
+            echo "found"
+            VALIDDOC=onvdl ;;
+        *)
+            echo "no: documentation will not be validated" ;;
+    esac
+fi
+
 DEPS=
 MLIB=
 require() {
@@ -907,8 +921,9 @@ uninstall:
 pclean:
 	\$(MAKE) -C src pclean
 
-clean: $CLEANDOC
+clean:
 	\$(MAKE) -C src clean
+	\$(RM) doc/version-number
 
 distclean: $CLEANDOC
 	\$(MAKE) -C src distclean
@@ -921,7 +936,7 @@ ponscripter.spec: ponscripter.spec.in
 	sed 's/^Version:/& $VERSION/' \$< > \$@
 
 DIST = ponscripter-$VERSION
-distdir: ponscripter.spec
+distdir: ponscripter.spec $MAKEMAN
 	\$(RM) \$(DIST)*.tar.bz2
 	\$(RM) -r \$(DIST)
 	svn export --depth files . \$(DIST)
@@ -930,6 +945,7 @@ distdir: ponscripter.spec
 	    svn export \$\$t \$(DIST)/\$\$t;                 \\
 	done
 	cp ponscripter.spec \$(DIST)
+	cp doc/*.[0-9] \$(DIST)/doc
 
 dist: distdir
 	\$(RM) -r \$(DIST)/src/extlib
@@ -960,12 +976,13 @@ html: doc/index.html
 
 doc/manual-%.xml: doc/manual.xml.in doc/%.entities doc/ponscr*.xml doc/version-number
 	util/xml-template \$* \$< > \$@
+${VALIDDOC:+	$VALIDDOC http://docs.oasis-open.org/docbook/xml/5.0/docbook.nvdl \$@}
 
-doc/%.7: doc/manual-man.xml
-	xmlto man \$< -o doc
+doc/%.7: doc/manual-man.xml 
+	xmlto --skip-validation man \$< -o doc
 
 doc/%.html: doc/manual-html.xml
-	xmlto html \$< -o doc
+	xmlto --skip-validation html \$< -o doc
 
 doc/version-number: src/version.h
 	awk '/define VER_NUMBER/ {print \$\$3}' \$< > \$@

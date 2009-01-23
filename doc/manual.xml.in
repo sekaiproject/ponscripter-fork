@@ -1,17 +1,5 @@
 <?xml version='1.0'?> <!--*- nxml -*-->
-<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
-               "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd"
-[
-  <!ENTITY Ponscripter
-    "<application><emphasis role='bold'>Ponscripter</emphasis></application>">
-  <!ENTITY NScripter
-    "<application><emphasis role='bold'>NScripter</emphasis></application>">
-  <!ENTITY ONScripter
-    "<application><emphasis role='bold'>ONScripter</emphasis></application>">
-  <!ENTITY ONScripter-En
-    "<application><emphasis role='bold'>ONScripter-En</emphasis></application>">
-  <?I $mode.entities ?>
-]>
+<!DOCTYPE book [ <?I $mode.entities ?> ]>
 
 <!--
   We use our own ad-hoc template system because there's no other obvious
@@ -34,14 +22,15 @@
   No doubt I should be using XSL, but life's too short.
 -->
 
-<book>
+<book xmlns="http://docbook.org/ns/docbook"
+      xmlns:xl="http://www.w3.org/1999/xlink"
+      version="5.0" xml:lang="en">
 <reference>
-  <referenceinfo>
+  <info>
+    <title>Ponscripter manual</title>
     <productname>Ponscripter</productname>
     <productnumber><?I version-number ?></productnumber>
-  </referenceinfo>
-
-  <title>Ponscripter manual</title>
+  </info>
 
   <?I ponscripter.7.xml   ?>
   <?I ponscr.6.xml        ?>

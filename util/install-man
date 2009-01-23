@@ -1,6 +1,10 @@
 #! /bin/sh
 # Install all manual pages.
 
+if test $# -lt 3
+then exit 0
+fi
+
 ACTION=$1
 PREFIX=$2
 if test -d $PREFIX/share/man && test ! -d $PREFIX/man

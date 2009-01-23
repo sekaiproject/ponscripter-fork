@@ -1,10 +1,11 @@
 <?L <!-- ?><!DOCTYPE book PUBLIC "-*-nxml-*-" "">
-<book><reference><title/><?L --> ?>
+<book xmlns="http://docbook.org/ns/docbook"
+xmlns:xl="http://www.w3.org/1999/xlink"><reference><title/><?L --> ?>
 
-<refentry id="ponscripter.7">
-  <refentryinfo>
+<refentry xml:id="ponscripter.7">
+  <info>
     <date><?D?></date>
-  </refentryinfo>
+  </info>
   <refmeta>
     <refentrytitle>ponscripter</refentrytitle>
     <manvolnum>7</manvolnum>
@@ -18,10 +19,10 @@
   <refsect1>
     <title>Description</title>
     <para>
-      &Ponscripter; is an interpreter for visual-novel-type games,
-      derived from the &NScripter; design but modified significantly
-      to improve support for Western languages (at the cost of
-      diminished support for Japanese).
+      <firstterm>Ponscripter</firstterm> is an interpreter for
+      visual-novel-type games, derived from the NScripter design but
+      modified significantly to improve support for Western languages
+      (at the cost of diminished support for Japanese).
     </para>
 
     <refsect2>
@@ -69,8 +70,8 @@
     <refsect2>
       <title>NScripter implementations</title>
       <para>
-        &NScripter; is a popular novel-game engine written by
-        <personname><firstname>Naoki</firstname>
+        <firstterm>NScripter</firstterm> is a popular novel-game
+        engine written by <personname><firstname>Naoki</firstname>
         <surname>Takahashi</surname></personname>.  It's available at
         no cost even for commercial use, but its source code is not
         free, and it's only supported on <productname>Microsoft
@@ -83,25 +84,26 @@
       </para>
       <para>
         <personname><othername
-        role='handle'>Ogapee</othername></personname>'s &ONScripter;
-        is the most significant of the clones.  It supports a wide
-        range of platforms, including handheld devices.  When the
-        attention of the English-speaking fan translation community
-        turned to NScripter games, ONScripter was the interpreter we
-        chose to adapt to better support the English language.  The
-        official ONScripter source code can be compiled with basic
-        English support; since ONScripter development is aimed more at
-        supporting new Japanese games and new platforms than at
-        supporting localisation, the English-speaking community also
-        maintains a branch called &ONScripter-En; which has a number
-        of improvements of interest to us, including better English
-        support as standard.
+        role='handle'>Ogapee</othername></personname>'s
+        <firstterm>ONScripter</firstterm> is the most significant of
+        the clones.  It supports a wide range of platforms, including
+        handheld devices.  When the attention of the English-speaking
+        fan translation community turned to NScripter games,
+        ONScripter was the interpreter we chose to adapt to better
+        support the English language.  The official ONScripter source
+        code can be compiled with basic English support; since
+        ONScripter development is aimed more at supporting new
+        Japanese games and new platforms than at supporting
+        localisation, the English-speaking community also maintains a
+        branch called <firstterm>ONScripter-En</firstterm> which has a
+        number of improvements of interest to us, including better
+        English support as standard.
       </para>
       <para>
-        &Ponscripter; is a fork of ONScripter-En that drops any
-        attempt to remain in synch with the upstream source code, and
-        instead concentrates on providing the best possible support
-        for Western languages.  It is no longer fully
+        <firstterm>Ponscripter</firstterm> is a fork of ONScripter-En
+        that drops any attempt to remain in synch with the upstream
+        source code, and instead concentrates on providing the best
+        possible support for Western languages.  It is no longer fully
         NScripter-compatible, but remains an easy target to port
         NScripter games to when localising them.
       </para>
@@ -112,7 +114,7 @@
         and position, etc.
       </para>
     </refsect2>
-    
+
     <refsect2>
       <title>Basic game structure</title>
       <para>
@@ -255,7 +257,7 @@ end
       </para>
     </refsect2>
 
-    <refsect2 id="directives">
+    <refsect2 xml:id="directives">
       <title>The Directives section</title>
       <para>
         The directives section is optional.  It consists of one or two
@@ -405,7 +407,7 @@ end
       operation of NScripter-style games and documentation of most of
       the functionality supported.  Most NScripter references are only
       available in Japanese, but there is some English-language
-      documentation at <ulink url='http://nscripter.insani.org'/>.
+      documentation at <link xl:href='http://nscripter.insani.org'/>.
     </para>
   </refsect1>
   

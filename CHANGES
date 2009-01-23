@@ -1,6 +1,7 @@
 2009-01-20
 
-  Refactor documentation.
+  Refactor documentation, and translate it to DocBook to make HTML
+  generation easier.
 
 
 2009-01-18

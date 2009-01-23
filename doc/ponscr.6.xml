@@ -1,10 +1,11 @@
 <?L <!-- ?><!DOCTYPE book PUBLIC "-*-nxml-*-" "">
-<book><reference><title/><?L --> ?>
+<book xmlns="http://docbook.org/ns/docbook"
+xmlns:xl="http://www.w3.org/1999/xlink"><reference><title/><?L --> ?>
 
-<refentry id="ponscr.6">
-  <refentryinfo>
+<refentry xml:id="ponscr.6">
+  <info>
     <date><?D?></date>
-  </refentryinfo>
+  </info>
   <refmeta>
     <refentrytitle>ponscr</refentrytitle>
     <manvolnum>6</manvolnum>
@@ -125,7 +126,7 @@
         </listitem>
       </varlistentry>
 
-      <varlistentry id="option-save">
+      <varlistentry xml:id="option-save">
         <term><option>--save</option> <replaceable>path</replaceable></term>
         <listitem>
           <simpara>
@@ -137,20 +138,22 @@
           </simpara>
           <simpara>
             On most Unix-like platforms, saved games will be stored in
-            <filename>~/.<varname>GAME</varname></filename> (where
+            <filename>~/.<replaceable>GAME</replaceable></filename> (where
             <varname>GAME</varname> is the name of the game being
             played, or a semi-unique default if no name was provided.
             See <?link directives: directives?> in &ponscripter.7;.)
           </simpara>
           <simpara>
             On Mac OS X,
-            <filename>~/Library/Preferences/<varname>GAME</varname></filename>
+           <filename>~/Library/Preferences/<replaceable
+           >GAME</replaceable></filename>
             is used instead.
           </simpara>
           <simpara>
             Under Microsoft Windows, data is stored in
             <filename>
-              <varname>%COMMON_APPDATA%</varname>\<varname>GAME</varname>
+              <replaceable>%COMMON_APPDATA%</replaceable
+              >\<replaceable>GAME</replaceable>
             </filename>.
           </simpara>
         </listitem>
@@ -336,7 +339,9 @@
           On Microsoft Windows, all output to
           <filename>stdout</filename> and <filename>stderr</filename>
           is stored in files in the
-          <filename><varname>%COMMON_APPDATA%</varname>\Ponscripter</filename>
+          <filename>
+            <replaceable>%COMMON_APPDATA%</replaceable>\Ponscripter
+          </filename>
           directory.  These are clobbered each time the program is
           launched and deleted upon termination if empty.  Output is
           never printed to the console, even if the interpreter was
@@ -365,7 +370,7 @@
   <refsect1>
     <title>Notes</title>
 
-    <refsect2 id="png-notes">
+    <refsect2 xml:id="png-notes">
       <title>PNG transparency</title>
       <para>
         The behaviour of PNG images is not well-defined, since
