@@ -92,8 +92,8 @@ xmlns:xl="http://www.w3.org/1999/xlink"><reference><title/><?L --> ?>
       <para>
         For example, given the following definitions:
         <programlisting>
-numalias foo, 100
-stralias foo, "bar"
+<function>numalias</function> foo, 100
+<function>stralias</function> foo, "bar"
         </programlisting>
         the constant <constant>foo</constant> would have the value
         <literal>100</literal> in integer context, but
@@ -106,7 +106,7 @@ stralias foo, "bar"
       </para>
     </refsect2>
 
-    <refsect2>
+    <refsect2 xml:id="lex-cat">
       <title>Lexical categories</title>
       <para>
         The following broad lexical categories are used in command
@@ -126,7 +126,7 @@ stralias foo, "bar"
         <varlistentry>
           <term>
             <firstterm>Barewords</firstterm>
-            (<replaceable linkend="expr-bareword">bareword</replaceable>)
+            (<replaceable>bareword</replaceable>)
           </term>
           <listitem>
             <simpara>
@@ -165,9 +165,9 @@ stralias foo, "bar"
               </listitem>
               <listitem>
                 <simpara>
-                  Some commands, such as <command>rmenu</command>,
-                  <command>ld</command>, and
-                  <command>systemcall</command>, look for barewords
+                  Some commands, such as <function>rmenu</function>,
+                  <function>ld</function>, and
+                  <function>systemcall</function>, look for barewords
                   directly for certain parameters; in these cases
                   aliases are not resolved.
                 </simpara>
@@ -178,7 +178,7 @@ stralias foo, "bar"
         <varlistentry>
           <term>
             <firstterm>String literals</firstterm>
-            (<replaceable>string_lit</replaceable>)
+            (<replaceable>str_lit</replaceable>)
           </term>
           <listitem>
             <simpara>
@@ -239,17 +239,11 @@ stralias foo, "bar"
             <simpara>
               have the general format
               <code>*<replaceable>bareword</replaceable></code>.  They
-              are used to provide targets for jump commands
-              (<command>goto</command>, <command>csel</command>, etc)
+              are used to mark and provide targets for jump commands
+              (<function>goto</function>, <function>csel</function>, etc)
               and for the construction of subroutines with commands
-              such as <command>defsub</command>,
-              <command>textgosub</command>, etc.
-            </simpara>
-            <simpara>
-              A label literal may also stand alone as a command
-              itself.  In this case they function as label
-              declarations, i.e. they mark the source code location
-              referenced by label parameters to the above commands.
+              such as <function>defsub</function>,
+              <function>textgosub</function>, etc.
             </simpara>
             <simpara>
               (In NScripter, label literals are a distinct type that
@@ -289,13 +283,13 @@ stralias foo, "bar"
           <term>
             <firstterm>Variables</firstterm>
             (<replaceable>int_var</replaceable>,
-             <replaceable>string_var</replaceable>)
+             <replaceable>str_var</replaceable>)
           </term>
           <listitem>
             <simpara>
               take the form of a sigil followed by either a number, a
               bareword (which must have been defined with
-              <command>numalias</command>), or an integer variable
+              <function>numalias</function>), or an integer variable
               (with sigil) for indirect access.
             </simpara>
             <simpara>
@@ -322,420 +316,574 @@ stralias foo, "bar"
 
     <refsect2 xml:id="expression-syntax">
       <title>Expression syntax</title>
-      <para></para>
-    </refsect2>
-    
-  </refsect1>    
       
+      <variablelist>
+        <varlistentry>
+          <term>
+            <firstterm>Integer expressions</firstterm>
+            (<replaceable>int_expr</replaceable>)
+          </term>
+          <listitem>
+            <para>
+              are similar to those in other languages.  The syntax is
+              infix.  There are two operator precedence levels:
+              <code>*</code>, <code>/</code>, and <code>mod</code> are
+              processed before <code>+</code> and <code>-</code>.
+              Parentheses and unary minus operate as normal.
+            </para>
+            <para>More formally:</para>
+            <informaltable border="0" rules="none">
+              <tbody>
+                <tr>
+                  <td><firstterm>int_expr</firstterm></td><td>::=</td>
+                  <td><replaceable>int_term</replaceable> <replaceable>binary_op</replaceable> <replaceable>int_expr</replaceable></td>
+                </tr>
+                <tr>
+                  <td><firstterm>int_term</firstterm></td><td>::=</td>
+                  <td><replaceable>int_paren</replaceable> | <quote>-</quote> <replaceable>int_paren</replaceable></td>
+                </tr>
+                <tr>
+                  <td><firstterm>int_paren</firstterm></td><td>::=</td>
+                  <td><quote>(</quote> <replaceable>int_expr</replaceable> <quote>)</quote> | <replaceable>int_elt</replaceable></td>
+                </tr>
+                <tr>
+                  <td><firstterm>int_elt</firstterm></td><td>::=</td>
+                  <td>
+                    <replaceable>num_lit</replaceable> | <replaceable>int_var</replaceable> | <replaceable>bareword</replaceable>
+                  </td>
+                </tr>
+                <tr>
+                  <td><firstterm>int_var</firstterm></td><td>::=</td>
+                  <td>
+                    <quote>%</quote> <replaceable>int_elt</replaceable> | <quote>?</quote> <replaceable>int_elt</replaceable> <replaceable>subscript</replaceable>+
+                  </td>
+                </tr>
+                <tr>
+                  <td><firstterm>subscript</firstterm></td><td>::=</td>
+                  <td>
+                    <quote>[</quote> <replaceable>int_expr</replaceable> <quote>]</quote>
+                  </td>
+                </tr>
+                <tr>
+                  <td><firstterm>binary_op</firstterm></td><td>::=</td>
+                  <td>
+                    <quote>*</quote> | <quote>/</quote> | <quote>mod</quote> | <quote>+</quote> | <quote>-</quote>
+                  </td>
+                </tr>
+                <tr>
+                  <td><firstterm>num_lit</firstterm></td><td>::=</td>
+                  <td>
+                    <literal>[0-9]+</literal> | <literal>0x[0-9A-Fa-f]+</literal>
+                  </td>
+                </tr>
+                <tr>
+                  <td><firstterm>bareword</firstterm></td><td>::=</td>
+                  <td>
+                    <literal>[A-Za-z_][A-Za-z_0-9]*</literal>
+                  </td>
+                </tr>
+              </tbody>
+            </informaltable>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            <firstterm>String expressions</firstterm>
+            (<replaceable>str_expr</replaceable>)
+          </term>
+          <listitem>
+            <para>
+              are simpler.  Their grammar is as follows:
+            </para>
+            <informaltable border="0" rules="none">
+              <tbody>
+                <tr>
+                  <td><firstterm>str_expr</firstterm></td><td>::=</td>
+                  <td>
+                    <replaceable>str_elt</replaceable> | <replaceable>str_elt</replaceable> <quote>+</quote> <replaceable>str_expr</replaceable>
+                  </td>
+                </tr>
+                <tr>
+                  <td><firstterm>str_elt</firstterm></td><td>::=</td>
+                  <td>
+                    <replaceable>file_cond</replaceable> | <replaceable>str_lit</replaceable> | <replaceable>str_var</replaceable> | <replaceable>label</replaceable> | <replaceable>colour</replaceable> | <replaceable>bareword</replaceable>
+                  </td>
+                </tr>
+                <tr>
+                  <td><firstterm>file_cond</firstterm></td><td>::=</td>
+                  <td>
+                    <quote>(</quote> <replaceable>str_term</replaceable> <quote>)</quote> <replaceable>str_term</replaceable> <replaceable>str_term</replaceable>
+                  </td>
+                </tr>
+                <tr>
+                  <td><firstterm>str_var</firstterm></td><td>::=</td>
+                  <td>
+                    <quote>$</quote> <replaceable>int_elt</replaceable>
+                  </td>
+                </tr>
+                <tr>
+                  <td><firstterm>str_lit</firstterm></td><td>::=</td>
+                  <td>
+                    <literal>"[^"]*?"</literal> | <literal>^[^^]*?^</literal>
+                  </td>
+                </tr>
+                <tr>
+                  <td><firstterm>label</firstterm></td><td>::=</td>
+                  <td>
+                    <quote>*</quote> <literal>[A-Za-z_0-9]+</literal>
+                  </td>
+                </tr>
+                <tr>
+                  <td><firstterm>colour</firstterm></td><td>::=</td>
+                  <td>
+                    <quote>#</quote> <literal>[0-9A-Fa-f]{6}</literal>
+                  </td>
+                </tr>
+              </tbody>
+            </informaltable>
+            <para>
+              The only part of the above that should not be obvious, given
+              the descriptions under <?link lex-cat: Lexical categories?>
+              above, is the <replaceable>file_cond</replaceable> term.  This
+              is only useful when the <function>filelog</function> command
+              is in effect.  The parenthesised string is interpreted as the
+              name of an image file.  If the player has viewed this file,
+              the first of the subsequent terms is used; otherwise, the
+              second is used.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            <firstterm>Conditional expressions</firstterm>
+            (<replaceable>conditional</replaceable>)
+          </term>
+          <listitem>
+            <para>
+              are effectively a special syntax associated with the
+              <function>if</function> / <function>notif</function>
+              commands.
+            </para>
+            <para>
+              They are somewhat lacking compared to conditionals in
+              most languages: in particular, multiple terms may be
+              combined only with an <quote>and</quote> operator, with
+              no <quote>or</quote> available.
+            </para>
+            <para>
+              Either strings or integers may be compared.  The
+              ordering of strings is deliberately left undefined; it
+              may change without warning in the future.  However, for
+              any given Ponscripter version, the ordering will be the
+              same across all platforms and will not be affected by
+              users' locale settings.
+            </para>
+            <para>
+              The operators are C-style: <code>==</code> and
+              <code>!=</code> for equality and inequality;
+              <code>&lt;</code>, <code>&lt;=</code>,
+              <code>&gt;</code>, and <code>&gt;=</code> for ordering;
+              and <code>&amp;</code> to combine terms with a logical
+              <quote>and</quote>.
+            </para>
+            <para>
+              (Several operators accept variant forms:
+              <code>&amp;&amp;</code> for <code>&amp;</code>,
+              <code>=</code> for <code>==</code>, and
+              <code>&lt;&gt;</code> for <code>!=</code>.  These
+              variants have no semantic difference from the canonical
+              forms.)
+            </para>
+            <para>
+              Functions cannot be called from conditional expressions
+              (you must assign the result of a function to a variable,
+              and compare that manually), with one exception: there is
+              hardcoded support for a function
+              <function>fchk</function>, which takes a string,
+              interprets it as the filename of a picture, and returns
+              true iff that picture has been displayed.  (This is
+              analogous to the <replaceable>file_cond</replaceable>
+              term in string expressions.)
+            </para>
+            <para>
+              The grammar is:
+            </para>
+            <informaltable border="0" rules="none">
+              <tbody>
+                <tr>
+                  <td><firstterm>conditional</firstterm></td><td>::=</td>
+                  <td>
+                    <replaceable>cond_term</replaceable> | <replaceable>cond_term</replaceable> <quote>&amp;</quote> <replaceable>conditional</replaceable>
+                  </td>
+                </tr>
+                <tr>
+                  <td><firstterm>cond_term</firstterm></td><td>::=</td>
+                  <td>
+                    <replaceable>comp_term</replaceable> | <quote>fchk</quote> <replaceable>str_expr</replaceable>
+                  </td>
+                </tr>
+                <tr>
+                  <td><firstterm>comparison</firstterm></td><td>::=</td>
+                  <td>
+                    <replaceable>expression</replaceable> <replaceable>comp_op</replaceable> <replaceable>expression</replaceable>
+                  </td>
+                </tr>
+                <tr>
+                  <td><firstterm>expression</firstterm></td><td>::=</td>
+                  <td>
+                    <replaceable>int_expr</replaceable> | <replaceable>str_expr</replaceable>
+                  </td>
+                </tr>
+                <tr>
+                  <td><firstterm>comp_op</firstterm></td><td>::=</td>
+                  <td>
+                    <quote>==</quote> | | <quote>!=</quote> | <quote>&gt;</quote> | <quote>&gt;=</quote> | <quote>&lt;</quote> | <quote>&lt;=</quote>
+                  </td>
+                </tr>
+              </tbody>
+            </informaltable>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect2>
+
+    <refsect2>
+      <title>Command syntax</title>
+      <para>
+        The above lexemes and expressions are combined in a fairly
+        similar way to BASIC.  Commands are interpreted sequentially,
+        one to a line; multiple commands may be placed on a single
+        line, where required, by separating them with colons.
+      </para>
+      <para>
+        There are several forms of command:
+        <itemizedlist>
+          <listitem>
+            <simpara>
+              <firstterm>Procedure call</firstterm>s consist of a
+              bareword, normally followed by a parameter list: this is
+              a comma-separated list of expressions (parentheses are
+              not used).
+            </simpara>
+          </listitem>
+          <listitem>
+            <simpara>
+              <firstterm>Label</firstterm>s consist of a label
+              literal, which serves as a name for that point in the
+              script.
+            </simpara>
+            <simpara>
+              There is also a form of anonymous label, represented by
+              a single <code>~</code> character, which is used by the
+              <command>jumpf</command> and <command>jumpb</command>
+              commands.
+            </simpara>
+          </listitem>
+          <listitem>
+            <simpara>
+              <firstterm>Text</firstterm> commands consist of a text
+              delimiter, which switches the interpreter into text mode
+              for the remainder of the line; see next section.
+            </simpara>
+          </listitem>
+        </itemizedlist>
+      </para>
+    </refsect2>
+
+    <refsect2 xml:id="text-mode">
+      <title>Text mode</title>
+      <para>
+        As described above, text commands begin with a text marker
+        (<code>^</code> in native scripts, <code>`</code> in legacy
+        scripts).  The remainder of the line is then parsed in text
+        mode.
+      </para>
+      <para>
+        Most characters in text mode represent themselves and are
+        printed verbatim; this includes the newline at the end of each
+        line, unless it is explicitly suppressed with <code>/</code>.
+        It also includes characters with special meanings in command
+        mode, such as colons and semicolons.
+      </para>
+      <para>
+        However, there are also a fair number of control characters
+        with special meanings.  Since text syntax was not so much
+        designed as gradually accumulated, there is very little
+        consistency in how these control characters are chosen, when
+        exactly in the parsing process they are interpreted, and how
+        they are printed literally.  Read on for details.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Text control</title>
+      <para>
+        Single characters with special meanings.  These characters may
+        all be printed literally by prefixing them with a single hash
+        character, i.e. <literal>#@</literal>, <literal>#_</literal>,
+        etc.
+      </para>
+      <variablelist>
+        <varlistentry>
+          <term><literal>@</literal></term>
+          <listitem>
+            <simpara>
+              Waits for click, then continues printing text as though
+              nothing had happened.  (Unlike in many ONScripter
+              builds, the behaviour of <literal>@</literal> is not altered
+              by the definition of a <function>textgosub</function>
+              routine.)
+            </simpara>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><literal>\</literal></term>
+          <listitem>
+            <simpara>
+              Waits for a click, then clears the text window and
+              begins a new page.
+            </simpara>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><literal>_</literal></term>
+          <listitem>
+            <simpara>
+              If a character has the <function>clickstr</function>
+              nature, prefixing it with an underscore suppresses that
+              behaviour; otherwise it does nothing whatsoever.
+              <function>clickstr</function> is evil, so you should
+              never need to use this.  Place your pauses explicitly.
+            </simpara>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><literal>/</literal></term>
+          <listitem>
+            <simpara>
+              At the end of a line, ends a text command without
+              beginning a new line of display text.  This control only
+              has any effect <emphasis>immediately</emphasis> before a
+              newline character.  Anywhere else in a line, even if
+              only whitespace follows, it prints a literal slash.
+            </simpara>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect2>
+
+    <refsect2>
+      <title>Speed control</title>
+      <para>
+        Multi-character control codes controlling text speed.
+      </para>
+      <para>
+        Whitespace after these codes is ignored; you can cause it to
+        be treated literally by adding a trailing separator character,
+        i.e. <function>!sd</function><literal>|</literal> etc.
+      </para>
+      <para>
+        If one of these sequences would appear in literal text, it can
+        be escaped by prefixing it with a single hash character, i.e.
+        <literal>#!sd</literal> etc.
+      </para>
+      <para>
+        Due to existing conventions for script layout, these codes are
+        also valid as standalone commands without a preceding text
+        marker; in this case they must be the only thing on their line
+        apart from whitespace.
+      </para>
+      <variablelist>
+        <varlistentry>
+          <term><function>!s</function><replaceable>NUM</replaceable></term>
+          <listitem>
+            <para>
+              Sets text speed; this is equivalent to the commmand
+              <programlisting>
+<function>textspeed</function> <replaceable>NUM</replaceable>
+              </programlisting>
+              but has a more convenient syntax in cases where the
+              speed must change within a single line.
+            </para>
+            <para>
+              Lower speeds are faster; <literal>0</literal> means
+              there should be no deliberate delay between characters,
+              though (as they are still printed one at a time) it may
+              not quite lead to instantaneous display.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><function>!sd</function></term>
+          <listitem>
+            <para>
+              Resets text speed to the current player-selected
+              default.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><function>!w</function><replaceable>NUM</replaceable></term>
+          <listitem>
+            <para>
+              Inserts a pause of <replaceable>NUM</replaceable>
+              milliseconds.  It cannot be truncated by clicking, but
+              can be skipped with any of the normal skip commands.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><function>!d</function><replaceable>NUM</replaceable></term>
+          <listitem>
+            <para>
+              As <function>!w</function>, but the pause can also be
+              truncated by clicking.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect2>
+
+    <refsect2>
+      <title>Colour tags</title>
+      <para>
+        <literal>#</literal><replaceable>RRGGBB</replaceable>, where
+        <replaceable>RR</replaceable>, <replaceable>GG</replaceable>,
+        and <replaceable>BB</replaceable> are each two hex digits,
+        modifies the current text foreground colour in the obvious
+        way.  A literal hash character can be inserted with
+        <literal>##</literal>.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Formatting tags</title>
+      <para>
+        All formatting other than text colour is performed with
+        formatting tag blocks.  These are delimited with tildes; a
+        literal tilde can be inserted with <literal>~~</literal>
+        (<emphasis>not</emphasis> <literal>#~</literal>... that would
+        be consistent.)
+      </para>
+      <para>
+        Any number of tags can be combined within a single block,
+        optionally separated with whitespace.
+      </para>
+      
+      <variablelist>
+        <varlistentry>
+          <term>Font selection tags</term>
+          <listitem>
+            <para>
+              The tags in this section, with the exception of
+              <function>c</function>, assume that Ponscripter's eight
+              font slots are assigned according to the following
+              convention:
+            </para>
+            <literallayout>  0 - text regular
+  1 - text italic
+  2 - text bold
+  3 - text bold italic
+  4 - display regular
+  5 - display italic
+  6 - display bold
+  7 - display bold italic
+<?IFman <!-- nasty hack to make whitespace work -->
+?></literallayout>
+            <para>
+              If fonts are assigned in any other way, tags such as
+              <function>b</function> and <function>i</function> will
+              not behave as documented; you should use
+              <function>c</function> in this case.  Font slots are
+              assigned using the <function>h_mapfont</function>
+              command, which is documented in &ponscr-ext.7;.
+            </para>
+
+            <variablelist>
+              <varlistentry>
+                <term><function>c</function><replaceable>N</replaceable></term>
+                <listitem>
+                  <simpara>
+                    Selects the font in slot <replaceable>N</replaceable>
+                  </simpara>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><function>d</function></term>
+                <listitem>
+                  <simpara>
+                    Selects the default style (equivalent to
+                    <function>c0</function>)
+                  </simpara>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><function>r</function></term>
+                <listitem>
+                  <simpara>
+                    Disables italics (default)
+                  </simpara>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><function>i</function></term>
+                <listitem>
+                  <simpara>
+                    Toggles italics
+                  </simpara>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><function>t</function></term>
+                <listitem>
+                  <simpara>
+                    Disables bold weight (default)
+                  </simpara>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><function>i</function></term>
+                <listitem>
+                  <simpara>
+                    Toggles bold weight
+                  </simpara>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><function>f</function></term>
+                <listitem>
+                  <simpara>
+                    Selects text face (default)
+                  </simpara>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><function>s</function></term>
+                <listitem>
+                  <simpara>
+                    Toggles display face
+                  </simpara>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Text size</term>
+          <listitem>
+            <para>
+              In this section, the <firstterm>base size</firstterm>
+              refers to the font size defined for the active window;
+              the <firstterm>current size</firstterm> refers to that
+              selected with previous size control tags.
+            </para>
+          </listitem>
+        </varlistentry>
+            
 <!--
-.SS Expression syntax
-
-.TP 2
-.BR Integer\ expressions " (\fIint_expr\fR)"
-.\" ScriptHandler::readInt/parseIntExpression/readNextOp/parseInt
-are similar to those in other languages.
-
-There are two operator precedence levels:
-.BR + " and " \-
-are low precedence, while
-.BR * ", " / ", and " mod
-are high precedence.
-
-Parentheses and unary minus operate as normal.
-
-.IP "" 2
-More formally:
-
-.IP "" 4
-.BR int_expr "  ::="
-.IB int_term " \fR| " int_term \ *\fR|\fB/\fR|\fBmod \ int_expr
-.br
-.BR int_term "  ::="
-.IB int_unary " \fR| " int_unary \ +\fR|\fB\- \ int_term
-.br
-.BR int_unary " ::="
-.IR int_paren " | \fB\- " int_paren
-.br
-.BR int_paren " ::="
-.BI "( " int_expr " ) \fR| " int_elt
-.br
-.BR int_elt "   ::="
-.IR num_lit " | " int_var " | " bareword
-.br
-.BR int_var "   ::="
-.BI % int_elt " \fR| " int_array
-.br
-.BR int_array " ::="
-.BI ? "int_elt subscript" \fR+
-.br
-.BR subscript " ::="
-.BI "[ " int_expr " ]"
-.br
-.BR num_lit "   ::="
-.IR [0\-9]+ " | \fB0x" [0-9a-f]+
-.br
-.BR bareword "  ::="
-.IR [a-z_][a-z_0-9]+
-
-.TP 2
-.BR String\ expressions " (\fIstring_expr\fR)"
-.\" ScriptHandler::readStr/parseStr
-are simpler.
-
-Their grammar is as follows:
-.IP "" 4
-.BR string_expr " ::="
-.IB string_term " | " string_term " + " string_expr
-.br
-.BR string_term " ::="
-.IR file_cond " | " string_elt
-.br
-.BR file_cond "   ::="
-.BI "( " string_term " ) " string_term " " string_term
-.br
-.BR string_elt "  ::="
-.IR string_lit " | " string_var " | " label " | " colour " | " bareword
-.br
-.BR string_var "  ::="
-.BI $ int_elt
-.br
-.BR label "       ::="
-.BI * [a-z_0-9]+
-.br
-.BR string_lit "  ::="
-.BI \(dq [^\(dq]*? \(dq "\fR | " ^ [^^]*? ^
-
-.IP "" 2
-The only part of the above that should not be obvious, given the
-descriptions under `Lexical categories' above, is the
-.I file_cond
-term.
-
-This is only useful when the
-.BR filelog
-command is in effect.
-
-The parenthesised string is interpreted as the name of an image file.
-
-If the player has viewed this file, the first of the subsequent terms
-is used; otherwise, the second is used.
-
-.TP 2
-.B Conditional expressions
-
-are effectively a special syntax associated with the
-.BR if / notif
-commands.
-
-They are somewhat lacking compared to conditionals in most languages:
-in particular, multiple terms may be combined only with an `and'
-operator, with no `or' available.
-
-.IP "" 2
-Either strings or integers may be compared.
-
-The ordering of strings is deliberately left undefined; it may change
-without warning in the future.
-
-However, for any given Ponscripter version, the ordering will be the
-same across all platforms and regardless of users' locale settings.
-
-.IP "" 2
-Several operators accept variant forms:
-.BR && \ for \ & ,
-.BR = \ for \ == ,
-and
-.BR <> \ for \ != .
-In each case, there is no semantic difference between the two.
-
-.IP "" 2
-One other type of term is permitted: a function-like
-.BR fchk ,
-which takes a string, interprets it as the filename of a picture,
-and returns true iff that picture has been displayed.
-
-.IP "" 2
-Formally:
-
-.IP "" 4
-.BR conditional " ::="
-.IR cond_term " | " cond_term " \fB& " conditional
-.br
-.BR cond_term "   ::="
-.IR comp_term " | \fBfchk " string_expr
-.br
-.BR comp_term "   ::="
-.IB expression " ==\fR|\fB!=\fR|\fB>\fR|\fB<\fR|\fB>=\fR|\fB<= " expression
-.br
-.BR expression "  ::="
-.IR int_expr " | " string_expr
-
-.SS Command syntax
-
-The above lexemes and expressions are combined in a fairly similar way
-to BASIC.
-
-Commands are interpreted sequentially, one to a line; multiple
-commands may be placed on a single line, where required, by separating
-them with colons.
-
-.PP
-There are several forms of command:
-
-.IP \(bu
-.BR Procedure\ call s
-consist of a bareword, normally followed by a parameter list: this is
-a comma-separated list of expressions (parentheses are not used).
-
-.IP \(bu
-.BR Label s
-consist of a label literal, which serves as a name for that point in
-the script.
-
-There is also a form of anonymous label, represented by a single
-.B ~
-character, which is used by the
-.B jumpf
-and
-.B jumpb
-commands.
-
-.IP \(bu
-.BR Text
-commands consist of a text delimiter, which switches the interpreter
-into text mode for the remainder of the line; see next section.
-
-.SS Text mode
-
-As described above, text commands begin with a text marker
-.RB ( ^
-in native scripts,
-.B \`
-in legacy scripts).
-
-The remainder of the line is then parsed in text mode.
-
-.PP
-Most characters in text mode represent themselves and are printed
-verbatim; this includes the newline at the end of each line, unless
-it is explicitly suppressed with
-.BR / .
-
-It also includes characters with special meanings in command mode,
-such as colons and semicolons.
-
-However, there are also a fair number of control characters with
-special meanings.
-
-Since text syntax was not so much designed as gradually accumulated,
-there is very little consistency in how these control characters are
-chosen, when exactly in the parsing process they are interpreted, and
-how they are printed literally.
-
-Read on for details.
-
-.SS Text control
-
-Single characters with special meanings.
-
-These characters may all be printed literally by prefixing them with
-a single hash character, i.e.
-.BR #@ ", " #_ ,
-etc.
-
-.TP 2
-.BR @
-Waits for click, then continues printing text as though nothing had
-happened.
-
-.IP "" 2
-(Unlike in many ONScripter builds, the behaviour of
-.BR @
-is not altered by the definition of a
-.BR textgosub
-routine.)
-
-.TP 2
-.BR \e
-Waits for a click, then clears text window and begin a new page.
-
-.TP 2
-.BR _
-If a character has the
-.BR clickstr
-nature, prefixing it with an underscore suppresses that behaviour;
-otherwise it does nothing whatsoever.
-
-.IP "" 2
-.BR clickstr
-is evil, so you should never need to use this.
-
-.TP 2
-.BR /
-At the end of a line, ends a text command without beginning a new line
-of display text.
-
-This control only has any effect
-.I immediately
-before a newline character.
-
-Anywhere else in a line, even if only whitespace follows, it prints a
-literal slash.
-
-.SS Speed control
-
-Multi-character control codes controlling text speed.
-
-.PP
-Whitespace after these codes is ignored; you can cause it to be
-treated literally by adding a trailing separator character, i.e.
-.BR !sd|
-etc.
-
-.PP
-If one of these sequences would appear in literal text, it can be
-escaped by prefixing it with a single hash character, i.e.
-.BR #!sd
-etc.
-
-.PP
-Due to existing conventions for script layout, these codes are also
-valid as standalone commands without a preceding text marker; in this
-case they must be the only thing on their line apart from whitespace.
-
-.TP 2
-.BI !s NUM
-Sets text speed; this is equivalent to the commmand
-.IP "" 4
-.BI textspeed \ NUM
-.IP "" 2
-but has a more convenient syntax in cases where the speed must change
-within a single line.
-
-.IP "" 2
-Lower speeds are faster; 0 means there should be no delay between
-characters.
-
-.TP 2
-.BI !sd
-Resets text speed to the current player-selected default.
-
-.TP 2
-.BI !w NUM
-Inserts a pause of NUM milliseconds.
-
-It cannot be truncated by clicking, but can be skipped with any of the
-normal skip commands.
-
-.TP 2
-.BI !d NUM
-As
-.BR !w ,
-but can also be truncated by clicking.
-
-.SS Colour tags
-
-.BI # RRGGBB\fR,
-where
-.IR RR ", " GG ", and " BB
-are each two hex digits, modifies the current text foreground colour
-in the obvious way.
-
-A literal hash character can be inserted with
-.BR ## .
-
-.SS Formatting tags
-
-All formatting other than text colour is performed with formatting tag
-blocks.
-
-These are delimited with tildes; a literal tilde can be inserted with
-a double tilde
-.RI ( not
-.BR #~ ...
-that would be consistent.)
-
-Any number of tags can be combined within a single block, optionally
-separated with whitespace.
-
-.PP
-.B Font selection tags
-.PP
-
-The tags in this section, with the exception of
-.BR c ,
-assume that Ponscripter's eight font slots are assigned according to
-the following convention:
-.IP "" 2
-0 \- text regular
-.br
-1 \- text italic
-.br
-2 \- text bold
-.br
-3 \- text bold italic
-.br
-4 \- display regular
-.br
-5 \- display italic 
-.br
-6 \- display bold
-.br
-7 \- display bold italic
-.PP
-If fonts are assigned in any other way, tags such as
-.BR b \ and \ i
-will not behave as documented.
-
-Font slots are assigned using the
-.B h_mapfont
-command, which is documented in
-.BR ponscr-ext (7)
-
-.TP 2
-.BI c N
-Selects the font in slot
-.IR N .
-
-.TP 2
-.BI d
-Selects the default style (equivalent to
-.BR c0 )
-
-.TP 2
-.BI r
-Disables italics (default)
-
-.TP 2
-.BI i
-Toggles italics
-
-.TP 2
-.BI t
-Disables bold weight
-
-.TP 2
-.BI b
-Toggles bold weight
-
-.TP 2
-.BI f
-Selects text face (default)
-
-.TP 2
-.BI s
-Toggles display face
-
-.PP
-.B Text size
-.PP
-
-In this section, the
-.BR base
-size refers to the font size defined for the active window; the
-.BR current
-size should be self-explanatory.
-
 .TP 2
 .BI = N
 Set font size to exactly
@@ -860,9 +1008,16 @@ An example of indentation:
 .RB ^Indented ~u~
 .br
 ^Not indented
+-->
+      </variablelist>
+    </refsect2>
 
-.SS Ligatures and shortcuts
-
+    <refsect2>
+      <title>Ligatures and shortcuts</title>
+      <para>
+        
+      </para>
+<!--
 To assist in typing Unicode scripts with ASCII keyboards, Ponscripter
 has the ability to replace sequences of characters with Unicode
 symbols.
@@ -912,9 +1067,15 @@ Additional sequences can be defined by use of the
 .BR h_ligate
 command: see
 .BR ponscr-ext (7).
+-->
+    </refsect2>
 
-.SS Variable interpolation
-
+    <refsect2>
+      <title>Variable interpolation</title>
+      <para>
+        
+      </para>
+<!--
 Unlike in vanilla NScripter, merely including the name of a variable
 in text does not cause it to be interpolated; this is because frankly
 it seems to be more common to want something like
@@ -985,21 +1146,24 @@ $var,
 .RI ^foo {$var} bar\e
 .br
 .RB ;\ prints\ \(dqfoo bar \(dq
-
-.SH BUGS
-
-This whole syntax may be considered a bug: it is inconvenient,
-irregular, and needlessly difficult to parse.
-
-Don't blame me: I didn't design it, I'm just documenting it.
-
-If you want a similar tool with sane syntax, try something like
-Ren'Py.
-
-.SH SEE ALSO
-
-.BR ponscripter (7)
 -->
+    </refsect2>
+  </refsect1>
+
+  <refsect1>
+    <title>Bugs</title>
+    <simpara>
+      This whole syntax may be considered a bug: it is inconvenient,
+      irregular, and needlessly difficult to parse.  Don't blame me: I
+      didn't design it, I'm just documenting it.  If you want a
+      similar tool with sane syntax, try something like Ren'Py.
+    </simpara>
+  </refsect1>
+
+  <refsect1>
+    <title>See also</title>
+    <simpara>&ponscripter.7;</simpara>
+  </refsect1>
   
 </refentry>
 

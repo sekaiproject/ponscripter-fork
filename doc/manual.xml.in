@@ -8,11 +8,13 @@
   We define some processing instructions:
   
     ?I file   includes the named file (which is processed recursively).
-    
+
     ?L text   simply inserts text contents literally.  This enables us
               to pass XML to the editor that will be commented out in
               the final version.
 
+    ?IFmode text   inserts text if mode is the current mode (e.g. IFman)
+              
     ?link id: text   inserts TEXT in man mode; in html mode, inserts
                      <link linkend="id">text</link>.
 

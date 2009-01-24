@@ -980,6 +980,12 @@ ${VALIDDOC:+	$VALIDDOC http://docs.oasis-open.org/docbook/xml/5.0/docbook.nvdl \
 
 doc/%.7: doc/manual-man.xml 
 	xmlto --skip-validation man \$< -o doc
+	@ # Docbook's XSLT makes broken tables.  We quietly fix that. 
+	@perl -e\
+ '\$\$_=do{local\$\$/;<>};s((\.TS\\n)(.*;\\n.*)\$\$){\$\${1}center\
+ \$\${2}w(40)}gm;print'\
+ doc/ponscr-syntax.7 > doc/ponscr-syntax.7.fixed
+	@mv doc/ponscr-syntax.7.fixed doc/ponscr-syntax.7
 
 doc/%.html: doc/manual-html.xml
 	xmlto --skip-validation html \$< -o doc

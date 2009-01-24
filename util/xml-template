@@ -14,14 +14,17 @@ s(<\?I\s*(.*?)\?>){
     for ($i = $1) { s/(\$\w+)/$1/eeg; s/^\s*|\s*$//g }
     $d = strftime "%Y-%m-%d", gmtime((stat "doc/$i")[9]);
     ($c = `$0 $mode doc/$i`) =~ s/<\?D\?>/$d/g; $c
-}eg;
+}ges;
 
 # Process literals
-s/<\?L(.*?)\?>/$1/g;
+s/<\?L\s(.*?)\?>/$1/gs;
+
+# Process conditional literals
+s/<\?IF(\w+)\s(.*?)\?>/ lc $1 eq lc $mode ? $2 : '' /ges;
 
 # Process <?link?>
 s(<\?link\s*([^:]+):\s*(.*?)\s*\?>)
- {$mode eq 'man' ? "<quote>$2</quote>" : qq{<link linkend="$1">$2</link>} }eg;
+ {$mode eq 'man' ? "<quote>$2</quote>" : qq{<link linkend="$1">$2</link>} }ges;
 
 # Chomp certain annoying whitespace that messes up manpages
 s(  (para|name)> \s*\n\s* ([<&])                 ){$1>$2}gx;
@@ -31,5 +34,7 @@ s( \n\s* (</programlisting>)        ){$1}gx;
 
 # Format <firstterm> with bold text.  Life's too short to figure out
 # how to do this with XSLT.
-s|(<firstterm[^>]*>)|$1<emphasis role="bold">|g;
-s|(</firstterm>)|</emphasis>$1|g;
+if ($mode eq 'man') {
+    s|(<firstterm[^>]*>)|$1<emphasis role="bold">|g;
+    s|(</firstterm>)|</emphasis>$1|g;
+}

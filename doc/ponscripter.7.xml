@@ -247,12 +247,12 @@ xmlns:xl="http://www.w3.org/1999/xlink"><reference><title/><?L --> ?>
         A skeleton script has the following form:
         <programlisting>
 ; directives
-*define
+<literal>*define</literal>
 ; define section
-game
-*start
+<function>game</function>
+<literal>*start</literal>
 ; game section
-end
+<function>end</function>
         </programlisting>
       </para>
     </refsect2>
