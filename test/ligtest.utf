@@ -1,0 +1,44 @@
+;mode800,-*- ponscripter -*-
+;gameid Ponscripter test
+
+*define
+
+h_ligate all
+h_mapfont 1, "default.ttf"
+
+game
+*start
+
+^Hello, fine world.\
+
+h_ligate "el", "e"
+h_ligate "lo,", 0
+h_ligate "lo", "y"
+
+^Hello, fine world.\
+
+h_ligate "lo,", "h"
+h_ligate "lo", "x"
+
+^Hello, fine world.\
+
+h_ligate "a",   "あ"
+h_ligate "i",   "い"
+h_ligate "u",   "う"
+h_ligate "e",   "え"
+h_ligate "o",   "お"
+h_ligate "ka",  "か"
+h_ligate "ko",  "こ"
+h_ligate "se",  "せ"
+h_ligate "ni",  "に"
+h_ligate "chi", "ち"
+h_ligate "ha",  "は"
+h_ligate "n",   "ん"
+h_ligate ", ",  "、"
+h_ligate ". ",  "。"
+h_ligate ",",   "、"
+h_ligate ".",   "。"
+
+^~c1~konnichiha, sekai.\
+
+end ;)

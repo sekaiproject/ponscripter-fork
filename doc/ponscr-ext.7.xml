@@ -26,190 +26,264 @@ xmlns:xl="http://www.w3.org/1999/xlink"><reference><title/><?L --> ?>
     <para>
       See &ponscripter.7; for an overview of other documentation.
     </para>
-  </refsect1>
-  
-<!--
-.SS Detecting Ponscripter
 
-It may occasionally be desirable to have a single script that will
-load in both Ponscripter and other NScripter-type interpreters.
+    <refsect2>
+      <title>Detecting Ponscripter</title>
+      <para>
+        It may occasionally be desirable to have a single script that
+        will load in both Ponscripter and other NScripter-type
+        interpreters.  (The test scripts in the Ponscripter
+        distribution are an example of such a case.)
+      </para>
+      <para>
+        A script can detect whether it is running under Ponscripter by
+        defining a numalias:
+        <programlisting>
+<function>numalias</function> <constant>PONSCRIPTER</constant>, 0
+        </programlisting>
+      </para>
+      <para>
+        Ponscripter treats this as a special case, and gives the
+        numalias the value 1 instead, so platform-specific code can
+        then be included by testing the value of
+        <constant>PONSCRIPTER</constant> and branching as appropriate.
+      </para>
+    </refsect2>
+    
+    <refsect2>
+      <title>Fonts</title>
 
-(The test scripts in the Ponscripter distribution are an example of
-such a case.)
+      <variablelist>
+        <varlistentry>
+          <term>
+            <function>h_mapfont</function>
+            <replaceable>slot</replaceable>,
+            <replaceable>filename</replaceable>,
+            <optional><replaceable>metrics</replaceable></optional>
+          </term>
+          <listitem>
+            <simpara>
+              Maps <replaceable>filename</replaceable> to font slot
+              number <replaceable>slot</replaceable> (0-7).
+            </simpara>
+            <simpara>
+              For TrueType and OpenType fonts,
+              <replaceable>filename</replaceable> should name the
+              <filename>.ttf</filename> or <filename>.otf</filename>
+              file.  For Type 1 fonts,
+              <replaceable>filename</replaceable>> should name the
+              <filename>.pfa</filename> or <filename>.pfb</filename>
+              file, and the <replaceable>metrics</replaceable>
+              argument should be used to provide the corresponding
+              <filename>.afm</filename> file.
+            </simpara>
+            <simpara>
+              Filenames are relative to the game's data path.  If a
+              file is not found, it is then sought within a
+              <filename>fonts</filename> subdirectory of the data
+              path, then in the game's archive, and then the game
+              binary itself is checked in case the font has been
+              embedded there.  Finally, for compatibility, Ponscripter
+              checks for a file named <filename>default.ttf</filename>
+              in the game's data path, and uses that if it exists.
+              Note that at no stage does Ponscripter look at the fonts
+              installed on the user's computer; games must distribute
+              their own fonts.  Note also that fonts are loaded
+              lazily, so the point of failure if a file is missing
+              will be when that font is first
+              <emphasis>used</emphasis>, not when this command is
+              executed.
+            </simpara>
+            <simpara>
+              The intended convention is that the eight font slots
+              should represent two typefaces (a text face and a
+              display face), each with regular, italic, bold, and
+              bold-italic styles.  These are assigned in ascending
+              order: slot 0 (the default face) should be the regular
+              text font, slot 1 the italic text font, slot 4 the
+              regular display font, etc.  You can, of course, assign
+              the fonts however you like, but following the convention
+              permits straightforward use of mnemonic formatting tags.
+              See <?link f-sel-t: Font selection tags?> in
+              &ponscr-syntax.7; for details of font selection.
+            </simpara>
+            <simpara>
+              Mapping fonts in this way is optional.  If a slot is
+              used that has not had a font assigned to it, the default
+              filename will be
+              <filename>face<replaceable>N</replaceable>.ttf</filename>,
+              where <replaceable>N</replaceable> is the slot number.
+            </simpara>
+          </listitem>
+        </varlistentry>
 
-.PP
-A script can detect whether it is running under Ponscripter by
-defining a numalias as follows:
+        <varlistentry>
+          <term>
+            <function>h_rendering</function>
+            <replaceable>hinting</replaceable>,
+            <replaceable>positioning</replaceable>,
+            <optional><replaceable>rendermode</replaceable></optional>
+          </term>
+          <listitem>
+            <simpara>
+              Configures Freetype text rendering.
+            </simpara>
+            <para>
+              <replaceable>hinting</replaceable> should be one of the
+              following barewords:
+              <variablelist>
+                <varlistentry>
+                  <term><constant>none</constant></term>
+                  <listitem>
+                    <simpara>glyphs are unhinted (default)</simpara>
+                  </listitem>
+                </varlistentry>
+                <varlistentry>
+                  <term><constant>full</constant></term>
+                  <listitem>
+                    <simpara>Freetype hinting is used</simpara>
+                  </listitem>
+                </varlistentry>
+                <varlistentry>
+                  <term><constant>light</constant></term>
+                  <listitem>
+                    <simpara>Light hinting is used</simpara>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+              The optimum settings depend on the fonts in use.  In
+              general, Freetype hinting makes TrueType fonts look
+              hideous, but it does sometimes help with Type 1 fonts.
+            </para>
+            <simpara>
+              <replaceable>positioning</replaceable> should be the
+              bareword <constant>integer</constant>, which causes
+              characters to be aligned to whole pixels.  The
+              alternative is <constant>float</constant>, which uses
+              subpixel positioning and would in theory give better
+              spacing, but has never worked properly and generally
+              looks awful.
+            </simpara>
+            <simpara>
+              The optional <replaceable>rendermode</replaceable>
+              parameter can be used to override the Freetype rendering
+              mode.  It should be one of the barewords
+              <constant>light</constant> or
+              <constant>normal</constant>.  By default, light
+              rendering is used for light hinting, and normal
+              rendering otherwise; this should always be what you
+              want.
+            </simpara>
+          </listitem>
+        </varlistentry>
 
-.IP "" 2
-.B numalias
-PONSCRIPTER, 0
-.PP
-Ponscripter treats this as a special case, and gives the numalias the
-value 1 instead, so platform-specific code can then be included by
-testing the value of PONSCRIPTER and branching as appropriate.
+        <varlistentry>
+          <term>
+            <function>h_fontstyle</function>
+            <replaceable>string</replaceable>
+          </term>
+          <listitem>
+            <simpara>
+              Sets the default text styling.  This command is
+              equivalent to inserting
+              <literal>~d<replaceable>string</replaceable>~</literal>
+              at the start of every subsequent text display command
+              (though it has no effect on sprites).
+            </simpara>
+            <simpara>
+              Only font style tags may be used; size and position tags
+              are not supported.
+            </simpara>
+            <para>
+              For example, to set an entire section of the game in
+              your italic display font, you could use the code
+              <programlisting>
+<function>h_fontstyle</function> ^si^
+^Your text here\
+^Several pages in italic display font\
+<function>h_fontstyle</function> ^d^  <emphasis>; to reset</emphasis>
+              </programlisting>
+            </para>
+          </listitem>
+        </varlistentry>
 
-.SS Fonts
-
-.TP 2
-.RI \fBh_mapfont \ slot ", " filename ", [" metrics "]"
-
-Maps 
-.I filename
-to font slot number
-.I slot
-(0-7).
-
-.IP "" 2
-For TrueType and OpenType fonts,
-.I filename
-should name the .TTF or .OTF file.
-
-For Type 1 fonts,
-.I filename
-should name the .PFA or .PFB file, and the
-.I metrics
-argument should be used to provide the corresponding .AFM file.
-
-.IP "" 2
-Filenames are relative to the game's data path.
-
-If a file is not found, it is then sought within a "fonts"
-subdirectory of the data path, then in the game's archive, and then
-the game binary itself is checked in case the font has been embedded
-there.
-
-Finally, for compatibility, Ponscripter checks for a file named
-"default.ttf" in the game's data path, and uses that if it exists.
-
-Note that at no stage does Ponscripter look at the fonts installed on
-the user's computer; games must distribute their own fonts.
-
-Note also that fonts are loaded lazily, so the point of failure if a
-file is missing will be when that font is first
-.IR used ,
-not when it is mapped.
-
-.IP "" 2
-The intended convention is that the eight font slots should represent
-two typefaces (a text face and a display face), each with regular,
-italic, bold, and bold-italic styles.
-
-These are assigned in ascending order: slot 0 (the default face)
-should be the regular text font, slot 1 the italic text font, slot 4
-the regular display font, etc.
-
-You can, of course, assign the fonts however you like.
-
-See "Font selection tags" in
-.BR ponscr-syntax (7)
-for details of font selection.
-
-.IP "" 2
-If a slot is used that has not had a font assigned to it, the default
-filename will be
-.RI face N .ttf,
-where
-.I N
-is the slot number.
-
-.TP 2
-.RI \fBh_rendering \ hinting ", " positioning ", [" rendermode "]"
-Configures Freetype text rendering.
-
-.IP "" 2
-The
-.I hinting
-parameter should be one of the following barewords:
-.IP "" 4
-.B none
-\- glyphs are unhinted (default)
-.br
-.B full
-\- Freetype hinting is used
-.br
-.B light
-\- Light hinting is used
-.IP "" 2
-The optimum settings depend on the fonts in use.
-
-In general, Freetype hinting makes TrueType fonts look hideous, but it
-does sometimes help with Type 1 fonts.
-
-.IP "" 2
-The
-.I positioning
-parameter should be one of the following barewords:
-.IP "" 4
-.B integer
-\- characters are aligned to whole pixels (default)
-.br
-.B float
-\- subpixel positioning is used
-.IP "" 2
-Float mode is broken, and generally looks awful.
-
-One day I'll fix it, and then it'll give better spacing than integer
-mode.
-
-.IP "" 2
-The optional
-.I rendermode
-parameter can be used to override the Freetype rendering mode.
-
-It should be one of the barewords
-.B light
-or
-.BR normal .
-
-By default, light rendering is used for light hinting, and normal
-rendering otherwise.
-
-You should have no reason to want anything else.
-
-.TP 2
-.RI \fBh_fontstyle \ string
-
-Sets the default text styling.
-
-This command is equivalent to inserting
-.BI ~d string ~
-at the start of every subsequent text display command (though it has
-no effect on sprites).
-
-.IP "" 2
-Only font style tags may be used; size and position tags are not
-supported.
-
-.IP "" 2
-For example, to set an entire section of the game in your italic
-display font, you could use the code
-
-.IP "" 4
-.B h_fontstyle
-^si^
-.br
-^Your text here\e
-.br
-^Several pages in italic display font\e
-.br
-.B h_fontstyle
-^d^  ; to reset
-
-.TP 2
-.RI "\fBh_ligate\fR [" input "], " action
-Add or remove shortcut sequences.
-
-(See "Ligatures and shortcuts" in
-.BR ponscr-syntax (7).)
-
-.IP "" 2
-
-
-In particular,
-.IP "" 2
-h_ligate punctuation
-.PP
+        <varlistentry>
+          <term>
+            <function>h_ligate</function>
+            <replaceable>input</replaceable>,
+            <replaceable>action</replaceable>
+          </term>
+          <term>
+            <function>h_ligate</function>
+            <replaceable>preset</replaceable>
+          </term>
+          <listitem>
+            <para>
+              Add or remove shortcut sequences.  (See <?link ligs:
+              Ligatures and shortcuts?> in &ponscr-syntax.7;.)
+            </para>
+            <para>
+              The two-argument form of this command adds or removes a
+              single sequence. <replaceable>input</replaceable> is a
+              string representing the sequence;
+              <replaceable>action</replaceable> is either the bareword
+              <literal>remove</literal>, which causes any shortcut
+              associated with the sequence to be undefined; an
+              integer, which is taken as the Unicode codepoint to be
+              inserted when the sequence is encountered; or a string,
+              the first character of which is inserted when the
+              sequence is encountered.  For example:
+              <programlisting>
+<function>h_ligate</function> "fi", 0xfb01
+              </programlisting>
+            </para>
+            <para>
+              The one-argument form is used to apply preset settings.
+              <replaceable>preset</replaceable> is one of the following
+              values:
+              <variablelist>
+                <varlistentry>
+                  <term><literal>none</literal></term>
+                  <listitem>
+                    <para>
+                      Clears all definitions, <emphasis>including the
+                      defaults</emphasis>.  To restore the default
+                      definitions, use <literal>default</literal> as
+                      well (see following).
+                    </para>
+                  </listitem>
+                </varlistentry>
+                <varlistentry>
+                  <term><literal>default</literal></term>
+                  <listitem>
+                    <simpara>
+                      Redefines the standard shortcuts, i.e. curly
+                      quotes and the <literal>#</literal>-sequences
+                      used to escape some special syntax.
+                    </simpara>                    
+                  </listitem>
+                </varlistentry>
+                <varlistentry>
+                  <term><literal>all</literal></term>
+                  <listitem>
+                    <simpara>
+                      Defines all sequences mentioned in this section.
+                    </simpara>
+                  </listitem>
+                </varlistentry>
+                <varlistentry>
+                  <term><literal>f_ligatures</literal></term>
+                  <listitem>
+                    <simpara>
+                      Defines ligatures for fi, fl, ff, ffi, and ffl.
+                    </simpara>
+                  </listitem>
+                </varlistentry>
+                <varlistentry>
+                  <term><literal>punctuation</literal></term>
+                  <listitem>
+                    <simpara>
+                      
 defines the following shortcuts:
 .IP "" 2
 .BR ... \ \->
@@ -247,22 +321,21 @@ ellipsis
 .br
 .BR %\. \ \->
 thin space
-.PP
-A
-.I full
-set of `f' ligatures can be defined with
-.IP "" 2
-h_ligate f_ligatures
-.PP
-However, this includes the less common `ffi' and `ffl' ligatures; if
-you're using a font that omits these, you will want to define the
-common ligatures manually with something like
-.IP "" 2
-h_ligate \(dqfi\(dq, 0xfb01
-.br
-h_ligate \(dqfl\(dq, 0xfb02
-
-.SS Text controls
+                      
+                    </simpara>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect2>
+    
+    <refsect2>
+      <title>Text controls</title>
+      <para></para>
+<!--
 
 h_defwindow
 h_usewindow
@@ -275,34 +348,57 @@ h_textheight
 h_speedpercent
 gettextspeed
 
-.SS Sprite controls
+-->      
+    </refsect2>
+    <refsect2>
+      <title>Sprite controls</title>
+      <para></para>
+<!--
 
 vsp_when
 vsp2_when
 logsp2utf
 
-.SS Debugging
+-->      
+    </refsect2>
+    <refsect2>
+      <title>Debugging</title>
+      <para></para>
+<!--
 
 say
 watch_var
 
-.SS Soft subtitles
+-->      
+    </refsect2>
+    <refsect2>
+      <title>Soft subtitles</title>
+      <para></para>
+<!--
 
 mpeg (what's the command?)
 
-.SS Extensions to existing commands
-
+-->      
+    </refsect2>
+    <refsect2>
+      <title>Extensions to existing commands</title>
+      <para></para>
+<!--
 movz
 vsp
 csp
 amsp
 msp
 cell
-
-.SH SEE ALSO
-
-.BR ponscripter (7)
 -->
+    </refsect2>
+    
+  </refsect1>
+
+  <refsect1>
+    <title>See also</title>
+    <simpara>&ponscripter.7;</simpara>
+  </refsect1>
   
 </refentry>
 

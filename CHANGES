@@ -1,3 +1,9 @@
+2009-02-07
+
+  Ligature selection is no longer dependent on the order of
+  definition, and a saner data structure is used.
+
+
 2009-01-20
 
   Refactor documentation, and translate it to DocBook to make HTML

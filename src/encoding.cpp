@@ -3,7 +3,7 @@
  *  encoding.cpp -- ligature handling, general encoding and UTF8
  *                  implementation
  *
- *  Copyright (c) 2007 Peter Jolly
+ *  Copyright (c) 2007-2009 Peter Jolly
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License as
@@ -27,42 +27,84 @@
 Encoding* encoding = 0; // initialised in ScriptHandler::readScript
 
 struct ligature {
-    typedef std::vector<ligature> vec;
-    typedef vec::iterator iterator;
-    typedef std::map<char, vec> map;
-    pstring in;
-    wchar out;
-    ligature(pstring i, wchar o) : in(i), out(o) {}
-
-    static const ligature undef;
+    wchar codepoint;
+    int seqlen;
+    ligature() : codepoint(0), seqlen(0) {}
 };
-static ligature::map ligs;
-const ligature ligature::undef("", 0);
 
-const ligature&
-GetLigatureRef(const char* string)
+class ligatures {
+    typedef std::map<char, ligatures*> map;
+    typedef map::iterator mit;
+    typedef std::pair<char, ligatures*> clunk;
+    typedef std::pair<mit, bool> ins;
+    ligature val;
+    map children;
+    
+public:
+    void clear();
+    ligature* find(const char* seq, const Fontinfo* face);
+    void add(const char* seq, wchar value, int depth = 0);
+    void del(const char* seq);
+    
+    ~ligatures() { clear(); }
+};
+static ligatures ligs;
+
+void
+ligatures::clear()
 {
-    ligature::vec& v = ligs[string[0]];
-    for (ligature::iterator it = v.begin(); it != v.end(); ++it) {
-	int is = it->in.length();
-	const char* in = it->in;
-	while (--is && in[is] == string[is]);
-	if (is == 0) return *it;
-    }
-    return ligature::undef;
+    for (mit it = children.begin(); it != children.end(); ++it)
+        delete it->second;
 }
+    
+ligature*
+ligatures::find(const char* seq, const Fontinfo* face)
+{
+    ligature* v = 0;
+    mit lit = children.find(*seq);
+    if (lit != children.end())
+        v = lit->second->find(seq + 1, face);
+    if (!v && val.codepoint &&
+        (!face || face->font()->has_char(val.codepoint)))
+        v = &val;
+    return v;
+}
+
+void
+ligatures::add(const char* seq, wchar value, int depth)
+{
+    if (*seq) {
+        ins p = children.insert(clunk(*seq, 0));
+        if (!p.first->second) p.first->second = new ligatures;
+        p.first->second->add(seq + 1, value, depth + 1);
+    }
+    else {
+        val.codepoint = value;
+        val.seqlen = depth;
+    }
+}
+
+void
+ligatures::del(const char* seq)
+{
+    if (*seq) {
+        mit e = children.find(*seq);
+        if (e != children.end()) {
+            e->second->del(seq + 1);
+            if (!e->second->val.codepoint && e->second->children.empty())
+                children.erase(e);
+        }
+    }
+    else {
+        val.codepoint = 0;
+    }
+}
+
 
 void
 AddLigature(const pstring& in, wchar out)
 {
-    ligature::vec& v = ligs[in[0]];
-    for (ligature::iterator it = v.begin(); it != v.end(); ++it) {
-	if (it->in == in) {
-	    it->out = out;
-	    return;
-	}
-    }
-    v.insert(v.begin(), ligature(in, out));
+    ligs.add(in, out);
 }
 
 void
@@ -71,21 +113,12 @@ ClearLigatures()
     ligs.clear();
 }
 
-
 void
 DeleteLigature(const pstring& in)
 {
-    ligature::map::iterator lit = ligs.find(in[0]);
-    if (lit == ligs.end()) return;
-    ligature::vec& v = lit->second;
-    for (ligature::iterator it = v.begin(); it != v.end(); ++it) {
-	if (it->in == in) {
-	    v.erase(it);
-	    return;
-	}
-    }
+    ligs.del(in);
 }
-
+    
 void
 DefaultLigatures(int which)
 {
@@ -134,18 +167,20 @@ DefaultLigatures(int which)
 wchar
 Encoding::DecodeWithLigatures(const char* str, const Fontinfo& info, int& bytes)
 {
-    wchar rv = Decode_impl(str, bytes, true);
-    // If likely a ligature, check for its presence in the target font.
-    if (bytes == 1 || info.font()->has_char(rv)) return rv;
-    // If the character wasn't found, try again discounting ligatures.
-    return Decode_impl(str, bytes, false);
+//    wchar rv = Decode_impl(str, bytes, &info);
+//    // If likely a ligature, check for its presence in the target font.
+//    if (bytes == 1 || info.font()->has_char(rv)) return rv;
+//    // If the character wasn't found, try again discounting ligatures.
+//    return Decode_impl(str, bytes, 0);
+    // Ligature presence is taken care of in ligature search now.
+    return Decode_impl(str, bytes, &info);
 }
 
 
 const pstring Encoding::which() const { return name; }
 
 int
-UTF8Encoding::Charsz_impl(const char* string, bool withligs)
+UTF8Encoding::Charsz_impl(const char* string, const Fontinfo* fi)
 {
     if (!string) return 0;
     const unsigned char* t = (const unsigned char*) string;
@@ -155,15 +190,15 @@ UTF8Encoding::Charsz_impl(const char* string, bool withligs)
         if (c == 0x1f) return 2;
 
 	// tags disabled?
-	if (!withligs)
+	if (!fi)
 	    return 1;
 	
         // extended codes
         if (c == '|')
-	    return t[1] == '|' ? 2 : 1 + Charsz_impl(string + 1, true);
+	    return t[1] == '|' ? 2 : 1 + Charsz_impl(string + 1, fi);
 
-        const ligature& lig = GetLigatureRef(string);
-        return lig.out ? lig.in.length() : 1;
+        const ligature* lig = ligs.find(string, fi);
+        return lig ? lig->seqlen : 1;
     }
     else {
         if ((c & 0xc0) == 0x80)
@@ -171,7 +206,7 @@ UTF8Encoding::Charsz_impl(const char* string, bool withligs)
                             "character\n");
         // ZWNJ
         if (c == 0xe2 && t[1] == 0x80 && t[2] == 0x8c)
-            return 3 + Charsz_impl(string + 3, withligs);
+            return 3 + Charsz_impl(string + 3, fi);
 
         return c < 0xe0 ? 2 : (c < 0xf0 ? 3 : 4);
     }
@@ -179,7 +214,8 @@ UTF8Encoding::Charsz_impl(const char* string, bool withligs)
 
 
 wchar
-UTF8Encoding::Decode_impl(const char* string, int& bytes, bool withligs)
+UTF8Encoding::Decode_impl(const char* string, int& bytes,
+                          const Fontinfo* fi)
 {
     bytes = 0;
     if (!string) return 0;
@@ -200,22 +236,22 @@ UTF8Encoding::Decode_impl(const char* string, int& bytes, bool withligs)
 	
 	// If ligatures are disabled, all other ASCII characters are
 	// treated as themselves.
-	if (!withligs) {
+	if (!fi) {
 	    bytes = 1;
 	    return c;
 	}
 
         if (c == '|' && t[1] == '|') { bytes = 2; return '|'; }
 	if (c == '|') {
-	    wchar c = Decode_impl(string + 1, bytes, true);
+	    wchar c = Decode_impl(string + 1, bytes, fi);
 	    ++bytes;
 	    return c;
 	}
 
-        const ligature& lig = GetLigatureRef(string);
-	if (lig.out) {
-	    bytes = lig.in.length();
-	    return lig.out;
+        const ligature* lig = ligs.find(string, fi);
+	if (lig) {
+	    bytes = lig->seqlen;
+	    return lig->codepoint;
 	}
 	bytes = 1;
         return c;
@@ -237,7 +273,7 @@ UTF8Encoding::Decode_impl(const char* string, int& bytes, bool withligs)
         else if (c < 0xf0) {
             // ZWNJ
             if (c == 0xe2 && t[1] == 0x80 && t[2] == 0x8c) {
-		wchar c = Decode_impl(string + 3, bytes, withligs);
+		wchar c = Decode_impl(string + 3, bytes, fi);
                 bytes += 3;
 		return c;
 	    }
@@ -268,12 +304,12 @@ UTF8Encoding::Previous(const char* currpos, const char* strstart)
 
 
 size_t
-Encoding::CharacterCount(const char* string, bool withligs)
+Encoding::CharacterCount(const char* string, const Fontinfo* fi)
 {
     size_t rv = 0;
     while (*string) {
         ++rv;
-        string += NextCharSize(string, withligs);
+        string += NextCharSize(string, fi);
     }
     return rv;
 }

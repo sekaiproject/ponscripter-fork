@@ -26,10 +26,10 @@
 #include "defs.h"
 #include "cp932_tables.h"
 
-// NB. We currently don't support ligatures in CP932.
+// NB. We don't support ligatures in CP932.
 
 int
-CP932Encoding::Charsz_impl(const char* string, bool withligs)
+CP932Encoding::Charsz_impl(const char* string, const Fontinfo* ignored)
 {
     const unsigned char c = *(unsigned char*) string;
     return (c < 0x7f || (c >= 0xa1 && c <= 0xdf)) ? 1 : 2;
@@ -37,7 +37,8 @@ CP932Encoding::Charsz_impl(const char* string, bool withligs)
 
 
 wchar
-CP932Encoding::Decode_impl(const char* string, int& bytes, bool withligs)
+CP932Encoding::Decode_impl(const char* string, int& bytes,
+                           const Fontinfo* ignored)
 {
     bytes = 0;
     if (!string) return 0;

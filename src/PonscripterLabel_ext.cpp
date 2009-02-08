@@ -337,7 +337,8 @@ int PonscripterLabel::haeleth_ligate_controlCommand(const pstring& cmd)
     pstring s = e.as_string();
     if (e.is_bareword()) {
 	if (s == "none")             ClearLigatures();
-	else if (s == "default")     DefaultLigatures(1 | 2 | 4 | 8);
+	else if (s == "all")         DefaultLigatures(1 | 2 | 4 | 8);
+	else if (s == "default")     DefaultLigatures(1 | 8);
 	else if (s == "basic")       DefaultLigatures(1);
 	else if (s == "punctuation") DefaultLigatures(2);
 	else if (s == "f_ligatures") DefaultLigatures(4);

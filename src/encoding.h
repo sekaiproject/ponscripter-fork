@@ -43,29 +43,31 @@ void DeleteLigature(const pstring& in);
 void DefaultLigatures(int which);
 void ClearLigatures();
 
+// For methods taking Fontinfo*, pass NULL if ligature information is not
+// required, or a Fontinfo to get info on ligatures for that font.
 class Encoding {
     const char textchar;
     const char* name;
     bool tagscurr;
 protected:    
-    virtual wchar Decode_impl(const char* str, int& bytes, bool withligs) = 0;
-    virtual int Charsz_impl(const char* str, bool withligs) = 0;
+    virtual wchar Decode_impl(const char*, int&, const Fontinfo*) = 0;
+    virtual int Charsz_impl(const char*, const Fontinfo*) = 0;
 public:
     char TextMarker() const { return textchar; }
     bool UseTags() const { return tagscurr; }
 
-    int NextCharSize(const char* str, bool withligs = false)
-	{ return Charsz_impl(str, withligs); }
-    int NextCharSizeWithLigatures(const char* str)
-	{ return Charsz_impl(str, true); }
+    int NextCharSize(const char* str, const Fontinfo* fi = 0)
+	{ return Charsz_impl(str, fi); }
+    int NextCharSizeWithLigatures(const char* str, const Fontinfo* fi)
+	{ return Charsz_impl(str, fi); }
 
     virtual int Encode(wchar input, char* output) = 0;
     virtual pstring Encode(wchar input) = 0;
 
-    wchar DecodeChar(const char* str, bool withligs = false)
-	{ int bytes; return Decode_impl(str, bytes, withligs); }
-    wchar DecodeChar(const char* str, int& bytes, bool withligs = false)
-	{ return Decode_impl(str, bytes, withligs); }
+    wchar DecodeChar(const char* str, const Fontinfo* fi = 0)
+	{ int bytes; return Decode_impl(str, bytes, fi); }
+    wchar DecodeChar(const char* str, int& bytes, const Fontinfo* fi = 0)
+	{ return Decode_impl(str, bytes, fi); }
     wchar DecodeWithLigatures(const char* str, const Fontinfo& info,
 			      int& bytes);
     wchar DecodeWithLigatures(const char* str, const Fontinfo& info)
@@ -75,7 +77,7 @@ public:
     // It never takes ligatures into account.
     virtual const char* Previous(const char* currpos, const char* strstart) = 0;
 
-    size_t CharacterCount(const char* str, bool withligs);
+    size_t CharacterCount(const char* str, const Fontinfo* fi);
     void SetStyle(int& style, const char flag);
     pstring TranslateTag(const char* flags, int& in_len);
 
@@ -88,8 +90,8 @@ public:
 
 class UTF8Encoding : public Encoding {
 protected:
-    wchar Decode_impl(const char* str, int& bytes, bool withligs);
-    int Charsz_impl(const char* str, bool withligs);
+    wchar Decode_impl(const char* str, int& bytes, const Fontinfo* fi);
+    int Charsz_impl(const char* str, const Fontinfo* fi);
 public:
     int Encode(wchar input, char* output);
     pstring Encode(wchar input);
@@ -100,8 +102,8 @@ public:
 
 class CP932Encoding : public Encoding {
 protected:
-    wchar Decode_impl(const char* str, int& bytes, bool withligs);
-    int Charsz_impl(const char* str, bool withligs);
+    wchar Decode_impl(const char* str, int& bytes, const Fontinfo* fi);
+    int Charsz_impl(const char* str, const Fontinfo* fi);
 public:
     int Encode(wchar input, char* output);
     pstring Encode(wchar input);

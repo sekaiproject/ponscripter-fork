@@ -12,13 +12,13 @@ typedef CBString pstring;
 
 // Encoding-aware function to replace ASCII characters in a string.
 inline void
-replace_ascii(pstring& string, char what, char with, bool withligs = false)
+replace_ascii(pstring& string, char what, char with, const Fontinfo* fi = 0)
 {
     if (what != with) {
 	char* s = string.mutable_data();
 	const char* e = s + string.length();
 	while (s < e) {
-	    int cs = encoding->NextCharSize(s, withligs);
+	    int cs = encoding->NextCharSize(s, fi);
 	    if (cs == 1 && *s == what) *s = with;
 	    s += cs;
 	}
@@ -33,9 +33,9 @@ class pstrIter {
     const char* end;
     int curr;
     int csize;
-    bool ligs;
+    const Fontinfo* font;
 public:
-    inline pstrIter(const pstring& target, bool withligs = false);
+    inline pstrIter(const pstring& target, const Fontinfo* fi = 0);
 
     // Current contents as character, or -1 if none.
     inline int get() const { return curr; }
@@ -53,11 +53,11 @@ public:
     inline void forward(int n);
 };
 
-pstrIter::pstrIter(const pstring& target, bool withligs) : src(target)
+pstrIter::pstrIter(const pstring& target, const Fontinfo* fi) : src(target)
 {
     pos = src;
     end = pos + target.length();
-    ligs = withligs;
+    font = fi;
     next();
 }
 
@@ -81,7 +81,7 @@ void pstrIter::next()
 {
 //printf("pstrIter::next - pos %08lx, end %08lx", (size_t) pos, (size_t) end);
     if (pos < end) {
-	curr = encoding->DecodeChar(pos, csize, ligs);
+	curr = encoding->DecodeChar(pos, csize, font);
 	pos += csize;
     }
     else {

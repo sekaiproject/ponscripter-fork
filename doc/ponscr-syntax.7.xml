@@ -773,7 +773,7 @@ xmlns:xl="http://www.w3.org/1999/xlink"><reference><title/><?L --> ?>
       </para>
       
       <variablelist>
-        <varlistentry>
+        <varlistentry xml:id="f-sel-t">
           <term>Font selection tags</term>
           <listitem>
             <para>
@@ -880,273 +880,294 @@ xmlns:xl="http://www.w3.org/1999/xlink"><reference><title/><?L --> ?>
               the <firstterm>current size</firstterm> refers to that
               selected with previous size control tags.
             </para>
+            <variablelist>
+              <varlistentry>
+                <term><function>=</function><replaceable>N</replaceable></term>
+                <listitem>
+                  <simpara>
+                    Sets font size to exactly
+                    <replaceable>N</replaceable> pixels.
+                  </simpara>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><function>%</function><replaceable>N</replaceable></term>
+                <listitem>
+                  <simpara>
+                    Sets font size to <replaceable>N</replaceable>% of
+                    the base size.
+                  </simpara>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><function>+</function><replaceable>N</replaceable></term>
+                <listitem>
+                  <simpara>
+                    Increases current font size by
+                    <replaceable>N</replaceable> pixels.
+                  </simpara>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><function>-</function><replaceable>N</replaceable></term>
+                <listitem>
+                  <simpara>
+                    Decreases current font size by
+                    <replaceable>N</replaceable> pixels.
+                  </simpara>
+                </listitem>
+              </varlistentry>
+            </variablelist>
           </listitem>
         </varlistentry>
-            
-<!--
-.TP 2
-.BI = N
-Set font size to exactly
-.I N
-pixels (0 restores it to the base font size)
 
-.TP 2
-.BI % N
-Set font size to
-.IR N %
-of the base font size
+        <varlistentry>
+          <term>Text position</term>
+          <listitem>
+            <variablelist>
+              <varlistentry>
+                <term><function>x</function><replaceable>N</replaceable></term>
+                <listitem>
+                  <simpara>
+                    Sets the horizontal text position to a position
+                    <replaceable>N</replaceable> pixels right of the
+                    left margin.
+                  </simpara>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><function>y</function><replaceable>N</replaceable></term>
+                <listitem>
+                  <simpara>
+                    Sets the vertical text position to a position
+                    <replaceable>N</replaceable> pixels below the
+                    top margin.
+                    <!-- TODO: is this the top or the baseline? -->
+                  </simpara>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><function>x+</function><replaceable
+                >N</replaceable></term>
+                <term><function>y+</function><replaceable
+                >N</replaceable></term>
+                <listitem>
+                  <simpara>
+                    Adjusts the current horizontal or vertical text
+                    position by <replaceable>N</replaceable> pixels
+                    right or down.
+                  </simpara>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><function>x-</function><replaceable
+                >N</replaceable></term>
+                <term><function>y-</function><replaceable
+                >N</replaceable></term>
+                <listitem>
+                  <simpara>
+                    Adjusts the current horizontal or vertical text
+                    position by <replaceable>N</replaceable> pixels
+                    left or up.
+                  </simpara>
+                </listitem>
+              </varlistentry>
+             </variablelist>
+          </listitem>
+        </varlistentry>
 
-.TP 2
-.BI + N
-Increase the current font size by
-.I N
-pixels
+        <varlistentry>
+          <term>Indentation</term>
+          <listitem>
+            <variablelist>
+              <varlistentry>
+                <term><function>n</function></term>
+                <listitem>
+                  <simpara>
+                    Sets the indent to the current horizontal
+                    position.  New text lines will start from this
+                    offset until the end of the current page.
+                  </simpara>
+                </listitem>
+              </varlistentry>
+              <varlistentry>
+                <term><function>u</function></term>
+                <listitem>
+                  <simpara>
+                    Resets the indent to the left margin.  This will
+                    only affect <emphasis>subsequent</emphasis> line
+                    breaks; to end an indented section within a page,
+                    position this at the end of the last line of the
+                    indented section.
+                  </simpara>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+            <para>
+              In addition to these tags, the indent is set
+              automatically when the first character of a page is an
+              <firstterm>indent character.</firstterm>
+            </para>
+            <para>
+              The set of indent characters can be configured with the
+              <function>h_indentstr</function> command (described in
+              &ponscr-ext.7;).  By default it includes opening quotes
+              and em dashes.
+            </para>
+          </listitem>
+        </varlistentry>
 
-.TP 2
-.BI - N
-Decrease the current font size by
-.I N
-pixels
-
-.PP
-.B Text position
-
-.TP 2
-.BI x N
-Set the horizontal text output position to
-.I N
-pixels right of the left margin
-
-.TP 2
-.BI y N
-Set the vertical text output position to
-.I N
-pixels down from the top margin
-
-.TP 2
-.BI x+ N
-Shift the horizontal text output position
-.I N
-pixels to the right
-
-.TP 2
-.BI x- N
-Shift the horizontal text output position
-.I N
-pixels to the left
-
-.TP 2
-.BI y+ N
-Shift the vertical text output position
-.I N
-pixels down
-
-.TP 2
-.BI y- N
-Shift the vertical text output position
-.I N
-pixels up
-
-.PP
-.B Indentation
-
-.TP 2
-.BI "n "
-Set the indent to the current horizontal position.
-
-New text lines will start from this offset until the end of the
-current page.
-
-.TP 2
-.BI "u "
-Reset the indent to the left margin.
-
-This will only affect
-.I subsequent
-line breaks; to end an indented section within a page, position this
-at the end of the last line of the indented section.
-
-.PP
-In addition to these tags, the indent is set automatically when the
-first character of a page is an indent character.
-
-The set of indent characters can be configured with the
-.B h_indentstr
-command (described in
-.BR ponscr-ext (7)).
-By default it includes opening quotes and em dashes.
-
-.PP
-.B Formatting examples
-.PP
-
-As an example of the usage of these tags, Narcissu 2's omake mode
-displays page headings at the top of each screen with code like
-.IP "" 2
-.RB ^\fI!s0 ~i\ %120\ x-20\ y-40~ \ Heading ~i\ =0~ \fI!sd
-.br
-.B br2
-120
-.PP
-Here the !s0 and !sd are the usual NScripter commands.
-
-The first tag block selects italic text, 120% of the regular font
-size, and shifts the output position up and to the left.
-
-The second tag block cancels the italic effect and resets the font
-size to normal.
-
-.PP
-An example of indentation:
-.IP "" 2
+        <varlistentry>
+          <term>Formatting examples</term>
+          <listitem>
+            <para>
+              As an example of the usage of these tags, Narcissu 2's
+              omake mode displays page headings at the top of each
+              screen with code like
+              <programlisting>
+^<function>!s0</function>~i %120 x-20 y-40~Heading~i =0~<function>!sd</function>
+<function>br2</function> 120
+              </programlisting>
+              Here the <function>!s0</function> and
+              <function>!sd</function> are the usual NScripter
+              commands.  The first tag block selects italic text, 120%
+              of the regular font size, and shifts the output position
+              up and to the left.  The second tag block cancels the
+              italic effect and resets the font size to normal.
+            </para>
+            <para>
+              An example of indentation:
+              <programlisting>
 ^**%.Item 1
-.br
 ^Not indented
-.br
-.RB ^**%. ~n~ Item\ 2
-.br
-.RB ^Indented ~u~
-.br
+^**%.~n~Item 2
+^Indented~u~
 ^Not indented
--->
+              </programlisting>
+            </para>
+          </listitem>
+        </varlistentry>
+
       </variablelist>
     </refsect2>
 
-    <refsect2>
+    <refsect2 xml:id="ligs">
       <title>Ligatures and shortcuts</title>
       <para>
-        
+        To assist in typing Unicode scripts with ASCII keyboards,
+        Ponscripter has the ability to replace sequences of characters
+        with Unicode symbols.  This facility is also used to implement
+        the hash-escaping of single-character control codes, and can
+        be used to add ligatures automatically.  It is only enabled in
+        native scripts; none of this is possible in legacy mode.
       </para>
-<!--
-To assist in typing Unicode scripts with ASCII keyboards, Ponscripter
-has the ability to replace sequences of characters with Unicode
-symbols.
+      <para>
+        A shortcut is a mapping of a sequence of characters to a
+        Unicode codepoint.
 
-This facility is also used to implement the hash-escaping of
-single-character control codes, and can be used to add ligatures
-automatically.
+        <!-- TODO explain concept and search sequence -->
 
-It is only enabled in native scripts; none of this is possible in
-legacy mode.
-
-.PP
-A shortcut is a mapping of a sequence of characters to a Unicode
-codepoint.
-
-As text is rendered, it is checked for known sequences; if one is
-found, and the corresponding Unicode character has a glyph in the
-current font, then that is substituted.
-
-.PP
-A shortcut sequence can be inserted literally by separating the
-characters with either a Unicode ZWNJ or a | character, e.g.
-.BR `|`
-to insert two separate open single quotes.
-
-A literal | can be inserted with ||.
-
-.PP
-By default, the following character sequences are defined, in addition
-to the hash escapes described above:
-
-.IP "" 2
-.BR \`\`
-\-> open double quotes
-.br
-.BR \'\'
-\-> close double quotes
-.br
-.BR \`
-\-> open single quote
-.br
-.BR \'
-\-> close single quote / apostrophe
-
-.PP
-Additional sequences can be defined by use of the
-.BR h_ligate
-command: see
-.BR ponscr-ext (7).
--->
+      </para>
+      <para>
+        A shortcut sequence can be inserted literally by separating
+        the characters with either a Unicode ZWNJ or a
+        <literal>|</literal> character, e.g. <literal>`|`</literal> to
+        insert two separate open single quotes.  A literal
+        <literal>|</literal> can be inserted with
+        <literal>||</literal>.
+      </para>
+      <para>
+        By default, the following character sequences are defined, in
+        addition to the hash escapes described above:
+      </para>
+      <variablelist>
+        <varlistentry>
+          <term><literal>``</literal></term>
+          <listitem><simpara>open double quotes</simpara></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><literal>''</literal></term>
+          <listitem><simpara>close double quotes</simpara></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><literal>`</literal></term>
+          <listitem><simpara>open single quote</simpara></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><literal>'</literal></term>
+          <listitem>
+            <simpara>apostrophe / close single quote</simpara>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <para>
+        Additional sequences can be defined by use of the
+        <function>h_ligate</function> command: see &ponscr-ext.7;.
+      </para>
     </refsect2>
 
     <refsect2>
       <title>Variable interpolation</title>
       <para>
-        
+        Unlike in vanilla NScripter, merely including the name of a
+        variable in text does not cause it to be interpolated; this is
+        because frankly it seems to be more common to want something
+        like <literal>$500</literal> to be literal text representing a
+        sum of money.
       </para>
-<!--
-Unlike in vanilla NScripter, merely including the name of a variable
-in text does not cause it to be interpolated; this is because frankly
-it seems to be more common to want something like
-.BR $500
-to be literal text representing a sum of money.
-
-Instead, variables will be interpolated if enclosed in braces:
-.BR {$foo} ", " {?100[%index]} ,
-and so forth.
-
-The variable's sigil must immediately follow the opening angle brace,
-and only variables can be interpolated, not arbitrary expressions.
-
-This is not to be confused with NScripter's rather less useful brace
-syntax (variable assignments), which is not supported.
-
-.PP
-To include a literal sequence of a left brace followed by a sigil
-character, use a separator character,
-.BR {|% .
-
-.PP
-Certain control codes are recognised after variable interpolation,
-since they are parsed at a later stage of processing: these are text
-controls, speed controls, colour tags, and ligatures/shortcuts.
-
-In particular \- and in contrast to NScripter \- things like
-.IP "" 2
-.RI ^ !w {%var}
-.PP
-will be interpreted as a command to wait for however long is specified
-in the given variable.
-
-This should be considered an undefined behaviour, and will probably
-change in future; rather than rely on it, you should use the
-.BR wait
-command (and so forth) for variable timings, and in the unlikely event
-that you actually intend to print the literal string
-.BR !w
-followed by the value of
-.BR %var ,
-you should write
-.BR #!w{%var}
-to avoid ambiguity.
-
-.PP
-
-Variable interpolations are not expanded recursively.
-
-Likewise, formatting codes are not processed during interpolation;
-however, if the string was delimited with ^ rather than \(dq, they
-will have been processed when the string was read, and will therefore
-work as intended.
-
-That is to say,
-.IP "" 2
-.B mov
-$var, \(dq~b~\(dq
-.br
-.RI ^foo {$var} bar\e
-.br
-; prints \(dqfoo~b~bar\(dq
-.IP "" 2
-.B mov
-$var,
-.RB ^ ~b~ ^
-.br
-.RI ^foo {$var} bar\e
-.br
-.RB ;\ prints\ \(dqfoo bar \(dq
--->
+      <para>
+        Instead, variables will be interpolated if enclosed in braces:
+        <literal>{$foo}</literal>, <literal>{?100[%index]}</literal>,
+        and so forth.  This is not to be confused with NScripter's
+        rather less useful brace syntax (variable assignments), which
+        is not supported.
+      </para>
+      <para>
+        The variable's sigil must immediately follow the opening
+        brace, and only variables can be interpolated, not arbitrary
+        expressions.  To include a literal sequence of a left brace
+        followed by a sigil character, use a separator character:
+        <literal>{|%</literal>.
+      </para>
+      <para>
+        Certain control codes are recognised after variable
+        interpolation, since they are parsed at a later stage of
+        processing: these are text controls, speed controls, colour
+        tags, and ligatures/shortcuts.  In particular, and in contrast
+        to NScripter, things like <literal>^!w{%var}</literal> will be
+        interpreted as a command to wait for however long is specified
+        in the given variable.  This should be considered an undefined
+        behaviour, and will probably change in future; rather than
+        rely on it, you should use the <function>wait</function>
+        command (and so forth) for variable timings, and in the
+        unlikely event that you actually intend to print the literal
+        string <literal>!w</literal> followed by the value of
+        <replaceable>%var</replaceable>, you should write
+        <literal>#!w{%var}</literal> to avoid ambiguity.
+      </para>
+      <para>
+        Other special sequences are not recognised after
+        interpolation.  Variable interpolations are not expanded
+        recursively.  Likewise, formatting codes are not processed
+        during interpolation; however, if the string literal in which
+        they first appeared was delimited with <literal>^</literal>
+        rather than <literal>"</literal>, they will have been
+        processed when the string was read, and will therefore work as
+        intended.
+      </para>
+      <para>
+        That is to say,
+        <programlisting>
+<function>mov</function> $var, "~b~"
+^foo{$var}bar\
+        </programlisting>
+        prints <screen>foo~b~bar</screen>, while
+        <programlisting>
+<function>mov</function> $var, ^~b~^
+^foo{$var}bar\
+        </programlisting>
+        prints <screen>foo<emphasis role="strong">bar</emphasis></screen>.
+      </para>
     </refsect2>
   </refsect1>
 
