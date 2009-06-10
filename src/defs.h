@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
 
 #ifndef __GNUC__
 #define __attribute__(x) /* ignore */

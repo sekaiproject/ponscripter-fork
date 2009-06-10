@@ -49,9 +49,10 @@ SDL_CONFIG=sdl-config
 SMPEG_CONFIG=smpeg-config
 FREETYPE_CONFIG=freetype-config
 EXTLIB=./extlib
-MAKEFILE=src/Makefile
+SRC=src
+MAKEFILE=$SRC/Makefile
 
-VERSION=`awk '/define VER_NUMBER/ {print $3}' src/version.h`
+VERSION=`awk '/define VER_NUMBER/ {print $3}' $SRC/version.h`
 
 # Parse options
 prev=
@@ -684,7 +685,7 @@ genlink $INTERNAL_OGGLIBS   vorbisfile
 genlink $INTERNAL_SDL_MIXER SDL_mixer
 genlink $INTERNAL_BZIP2     bz2
 
-if [ -n "$MLIB" -a ! -d src/extlib ]
+if [ -n "$MLIB" -a ! -d $SRC/extlib ]
 then
     cat <<_EOF
 
@@ -709,11 +710,11 @@ if $INTERNAL_BZIP2  || $INTERNAL_FREETYPE || $INTERNAL_LIBJPEG || \
    $INTERNAL_LIBPNG || $INTERNAL_OGGLIBS  || $INTERNAL_SDL     || \
    $INTERNAL_SDL_IMAGE || $INTERNAL_SDL_MIXER || $INTERNAL_SMPEG
 then
-    OURLDFLAGS="-L\$(shell pwd)/extlib/lib"
-    OURINCLUDE="-I\$(shell pwd)/extlib/include"
+    OURLDFLAGS="-L\$(shell pwd)/$SRC/extlib/lib"
+    OURINCLUDE="-I\$(shell pwd)/$SRC/extlib/include"
     OURINCS="-Iextlib/include \$(shell [ -d extlib/include/SDL ] && echo -Iextlib/include/SDL)"
     OURLIBS="-Lextlib/lib"
-    OURPATH="\$(shell pwd)/extlib/bin:"
+    OURPATH="\$(shell pwd)/$SRC/extlib/bin:"
 fi
 
 
@@ -894,7 +895,7 @@ cat > Makefile <<_EOF
 #
 # Top-level makefile for Ponscripter
 
-.PHONY: all install instaall-bin uninstall pclean clean \\
+.PHONY: all install install-bin uninstall pclean clean \\
         distclean distdir dist deb rpm $MAKEDOC clean-doc
 
 export TARGET   := ponscr$EXE
@@ -906,10 +907,10 @@ export LDFLAGS  := $OURLDFLAGS \$(LDFLAGS)
 
 
 all: $DEFAULTDOC
-	\$(MAKE) -C src all
+	\$(MAKE) -C $SRC all
 
 install-bin: all
-	util/install-sh -c $STRIPFLAG src/\$(TARGET) \$(PREFIX)/bin/\$(TARGET)
+	util/install-sh -c $STRIPFLAG $SRC/\$(TARGET) \$(PREFIX)/bin/\$(TARGET)
 
 install: install-bin
 	util/install-man install \$(PREFIX) doc/*.[0-9]
@@ -919,14 +920,14 @@ uninstall:
 	util/install-man remove \$(PREFIX) doc/*.[0-9]
 
 pclean:
-	\$(MAKE) -C src pclean
+	\$(MAKE) -C $SRC pclean
 
 clean:
-	\$(MAKE) -C src clean
+	\$(MAKE) -C $SRC clean
 	\$(RM) doc/version-number
 
 distclean: $CLEANDOC
-	\$(MAKE) -C src distclean
+	\$(MAKE) -C $SRC distclean
 	\$(RM) Makefile
 	\$(RM) ponscripter.spec
 	\$(RM) \$(DIST)*.tar.bz2
@@ -940,8 +941,8 @@ distdir: ponscripter.spec $MAKEMAN
 	\$(RM) \$(DIST)*.tar.bz2
 	\$(RM) -r \$(DIST)
 	svn export --depth files . \$(DIST)
-	svn export --depth files src \$(DIST)/src
-	for t in src/resources misc doc util test debian; do \\
+	svn export --depth files $SRC \$(DIST)/src
+	for t in $SRC/resources misc doc util test debian; do \\
 	    svn export \$\$t \$(DIST)/\$\$t;                 \\
 	done
 	cp ponscripter.spec \$(DIST)
@@ -950,11 +951,11 @@ distdir: ponscripter.spec $MAKEMAN
 dist: distdir
 	\$(RM) -r \$(DIST)/src/extlib
 	tar cjf \$(DIST)-minimal.tar.bz2 \$(DIST)
-	-svn export src/extlib \$(DIST)/src/extlib
+	-svn export $SRC/extlib \$(DIST)/src/extlib
 	tar cjf \$(DIST).tar.bz2 \$(DIST)
 
 deb: distdir
-	-svn export src/extlib \$(DIST)/src/extlib
+	-svn export $SRC/extlib \$(DIST)/src/extlib
 	mkdir \$(DIST)-deb
 	mv \$(DIST) \$(DIST)-deb
 	cd \$(DIST)-deb/\$(DIST) && dpkg-buildpackage
@@ -990,7 +991,7 @@ doc/%.7: doc/manual-man.xml
 doc/%.html: doc/manual-html.xml
 	xmlto --skip-validation html \$< -o doc
 
-doc/version-number: src/version.h
+doc/version-number: $SRC/version.h
 	awk '/define VER_NUMBER/ {print \$\$3}' \$< > \$@
 
 _EOF
