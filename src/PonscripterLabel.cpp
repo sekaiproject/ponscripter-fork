@@ -1048,7 +1048,7 @@ void PonscripterLabel::mouseOverCheck(int x, int y)
         }
     }
 
-    if (current_over_button != button) {
+    if ((c > 0) && (current_over_button != button)) {
         DirtyRect dirty = dirty_rect;
         dirty_rect.clear();
 

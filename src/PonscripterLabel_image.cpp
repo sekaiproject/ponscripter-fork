@@ -257,12 +257,12 @@ void PonscripterLabel::makeMonochromeSurface(SDL_Surface* surface, SDL_Rect &cli
     rgb_t* lut = monocro_color_lut;
     for (int i = clip.y; i < clip.y + clip.h; i++) {
         for (int j = clip.x; j < clip.x + clip.w; j++) {
-            c = ((*buf & fmt->Rmask >> fmt->Rshift << fmt->Rloss) * 77 +
-                 (*buf & fmt->Gmask >> fmt->Gshift << fmt->Gloss) * 151 +
-                 (*buf & fmt->Bmask >> fmt->Bshift << fmt->Bloss) * 28) >> 8;
-            *buf++ = lut[c].r >> fmt->Rloss << surface->format->Rshift
-                   | lut[c].g >> fmt->Gloss << surface->format->Gshift
-                   | lut[c].b >> fmt->Bloss << surface->format->Bshift;
+            c = ((((*buf & fmt->Rmask) >> fmt->Rshift) << fmt->Rloss) * 77 +
+                 (((*buf & fmt->Gmask) >> fmt->Gshift) << fmt->Gloss) * 151 +
+                 (((*buf & fmt->Bmask) >> fmt->Bshift) << fmt->Bloss) * 28) >> 8;
+            *buf++ = ((lut[c].r >> fmt->Rloss) << surface->format->Rshift)
+                   | ((lut[c].g >> fmt->Gloss) << surface->format->Gshift)
+                   | ((lut[c].b >> fmt->Bloss) << surface->format->Bshift);
         }
 
         buf += surface->w - clip.w;
