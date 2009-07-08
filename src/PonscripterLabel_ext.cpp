@@ -260,15 +260,18 @@ int PonscripterLabel::haeleth_char_setCommand(const pstring& cmd)
 int PonscripterLabel::haeleth_font_styleCommand(const pstring& cmd)
 {
     Fontinfo::default_encoding = 0;
-    const char* buf = script_h.readStrValue();
-    if (*buf == encoding->TextMarker()) ++buf;
-    while (*buf && *buf != encoding->TextMarker() && *buf != '"') {
-        if (*buf == 'c') {
-            ++buf;
-            if (*buf >= '0' && *buf <= '7')
-                Fontinfo::default_encoding = *buf++ - '0';
+    pstring buf = script_h.readStrValue();
+    if (buf[0] == encoding->TextMarker()) buf.remove(0, 1);
+    while (buf[0] && (buf[0] != encoding->TextMarker()) && (buf[0] != '"')) {
+        if (buf[0] == 'c') {
+            if ((buf[1] >= '0') && (buf[1] <= '7'))
+                Fontinfo::default_encoding = buf[1] - '0';
+            buf.remove(0, 2);
         }
-        else encoding->SetStyle(Fontinfo::default_encoding, *buf++);
+        else {
+            encoding->SetStyle(Fontinfo::default_encoding, buf[0]);
+            buf.remove(0, 1);
+        }
     }
     sentence_font.style = Fontinfo::default_encoding;
     return RET_CONTINUE;

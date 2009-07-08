@@ -1034,6 +1034,7 @@ void PonscripterLabel::mouseOverCheck(int x, int y)
     /* ---------------------------------------- */
     /* Check button */
     int button = 0;
+    bool have_buttons = false;
 
     // We seek buttons in reverse order in order to preserve an
     // NScripter behaviour: if buttons overlap, it uses whichever was
@@ -1042,13 +1043,14 @@ void PonscripterLabel::mouseOverCheck(int x, int y)
     for (ButtonElt::reverse_iterator it = buttons.rbegin();
          it != buttons.rend(); ++it, ++c) {
         const SDL_Rect& r = it->second.select_rect;
+        have_buttons = true;
         if (x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h) {
             button = it->first;
             break;
         }
     }
 
-    if ((c > 0) && (current_over_button != button)) {
+    if (have_buttons && (current_over_button != button)) {
         DirtyRect dirty = dirty_rect;
         dirty_rect.clear();
 

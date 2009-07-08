@@ -2866,6 +2866,7 @@ int PonscripterLabel::btndefCommand(const pstring& cmd)
         }
     }
     deleteButtons();
+    current_button_state.button = 0;
     disableGetButtonFlag();
     return RET_CONTINUE;
 }

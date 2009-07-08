@@ -473,7 +473,7 @@ private:
     struct ButtonState {
         int x, y, button;
         bool down_flag;
-	ButtonState() { button = -1; down_flag = false; }
+	ButtonState() { button = 0; down_flag = false; }
     } current_button_state, volatile_button_state,
       last_mouse_state, shelter_mouse_state;
 
