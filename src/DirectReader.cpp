@@ -267,12 +267,12 @@ DirectReader::FileInfo DirectReader::getFileByIndex(unsigned int index)
 FILE* DirectReader::getFileHandle(pstring filename, int& compression_type,
 				  size_t* length)
 {
-    if (InvalidFilename(filename)) return NULL;
     FILE* fp;
+    *length = 0;
     compression_type = NO_COMPRESSION;
+    if (InvalidFilename(filename)) return NULL;
     filename.findreplace("/", DELIMITER);
     filename.findreplace("\\", DELIMITER);
-    *length = 0;
     if ((fp = fileopen(filename, "rb")) != NULL && filename.length() >= 3) {
         compression_type = getRegisteredCompressionType(filename);
         if (compression_type == NBZ_COMPRESSION ||

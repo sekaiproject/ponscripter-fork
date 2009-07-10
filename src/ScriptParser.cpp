@@ -376,8 +376,10 @@ rgb_t ScriptParser::readColour(const char* buf)
 int ScriptParser::parseLine()
 {
     pstring cmd = script_h.getStrBuf();
-    if (debug_level > 1)
-	printf("ScriptParser::Parseline %s\n", (const char*) cmd);
+    if (debug_level > 1) {
+        printf("ScriptParser::Parseline %s\n", (const char*) cmd);
+        fflush(stdout);
+    }
 
     if (script_h.isText()) return RET_NOMATCH;
 
