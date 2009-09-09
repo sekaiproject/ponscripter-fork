@@ -42,9 +42,9 @@ public:
 	typedef vec::iterator iterator;
 	pstring filename;
 	int encryption;
-	encoding_t encoding;
+	encoding_t _encoding; // prevent name collision
 	ScriptFilename(const char* f, int e, encoding_t c)
-	    : filename(f), encryption(e), encoding(c) {}
+	    : filename(f), encryption(e), _encoding(c) {}
 	pstring to_string() const { return filename; }
     };
     ScriptFilename::vec script_filenames;

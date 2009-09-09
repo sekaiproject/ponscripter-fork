@@ -94,7 +94,7 @@ int SarReader::readArchive(ArchiveInfo* ai, int archive_type)
 
 	// Store names with the internal encoding -- transliterate to
 	// UTF-8 if necessary.
-	if (encoding->which() == "cp932") {
+	if (system_encoding->which() == "cp932") {
 	    ai->fi_list[i].name = name;
 	}
 	else {
@@ -103,7 +103,7 @@ int SarReader::readArchive(ArchiveInfo* ai, int archive_type)
 	    ai->fi_list[i].name.trunc(0);
 	    while (*c) {
 		int b;
-		ai->fi_list[i].name += encoding->Encode(cp932.DecodeChar(c, b));
+		ai->fi_list[i].name += system_encoding->Encode(cp932.DecodeChar(c, b));
 		c += b;
 	    }
 	}	

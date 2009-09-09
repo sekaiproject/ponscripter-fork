@@ -287,9 +287,9 @@ float Fontinfo::StringAdvance(const char* string)
     int cb, nextcb;
     float orig_x   = pos_x;
     int   orig_mod = font_size_mod, orig_style = style, orig_y = pos_y;
-    unicode = encoding->DecodeWithLigatures(string, *this, cb);
+    unicode = system_encoding->DecodeWithLigatures(string, *this, cb);
     while (*string) {
-        next = encoding->DecodeWithLigatures(string + cb, *this, nextcb);
+        next = system_encoding->DecodeWithLigatures(string + cb, *this, nextcb);
 	if (!processCode(string))
 	    pos_x += GlyphAdvance(unicode, next);
         string += cb;

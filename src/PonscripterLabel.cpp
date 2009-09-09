@@ -1225,8 +1225,8 @@ bool PonscripterLabel::check_orphan_control()
     // matter?)
     if (string_buffer_offset < 5) return false;
     const char* c = script_h.getStrBuf();
-    c = encoding->Previous(c + string_buffer_offset, c);
-    const wchar p = encoding->DecodeChar(c);
+    c = system_encoding->Previous(c + string_buffer_offset, c);
+    const wchar p = system_encoding->DecodeChar(c);
     return p == '.' || p == 0xff0e || p == ',' || p == 0xff0c
         || p == ':' || p == 0xff1a || p == ';' || p == 0xff1b
         || p == '!' || p == 0xff01 || p == '?' || p == 0xff1f;
@@ -1265,7 +1265,7 @@ int PonscripterLabel::parseLine()
 
 //--------INDENT ROUTINE--------------------------------------------------------
     if (sentence_font.GetXOffset() == 0 && sentence_font.GetYOffset() == 0) {
-        const wchar first_ch = encoding->DecodeWithLigatures
+        const wchar first_ch = system_encoding->DecodeWithLigatures
             (script_h.getStrBuf(string_buffer_offset), sentence_font);
         if (is_indent_char(first_ch))
             sentence_font.SetIndent(first_ch);
@@ -1281,17 +1281,17 @@ int PonscripterLabel::parseLine()
     int l;
     Fontinfo f = sentence_font;
     const wchar first_ch =
-        encoding->DecodeWithLigatures(script_h.getStrBuf(string_buffer_offset),
+        system_encoding->DecodeWithLigatures(script_h.getStrBuf(string_buffer_offset),
                                       f, l);
 
     if (is_break_char(first_ch) && !new_line_skip_flag) {
         const char* it = script_h.getStrBuf(string_buffer_offset) + l;
-        wchar next_ch = encoding->DecodeWithLigatures(it, f, l);
+        wchar next_ch = system_encoding->DecodeWithLigatures(it, f, l);
         float len = f.GlyphAdvance(first_ch, next_ch);
         while (1) {
             // For each character (not char!) before a break is found,
             // get unicode.
-            wchar ch = encoding->DecodeWithLigatures(it, f, l);
+            wchar ch = system_encoding->DecodeWithLigatures(it, f, l);
       cont: it += l;
 
 	    // Check for special sequences.
@@ -1327,7 +1327,7 @@ int PonscripterLabel::parseLine()
             }
 
             // No inline command?  Use the glyph metrics, then!
-            next_ch = encoding->DecodeWithLigatures(it, f, l);
+            next_ch = system_encoding->DecodeWithLigatures(it, f, l);
             len += f.GlyphAdvance(ch, next_ch);
             ch = next_ch;
             goto cont;

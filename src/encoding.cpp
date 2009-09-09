@@ -24,7 +24,8 @@
 #include "defs.h"
 #include "Fontinfo.h"
 
-Encoding* encoding = 0; // initialised in ScriptHandler::readScript
+Encoding *file_encoding = 0; // the encoding used by the script file
+Encoding *system_encoding = 0; // internal encoding used by the engine
 
 struct ligature {
     wchar codepoint;

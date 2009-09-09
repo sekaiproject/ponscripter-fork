@@ -174,7 +174,7 @@ void Expression::append(const pstring& newval)
 void Expression::append(wchar newval)
 {
     require(String, true);
-    h.variable_data[intval_].str += encoding->Encode(newval);
+    h.variable_data[intval_].str += system_encoding->Encode(newval);
 }
 
 Expression::Expression(ScriptHandler& sh)

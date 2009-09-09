@@ -107,7 +107,7 @@ int PonscripterLabel::haeleth_text_extentCommand(const pstring& cmd)
     Expression ivar = script_h.readIntExpr();
 
     pstring buf = script_h.readStrValue();
-    if (buf[0] == encoding->TextMarker()) buf.remove(0, 1);
+    if (buf[0] == system_encoding->TextMarker()) buf.remove(0, 1);
 
     Fontinfo f = sentence_font;
     if (script_h.hasMoreArgs()) {
@@ -135,7 +135,7 @@ int PonscripterLabel::haeleth_text_heightCommand(const pstring& cmd)
     pstring buf;
     while (script_h.hasMoreArgs()) {
 	pstring arg = script_h.readStrValue();
-	if (arg[0] == encoding->TextMarker()) arg.remove(0, 1);
+	if (arg[0] == system_encoding->TextMarker()) arg.remove(0, 1);
 	buf += arg;
 	buf += '\n';
     }
@@ -160,7 +160,7 @@ int PonscripterLabel::haeleth_text_heightCommand(const pstring& cmd)
     const char* end = first + buf.length();
     while (it < end) {
 	int l;
-	wchar ch = encoding->DecodeWithLigatures(it, f, l);
+	wchar ch = system_encoding->DecodeWithLigatures(it, f, l);
     cont:
 	const char* start = it;
 	it += l;
@@ -190,7 +190,7 @@ int PonscripterLabel::haeleth_text_heightCommand(const pstring& cmd)
 		continue;
 	    }
 
-	    wchar next_ch = encoding->DecodeWithLigatures(it, f, l);
+	    wchar next_ch = system_encoding->DecodeWithLigatures(it, f, l);
 	    float adv = f.GlyphAdvance(ch, next_ch);
 	    if (f.isNoRoomFor(adv)) {
 		f.newLine();
@@ -219,7 +219,7 @@ int PonscripterLabel::haeleth_text_heightCommand(const pstring& cmd)
 int PonscripterLabel::haeleth_centre_lineCommand(const pstring& cmd)
 {
     pstring buf = script_h.readStrValue();
-    if (buf[0] == encoding->TextMarker()) buf.remove(0, 1);
+    if (buf[0] == system_encoding->TextMarker()) buf.remove(0, 1);
 
     sentence_font.SetXY(float(screen_width) / 2.0 -
 			sentence_font.StringAdvance(buf) / 2.0 -
@@ -242,7 +242,7 @@ int PonscripterLabel::haeleth_char_setCommand(const pstring& cmd)
     char_set.clear();
 
     pstrIter it(script_h.readStrValue());
-    if (it.get() == encoding->TextMarker()) it.next();
+    if (it.get() == system_encoding->TextMarker()) it.next();
     while (it.get() >= 0) {
 	char_set.insert(it.get());
 	it.next();
@@ -261,15 +261,15 @@ int PonscripterLabel::haeleth_font_styleCommand(const pstring& cmd)
 {
     Fontinfo::default_encoding = 0;
     pstring buf = script_h.readStrValue();
-    if (buf[0] == encoding->TextMarker()) buf.remove(0, 1);
-    while (buf[0] && (buf[0] != encoding->TextMarker()) && (buf[0] != '"')) {
+    if (buf[0] == system_encoding->TextMarker()) buf.remove(0, 1);
+    while (buf[0] && (buf[0] != system_encoding->TextMarker()) && (buf[0] != '"')) {
         if (buf[0] == 'c') {
             if ((buf[1] >= '0') && (buf[1] <= '7'))
                 Fontinfo::default_encoding = buf[1] - '0';
             buf.remove(0, 2);
         }
         else {
-            encoding->SetStyle(Fontinfo::default_encoding, buf[0]);
+            system_encoding->SetStyle(Fontinfo::default_encoding, buf[0]);
             buf.remove(0, 1);
         }
     }
@@ -355,7 +355,7 @@ int PonscripterLabel::haeleth_ligate_controlCommand(const pstring& cmd)
         else if (l.is_numeric())
             AddLigature(s, l.as_int());
 	else if (l.type() == Expression::String)
-	    AddLigature(s, encoding->DecodeChar(l.as_string()));
+	    AddLigature(s, system_encoding->DecodeChar(l.as_string()));
 	else
 	    fprintf(stderr, "Unknown character `%s'\n",
 		    (const char*) l.debug_string());

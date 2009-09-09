@@ -112,6 +112,7 @@ public:
     CP932Encoding() : Encoding('`', false, "cp932") {}
 };
 
-extern Encoding* encoding; // Some uses of global state are less evil
+extern Encoding *system_encoding; // global encoding for the actual engine
+extern Encoding *file_encoding; // global encoding for reading from files
 
 #endif
