@@ -147,7 +147,8 @@ public:
     
     static SDL_Surface* allocSurface(int w, int h);
     void allocImage(int w, int h);
-    void copySurface(SDL_Surface* surface, SDL_Rect* rect);
+    void copySurface( SDL_Surface *surface, SDL_Rect *src_rect,
+                        SDL_Rect *dst_rect = NULL );
     void fill(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
     void fill(rgb_t rgb, Uint8 a) { fill(rgb.r, rgb.g, rgb.b, a); }
     void setupImage(SDL_Surface* surface, SDL_Surface* surface_m,

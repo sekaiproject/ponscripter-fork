@@ -43,6 +43,9 @@ void DeleteLigature(const pstring& in);
 void DefaultLigatures(int which);
 void ClearLigatures();
 
+bool isNonspacing(wchar input);
+
+
 // For methods taking Fontinfo*, pass NULL if ligature information is not
 // required, or a Fontinfo to get info on ligatures for that font.
 class Encoding {

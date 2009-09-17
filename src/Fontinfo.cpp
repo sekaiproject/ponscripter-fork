@@ -191,6 +191,8 @@ Fontinfo::Fontinfo()
 
 void Fontinfo::reset()
 {
+    is_vertical = false;
+    is_bidirect = false;
     clear();
     font_size = 26;
     color.set(0xff);
@@ -203,7 +205,12 @@ void Fontinfo::reset()
 
 void Fontinfo::clear()
 {
-    SetXY(0, 0);
+    if (is_vertical)
+        SetXY(area_x-size()-pitch_x, 0);
+    else if (is_bidirect)
+        SetXY(area_x, 0);
+    else
+        SetXY(0, 0);
     indent = 0;
     style  = default_encoding;
     font_size_mod = 0;
@@ -290,8 +297,11 @@ float Fontinfo::StringAdvance(const char* string)
     unicode = system_encoding->DecodeWithLigatures(string, *this, cb);
     while (*string) {
         next = system_encoding->DecodeWithLigatures(string + cb, *this, nextcb);
-	if (!processCode(string))
-	    pos_x += GlyphAdvance(unicode, next);
+        if (!processCode(string))
+            if (is_bidirect)
+                pos_x -= GlyphAdvance(unicode, next);
+            else
+                pos_x += GlyphAdvance(unicode, next);
         string += cb;
         unicode = next;
 	cb = nextcb;
@@ -316,38 +326,74 @@ void Fontinfo::SetXY(float x, int y)
 void Fontinfo::newLine()
 {
     doSize();
-    pos_x  = indent;
-    pos_y += line_space() + pitch_y;
+    if (is_vertical){
+        pos_x -= size() + pitch_x;
+        pos_y = 0;
+    }
+    else if (is_bidirect){
+        pos_x = area_x;
+        pos_y += line_space() + pitch_y;
+    }
+    else{
+        pos_x = 0;
+        pos_y += line_space() + pitch_y;
+    }
+    //pos_x = indent;
+    //pos_y += line_space() + pitch_y;
 }
 
 
 void Fontinfo::setLineArea(int num)
 {
     doSize();
-    area_x = num;
-    area_y = line_space();
+    if (is_vertical) {
+        area_x = size();
+        area_y = num;
+    }
+    else {
+        area_x = num;
+        area_y = line_space();
+    }
 }
 
 
 bool Fontinfo::isNoRoomFor(float margin)
 {
-    return pos_x + margin > area_x;
+    if (is_vertical)
+        return pos_y + margin > area_y;
+    else if (is_bidirect)
+        return pos_x - margin < 0;
+    else
+        return pos_x + margin > area_x;
 }
 
 bool Fontinfo::isNoRoomForLines(int margin)
 {
-    return pos_y + (line_space() + pitch_y) * margin > area_y;
+    if (is_vertical)
+        return pos_x - (size() + pitch_x) * margin < 0;
+    else
+        return pos_y + (line_space() + pitch_y) * margin > area_y;
 }
 
 bool Fontinfo::isLineEmpty()
 {
-    return pos_x == indent;
+    if (is_vertical)
+        return pos_y <= indent;
+    else if (is_bidirect)
+        return pos_x >= (area_x - indent);
+    else
+        return pos_x <= indent;
 }
 
 
 void Fontinfo::advanceBy(float offset)
 {
-    pos_x += offset;
+    if (is_vertical)
+        pos_y += offset;
+    else if (is_bidirect)
+        pos_x -= offset;
+    else
+        pos_x += offset;
 }
 
 

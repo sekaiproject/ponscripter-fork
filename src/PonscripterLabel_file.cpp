@@ -193,7 +193,7 @@ void PonscripterLabel::saveMagicNumber(bool output_flag)
 }
 
 
-int PonscripterLabel::saveSaveFile(int no)
+int PonscripterLabel::saveSaveFile(int no, const char* savestr)
 {
     // make save data structure on memory
     if (no < 0 || (saveon_flag && internal_saveon_flag)) {
@@ -214,15 +214,17 @@ int PonscripterLabel::saveSaveFile(int no)
 	filename.format("save%d.dat", no);
         memcpy(file_io_buf, save_data_buf, save_data_len);
         file_io_buf_ptr = save_data_len;
-        if (saveFileIOBuf(filename)) {
+        if (saveFileIOBuf(filename, 0, savestr)) {
             fprintf(stderr, "can't open save file save%d.dat for writing\n",
-		    no);
+                    no);
             return -1;
         }
 
         size_t magic_len = 5;
-	filename.format("sav" DELIMITER "save%d.dat", no);
-        saveFileIOBuf(filename, magic_len);
+        filename.format("sav" DELIMITER "save%d.dat", no);
+        if (saveFileIOBuf(filename, magic_len, savestr))
+            fprintf(stderr, "can't open save file " + filename +
+                    " for writing (not an error)\n");
     }
 
     return 0;

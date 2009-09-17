@@ -41,7 +41,7 @@ class Fontinfo {
     float indent;
     float pos_x; int pos_y; // Current position
     int   font_size, font_size_mod;
-    bool  is_vertical;
+    bool  is_vertical, is_bidirect;
 public:
     static int default_encoding;
 
@@ -65,7 +65,12 @@ public:
     void set_size(int val) { font_size = val; }
     void set_mod_size(int val) { font_size_mod = val; }
 
-    void setTateYoko(bool vertical) { is_vertical = vertical; clear(); }
+    void setTateYoko(bool vertical) { is_vertical = vertical;
+                                      is_bidirect = false; clear(); }
+    bool getTateYoko() { return is_vertical; }
+    void setRTL(bool bidirect) { is_bidirect = bidirect;
+                                 is_vertical = false; clear(); }
+    bool getRTL() { return is_bidirect; }
     
     int style;
 

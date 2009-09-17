@@ -191,7 +191,7 @@ public:
     void setNumVariable(int no, int val);
 
     pstring stringFromInteger(int no, int num_column,
-			     bool is_zero_inserted = false);
+			     bool is_zero_inserted = false, bool do_wide = false);
     
     int readScriptSub(FILE* fp, char** buf, int encrypt_mode);
     int readScript(const pstring& path, const char* prefer_name);

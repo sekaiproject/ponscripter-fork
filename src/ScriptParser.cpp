@@ -450,13 +450,23 @@ void ScriptParser::allocFileIOBuf()
 }
 
 
-int ScriptParser::saveFileIOBuf(const pstring& filename, int offset)
+int ScriptParser::saveFileIOBuf(const pstring& filename, int offset,
+                                const char* savestr)
 {
     FILE* fp;
     if ((fp = fopen(script_h.save_path + filename, "wb")) == NULL)
 	return -1;
 
     size_t ret = fwrite(file_io_buf + offset, 1, file_io_buf_ptr - offset, fp);
+
+    if (savestr){
+        size_t savelen = strlen(savestr);
+        if ((fputc('"', fp) == EOF)
+            || (fwrite(savestr, 1, savelen, fp) != savelen)
+            || (fputs("\"*", fp) == EOF))
+            fprintf(stderr, "Warning: error writing to " + filename + "\n");
+    }
+
     fclose(fp);
 
     if (ret != file_io_buf_ptr - offset) return -2;

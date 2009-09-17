@@ -157,7 +157,12 @@ int PonscripterLabel::loadSaveFile2(SaveFileType file_type, int file_version)
 	sprite_info[i].enabled(visible_flags & 2);
         sprite_info[i].enablemode = visible_flags >> 2;
 	sprite_info[i].current_cell = readInt();
-	if (file_version >= 203) readInt(); // -1
+	if (file_version >= 203) {
+	    int trans = readInt();
+	    if (trans == -1)
+	        trans = 256;
+	    sprite_info[i].trans = trans;
+	}
     }
 
     readVariables(0, script_h.global_variable_border);
@@ -543,7 +548,10 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
 		 output_flag);
 	writeInt(sprite_info[i].savestate(), output_flag);
 	writeInt(sprite_info[i].current_cell, output_flag);
-	writeInt(-1, output_flag);
+        if (sprite_info[i].trans == 256)
+            writeInt(-1, output_flag);
+        else
+            writeInt(sprite_info[i].trans, output_flag);
     }
 
     writeVariables(0, script_h.global_variable_border, output_flag);

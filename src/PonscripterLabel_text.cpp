@@ -61,7 +61,10 @@ PonscripterLabel::drawGlyph(SDL_Surface* dst_surface, Fontinfo* info,
     dst_rect.y = y + info->font()->ascent() - int(ceil(maxy));
 
     if (shadow_flag) {
-        dst_rect.x += shade_distance[0];
+        if (info->getRTL())
+            dst_rect.x -= shade_distance[0];
+        else
+            dst_rect.x += shade_distance[0];
         dst_rect.y += shade_distance[1];
     }
 
@@ -103,10 +106,13 @@ PonscripterLabel::drawChar(const char* text, Fontinfo* info, bool flush_flag,
         // info->doSize() called in GlyphAdvance
 	wchar next = system_encoding->DecodeWithLigatures(text + bytes, *info);
         float adv = info->GlyphAdvance(unicode, next);
+        if (isNonspacing(unicode)) info->advanceBy(-adv);
 
         if (info->isNoRoomFor(adv)) info->newLine();
 
         float x = info->GetX() * screen_ratio1 / screen_ratio2;
+        if (info->getRTL())
+            x -= adv;
         int   y = info->GetY() * screen_ratio1 / screen_ratio2;
 
         SDL_Color color;
@@ -235,11 +241,10 @@ int PonscripterLabel::enterTextDisplayMode(bool text_flag)
         internal_saveon_flag = false;
     }
 
+    did_leavetext = false;
     if (!(display_mode & TEXT_DISPLAY_MODE)) {
         if (event_mode & EFFECT_EVENT_MODE) {
-            if (doEffect(window_effect, NULL, DIRECT_EFFECT_IMAGE, false) ==
-		RET_CONTINUE)
-	    {
+            if (doEffect(window_effect, false) == RET_CONTINUE) {
                 display_mode = TEXT_DISPLAY_MODE;
                 text_on_flag = true;
                 return RET_CONTINUE | RET_NOREAD;
@@ -249,12 +254,9 @@ int PonscripterLabel::enterTextDisplayMode(bool text_flag)
         else {
             dirty_rect.clear();
             dirty_rect.add(sentence_font_info.pos);
-	    SDL_BlitSurface(accumulation_comp_surface, NULL,
-			    effect_dst_surface, NULL);
-            SDL_BlitSurface(accumulation_surface, NULL,
-			    accumulation_comp_surface, NULL);
+            refreshSurface(effect_dst_surface, NULL, refresh_shadow_text_mode);
 
-            return setEffect(window_effect);
+            return setEffect(window_effect, false, true);
         }
     }
 
@@ -262,14 +264,19 @@ int PonscripterLabel::enterTextDisplayMode(bool text_flag)
 }
 
 
-int PonscripterLabel::leaveTextDisplayMode()
+int PonscripterLabel::leaveTextDisplayMode(bool force_leave_flag)
 {
-    if (display_mode & TEXT_DISPLAY_MODE
-        && erase_text_window_mode != 0) {
+    if (!force_leave_flag && (skip_flag || draw_one_page_flag || ctrl_pressed_status)) {
+        did_leavetext = true;
+        return RET_NOMATCH;
+    }
+    if (force_leave_flag) did_leavetext = false;
+
+    if (!did_leavetext && (display_mode & TEXT_DISPLAY_MODE) &&
+        (force_leave_flag || (erase_text_window_mode != 0))) {
+
         if (event_mode & EFFECT_EVENT_MODE) {
-            if (doEffect(window_effect, NULL, DIRECT_EFFECT_IMAGE, false) ==
-		RET_CONTINUE)
-	    {
+            if (doEffect(window_effect, false) == RET_CONTINUE) {
                 display_mode = NORMAL_DISPLAY_MODE;
                 return RET_CONTINUE | RET_NOREAD;
             }
@@ -277,12 +284,12 @@ int PonscripterLabel::leaveTextDisplayMode()
             return RET_WAIT | RET_REREAD;
         }
         else {
-	    SDL_BlitSurface(accumulation_comp_surface, NULL,
-			    effect_dst_surface, NULL);
-            SDL_BlitSurface(accumulation_surface, NULL,
-			    accumulation_comp_surface, NULL);
             dirty_rect.add(sentence_font_info.pos);
-            return setEffect(window_effect);
+            refreshSurface(backup_surface, &dirty_rect.bounding_box, REFRESH_NORMAL_MODE);
+            SDL_BlitSurface(backup_surface, NULL, effect_dst_surface, NULL);
+            SDL_BlitSurface(accumulation_surface, NULL, backup_surface, NULL);
+
+            return setEffect(window_effect, false, false);
         }
     }
 

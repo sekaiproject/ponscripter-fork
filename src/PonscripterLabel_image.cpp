@@ -281,93 +281,83 @@ PonscripterLabel::refreshSurface(SDL_Surface* surface, SDL_Rect* clip_src,
     SDL_Rect clip = { 0, 0, surface->w, surface->h };
     if (clip_src && AnimationInfo::doClipping(&clip, clip_src)) return;
 
-    bool is_drawable = !(refresh_mode & REFRESH_COMP_MODE);
     int i, top;
-    
-    if (is_drawable) {
-	SDL_FillRect(surface, &clip, SDL_MapRGB(surface->format, 0, 0, 0));
-	drawTaggedSurface(surface, &bg_info, clip);
-	if (!all_sprite_hide_flag) {
-	    if (z_order < 10 && refresh_mode & REFRESH_SAYA_MODE)
-		top = 9;
-	    else
-		top = z_order;
-	    
-	    for (i = MAX_SPRITE_NUM - 1; i > top; --i)
-		if (sprite_info[i].image_surface && sprite_info[i].showing())
-		    drawTaggedSurface(surface, &sprite_info[i], clip);
-	}
+    SDL_BlitSurface( bg_info.image_surface, &clip, surface, &clip );
 
-	for (i = 0; i < 3; ++i)
-	    if (human_order[2 - i] >= 0 &&
-		tachi_info[human_order[2 - i]].image_surface)
-		drawTaggedSurface(surface, &tachi_info[human_order[2 - i]],
-				  clip);
+    if (!all_sprite_hide_flag) {
+        if (z_order < 10 && refresh_mode & REFRESH_SAYA_MODE)
+            top = 9;
+        else
+            top = z_order;
+    
+        for (i = MAX_SPRITE_NUM - 1; i > top; --i) {
+            if (sprite_info[i].image_surface && sprite_info[i].showing())
+                drawTaggedSurface(surface, &sprite_info[i], clip);
+        }
+    }
+
+    for (i = 0; i < 3; ++i) {
+        if (human_order[2 - i] >= 0 &&
+            tachi_info[human_order[2 - i]].image_surface)
+            drawTaggedSurface(surface, &tachi_info[human_order[2 - i]], clip);
     }
     
     if (windowback_flag) {
-	if (is_drawable) {
-	    if (nega_mode == 1) makeNegaSurface(surface, clip);
-	    if (monocro_flag)   makeMonochromeSurface(surface, clip);
-	    if (nega_mode == 2) makeNegaSurface(surface, clip);
-            //Mion - ogapee2008
-            if (!all_sprite2_hide_flag) {
-                for (i = MAX_SPRITE2_NUM - 1; i >= 0; --i)
-                    if (sprite2_info[i].image_surface &&
-			sprite2_info[i].showing())
-                        drawTaggedSurface(surface, &sprite2_info[i], clip);
+        if (nega_mode == 1) makeNegaSurface(surface, clip);
+        if (monocro_flag)   makeMonochromeSurface(surface, clip);
+        if (nega_mode == 2) makeNegaSurface(surface, clip);
+
+        if (!all_sprite2_hide_flag) {
+            for (i = MAX_SPRITE2_NUM - 1; i >= 0; --i) {
+                if (sprite2_info[i].image_surface && sprite2_info[i].showing())
+                    drawTaggedSurface(surface, &sprite2_info[i], clip);
             }
-            SDL_BlitSurface(surface, &clip, accumulation_comp_surface, &clip);
         }
 
         if (refresh_mode & REFRESH_SHADOW_MODE)
             shadowTextDisplay(surface, clip);
         if (refresh_mode & REFRESH_TEXT_MODE)
             text_info.blendOnSurface(surface, 0, 0, clip);
-	is_drawable = true;
     }
 
-    if (is_drawable) {
-	if (!all_sprite_hide_flag) {
-	    if (refresh_mode & REFRESH_SAYA_MODE)
-		top = 10;
-	    else
-		top = 0;
-
-	    for (i = z_order; i >= top; --i)
-		if (sprite_info[i].image_surface && sprite_info[i].showing())
-		    drawTaggedSurface(surface, &sprite_info[i], clip);
-	}
-	if (!windowback_flag) {
-	    //Mion - ogapee2008
-            if (!all_sprite2_hide_flag) {
-                for (i = MAX_SPRITE2_NUM - 1; i >= 0; --i)
-                    if (sprite2_info[i].image_surface &&
-			sprite2_info[i].showing())
-                        drawTaggedSurface(surface, &sprite2_info[i], clip);
-            }
-	    if (nega_mode == 1) makeNegaSurface(surface, clip);
-	    if (monocro_flag)   makeMonochromeSurface(surface, clip);
-	    if (nega_mode == 2) makeNegaSurface(surface, clip);
-	}
-	if (!(refresh_mode & REFRESH_SAYA_MODE)) {
-	    for (i = 0; i < MAX_PARAM_NUM; ++i)
-		if (bar_info[i])
-		    drawTaggedSurface(surface, bar_info[i], clip);
-	    for (i = 0; i < MAX_PARAM_NUM; ++i)
-		if (prnum_info[i])
-		    drawTaggedSurface(surface, prnum_info[i], clip);
-	}
+    if (!all_sprite_hide_flag) {
+        if (refresh_mode & REFRESH_SAYA_MODE)
+            top = 10;
+        else
+            top = 0;
+        for (i = z_order; i >= top; --i) {
+            if (sprite_info[i].image_surface && sprite_info[i].showing())
+                drawTaggedSurface(surface, &sprite_info[i], clip);
+        }
     }
 
     if (!windowback_flag) {
-	if (is_drawable)
-            SDL_BlitSurface(surface, &clip, accumulation_comp_surface, &clip);
+        //Mion - ogapee2008
+        if (!all_sprite2_hide_flag) {
+            for (i = MAX_SPRITE2_NUM - 1; i >= 0; --i) {
+                if (sprite2_info[i].image_surface && sprite2_info[i].showing())
+                    drawTaggedSurface(surface, &sprite2_info[i], clip);
+            }
+        }
+        if (nega_mode == 1) makeNegaSurface(surface, clip);
+        if (monocro_flag)   makeMonochromeSurface(surface, clip);
+        if (nega_mode == 2) makeNegaSurface(surface, clip);
+    }
+    
+    if (!(refresh_mode & REFRESH_SAYA_MODE)) {
+        for (i = 0; i < MAX_PARAM_NUM; ++i)
+            if (bar_info[i])
+                drawTaggedSurface(surface, bar_info[i], clip);
+        for (i = 0; i < MAX_PARAM_NUM; ++i)
+            if (prnum_info[i])
+                drawTaggedSurface(surface, prnum_info[i], clip);
+    }
+
+    if (!windowback_flag) {
         if (refresh_mode & REFRESH_SHADOW_MODE)
             shadowTextDisplay(surface, clip);
         if (refresh_mode & REFRESH_TEXT_MODE)
             text_info.blendOnSurface(surface, 0, 0, clip);
-	is_drawable = true;
     }
 
     if (refresh_mode & REFRESH_CURSOR_MODE && !textgosub_label) {
@@ -378,24 +368,23 @@ PonscripterLabel::refreshSurface(SDL_Surface* surface, SDL_Rect* clip_src,
     }
 
     for (ButtonElt::iterator it = buttons.begin(); it != buttons.end(); ++it)
-	if (it->second.show_flag > 0)
-	    drawTaggedSurface(surface,
-			      it->second.anim[it->second.show_flag - 1], clip);
+        if (it->second.show_flag > 0)
+            drawTaggedSurface(surface, it->second.anim[it->second.show_flag - 1], clip);
+    
 }
 
 
-void
-PonscripterLabel::refreshSprite(int sprite_no, bool active_flag, int cell_no,
-				SDL_Rect* check_src_rect,
-				SDL_Rect* check_dst_rect)
+void PonscripterLabel::refreshSprite(int sprite_no, bool active_flag,
+                                     int cell_no, SDL_Rect* check_src_rect,
+                                     SDL_Rect* check_dst_rect)
 {
-    if (sprite_info[sprite_no].image_name
-        && (sprite_info[sprite_no].showing() != active_flag
-            || (cell_no >= 0 && sprite_info[sprite_no].current_cell != cell_no)
-            || AnimationInfo::doClipping(check_src_rect,
-					 &sprite_info[sprite_no].pos) == 0
-            || AnimationInfo::doClipping(check_dst_rect,
-					 &sprite_info[sprite_no].pos) == 0))
+    if ((sprite_info[sprite_no].image_name ||
+         ((sprite_info[sprite_no].trans_mode == AnimationInfo::TRANS_STRING) &&
+          sprite_info[sprite_no].file_name)) &&
+        ((sprite_info[sprite_no].showing() != active_flag) ||
+         (cell_no >= 0 && sprite_info[sprite_no].current_cell != cell_no) ||
+         AnimationInfo::doClipping(check_src_rect,&sprite_info[sprite_no].pos) == 0 ||
+         AnimationInfo::doClipping(check_dst_rect,&sprite_info[sprite_no].pos) == 0))
     {
         if (cell_no >= 0) sprite_info[sprite_no].setCell(cell_no);
         sprite_info[sprite_no].visible(active_flag);
@@ -406,7 +395,11 @@ PonscripterLabel::refreshSprite(int sprite_no, bool active_flag, int cell_no,
 
 void PonscripterLabel::createBackground()
 {
-    bg_effect_image = COLOR_EFFECT_IMAGE;
+    bg_info.num_of_cells = 1;
+    bg_info.trans_mode = AnimationInfo::TRANS_COPY;
+    bg_info.pos.x = 0;
+    bg_info.pos.y = 0;
+    bg_info.allocImage(screen_width,screen_height);
 
     if (bg_info.file_name == "white") {
         bg_info.color.set(0xff);
@@ -414,31 +407,37 @@ void PonscripterLabel::createBackground()
     else if (bg_info.file_name == "black") {
         bg_info.color.set(0x00);
     }
+    else if (bg_info.file_name[0] == '#') {
+        bg_info.color = readColour(bg_info.file_name);
+    }
     else {
-        if (bg_info.file_name[0] == '#') {
-            bg_info.color = readColour(bg_info.file_name);
-        }
-        else {
-            bg_info.color.set(0x00);
-            bg_info.image_name = bg_info.file_name;
-            parseTaggedString(&bg_info);
-            bg_info.trans_mode = AnimationInfo::TRANS_COPY;
-            setupAnimationInfo(&bg_info);
-            if (bg_info.image_surface) {
-                bg_info.pos.x = (screen_width - bg_info.image_surface->w) / 2;
-                bg_info.pos.y = (screen_height - bg_info.image_surface->h) / 2;
+        AnimationInfo anim;
+        anim.image_name = bg_info.file_name;
+        parseTaggedString(&anim);
+        anim.trans_mode = AnimationInfo::TRANS_COPY;
+        setupAnimationInfo(&anim);
+        bg_info.fill(0, 0, 0, 0xff);
+        if (anim.image_surface){
+            SDL_Rect src_rect = {0, 0, anim.image_surface->w, anim.image_surface->h};
+            SDL_Rect dst_rect = {0, 0};
+            if (screen_width >= anim.image_surface->w){
+                dst_rect.x = (screen_width - anim.image_surface->w) / 2;
             }
-
-            bg_effect_image = BG_EFFECT_IMAGE;
+            else{
+                src_rect.x = (anim.image_surface->w - screen_width) / 2;
+                src_rect.w = screen_width;
+            }
+            if (screen_height >= anim.image_surface->h){
+                dst_rect.y = (screen_height - anim.image_surface->h) / 2;
+            }
+            else{
+                src_rect.y = (anim.image_surface->h - screen_height) / 2;
+                src_rect.h = screen_height;
+            }
+            bg_info.copySurface(anim.image_surface, &src_rect, &dst_rect);
         }
+        return;
     }
 
-    if (bg_effect_image == COLOR_EFFECT_IMAGE) {
-        bg_info.num_of_cells = 1;
-        bg_info.trans_mode = AnimationInfo::TRANS_COPY;
-        bg_info.pos.x = 0;
-        bg_info.pos.y = 0;
-        bg_info.allocImage(screen_width, screen_height);
-        bg_info.fill(bg_info.color, 0xff);
-    }
+    bg_info.fill(bg_info.color, 0xff);
 }

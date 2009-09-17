@@ -87,6 +87,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["bgmonce"]          = &PonscripterLabel::mp3Command;
     dict["bgmstop"]          = &PonscripterLabel::playstopCommand;
     dict["bgmvol"]           = &PonscripterLabel::mp3volCommand;
+    dict["bidirect"]         = &PonscripterLabel::bidirectCommand;
     dict["blt"]              = &PonscripterLabel::bltCommand;
     dict["br"]               = &PonscripterLabel::brCommand;
     dict["br2"]              = &PonscripterLabel::brCommand;
@@ -751,14 +752,14 @@ int PonscripterLabel::init(const char* preferred_script)
 
     accumulation_surface =
         AnimationInfo::allocSurface(screen_width, screen_height);
-    accumulation_comp_surface =
+    backup_surface =
         AnimationInfo::allocSurface(screen_width, screen_height);
     effect_src_surface =
         AnimationInfo::allocSurface(screen_width, screen_height);
     effect_dst_surface =
         AnimationInfo::allocSurface(screen_width, screen_height);
     SDL_SetAlpha(accumulation_surface, 0, SDL_ALPHA_OPAQUE);
-    SDL_SetAlpha(accumulation_comp_surface, 0, SDL_ALPHA_OPAQUE);    
+    SDL_SetAlpha(backup_surface, 0, SDL_ALPHA_OPAQUE);
     SDL_SetAlpha(effect_src_surface, 0, SDL_ALPHA_OPAQUE);
     SDL_SetAlpha(effect_dst_surface, 0, SDL_ALPHA_OPAQUE);
     screenshot_surface = 0;
@@ -961,16 +962,16 @@ void PonscripterLabel::resetSentenceFont()
     sentence_font.reset();
     sentence_font.top_x = 21;
     sentence_font.top_y = 16;
-    sentence_font.area_x = screen_width - 21;
-    sentence_font.area_y = screen_height - 16;
     sentence_font.pitch_x = 0;
-    sentence_font.pitch_y = 0;
+    sentence_font.pitch_y = 2;
+    sentence_font.area_x = 23 * (sentence_font.size() + sentence_font.pitch_x);
+    sentence_font.area_y = 16 * (sentence_font.size() + sentence_font.pitch_y);
     sentence_font.wait_time = 20;
     sentence_font.window_color.set(0x99);
     sentence_font_info.pos.x = 0;
     sentence_font_info.pos.y = 0;
-    sentence_font_info.pos.w = screen_width + 1;
-    sentence_font_info.pos.h = screen_height + 1;
+    sentence_font_info.pos.w = 640;
+    sentence_font_info.pos.h = 480;
 }
 
 
@@ -1005,7 +1006,7 @@ flush(int refresh_mode, SDL_Rect* rect, bool clear_dirty_flag,
 void PonscripterLabel::flushDirect(SDL_Rect &rect, int refresh_mode, bool updaterect)
 {
     refreshSurface(accumulation_surface, &rect, refresh_mode);
-
+/*
     if (refresh_mode != REFRESH_NONE_MODE &&
         !(refresh_mode & REFRESH_CURSOR_MODE)) {
         if (refresh_mode & REFRESH_SHADOW_MODE)
@@ -1018,7 +1019,7 @@ void PonscripterLabel::flushDirect(SDL_Rect &rect, int refresh_mode, bool update
                            refresh_mode | refresh_shadow_text_mode
                                         | REFRESH_COMP_MODE);
     }
-    
+*/    
     SDL_BlitSurface(accumulation_surface, &rect, screen_surface, &rect);
     if (updaterect) SDL_UpdateRect(screen_surface, rect.x, rect.y, rect.w, rect.h);
 }
@@ -1511,7 +1512,6 @@ void PonscripterLabel::shadowTextDisplay(SDL_Surface* surface, SDL_Rect &clip)
         SDL_Rect rect = { 0, 0, screen_width, screen_height };
         if (current_font == &sentence_font)
             rect = sentence_font_info.pos;
-
         if (AnimationInfo::doClipping(&rect, &clip)) return;
 
         if (rect.x + rect.w > surface->w) rect.w = surface->w - rect.x;

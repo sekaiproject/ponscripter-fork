@@ -450,3 +450,23 @@ Encoding::TranslateTag(const char* flag, int& in_len)
         return "";
     }
 }
+
+
+//Return whether the given Unicode character is of type 'Mark,Nonspacing'
+bool isNonspacing(wchar input)
+{
+    if (((input >= 0x0300) && (input <= 0x036f)) ||
+        ((input >= 0x0483) && (input <= 0x0487)) ||
+        ((input >= 0x0591) && (input <= 0x05bf)) ||
+        ((input >= 0x05c1) && (input <= 0x05c5)) ||
+        (input == 0x05c7) ||
+        ((input >= 0x0610) && (input <= 0x061a)) ||
+        ((input >= 0x064b) && (input <= 0x065e)) ||
+        (input == 0x0670) ||
+        ((input >= 0x06d6) && (input <= 0x06e4)) ||
+        ((input >= 0x06e7) && (input <= 0x06ed))) {
+        //fixme: add the rest of the nonspacings
+        return true;
+    }
+    return false;
+}

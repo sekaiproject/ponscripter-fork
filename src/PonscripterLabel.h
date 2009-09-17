@@ -317,6 +317,7 @@ public:
     int btnCommand(const pstring& cmd);
     int brCommand(const pstring& cmd);
     int bltCommand(const pstring& cmd);
+    int bidirectCommand(const pstring& cmd);
     int bgcopyCommand(const pstring& cmd);
     int bgCommand(const pstring& cmd);
     int barclearCommand(const pstring& cmd);
@@ -379,10 +380,9 @@ private:
            WAIT_VOICE_MODE   = 128,
            WAIT_TEXT_MODE    = 256 // clickwait, newpage, select
     };
-    typedef enum { COLOR_EFFECT_IMAGE  = 0,
-                   DIRECT_EFFECT_IMAGE = 1,
-                   BG_EFFECT_IMAGE     = 2,
-                   TACHI_EFFECT_IMAGE  = 3 } EFFECT_IMAGE;
+    enum { EFFECT_DST_GIVEN     = 0,
+           EFFECT_DST_GENERATE  = 1
+    };
     enum { ALPHA_BLEND_CONST          = 1,
            ALPHA_BLEND_MULTIPLE       = 2,
            ALPHA_BLEND_FADE_MASK      = 3,
@@ -454,15 +454,17 @@ private:
     int refresh_shadow_text_mode;
     int current_refresh_mode;
     int display_mode;
+    bool did_leavetext;
     int event_mode;
     // Final image, i.e. picture_surface (+ shadow + text_surface):
     SDL_Surface* accumulation_surface;
-    // Complementary final image, i.e. final image xor (shadow + text_surface):
-    SDL_Surface* accumulation_comp_surface;
+    // Final image w/o (shadow + text_surface) used in leaveTextDisplayMode():
+    SDL_Surface* backup_surface;
     // Text + Select_image + Tachi image + background:
     SDL_Surface* screen_surface;
     SDL_Surface* effect_dst_surface; // Intermediate source buffer for effect
     SDL_Surface* effect_src_surface; // Intermediate dest buffer for effect
+    SDL_Surface *effect_tmp_surface; // Intermediate buffer for effect
     SDL_Surface* screenshot_surface; // Screenshot
     SDL_Surface* image_surface; // Reference for loadImage()
 
@@ -570,7 +572,6 @@ private:
     /* ---------------------------------------- */
     /* Background related variables */
     AnimationInfo bg_info;
-    EFFECT_IMAGE  bg_effect_image; // This is no longer used. Remove it later.
 
     /* ---------------------------------------- */
     /* Tachi-e related variables */
@@ -655,7 +656,7 @@ private:
     
     void restoreTextBuffer();
     int  enterTextDisplayMode(bool text_flag = true);
-    int  leaveTextDisplayMode();
+    int  leaveTextDisplayMode(bool force_leave_flag = false);
     void doClickEnd();
     int  clickWait(bool display_char);
     int  clickNewPage(bool display_char);
@@ -678,9 +679,9 @@ private:
     int effect_start_time;
     int effect_start_time_old;
 
-    int setEffect(const Effect& effect);
-    int doEffect(Effect& effect, AnimationInfo* anim, int effect_image,
-                  bool clear_dirty_region = true);
+    int setEffect(Effect& effect, bool generate_effect_dst,
+                  bool update_backup_surface);
+    int doEffect(Effect& effect, bool clear_dirty_region=true);
     void drawEffect(SDL_Rect* dst_rect, SDL_Rect* src_rect,
                     SDL_Surface* surface);
     void generateMosaic(SDL_Surface* src_surface, int level);
@@ -816,7 +817,7 @@ private:
     void searchSaveFile(SaveFileInfo &info, int no);
     int  loadSaveFile(int no);
     void saveMagicNumber(bool output_flag);
-    int  saveSaveFile(int no);
+    int  saveSaveFile(int no, const char* savestr = NULL);
 
     int  loadSaveFile2(SaveFileType file_type, int file_version);
     void saveSaveFile2(bool output_flag);

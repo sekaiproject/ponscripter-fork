@@ -242,7 +242,7 @@ protected:
     /* Effect related variables */
     struct Effect {
         typedef std::vector<Effect> vector;
-	typedef vector::iterator iterator;
+        typedef vector::iterator iterator;
         int no;
         int effect;
         int duration;
@@ -363,7 +363,8 @@ protected:
     void errorAndCont(const char* why, const char* reason = NULL);
 
     void allocFileIOBuf();
-    int saveFileIOBuf(const pstring& filename, int offset = 0);
+    int saveFileIOBuf(const pstring& filename, int offset = 0,
+                      const char* savestr = NULL);
     int loadFileIOBuf(const pstring& filename);
 
     void writeChar(char c, bool output_flag);

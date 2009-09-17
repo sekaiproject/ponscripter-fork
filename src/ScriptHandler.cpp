@@ -154,8 +154,8 @@ readTokenTop:
              || ch == '[' || ch == '('
              || ch == '!' || ch == '#' || ch == ',' || ch == '"') {
         // text
-	if (ch != '!' and !warned_unmarked) {
-	    errorWarning("unmarked text found");
+        if (ch != '!' and !warned_unmarked) {
+//            errorWarning("unmarked text found"); //Mion: stop warnings, for compatibility
             // TODO: make this more robust; permit only !-directives
 //            warned_unmarked = true;
         }
@@ -668,19 +668,19 @@ void ScriptHandler::setNumVariable(int no, int val)
 
 
 pstring ScriptHandler::stringFromInteger(int no, int num_column,
-					 bool is_zero_inserted)
+					 bool is_zero_inserted, bool do_wide)
 {
-    if (num_column < 0) {
-        // In ONScripter, num_column -1 was used apparently to mean
-        // "as many as it takes".  On Linux this is fine, but MinGW
-        // apparently interprets it as meaning "always put a minus
-        // sign there", which is undesirable.
-        num_column = 0;
-    }
+    if (num_column < 0) num_column = 0;
+
     pstring s;
     s.format(is_zero_inserted ? "%0*d" : "%*d", num_column, no);
     if (num_column > 0) s.trunc(num_column);
     if (s == "-" || !s) s = "0";
+    if (do_wide) {
+        if (file_encoding->which() == "cp932")
+            return hantozen(s);
+        else return s;
+    }
     return s;
 }
 

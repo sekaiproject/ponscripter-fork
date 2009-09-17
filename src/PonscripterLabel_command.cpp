@@ -83,6 +83,9 @@ int PonscripterLabel::waitCommand(const pstring& cmd)
 
 int PonscripterLabel::vspCommand(const pstring& cmd)
 {
+    int ret = leaveTextDisplayMode();
+    if (ret != RET_NOMATCH) return ret;
+
     // Haeleth extension: allow vsp <sprite1>,<sprite2>,<value> like csp
     int no1 = script_h.readIntValue();
     int no2 = no1;
@@ -91,14 +94,16 @@ int PonscripterLabel::vspCommand(const pstring& cmd)
     if (no2 < no1) { int swap = no2; no2 = no1; no1 = swap; }
     if (no2 >= MAX_SPRITE_NUM) no2 = MAX_SPRITE_NUM - 1;
     if (cmd == "vsp2") {
-        for (int no = no1; no <= no2; ++no)
-            if (sprite2_info[no].visible(vis))
-                dirty_rect.add(sprite2_info[no].bounding_rect);
+        for (int no = no1; no <= no2; ++no){
+            sprite2_info[no].visible(vis);
+            dirty_rect.add(sprite2_info[no].bounding_rect);
+        }
     }
     else {
-        for (int no = no1; no <= no2; ++no)
-            if (sprite_info[no].visible(vis))
-                dirty_rect.add(sprite_info[no].pos);
+        for (int no = no1; no <= no2; ++no){
+            sprite_info[no].visible(vis);
+            dirty_rect.add(sprite_info[no].pos);
+        }
     }
     return RET_CONTINUE;
 }
@@ -167,12 +172,10 @@ int PonscripterLabel::textshowCommand(const pstring& cmd)
 
 int PonscripterLabel::textonCommand(const pstring& cmd)
 {
+    int ret = enterTextDisplayMode();
+    if (ret != RET_NOMATCH) return ret;
+
     text_on_flag = true;
-    if (!(display_mode & TEXT_DISPLAY_MODE)) {
-        dirty_rect.fill(screen_width, screen_height);
-        display_mode = TEXT_DISPLAY_MODE;
-        flush(refreshMode());
-    }
 
     return RET_CONTINUE;
 }
@@ -180,12 +183,12 @@ int PonscripterLabel::textonCommand(const pstring& cmd)
 
 int PonscripterLabel::textoffCommand(const pstring& cmd)
 {
+    refreshSurface(backup_surface, NULL, REFRESH_NORMAL_MODE);
+
+    int ret = leaveTextDisplayMode(true);
+    if (ret != RET_NOMATCH) return ret;
+
     text_on_flag = false;
-    if (display_mode & TEXT_DISPLAY_MODE) {
-        dirty_rect.fill(screen_width, screen_height);
-        display_mode = NORMAL_DISPLAY_MODE;
-        flush(refreshMode());
-    }
 
     return RET_CONTINUE;
 }
@@ -229,7 +232,7 @@ int PonscripterLabel::texecCommand(const pstring& cmd)
 
 int PonscripterLabel::tateyokoCommand(const pstring& cmd)
 {
-    sentence_font.setTateYoko(script_h.readIntValue());
+    sentence_font.setTateYoko(script_h.readIntValue()!=0);
     return RET_CONTINUE;
 }
 
@@ -253,7 +256,7 @@ int PonscripterLabel::talCommand(const pstring& cmd)
     }
 
     if (event_mode & EFFECT_EVENT_MODE) {
-        return doEffect(parseEffect(false), NULL, TACHI_EFFECT_IMAGE);
+        return doEffect(parseEffect(false));
     }
     else {
         if (no >= 0) {
@@ -261,7 +264,7 @@ int PonscripterLabel::talCommand(const pstring& cmd)
             dirty_rect.add(tachi_info[no].pos);
         }
 
-        return setEffect(parseEffect(true));
+        return setEffect(parseEffect(true), true, true);
     }
 }
 
@@ -298,6 +301,9 @@ int PonscripterLabel::systemcallCommand(const pstring& cmd)
 
 int PonscripterLabel::strspCommand(const pstring& cmd)
 {
+    int ret = leaveTextDisplayMode();
+    if (ret != RET_NOMATCH) return ret;
+
     int sprite_no = script_h.readIntValue();
     AnimationInfo* ai = &sprite_info[sprite_no];
     ai->removeTag();
@@ -349,6 +355,9 @@ int PonscripterLabel::stopCommand(const pstring& cmd)
 
 int PonscripterLabel::sp_rgb_gradationCommand(const pstring& cmd)
 {
+    int ret = leaveTextDisplayMode();
+    if (ret != RET_NOMATCH) return ret;
+
     int no       = script_h.readIntValue();
     int upper_r  = script_h.readIntValue();
     int upper_g  = script_h.readIntValue();
@@ -453,6 +462,9 @@ int PonscripterLabel::spstrCommand(const pstring& cmd)
 
 int PonscripterLabel::spreloadCommand(const pstring& cmd)
 {
+    int ret = leaveTextDisplayMode();
+    if (ret != RET_NOMATCH) return ret;
+
     int no = script_h.readIntValue();
     AnimationInfo* si;
     if (no == -1) si = &sentence_font_info;
@@ -626,8 +638,8 @@ void PonscripterLabel::setwindowCore()
     wind.backdrop  = script_h.readStrValue();
     wind.w_left    = script_h.readIntValue();
     wind.w_top     = script_h.readIntValue(); 
-    wind.w_width   = script_h.hasMoreArgs() ? script_h.readIntValue() : 0;
-    wind.w_height  = script_h.hasMoreArgs() ? script_h.readIntValue() : 0;
+    wind.w_width   = script_h.hasMoreArgs() ? script_h.readIntValue()+1 : 0;
+    wind.w_height  = script_h.hasMoreArgs() ? script_h.readIntValue()+1 : 0;
   
     // Window size is defined in characters
     // (this used to be just for non-Ponscripter games, but as of
@@ -646,9 +658,6 @@ int PonscripterLabel::setwindow3Command(const pstring& cmd)
 {
     setwindowCore();
 
-    clearCurrentTextBuffer();
-    indent_offset = 0;
-    line_enter_status = 0;
     display_mode = NORMAL_DISPLAY_MODE;
     flush(refreshMode(), &sentence_font_info.pos);
     
@@ -906,12 +915,21 @@ int PonscripterLabel::saveoffCommand(const pstring& cmd)
 
 int PonscripterLabel::savegameCommand(const pstring& cmd)
 {
+    bool savegame2_flag = false;
+    if (cmd == "savegame2")
+        savegame2_flag = true;
+    
     int no = script_h.readIntValue();
+    
+    pstring savestr = "";
+    if (savegame2_flag)
+        savestr = script_h.readStrValue();
+
     if (no < 0)
         errorAndExit("savegame: the specified number is less than 0.");
     else {
         shelter_event_mode = event_mode;
-        saveSaveFile(no);
+        saveSaveFile(no, savestr);
     }
     return RET_CONTINUE;
 }
@@ -995,25 +1013,28 @@ int PonscripterLabel::quakeCommand(const pstring& cmd)
 
     tmp_effect.no = script_h.readIntValue();
     tmp_effect.duration = script_h.readIntValue();
-    if (tmp_effect.duration < tmp_effect.no * 4)
-	tmp_effect.duration = tmp_effect.no * 4;
 
     tmp_effect.effect = CUSTOM_EFFECT_NO + quake_type;
 
     if (ctrl_pressed_status || skip_to_wait) {
         dirty_rect.fill(screen_width, screen_height);
         SDL_BlitSurface(accumulation_surface, NULL, effect_dst_surface, NULL);
+        event_mode = IDLE_EVENT_MODE;
         return RET_CONTINUE;
     }
 
+    if (tmp_effect.duration < tmp_effect.no * 4)
+        tmp_effect.duration = tmp_effect.no * 4;
+    tmp_effect.effect = CUSTOM_EFFECT_NO + quake_type;
+
     if (event_mode & EFFECT_EVENT_MODE) {
-        return doEffect(tmp_effect, NULL, DIRECT_EFFECT_IMAGE);
+        return doEffect(tmp_effect);
     }
     else {
         dirty_rect.fill(screen_width, screen_height);
         SDL_BlitSurface(accumulation_surface, NULL, effect_dst_surface, NULL);
 
-        return setEffect(tmp_effect); // 2 is dummy value
+        return setEffect(tmp_effect, false, true);
     }
 }
 
@@ -1048,6 +1069,9 @@ int PonscripterLabel::puttextCommand(const pstring& cmd)
 
 int PonscripterLabel::prnumclearCommand(const pstring& cmd)
 {
+    int ret = leaveTextDisplayMode();
+    if (ret != RET_NOMATCH) return ret;
+
     for (int i = 0; i < MAX_PARAM_NUM; i++) {
         if (prnum_info[i]) {
             dirty_rect.add(prnum_info[i]->pos);
@@ -1062,6 +1086,9 @@ int PonscripterLabel::prnumclearCommand(const pstring& cmd)
 
 int PonscripterLabel::prnumCommand(const pstring& cmd)
 {
+    int ret = leaveTextDisplayMode();
+    if (ret != RET_NOMATCH) return ret;
+
     int no = script_h.readIntValue();
     if (prnum_info[no]) {
         dirty_rect.add(prnum_info[no]->pos);
@@ -1079,11 +1106,13 @@ int PonscripterLabel::prnumCommand(const pstring& cmd)
     prnum_info[no]->pos.y = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
     prnum_info[no]->font_size_x = script_h.readIntValue();
     prnum_info[no]->font_size_y = script_h.readIntValue();
+//    // NScr uses fullwidth digits; somewhat fake it by shifting position
+//    prnum_info[no]->pos.x += prnum_info[no]->font_size_x;
 
     prnum_info[no]->color_list[0] = readColour(script_h.readStrValue());
 
     prnum_info[no]->file_name =
-	script_h.stringFromInteger(prnum_info[no]->param, 3);
+        script_h.stringFromInteger(prnum_info[no]->param, 3, false, true);
 
     setupAnimationInfo(prnum_info[no]);
     dirty_rect.add(prnum_info[no]->pos);
@@ -1098,10 +1127,10 @@ int PonscripterLabel::printCommand(const pstring& cmd)
     if (ret != RET_NOMATCH) return ret;
 
     if (event_mode & EFFECT_EVENT_MODE) {
-        return doEffect(parseEffect(false), NULL, TACHI_EFFECT_IMAGE);
+        return doEffect(parseEffect(false));
     }
     else {
-        return setEffect(parseEffect(true));
+        return setEffect(parseEffect(true), true, true);
     }
 }
 
@@ -1164,6 +1193,9 @@ int PonscripterLabel::negaCommand(const pstring& cmd)
 
 int PonscripterLabel::mspCommand(const pstring& cmd)
 {
+    int ret = leaveTextDisplayMode();
+    if (ret != RET_NOMATCH) return ret;
+
     // Haeleth extension: the form `msp NUM,NUM,NUM[,NUM]' is augmented
     // by the form `msp NUM,NUM' which modifies only the transparency.
     // Likewise `msp2 NUM,NUM,NUM,NUM,NUM,NUM[,NUM]' is augmented by
@@ -1382,6 +1414,9 @@ int PonscripterLabel::movemousecursorCommand(const pstring& cmd)
 
 int PonscripterLabel::monocroCommand(const pstring& cmd)
 {
+    int ret = leaveTextDisplayMode();
+    if (ret != RET_NOMATCH) return ret;
+
     Expression e = script_h.readStrExpr();
     if (e.is_bareword("off")) {
         monocro_flag = false;
@@ -1449,6 +1484,9 @@ int PonscripterLabel::menu_automodeCommand(const pstring& cmd)
 
 int PonscripterLabel::lspCommand(const pstring& cmd)
 {
+    int ret = leaveTextDisplayMode();
+    if (ret != RET_NOMATCH) return ret;
+
     bool sprite2 = cmd == "lsp2" || cmd == "lsph2";
     bool hidden = cmd == "lsph" || cmd == "lsph2";
     
@@ -1544,6 +1582,9 @@ int PonscripterLabel::lookbackbuttonCommand(const pstring& cmd)
 
 int PonscripterLabel::logspCommand(const pstring& cmd)
 {
+    int ret = leaveTextDisplayMode();
+    if (ret != RET_NOMATCH) return ret;
+
     int sprite_no = script_h.readIntValue();
 
     AnimationInfo &si = sprite_info[sprite_no];
@@ -1590,8 +1631,8 @@ int PonscripterLabel::logspCommand(const pstring& cmd)
     sentence_font.is_newline_accepted = true;
     setupAnimationInfo(&si);
     sentence_font.is_newline_accepted = false;
-    if (si.visible(true))
-        dirty_rect.add(si.pos);
+    si.visible(true);
+    dirty_rect.add(si.pos);
 
     return RET_CONTINUE;
 }
@@ -1667,11 +1708,8 @@ int PonscripterLabel::loadgameCommand(const pstring& cmd)
 
 int PonscripterLabel::ldCommand(const pstring& cmd)
 {
-    // TEST rca spriteanim patch
-#ifdef NO_RCA_CHANGES
     int ret = leaveTextDisplayMode();
     if (ret != RET_NOMATCH) return ret;
-#endif
 
     Expression loc = script_h.readStrExpr();
     int no = -1;
@@ -1683,7 +1721,7 @@ int PonscripterLabel::ldCommand(const pstring& cmd)
     if (no >= 0) buf = script_h.readStrValue();
 
     if (event_mode & EFFECT_EVENT_MODE) {
-        return doEffect(parseEffect(false), NULL, TACHI_EFFECT_IMAGE);
+        return doEffect(parseEffect(false));
     }
     else {
         if (no >= 0) {
@@ -1692,16 +1730,16 @@ int PonscripterLabel::ldCommand(const pstring& cmd)
             parseTaggedString(&tachi_info[no]);
             setupAnimationInfo(&tachi_info[no]);
             if (tachi_info[no].image_surface) {
-                tachi_info[no].pos.x
-		    = screen_width * (no + 1) / 4 - tachi_info[no].pos.w / 2;
-                tachi_info[no].pos.y
-		    = underline_value - tachi_info[no].image_surface->h + 1;
-                if (tachi_info[no].visible(true))
-                    dirty_rect.add(tachi_info[no].pos);
+                tachi_info[no].pos.x = screen_width * (no + 1) / 4 -
+                                       tachi_info[no].pos.w / 2;
+                tachi_info[no].pos.y = underline_value -
+                                       tachi_info[no].image_surface->h + 1;
+                tachi_info[no].visible(true);
+                dirty_rect.add(tachi_info[no].pos);
             }
         }
 
-        return setEffect(parseEffect(true));
+        return setEffect(parseEffect(true), true, true);
     }
 }
 
@@ -1807,13 +1845,13 @@ int PonscripterLabel::humanorderCommand(const pstring& cmd)
     }
 
     if (event_mode & EFFECT_EVENT_MODE) {
-        return doEffect(parseEffect(false), &bg_info, bg_effect_image);
+        return doEffect(parseEffect(false));
     }
     else {
         for (i = 0; i < 3; i++)
             dirty_rect.add(tachi_info[i].pos);
 
-        return setEffect(parseEffect(true));
+        return setEffect(parseEffect(true), true, true);
     }
 }
 
@@ -2550,6 +2588,9 @@ int PonscripterLabel::defineresetCommand(const pstring& cmd)
 
 int PonscripterLabel::cspCommand(const pstring& cmd)
 {
+    int ret = leaveTextDisplayMode();
+    if (ret != RET_NOMATCH) return ret;
+
     // Haeleth extension: csp <sprite>, <sprite2> clears all sprites
     // between those numbers, inclusive.  Ditto for csp2.
     bool csp2         = cmd == "csp2";
@@ -2639,16 +2680,13 @@ int PonscripterLabel::clickCommand(const pstring& cmd)
 
 int PonscripterLabel::clCommand(const pstring& cmd)
 {
-    // TEST rca spriteanim patch
-#ifdef NO_RCA_CHANGES
     int ret = leaveTextDisplayMode();
     if (ret != RET_NOMATCH) return ret;
-#endif
 
     char loc = script_h.readBareword()[0];
 
     if (event_mode & EFFECT_EVENT_MODE) {
-        return doEffect(parseEffect(false), NULL, TACHI_EFFECT_IMAGE);
+        return doEffect(parseEffect(false));
     }
     else {
         if (loc == 'l' || loc == 'a') {
@@ -2666,7 +2704,7 @@ int PonscripterLabel::clCommand(const pstring& cmd)
             tachi_info[2].remove();
         }
 
-        return setEffect(parseEffect(true));
+        return setEffect(parseEffect(true), true, true);
     }
 }
 
@@ -3028,10 +3066,16 @@ int PonscripterLabel::bltCommand(const pstring& cmd)
 }
 
 
+int PonscripterLabel::bidirectCommand(const pstring& cmd)
+{
+    sentence_font.setRTL(script_h.readIntValue()!=0);
+    return RET_CONTINUE;
+}
+
+
 int PonscripterLabel::bgcopyCommand(const pstring& cmd)
 {
     SDL_BlitSurface(screen_surface, NULL, accumulation_surface, NULL);
-    bg_effect_image = BG_EFFECT_IMAGE;
 
     bg_info.num_of_cells = 1;
     bg_info.trans_mode = AnimationInfo::TRANS_COPY;
@@ -3045,7 +3089,9 @@ int PonscripterLabel::bgcopyCommand(const pstring& cmd)
 
 int PonscripterLabel::bgCommand(const pstring& cmd)
 {
-    int ret = leaveTextDisplayMode();
+    //Mion: prefer removing textwindow for bg change effects even during skip;
+    //but don't remove text window if erasetextwindow == 0
+    int ret = leaveTextDisplayMode((erase_text_window_mode != 0));
     if (ret != RET_NOMATCH) return ret;
 
     Expression e = script_h.readStrExpr();
@@ -3053,7 +3099,7 @@ int PonscripterLabel::bgCommand(const pstring& cmd)
         bg_info.file_name = e.as_string();
 
     if (event_mode & EFFECT_EVENT_MODE) {
-        return doEffect(parseEffect(false), &bg_info, bg_effect_image);
+        return doEffect(parseEffect(false));
     }
     else {
         for (int i = 0; i < 3; i++)
@@ -3065,7 +3111,7 @@ int PonscripterLabel::bgCommand(const pstring& cmd)
         createBackground();
         dirty_rect.fill(screen_width, screen_height);
 
-        return setEffect(parseEffect(true));
+        return setEffect(parseEffect(true), true, true);
     }
 }
 
