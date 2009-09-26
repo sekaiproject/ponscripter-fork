@@ -30,7 +30,7 @@
 
 class SarReader : public DirectReader {
 public:
-    SarReader(const pstring& path = "", const unsigned char* key_table = NULL);
+    SarReader(DirPaths *path = NULL, const unsigned char* key_table = NULL);
     ~SarReader();
 
     int open(const pstring& name = "", int archive_type = ARCHIVE_TYPE_SAR);

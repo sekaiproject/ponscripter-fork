@@ -52,14 +52,18 @@ static iconv_t iconv_cd = NULL;
 #define N (1 << EI)  /* buffer size */
 #define F ((1 << EJ) + P)  /* lookahead buffer size */
 
-DirectReader::DirectReader(const pstring& path, const unsigned char* key_table)
-    : archive_path(path)
+DirectReader::DirectReader(DirPaths *path, const unsigned char* key_table)
 {
 #if defined (UTF8_FILESYSTEM) && !defined (MACOSX)
     if (iconv_cd == NULL) iconv_cd = iconv_open("UTF-8", "SJIS");
 
     iconv_ref_count++;
 #endif
+
+    if ( path != NULL )
+        archive_path = path;
+    else
+        archive_path = new DirPaths("");
 
     int i;
     if (key_table) {
@@ -140,44 +144,58 @@ FILE* DirectReader::fileopen(pstring path, const char* mode)
 {
     if (InvalidFilename(path)) return NULL;
     
-    pstring full_path = archive_path + path;
-   
-    // If the file is trivially found, open it and return the handle.
-    FILE* fp = fopen(full_path, mode);
-    if (fp) return fp;
+    pstring full_path = "";
+    FILE* fp = NULL;
+
+    // Check each archive path until found
+    for (int n=-1; n<archive_path->get_num_paths(); n++) {
+        if (n == -1) {
+            if (archive_path->get_num_paths() == 0) {
+                full_path = ".";
+            } else {
+                n++;
+                full_path = archive_path->get_path(n);
+            }
+        } else
+            full_path = archive_path->get_path(n);
+
+        // If the file is trivially found, open it and return the handle.
+//printf("DReader::fileopen: about to try '" + full_path + path + "'\n");
+        fp = fopen(full_path + path, mode);
+        if (fp) return fp;
 
 #if !defined (WIN32) && !defined (PSP) && !defined (__OS2__)    
-    // Otherwise, split the path into directories and check each for
-    // correct case, correcting the case in memory as appropriate,
-    // until we either find the file or show that it doesn't exist.
+        // Otherwise, split the path into directories and check each for
+        // correct case, correcting the case in memory as appropriate,
+        // until we either find the file or show that it doesn't exist.
 
-    // Get the archive path sans final delimiter.
-    full_path = archive_path ? archive_path : ".";
-    full_path.rtrim(DELIMITER);
-    
-    // Get the constituent parts of the file path.
-    CBStringList parts = path.split(DELIMITER);
+        full_path.rtrim(DELIMITER);
 
-    // Correct the case of each.
-    for (CBStringList::iterator it = parts.begin(); it != parts.end(); ++it) {
-	DIR* dp = opendir(full_path);
-	if (!dp) return NULL;
-	dirent* entry;
-	bool found = false;
-	while ((entry = readdir(dp))) {
-	    pstring item = entry->d_name;
-	    if (it->caselessEqual(item)) {
-		found = true;
-		full_path += DELIMITER;
-		full_path += item;
-		break;
-	    }
-	}
-	closedir(dp);
-	if (!found) return NULL;
-    }
-    fp = fopen(full_path, mode);
+        // Get the constituent parts of the file path.
+        CBStringList parts = path.split(DELIMITER);
+
+        // Correct the case of each.
+        bool found = false;
+        for (CBStringList::iterator it = parts.begin(); it != parts.end(); ++it) {
+            DIR* dp = opendir(full_path);
+            if (!dp) return NULL;
+            dirent* entry;
+            while ((entry = readdir(dp))) {
+                pstring item = entry->d_name;
+                if (it->caselessEqual(item)) {
+                    found = true;
+                    full_path += DELIMITER;
+                    full_path += item;
+                    break;
+                }
+            }
+            closedir(dp);
+        }
+        if (!found) continue;
+        fp = fopen(full_path, mode);
+        if (fp) return fp;
 #endif
+    }
     return fp;
 }
 

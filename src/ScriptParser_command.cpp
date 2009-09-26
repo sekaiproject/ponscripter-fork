@@ -410,7 +410,7 @@ int ScriptParser::nsaCommand(const pstring& cmd)
     }
 
     delete ScriptHandler::cBR;
-    ScriptHandler::cBR = new NsaReader(archive_path, key_table);
+    ScriptHandler::cBR = new NsaReader(&archive_path, key_table);
     if (ScriptHandler::cBR->open(nsa_path, archive_type))
         fprintf(stderr, " *** failed to open Nsa archive, ignored.  ***\n");
 
@@ -1133,7 +1133,7 @@ int ScriptParser::arcCommand(const pstring& cmd)
     buf.trunc(buf.find('|', 0)); // TODO: check this removes the |
     if (ScriptHandler::cBR->getArchiveName() == "direct") {
         delete ScriptHandler::cBR;
-        ScriptHandler::cBR = new SarReader(archive_path, key_table);
+        ScriptHandler::cBR = new SarReader(&archive_path, key_table);
         if (ScriptHandler::cBR->open(buf))
             fprintf(stderr, " *** failed to open archive %s, ignored.  ***\n",
 		    (const char*) buf);

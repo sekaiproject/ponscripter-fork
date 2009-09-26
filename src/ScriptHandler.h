@@ -28,6 +28,7 @@
 
 #include "defs.h"
 #include "BaseReader.h"
+#include "DirPaths.h"
 #include "expression.h"
 
 const int VARIABLE_RANGE = 4096;
@@ -105,6 +106,8 @@ public:
     ~ScriptHandler();
 
     void reset();
+    FILE *fileopen(pstring path, const char *mode, const bool save = false);
+    FILE *fileopen(pstring root, pstring path, const char *mode);
     void setKeyTable(const unsigned char* key_table);
 
     // basic parser function
@@ -194,7 +197,7 @@ public:
 			     bool is_zero_inserted = false, bool do_wide = false);
     
     int readScriptSub(FILE* fp, char** buf, int encrypt_mode);
-    int readScript(const pstring& path, const char* prefer_name);
+    int readScript(DirPaths *path, const char* prefer_name);
     int labelScript();
 
     LabelInfo lookupLabel(const pstring& label);
@@ -272,6 +275,7 @@ public:
 
     pstring game_identifier;
     pstring save_path;
+    pstring script_path;
 
     static BaseReader* cBR;
 
@@ -302,7 +306,7 @@ private:
     numalias_t num_aliases;
     stralias_t str_aliases;
 
-    pstring archive_path;
+    DirPaths *archive_path;
     int   script_buffer_length;
     char* script_buffer;
     char* tmp_script_buf;

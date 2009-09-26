@@ -27,12 +27,13 @@
 #define __DIRECT_READER_H__
 
 #include "BaseReader.h"
+#include "DirPaths.h"
 
 #define MAX_FILE_NAME_LENGTH 256
 
 class DirectReader : public BaseReader {
 public:
-    DirectReader(const pstring& path = "", const unsigned char* key_table = 0);
+    DirectReader(DirPaths *path = NULL, const unsigned char* key_table = 0);
     ~DirectReader();
 
     int open(const pstring& name = "", int archive_type = ARCHIVE_TYPE_NONE);
@@ -51,7 +52,7 @@ public:
 //    static string convertFromSJISToUTF8(string src_buf);
 
 protected:
-    pstring archive_path;
+    DirPaths *archive_path;
     unsigned char key_table[256];
     bool   key_table_flag;
     int    getbit_mask;

@@ -301,10 +301,10 @@ void ScriptParser::reset()
 
 int ScriptParser::open(const char* preferred_script)
 {
-    ScriptHandler::cBR = new DirectReader(archive_path, key_table);
+    ScriptHandler::cBR = new DirectReader(&archive_path, key_table);
     ScriptHandler::cBR->open();
 
-    if (script_h.readScript(archive_path, preferred_script)) return -1;
+    if (script_h.readScript(&archive_path, preferred_script)) return -1;
 
     switch (script_h.screen_size) {
     case ScriptHandler::SCREEN_SIZE_800x600:
@@ -713,11 +713,15 @@ void ScriptParser::createKeyTable(const pstring& key_exe)
 {
     if (!key_exe) return;
 
-    pstring path = archive_path + DELIMITER + key_exe;
-    FILE* fp = fopen(path, "rb");
+    FILE* fp = NULL;
+    int n=0;
+    while ((fp == NULL) && (n<archive_path.get_num_paths())) {
+        pstring path = archive_path.get_path(n++) + key_exe;
+        fp = fopen(path, "rb");
+    }
     if (fp == NULL) {
         fprintf(stderr, "createKeyTable: can't open EXE file %s\n",
-		(const char*) path);
+		(const char*) key_exe);
         return;
     }
 

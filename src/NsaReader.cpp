@@ -26,7 +26,7 @@
 #include "NsaReader.h"
 #include <string.h>
 
-NsaReader::NsaReader(const pstring& path, const unsigned char* key_table)
+NsaReader::NsaReader(DirPaths *path, const unsigned char* key_table)
     : SarReader(path, key_table),
       sar_flag(true),
       num_of_nsa_archives(0),
@@ -40,30 +40,53 @@ NsaReader::~NsaReader()
 
 int NsaReader::open(const pstring& nsa_path, int archive_type)
 {
-    if (!SarReader::open("arc.sar")) return 0;
-    sar_flag = false;
+    int i,j,n;
+    FILE *fp;
+    pstring archive_name, archive_name2;
 
-    pstring archive_name = nsa_path + "arc." + nsa_archive_ext;
-    if ((archive_info.file_handle = fileopen(archive_name, "rb")) == NULL) {
-        fprintf(stderr, "can't open file %s\n", (const char*) archive_name);
+    if (!SarReader::open("arc.sar"))
+        sar_flag = true;
+    else
+        sar_flag = false;
+
+    i = j = -1;
+    n = 0;
+    while ((i<MAX_EXTRA_ARCHIVE) && (n<archive_path->get_num_paths())) {
+        if (j < 0) {
+            archive_name = nsa_path + "arc." + nsa_archive_ext;
+            archive_name2 = archive_path->get_path(n) + archive_name;
+        } else {
+            archive_name2.format("arc%d", i);
+            archive_name = nsa_path + archive_name2 + "." + nsa_archive_ext;
+            archive_name2 = archive_path->get_path(n) + archive_name;
+        }
+        fp = fopen(archive_name2, "rb");
+        if (fp != NULL) {
+            if (i < 0) {
+                archive_info.file_handle = fp;
+                archive_info.file_name = archive_name2;
+                readArchive(&archive_info, archive_type);
+            } else {
+                archive_info2[i].file_handle = fp;
+                archive_info2[i].file_name = archive_name2;
+                readArchive(&archive_info2[i], archive_type);
+            }
+            i++;
+            j++;
+        } else {
+            j = -1;
+            n++;
+        }
+    }
+
+    if (i < 0) {
+        // didn't find any (main) archive files
+        fprintf(stderr, "can't open archive file %s\n", (const char*) archive_name);
         return -1;
+    } else {
+        num_of_nsa_archives = i+1;
+        return 0;
     }
-
-    archive_info.file_name = archive_name;
-    readArchive(&archive_info, archive_type);
-
-    for (int i = 1; i <= MAX_EXTRA_ARCHIVE; ++i) {
-	pstring arcname2;
-	arcname2.format("arc%d", i);
-	archive_name = nsa_path + arcname2 + "." + nsa_archive_ext;
-        if ((archive_info2[i].file_handle = fileopen(archive_name, "rb")) == 0)
-            return 0;
-        archive_info2[i].file_name = arcname2;
-        num_of_nsa_archives = i + 1;
-        readArchive(&archive_info2[i], archive_type);
-    }
-
-    return 0;
 }
 
 

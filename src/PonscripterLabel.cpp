@@ -102,6 +102,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["cell"]             = &PonscripterLabel::cellCommand;
     dict["cellcheckexbtn"]   = &PonscripterLabel::exbtnCommand;
     dict["cellcheckspbtn"]   = &PonscripterLabel::spbtnCommand;
+    dict["pcenterline"]      = &PonscripterLabel::haeleth_centre_lineCommand;
     dict["checkpage"]        = &PonscripterLabel::checkpageCommand;
     dict["chvol"]            = &PonscripterLabel::chvolCommand;
     dict["cl"]               = &PonscripterLabel::clCommand;
@@ -136,6 +137,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["exec_dll"]         = &PonscripterLabel::exec_dllCommand;
     dict["existspbtn"]       = &PonscripterLabel::spbtnCommand;
     dict["fileexist"]        = &PonscripterLabel::fileexistCommand;
+    dict["pfontstyle"]       = &PonscripterLabel::haeleth_font_styleCommand;
     dict["game"]             = &PonscripterLabel::gameCommand;
     dict["getbgmvol"]        = &PonscripterLabel::getmp3volCommand;
     dict["getbtntimer"]      = &PonscripterLabel::gettimerCommand;
@@ -160,6 +162,8 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["gettab"]           = &PonscripterLabel::gettabCommand;
     dict["gettag"]           = &PonscripterLabel::gettagCommand;
     dict["gettext"]          = &PonscripterLabel::gettextCommand;
+    dict["gettextextent"]    = &PonscripterLabel::haeleth_text_extentCommand;
+    dict["gettextheight"]    = &PonscripterLabel::haeleth_text_heightCommand;
     dict["gettextspeed"]     = &PonscripterLabel::gettextspeedCommand;
     dict["gettimer"]         = &PonscripterLabel::gettimerCommand;
     dict["getversion"]       = &PonscripterLabel::getversionCommand;
@@ -220,12 +224,22 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["nega"]             = &PonscripterLabel::negaCommand;
     dict["ofscopy"]          = &PonscripterLabel::ofscopyCommand;
     dict["ofscpy"]           = &PonscripterLabel::ofscopyCommand;
+    dict["pbreakstr"]        = &PonscripterLabel::haeleth_char_setCommand;
+    dict["pdefwindow"]       = &PonscripterLabel::haeleth_defwindowCommand;
+    dict["pindentstr"]       = &PonscripterLabel::haeleth_char_setCommand;
     dict["play"]             = &PonscripterLabel::playCommand;
     dict["playonce"]         = &PonscripterLabel::playCommand;
     dict["playstop"]         = &PonscripterLabel::playstopCommand;
+    dict["plocate"]          = &PonscripterLabel::locateCommand;
+    dict["pligate"]          = &PonscripterLabel::haeleth_ligate_controlCommand;
+    dict["pmapfont"]         = &PonscripterLabel::haeleth_map_fontCommand;
+    dict["prendering"]       = &PonscripterLabel::haeleth_hinting_modeCommand;
     dict["print"]            = &PonscripterLabel::printCommand;
     dict["prnum"]            = &PonscripterLabel::prnumCommand;
     dict["prnumclear"]       = &PonscripterLabel::prnumclearCommand;
+    dict["pspeedpercent"]    = &PonscripterLabel::haeleth_speedpercentCommand;
+    dict["pusewindow"]       = &PonscripterLabel::haeleth_usewindowCommand;
+    dict["pusewindow3"]      = &PonscripterLabel::haeleth_usewindowCommand;
     dict["puttext"]          = &PonscripterLabel::puttextCommand;
     dict["quake"]            = &PonscripterLabel::quakeCommand;
     dict["quakex"]           = &PonscripterLabel::quakeCommand;
@@ -490,7 +504,9 @@ void PonscripterLabel::setDLLFile(const char* filename)
 
 void PonscripterLabel::setArchivePath(const pstring& path)
 {
-    archive_path = path + DELIMITER;
+    archive_path.clear();
+    archive_path.add(path);
+    printf("archive_path: " + archive_path.get_all_paths() + "\n");
 }
 
 
@@ -726,8 +742,13 @@ int PonscripterLabel::init(const char* preferred_script)
     // directory, the current directory, or somewhere unpredictable
     // that must be specified with the -r option; in all such cases we
     // assume the current directory if nothing else was specified.
+    if (archive_path.get_num_paths()==0) {
 #ifdef MACOSX
-    if (!archive_path) archive_path = MacOSX_SeekArchive(script_h);
+        archive_path.add(MacOSX_SeekArchive(script_h));
+#else
+        archive_path.add(".");
+        archive_path.add("..");
+    }
 #endif
    
     if (key_exe_file) {
@@ -743,7 +764,7 @@ int PonscripterLabel::init(const char* preferred_script)
 
     // If we couldn't find anything obvious, fall back on ONScripter
     // behaviour of putting saved games in the archive path.
-    if (!script_h.save_path) script_h.save_path = archive_path;
+    if (!script_h.save_path) script_h.save_path = archive_path.get_path(0);
 
     initSDL();
 
@@ -817,7 +838,7 @@ int PonscripterLabel::init(const char* preferred_script)
 
     loadEnvData();
 
-    InitialiseFontSystem(archive_path);
+    InitialiseFontSystem(archive_path.get_path(0));
 
     return 0;
 }

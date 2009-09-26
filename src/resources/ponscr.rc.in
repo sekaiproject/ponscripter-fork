@@ -11,9 +11,9 @@ FILETYPE 1
        BLOCK "080904b0" {
            VALUE "FileDescription", "Proportional ONScripter"
            VALUE "OriginalFilename", "ponscr.exe"
-           VALUE "CompanyName", "Studio OGA/insani/Haeleth"
+           VALUE "CompanyName", "Studio OGA/insani/Haeleth/Sonozaki"
            VALUE "FileVersion", "@Y@-@M@-@D@"
-           VALUE "LegalCopyright", "Copyright (c) 1998-2007 Studio O.G.A, 2005-6 insani, 2006-@Y@ Haeleth."
+           VALUE "LegalCopyright", "Copyright (c) 1998-2007 Studio O.G.A, 2005-6 insani, 2006-2009 Haeleth, 2009 Sonozaki."
            VALUE "ProductName", "Ponscripter"
            VALUE "ProductVersion", "@Y@-@M@-@D@"
            VALUE "SpecialBuild", "A fork of ONScripter with enhanced support for international text."

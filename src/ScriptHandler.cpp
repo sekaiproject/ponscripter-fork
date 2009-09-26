@@ -110,6 +110,47 @@ void ScriptHandler::reset()
 }
 
 
+FILE *ScriptHandler::fileopen(pstring path, const char *mode, const bool save)
+{
+    pstring root = "";
+    pstring file_name = "";
+    FILE *fp = NULL;
+
+    if (save) {
+        root = save_path;
+        file_name = root + path;
+//printf("SHandler::fileopen(save): about to try '" + file_name + "'\n");
+
+        fp = fopen(file_name, mode);
+    } else {
+        // search within archive_path(s)
+        for (int n=0; n<archive_path->get_num_paths(); n++) {
+            root = archive_path->get_path(n);
+//printf("root: '" + root + "'\n");
+            file_name = root + path;
+//printf("SHandler::fileopen: about to try '" + file_name + "'\n");
+            fp = fopen(file_name, mode);
+            if (fp != NULL) break;
+        }
+    }
+    return fp;
+}
+
+
+FILE *ScriptHandler::fileopen(pstring root, pstring path, const char *mode)
+{
+    pstring file_name = "";
+    FILE *fp = NULL;
+
+    file_name = root + path;
+//printf("SHandler::fileopen(root): about to try '" + file_name + "'\n");
+
+    fp = fopen(file_name, mode);
+
+    return fp;
+}
+
+
 void ScriptHandler::setKeyTable(const unsigned char* key_table)
 {
     int i;
@@ -154,7 +195,7 @@ readTokenTop:
              || ch == '[' || ch == '('
              || ch == '!' || ch == '#' || ch == ',' || ch == '"') {
         // text
-        if (ch != '!' and !warned_unmarked) {
+	if (ch != '!' and !warned_unmarked) {
 //            errorWarning("unmarked text found"); //Mion: stop warnings, for compatibility
             // TODO: make this more robust; permit only !-directives
 //            warned_unmarked = true;
@@ -582,8 +623,8 @@ void ScriptHandler::setKidokuskip(bool kidokuskip_flag)
 void ScriptHandler::saveKidokuData()
 {
     FILE* fp;
-    pstring fnam = save_path + "kidoku.dat";
-    if ((fp = fopen(fnam, "wb")) == NULL) {
+    pstring fnam = "kidoku.dat";
+    if ((fp = fileopen(fnam, "wb", true)) == NULL) {
         fprintf(stderr, "can't write kidoku.dat\n");
         return;
     }
@@ -596,12 +637,12 @@ void ScriptHandler::saveKidokuData()
 void ScriptHandler::loadKidokuData()
 {
     FILE* fp;
-    pstring fnam = save_path + "kidoku.dat";
+    pstring fnam = "kidoku.dat";
     setKidokuskip(true);
     kidoku_buffer = new char[script_buffer_length / 8 + 1];
     memset(kidoku_buffer, 0, script_buffer_length / 8 + 1);
 
-    if ((fp = fopen(fnam, "rb")) != NULL) {
+    if ((fp = fileopen(fnam, "rb", true)) != NULL) {
         fread(kidoku_buffer, 1, script_buffer_length / 8, fp);
         fclose(fp);
     }
@@ -746,58 +787,65 @@ int ScriptHandler::readScriptSub(FILE* fp, char** buf, int encrypt_mode)
 }
 
 
-int ScriptHandler::readScript(const pstring& path, const char* prefer_name)
+int ScriptHandler::readScript(DirPaths *path, const char* prefer_name)
 {
     archive_path = path;
-    if (path && !path.ends_with(DELIMITER))
-        archive_path += DELIMITER;
 
     FILE* fp = NULL;
-    int encrypt_mode = 0;
+    int n=0, encrypt_mode = 0;
     encoding_t enc = UTF8;
 
     pstring fname = "";
-    if (prefer_name) {
-        fname = prefer_name;
+    while ((fp == NULL) && (n<archive_path->get_num_paths())) {
+        script_path = archive_path->get_path(n++);
+
+        if (prefer_name) {
+            fname = prefer_name;
         
-        // If we don't have a path, add archive_path.
-        if (fname.find(DELIMITER) < 0)
-            fname = archive_path + fname;
+            // If we don't have a path, add current archive_path.
+            if (fname.find(DELIMITER) < 0)
+                fname = script_path + fname;
+            else {
+                n = archive_path->get_num_paths(); //to only check once
+                script_path = fname.midstr(0, fname.find(DELIMITER));
+                printf("got preferred script_path '"+ script_path + "'\n");
+            }
         
-        if ((fp = fopen(fname, "rb")) != NULL) {
-            pstring lname = fname;
-            lname.tolower();
-            if (lname.ends_with(".txt")) {
-                enc = CP932;
+            if ((fp = fopen(fname, "rb")) != NULL) {
+                pstring lname = fname;
+                lname.tolower();
+                if (lname.ends_with(".txt")) {
+                    enc = CP932;
+                }
+                else if (lname.ends_with("/nscript.dat")) {
+                    enc = CP932;
+                    encrypt_mode = 1;
+                }
+                else if (lname.ends_with("/pscript.dat")) {
+                    encrypt_mode = 1;
+                }
+                else if (lname.ends_with("/nscr_sec.dat")) {
+                    enc = CP932;
+                    encrypt_mode = 2;
+                }
+                else if (lname.ends_with(".___")) {
+                    enc = CP932;
+                    encrypt_mode = 3;
+                }
             }
-            else if (lname.ends_with("/nscript.dat")) {
-                enc = CP932;
-                encrypt_mode = 1;
-            }
-            else if (lname.ends_with("/pscript.dat")) {
-                encrypt_mode = 1;
-            }
-            else if (lname.ends_with("/nscr_sec.dat")) {
-                enc = CP932;
-                encrypt_mode = 2;
-            }
-            else if (lname.ends_with(".___")) {
-                enc = CP932;
-                encrypt_mode = 3;
+            else {
+                fprintf(stderr, "Can't find script named `%s'\n", prefer_name);
+                return -1;
             }
         }
         else {
-            fprintf(stderr, "Can't find script named `%s'\n", prefer_name);
-            return -1;
-        }
-    }
-    else {
-        for (ScriptFilename::iterator ft = script_filenames.begin();
-             ft != script_filenames.end(); ++ft) {
-            if ((fp = fopen(archive_path + ft->filename, "rb")) != NULL) {
-                encrypt_mode = ft->encryption;
-                enc = ft->_encoding;
-                break;
+            for (ScriptFilename::iterator ft = script_filenames.begin();
+                 ft != script_filenames.end(); ++ft) {
+                if ((fp = fileopen(script_path, ft->filename, "rb")) != NULL) {
+                    encrypt_mode = ft->encryption;
+                    enc = ft->_encoding;
+                    break;
+                }
             }
         }
     }
@@ -833,12 +881,10 @@ int ScriptHandler::readScript(const pstring& path, const char* prefer_name)
         fclose(fp);
         for (int i = 1; i < 100; i++) {
 	    pstring filename;
-	    filename.format("%s%d.%s", (const char*) archive_path, i,
-			    enc == UTF8 ? "utf" : "txt");
-            if ((fp = fopen(filename, "rb")) == NULL) {
-		filename.format("%s%02d.%s", (const char*) archive_path, i,
-				enc == UTF8 ? "utf" : "txt");
-                fp = fopen(filename, "rb");
+	    filename.format("%d.%s", i, enc == UTF8 ? "utf" : "txt");
+            if ((fp = fileopen(script_path, filename, "rb")) == NULL) {
+		filename.format("%02d.%s", i, enc == UTF8 ? "utf" : "txt");
+                fp = fileopen(script_path, filename, "rb");
             }
 
             if (fp) {
@@ -851,10 +897,10 @@ int ScriptHandler::readScript(const pstring& path, const char* prefer_name)
 
 	char *raw_buffer = new char[estimated_buffer_length];
 	char *raw_buffer_ptr = raw_buffer;
-	    
+
 	// allocate for use with future calls to readScriptSub
 	tmp_script_buf = new char[TMP_SCRIPT_BUF_LEN];	
-	
+
     if (encrypt_mode > 0 || fname) {
         fseek(fp, 0, SEEK_SET);
         readScriptSub(fp, &raw_buffer_ptr, encrypt_mode);
@@ -863,12 +909,10 @@ int ScriptHandler::readScript(const pstring& path, const char* prefer_name)
     else {
         for (int i = 0; i < 100; i++) {
 	    pstring filename;
-	    filename.format("%s%d.%s", (const char*) archive_path, i,
-			    enc == UTF8 ? "utf" : "txt");
-            if ((fp = fopen(filename, "rb")) == NULL) {
-		filename.format("%s%02d.%s", (const char*) archive_path, i,
-				enc == UTF8 ? "utf" : "txt");
-                fp = fopen(filename, "rb");
+	    filename.format("%d.%s", i, enc == UTF8 ? "utf" : "txt");
+            if ((fp = fileopen(script_path, filename, "rb")) == NULL) {
+		filename.format("%02d.%s", i, enc == UTF8 ? "utf" : "txt");
+                fp = fileopen(script_path, filename, "rb");
             }
 
             if (fp) {
@@ -881,16 +925,45 @@ int ScriptHandler::readScript(const pstring& path, const char* prefer_name)
 	// done with calls to readScriptSub
     delete[] tmp_script_buf;
 
-	// now convert our raw buffer into a UTF8 script buffer
-	char *raw_buffer_read_ptr = raw_buffer;
-	pstring script_utf8;
-	while (raw_buffer_read_ptr < raw_buffer_ptr) {
-		int bytes_read = 0;
-		wchar ch = file_encoding->DecodeChar(raw_buffer_read_ptr, bytes_read);
-		script_utf8 += system_encoding->Encode(ch);
-		raw_buffer_read_ptr += bytes_read;
-	}
-	
+    // Search for gameid file (this overrides any builtin
+    // ;gameid directive, or serves its purpose if none is available)
+    game_identifier = "";
+    fp = fileopen(script_path, pstring("game.id"), "rb"); //Mion: search only the script path
+    if (fp) {
+	size_t line_size = 0;
+	char c;
+	do {
+	    c = fgetc(fp);
+	    ++line_size;
+	} while (c != '\r' && c != '\n' && c != EOF);
+	fseek(fp, 0, SEEK_SET);
+	char *game_id = new char[line_size];
+        if (fgets(game_id, line_size, fp) == NULL)
+            fputs("Warning: couldn't read game ID from game.id\n", stderr);
+        else
+            game_identifier = game_id;
+        fclose(fp);
+        delete[] game_id;
+    }
+
+    // now convert our raw buffer into a UTF8 script buffer
+    char *raw_buffer_read_ptr = raw_buffer;
+    pstring script_utf8;
+    if (raw_buffer_read_ptr < raw_buffer_ptr) {
+        //check just the first Unicode char for BOM
+        int bytes_read = 0;
+        wchar ch = file_encoding->DecodeChar(raw_buffer_read_ptr, bytes_read);
+        if (ch != 0xFEFF) //only add if not BOM
+            script_utf8 += system_encoding->Encode(ch);
+        raw_buffer_read_ptr += bytes_read;
+    }
+    while (raw_buffer_read_ptr < raw_buffer_ptr) {
+        int bytes_read = 0;
+        wchar ch = file_encoding->DecodeChar(raw_buffer_read_ptr, bytes_read);
+        script_utf8 += system_encoding->Encode(ch);
+        raw_buffer_read_ptr += bytes_read;
+    }
+
 	// free the raw buffer
 	delete [] raw_buffer;
 	// delete script_buffer if it exists
@@ -906,7 +979,7 @@ int ScriptHandler::readScript(const pstring& path, const char* prefer_name)
 
     /* ---------------------------------------- */
     /* screen size and value check */
-    const char* buf = script_buffer + 1;
+    const char* buf = script_buffer+1;
     while (script_buffer[0] == ';') {
         if (!strncmp(buf, "mode", 4)) {
             buf += 4;
@@ -949,13 +1022,13 @@ int ScriptHandler::readScript(const pstring& path, const char* prefer_name)
     }
 
     // game ID check
-    if (*buf++ == ';') {
+    if ((*buf++ == ';') && (game_identifier.length() == 0))  {
         while (*buf == ' ' || *buf == '\t') ++buf;
         if (!strncmp(buf, "gameid ", 7)) {
             buf += 7;
             int i = 0;
-            while (buf[i++] >= ' ') ;
-	    game_identifier = pstring(buf, i - 1);
+            while ((buf[i++] != ' ') && (buf[i++] != '\n')) ;
+            game_identifier = pstring(buf, i - 1);
             buf += i;
         }
     }
@@ -1494,7 +1567,7 @@ void ScriptHandler::LogInfo::write(ScriptHandler& h)
 	while (si < ei) buf += char(*si++ ^ 0x84);
 	buf += '"';
     }
-    FILE* f = fopen(h.save_path + filename, "wb");
+    FILE* f = h.fileopen(filename, "wb", true);
     if (f) {
 	fwrite((const char*) buf, 1, buf.length(), f);
 	fclose(f);
@@ -1508,7 +1581,7 @@ void ScriptHandler::LogInfo::write(ScriptHandler& h)
 void ScriptHandler::LogInfo::read(ScriptHandler& h)
 {
     clear();
-    FILE* f = fopen(h.save_path + filename, "rb");
+    FILE* f = h.fileopen(filename, "rb", true);
     size_t len = 1, ret = 0;
     char* buf = 0;
     if (f) {

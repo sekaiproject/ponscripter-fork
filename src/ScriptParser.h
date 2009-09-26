@@ -26,6 +26,7 @@
 #ifndef __SCRIPT_PARSER_H__
 #define __SCRIPT_PARSER_H__
 
+#include "DirPaths.h"
 #include "ScriptHandler.h"
 #include "NsaReader.h"
 #include "DirectReader.h"
@@ -200,7 +201,7 @@ protected:
     int current_mode;
     int debug_level;
 
-    pstring archive_path;
+    DirPaths archive_path;
     pstring nsa_path;
 
     bool globalon_flag;

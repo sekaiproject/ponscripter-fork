@@ -26,7 +26,7 @@
 #include "SarReader.h"
 #define WRITE_LENGTH 4096
 
-SarReader::SarReader(const pstring& path, const unsigned char* key_table)
+SarReader::SarReader(DirPaths *path, const unsigned char* key_table)
     : DirectReader(path, key_table),
       num_of_sar_archives(0)
 {

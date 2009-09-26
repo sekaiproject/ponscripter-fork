@@ -884,7 +884,7 @@ int PonscripterLabel::savescreenshotCommand(const pstring& cmd)
     pstring ext = file_extension(filename);
     ext.toupper();
     if (ext == "BMP") {
-	filename = archive_path + filename;
+	filename = script_h.save_path + filename;
 	replace_ascii(filename, '/', DELIMITER[0]);
 	replace_ascii(filename, '\\', DELIMITER[0]);
         SDL_SaveBMP(screenshot_surface, filename);
@@ -2052,7 +2052,7 @@ int PonscripterLabel::getregCommand(const pstring& cmd)
 
     FILE* fp;
     if ((fp = fopen(registry_file, "r")) == NULL &&
-	(fp = fopen(archive_path + registry_file, "r")) == NULL) {
+	(fp = fopen(archive_path.get_path(0) + registry_file, "r")) == NULL) {
         fprintf(stderr, "Cannot open file [%s]\n",
 		(const char*) registry_file);
         return RET_CONTINUE;
@@ -2254,7 +2254,7 @@ int PonscripterLabel::exec_dllCommand(const pstring& cmd)
 
     FILE* fp;
     if ((fp = fopen(dll_file, "r")) == NULL &&
-	(fp = fopen(archive_path + dll_file, "r")) == NULL) {
+	(fp = fopen(archive_path.get_path(0) + dll_file, "r")) == NULL) {
         fprintf(stderr, "Cannot open file [%s]\n", (const char*) dll_file);
         return RET_CONTINUE;
     }

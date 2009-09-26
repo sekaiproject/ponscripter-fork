@@ -26,6 +26,7 @@
 #ifndef __PONSCRIPTER_LABEL_H__
 #define __PONSCRIPTER_LABEL_H__
 
+#include "DirPaths.h"
 #include "ScriptParser.h"
 #include "DirtyRect.h"
 #include <SDL.h>
@@ -128,7 +129,7 @@ public:
     void setSavePath(const pstring& path);
     void setArchivePath(const pstring& path);
 
-    bool hasArchivePath() const { return archive_path; }
+    bool hasArchivePath() { return (archive_path.get_num_paths()!=0); }
     void setFullscreenMode();
     void setWindowMode();
     void enableButtonShortCut();

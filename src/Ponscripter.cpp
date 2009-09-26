@@ -37,9 +37,9 @@ static void optionHelp()
     printf("      --registry file\tset a registry file\n");
     printf("      --dll file\tset a dll file\n");
     printf("  -r, --root path\tset the root path to the archives\n");
-    printf("  -s, --script path\tset the script filename\n");
-    printf("      --save path\tset the path to use for saved games"
+    printf("  -s, --save path\tset the path to use for saved games"
            "(default: platform-dependent)\n");
+    printf("      --script path\tset the script filename\n");
     printf("      --fullscreen\tstart in fullscreen mode\n");
     printf("      --window\t\tstart in window mode\n");
     printf("      --force-button-shortcut\tignore useescspc and getenter "
@@ -119,15 +119,15 @@ int main(int argc, char** argv)
                 argv++;
                 ons.setArchivePath(argv[0]);
             }
-            else if (!strcmp(argv[0] + 1, "s") || !strcmp(argv[0] + 1, "-script")) {
-                argc--;
-                argv++;
-                preferred_script = argv[0];
-            }
-            else if (!strcmp(argv[0] + 1, "-save")) {
+            else if (!strcmp(argv[0] + 1, "s") || !strcmp(argv[0] + 1, "-save")) {
                 argc--;
                 argv++;
                 ons.setSavePath(argv[0]);
+            }
+            else if (!strcmp(argv[0] + 1, "-script")) {
+                argc--;
+                argv++;
+                preferred_script = argv[0];
             }
             else if (!strcmp(argv[0] + 1, "-fullscreen")) {
                 ons.setFullscreenMode();
