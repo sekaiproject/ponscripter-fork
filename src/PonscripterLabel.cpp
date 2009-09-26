@@ -748,8 +748,8 @@ int PonscripterLabel::init(const char* preferred_script)
 #else
         archive_path.add(".");
         archive_path.add("..");
-    }
 #endif
+    }
    
     if (key_exe_file) {
         createKeyTable(key_exe_file);
