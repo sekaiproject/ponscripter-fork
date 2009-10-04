@@ -276,7 +276,13 @@ bool Fontinfo::processCode(const char* text)
         case 0x1e: style  = get_int(text); return true;
         case 0x1f:
             switch (text[1]) {
-            case 0x10: indent = pos_x; return true;
+            case 0x10: if (is_vertical)
+                           indent = pos_y;
+                       else if (is_bidirect)
+                           indent = area_x - pos_x;
+                       else
+                           indent = pos_x;
+                       return true;
             case 0x11: indent = 0; return true;
             }
         }
@@ -294,9 +300,9 @@ float Fontinfo::StringAdvance(const char* string)
     int cb, nextcb;
     float orig_x   = pos_x;
     int   orig_mod = font_size_mod, orig_style = style, orig_y = pos_y;
-    unicode = system_encoding->DecodeWithLigatures(string, *this, cb);
+    unicode = file_encoding->DecodeWithLigatures(string, *this, cb);
     while (*string) {
-        next = system_encoding->DecodeWithLigatures(string + cb, *this, nextcb);
+        next = file_encoding->DecodeWithLigatures(string + cb, *this, nextcb);
         if (!processCode(string))
             if (is_bidirect)
                 pos_x -= GlyphAdvance(unicode, next);
@@ -328,14 +334,14 @@ void Fontinfo::newLine()
     doSize();
     if (is_vertical){
         pos_x -= size() + pitch_x;
-        pos_y = 0;
+        pos_y = indent;
     }
     else if (is_bidirect){
-        pos_x = area_x;
+        pos_x = area_x - indent;
         pos_y += line_space() + pitch_y;
     }
     else{
-        pos_x = 0;
+        pos_x = indent;
         pos_y += line_space() + pitch_y;
     }
     //pos_x = indent;

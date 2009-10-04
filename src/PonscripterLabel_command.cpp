@@ -484,7 +484,7 @@ int PonscripterLabel::splitCommand(const pstring& cmd)
 {
     pstring buf = script_h.readStrValue();
     pstring delimiter = script_h.readStrValue();
-    delimiter.trunc(system_encoding->NextCharSize(delimiter));
+    delimiter.trunc(file_encoding->NextCharSize(delimiter));
     CBStringList parts = buf.splitstr(delimiter);
    
     CBStringList::const_iterator it = parts.begin();
@@ -598,8 +598,8 @@ void PonscripterLabel::DoSetwindow(PonscripterLabel::WindowDef& def)
         sentence_font.window_color = readColour(def.backdrop);
         sentence_font_info.pos.x = int(def.w_left   * r);
         sentence_font_info.pos.y = int(def.w_top    * r);
-        sentence_font_info.pos.w = int(def.w_width  * r);
-        sentence_font_info.pos.h = int(def.w_height * r);
+        sentence_font_info.pos.w = int((def.w_right - def.w_left + 1) * r);
+        sentence_font_info.pos.h = int((def.w_bottom - def.w_top + 1) * r);
     }
     else {
         sentence_font.is_transparent = false;
@@ -607,7 +607,7 @@ void PonscripterLabel::DoSetwindow(PonscripterLabel::WindowDef& def)
         parseTaggedString(&sentence_font_info);
         setupAnimationInfo(&sentence_font_info);
         sentence_font_info.pos.x = int(def.w_left * r);
-	sentence_font_info.pos.y = int(def.w_top  * r);
+        sentence_font_info.pos.y = int(def.w_top  * r);
 #if 0
         if (sentence_font_info.image_surface) {
             sentence_font_info.pos.w = int(sentence_font_info.image_surface->w * r);
@@ -638,8 +638,8 @@ void PonscripterLabel::setwindowCore()
     wind.backdrop  = script_h.readStrValue();
     wind.w_left    = script_h.readIntValue();
     wind.w_top     = script_h.readIntValue(); 
-    wind.w_width   = script_h.hasMoreArgs() ? script_h.readIntValue()+1 : 0;
-    wind.w_height  = script_h.hasMoreArgs() ? script_h.readIntValue()+1 : 0;
+    wind.w_right   = script_h.hasMoreArgs() ? script_h.readIntValue() : 0;
+    wind.w_bottom  = script_h.hasMoreArgs() ? script_h.readIntValue() : 0;
   
     // Window size is defined in characters
     // (this used to be just for non-Ponscripter games, but as of
@@ -1045,7 +1045,7 @@ int PonscripterLabel::puttextCommand(const pstring& cmd)
     if (ret != RET_NOMATCH) return ret;
 
     pstring s = script_h.readStrValue() + "\n";
-    if (s[0] == system_encoding->TextMarker()) s.remove(0, 1);
+    if (s[0] == file_encoding->TextMarker()) s.remove(0, 1);
 
     script_h.getStrBuf() = s;
     ret = processText();
@@ -1654,9 +1654,9 @@ int PonscripterLabel::locateCommand(const pstring& cmd)
 	pstring tag;
 	int phony;
 	tag.format("x%d", x);
-	current_text_buffer->addBuffer(system_encoding->TranslateTag(tag, phony));
+	current_text_buffer->addBuffer(file_encoding->TranslateTag(tag, phony));
 	tag.format("y%d", y);
-	current_text_buffer->addBuffer(system_encoding->TranslateTag(tag, phony));
+	current_text_buffer->addBuffer(file_encoding->TranslateTag(tag, phony));
     }
     sentence_font.SetXY(x, y);
     return RET_CONTINUE;
@@ -1908,7 +1908,7 @@ int PonscripterLabel::gettagCommand(const pstring& cmd)
     const char* buf = nest_infos.back().next_script;
     while (*buf == ' ' || *buf == '\t') buf++;
     int bytes;
-    if (zenkakko_flag && system_encoding->DecodeChar(buf, bytes) == 0x3010 /*y */)
+    if (zenkakko_flag && file_encoding->DecodeChar(buf, bytes) == 0x3010 /*y */)
         buf += bytes;
     else if (*buf == '[')
         buf++;
@@ -1929,7 +1929,7 @@ int PonscripterLabel::gettagCommand(const pstring& cmd)
 	    int bytes;
 	    while (*buf != '/' &&
 		   (!zenkakko_flag ||
-		    system_encoding->DecodeChar(buf, bytes) != 0x3011 /* z*/) &&
+		    file_encoding->DecodeChar(buf, bytes) != 0x3011 /* z*/) &&
 		   *buf != ']')
 		buf += bytes;
 	    e.mutate(pstring(buf_start, buf - buf_start));
@@ -1941,7 +1941,7 @@ int PonscripterLabel::gettagCommand(const pstring& cmd)
     }
     while (more_args);
 
-    if (zenkakko_flag && system_encoding->DecodeChar(buf, bytes) == 0x3010 /*y */)
+    if (zenkakko_flag && file_encoding->DecodeChar(buf, bytes) == 0x3010 /*y */)
 	buf += bytes;
     else if (*buf == ']') buf++;
 
@@ -2765,7 +2765,17 @@ int PonscripterLabel::cellCommand(const pstring& cmd)
 int PonscripterLabel::captionCommand(const pstring& cmd)
 {
     pstring buf = script_h.readStrValue();
-    SDL_WM_SetCaption(buf, buf);
+    pstring cap = buf;
+    if (script_h.utf_encoding != file_encoding) {
+        cap = "";
+        const char *bufp = buf;
+        while (*bufp) {
+            int bytes = 0;
+            cap += script_h.utf_encoding->Encode(file_encoding->DecodeChar(bufp, bytes));
+            bufp += bytes;
+        }
+    }
+    SDL_WM_SetCaption(cap, cap);
     return RET_CONTINUE;
 }
 
@@ -2972,10 +2982,10 @@ int PonscripterLabel::brCommand(const pstring& cmd)
     int ignored;
     pstring tag;
     tag.format("=%d", ns);
-    current_text_buffer->addBuffer(system_encoding->TranslateTag(tag, ignored));
+    current_text_buffer->addBuffer(file_encoding->TranslateTag(tag, ignored));
     current_text_buffer->addBuffer(0x0a);
     tag.format("=%d", cs);
-    current_text_buffer->addBuffer(system_encoding->TranslateTag(tag, ignored));
+    current_text_buffer->addBuffer(file_encoding->TranslateTag(tag, ignored));
 
     return RET_CONTINUE;
 }

@@ -99,12 +99,12 @@ PonscripterLabel::drawChar(const char* text, Fontinfo* info, bool flush_flag,
 	SDL_Rect* clip)
 {
     int bytes;
-    wchar unicode = system_encoding->DecodeWithLigatures(text, *info, bytes);
+    wchar unicode = file_encoding->DecodeWithLigatures(text, *info, bytes);
 
     bool code = info->processCode(text);
     if (!code) {
         // info->doSize() called in GlyphAdvance
-	wchar next = system_encoding->DecodeWithLigatures(text + bytes, *info);
+        wchar next = file_encoding->DecodeWithLigatures(text + bytes, *info);
         float adv = info->GlyphAdvance(unicode, next);
         if (isNonspacing(unicode)) info->advanceBy(-adv);
 
@@ -174,7 +174,7 @@ PonscripterLabel::drawString(const char* str, rgb_t color, Fontinfo* info,
     while (*str) {
         while (*str == ' ' && skip_whitespace_flag) str++;
 
-        if (*str == system_encoding->TextMarker()) {
+        if (*str == file_encoding->TextMarker()) {
             str++;
             skip_whitespace_flag = false;
             continue;
@@ -217,7 +217,7 @@ void PonscripterLabel::restoreTextBuffer()
     const char* buffer = current_text_buffer->contents;
     int buffer_count = current_text_buffer->contents.length();
 
-    const wchar first_ch = system_encoding->DecodeWithLigatures(buffer, f_info);
+    const wchar first_ch = file_encoding->DecodeWithLigatures(buffer, f_info);
     if (is_indent_char(first_ch)) f_info.SetIndent(first_ch);
 
     int i = 0;
@@ -352,24 +352,6 @@ int PonscripterLabel::clickWait(bool display_char)
 	    ++num_chars_in_sentence;
 	}
         if (textgosub_label) {
-            // Haeleth: fix @ bug, 20081214.
-            //
-            // The problem Agilis observed was caused by a buggy regex
-            // in the Narci2 build system, but it seemed better to fix
-            // the underlying issue that required the source to be
-            // massaged with a regex in the first place.
-            //
-            // The issue was that when a textgosub routine was
-            // defined, the first @ on a line would cause a gosub with
-            // the return point being defined as the next command
-            // (i.e. the next line).
-            //
-            // The fix is to extend the gosub system to allow saving a
-            // point within the string buffer, return to the _current_
-            // command after the gosub, and then jump to that point.
-            
-//            const char* next_text = script_h.getCurrent()
-//                                  + string_buffer_offset;
             const char* next_text = c + 1;
             
             saveoffCommand("saveoff");
@@ -441,7 +423,7 @@ int PonscripterLabel::textCommand()
         && (line_enter_status == 0
             || (line_enter_status == 1
                 && (script_h.readStrBuf(string_buffer_offset) == '['
-                    || (zenkakko_flag && system_encoding->DecodeChar(script_h.getStrBuf(string_buffer_offset)) == 0x3010 /* left lenticular bracket */))))) {
+                    || (zenkakko_flag && file_encoding->DecodeChar(script_h.getStrBuf(string_buffer_offset)) == 0x3010 /* left lenticular bracket */))))) {
         gosubReal(pretextgosub_label, script_h.getCurrent());
         line_enter_status = 1;
         return RET_CONTINUE;
@@ -470,13 +452,13 @@ int PonscripterLabel::processText()
     if (event_mode & (WAIT_INPUT_MODE | WAIT_SLEEP_MODE)) {
         draw_cursor_flag = false;
         if (clickstr_state == CLICK_WAIT) {
-	    string_buffer_offset += system_encoding->NextCharSizeWithLigatures
+	    string_buffer_offset += file_encoding->NextCharSizeWithLigatures
 		(script_h.getStrBuf(string_buffer_offset), &sentence_font);
             clickstr_state = CLICK_NONE;
         }
         else if (clickstr_state == CLICK_NEWPAGE) {
             event_mode = IDLE_EVENT_MODE;
-	    string_buffer_offset += system_encoding->NextCharSizeWithLigatures
+	    string_buffer_offset += file_encoding->NextCharSizeWithLigatures
 		(script_h.getStrBuf(string_buffer_offset), &sentence_font);
             newPage(true);
             clickstr_state = CLICK_NONE;
@@ -497,7 +479,7 @@ int PonscripterLabel::processText()
         }
         else
             string_buffer_offset +=
-		system_encoding->NextCharSizeWithLigatures
+		file_encoding->NextCharSizeWithLigatures
 		(script_h.getStrBuf(string_buffer_offset), &sentence_font);
         event_mode = IDLE_EVENT_MODE;
     }

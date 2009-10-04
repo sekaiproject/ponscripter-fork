@@ -38,6 +38,7 @@ public:
     bool is_ponscripter;
 
     enum encoding_t { UTF8, CP932 };
+    Encoding *utf_encoding;
     struct ScriptFilename {
 	typedef std::vector<ScriptFilename> vec;
 	typedef vec::iterator iterator;
@@ -308,6 +309,7 @@ private:
 
     DirPaths *archive_path;
     int   script_buffer_length;
+    char* raw_script_buffer;
     char* script_buffer;
     char* tmp_script_buf;
 

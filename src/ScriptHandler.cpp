@@ -50,6 +50,8 @@ ScriptHandler::ScriptHandler()
     for (int i = 0; i < VARIABLE_RANGE; ++i)
         variable_data[i].owner = this;
     
+    utf_encoding = NULL;
+    raw_script_buffer = NULL;
     script_buffer = NULL;
     kidoku_buffer = NULL;
     label_log.filename = "NScrllog.dat";
@@ -79,6 +81,7 @@ ScriptHandler::~ScriptHandler()
     reset();
     if (script_buffer) delete[] script_buffer;
     if (kidoku_buffer) delete[] kidoku_buffer;
+    if (utf_encoding != file_encoding) delete utf_encoding;
 }
 
 
@@ -195,7 +198,7 @@ readTokenTop:
              || ch == '[' || ch == '('
              || ch == '!' || ch == '#' || ch == ',' || ch == '"') {
         // text
-	if (ch != '!' and !warned_unmarked) {
+        if (ch != '!' and !warned_unmarked) {
 //            errorWarning("unmarked text found"); //Mion: stop warnings, for compatibility
             // TODO: make this more robust; permit only !-directives
 //            warned_unmarked = true;
@@ -203,12 +206,12 @@ readTokenTop:
         bool loop_flag = true;
         bool ignore_click_flag = false;
         do {
-            char bytes = system_encoding->NextCharSize(buf);
+            char bytes = file_encoding->NextCharSize(buf);
             if (bytes > 1) {
                 if (textgosub_flag && !ignore_click_flag && checkClickstr(buf))
-		    loop_flag = false;
-		string_buffer.add(buf, bytes);
-		buf += bytes;
+                    loop_flag = false;
+                string_buffer.add(buf, bytes);
+                buf += bytes;
                 SKIP_SPACE(buf);
                 ch = *buf;
             }
@@ -221,7 +224,7 @@ readTokenTop:
                 }
                 else {
                     if (textgosub_flag && !ignore_click_flag &&
-			checkClickstr(buf))
+                        checkClickstr(buf))
                         loop_flag = false;
 
                     string_buffer += ch;
@@ -230,28 +233,26 @@ readTokenTop:
                     if (ch == '_') ignore_click_flag = true;
                 }
 
-		// CHECKME: why do we ignore text markers here?
+                // CHECKME: why do we ignore text markers here?
                 if (ch >= '0' && ch <= '9' &&
-		    (*buf == ' ' || *buf == '\t' ||
-		     *buf == system_encoding->TextMarker()) &&
-		    string_buffer.length() % 2)
-		{
-		    string_buffer += ' ';
-		}
+                    (*buf == ' ' || *buf == '\t' ||
+                     *buf == file_encoding->TextMarker()) &&
+                    string_buffer.length() % 2) {
+                    string_buffer += ' ';
+                }
 
                 ch = *buf;
                 if (ch == 0x0a || ch == '\0' || !loop_flag ||
-		    ch == system_encoding->TextMarker())
-		{
-		    break;
-		}
+                    ch == file_encoding->TextMarker()) {
+                    break;
+                }
 
                 SKIP_SPACE(buf);
                 ch = *buf;
             }
         }
         while (ch != 0x0a && ch != '\0' && loop_flag &&
-               ch != system_encoding->TextMarker()) /*nop*/;
+               ch != file_encoding->TextMarker()) /*nop*/;
         if (loop_flag && ch == 0x0a && !(textgosub_flag && linepage_flag)) {
             string_buffer += ch;
             if (!no_kidoku) markAsKidoku(buf++);
@@ -259,9 +260,9 @@ readTokenTop:
 
         text_flag = true;
     }
-    else if (ch == system_encoding->TextMarker()) {
+    else if (ch == file_encoding->TextMarker()) {
         ch = *++buf;
-        while (ch != system_encoding->TextMarker() && ch != 0x0a && ch != '\0') {
+        while (ch != file_encoding->TextMarker() && ch != 0x0a && ch != '\0') {
             if ((ch == '\\' || ch == '@') && (buf[1] == 0x0a || buf[1] == 0)) {
                 string_buffer += *buf++;
                 ch = *buf;
@@ -280,7 +281,7 @@ readTokenTop:
                 const char* var_iter = var_expr;
                 if (var_expr[0] == '$') {
                     pstring val = parseStr(&var_iter);
-                    if (val[0] == system_encoding->TextMarker()) val.remove(0, 1);
+                    if (val[0] == file_encoding->TextMarker()) val.remove(0, 1);
                     string_buffer += val;
                 }
                 else {
@@ -291,10 +292,10 @@ readTokenTop:
                 continue;
             }
             
-            if (system_encoding->UseTags() && ch == '~' && (ch = *++buf) != '~') {
+            if (file_encoding->UseTags() && ch == '~' && (ch = *++buf) != '~') {
                 while (ch != '~') {
                     int l;
-		    string_buffer += system_encoding->TranslateTag(buf, l);
+                    string_buffer += file_encoding->TranslateTag(buf, l);
                     buf += l;
                     ch = *buf;
                 }
@@ -302,14 +303,13 @@ readTokenTop:
                 continue;
             }
 
-	    int bytes;
-	    // NOTE: we don't substitute ligatures at this stage.
-            string_buffer += system_encoding->Encode(system_encoding->DecodeChar(buf,
-                                                                   bytes));
+            int bytes;
+            // NOTE: we don't substitute ligatures at this stage.
+            string_buffer += file_encoding->Encode(file_encoding->DecodeChar(buf, bytes));
             buf += bytes;
             ch = *buf;
         }
-        if (ch == system_encoding->TextMarker()) ++buf;
+        if (ch == file_encoding->TextMarker()) ++buf;
 
         if (ch == 0x0a && !(textgosub_flag && linepage_flag)) {
             string_buffer += ch;
@@ -450,7 +450,7 @@ void ScriptHandler::skipToken()
 
         if (*buf == '"') quat_flag = !quat_flag;
 
-        const char bytes = system_encoding->NextCharSize(buf);
+        const char bytes = file_encoding->NextCharSize(buf);
 
 	// CHECKME: what exactly does this do?
         if (bytes > 1 && !quat_flag) text_flag = true;
@@ -672,7 +672,7 @@ void ScriptHandler::setClickstr(pstring values)
 {
     clickstr_list.clear();
     pstrIter it(values);
-    if (it.get() == system_encoding->TextMarker()) it.next();
+    if (it.get() == file_encoding->TextMarker()) it.next();
     while (it.get() >= 0) {
 	clickstr_list.insert(it.get());
 	it.next();
@@ -684,7 +684,7 @@ int ScriptHandler::checkClickstr(const char* buf, bool recursive_flag)
 {
     if (buf[0] == '@' || buf[0] == '\\') return 1;
     int bytes;
-    wchar c = system_encoding->DecodeChar(buf, bytes);
+    wchar c = file_encoding->DecodeChar(buf, bytes);
     if (clickstr_list.find(c) != clickstr_list.end()) {
 	if (!recursive_flag && checkClickstr(buf + bytes, true)) return 0;
 	return bytes;
@@ -865,12 +865,12 @@ int ScriptHandler::readScript(DirPaths *path, const char* prefer_name)
 
     if (enc == UTF8) {
         file_encoding = new UTF8Encoding;
-		system_encoding = new UTF8Encoding;
+        utf_encoding = file_encoding;
         is_ponscripter = true;
     }
     else {
         file_encoding = new CP932Encoding;
-		system_encoding = new UTF8Encoding;
+        utf_encoding = new UTF8Encoding;
         is_ponscripter = false;
     }
     
@@ -895,15 +895,16 @@ int ScriptHandler::readScript(DirPaths *path, const char* prefer_name)
         }
     }
 
-	char *raw_buffer = new char[estimated_buffer_length];
-	char *raw_buffer_ptr = raw_buffer;
+    if (raw_script_buffer) delete[] raw_script_buffer;
 
-	// allocate for use with future calls to readScriptSub
-	tmp_script_buf = new char[TMP_SCRIPT_BUF_LEN];	
+    char* p_script_buffer = new char[estimated_buffer_length];
+
+    current_script = raw_script_buffer = p_script_buffer;
+    tmp_script_buf = new char[TMP_SCRIPT_BUF_LEN];
 
     if (encrypt_mode > 0 || fname) {
         fseek(fp, 0, SEEK_SET);
-        readScriptSub(fp, &raw_buffer_ptr, encrypt_mode);
+        readScriptSub(fp, &p_script_buffer, encrypt_mode);
         fclose(fp);
     }
     else {
@@ -916,14 +917,21 @@ int ScriptHandler::readScript(DirPaths *path, const char* prefer_name)
             }
 
             if (fp) {
-                readScriptSub(fp, &raw_buffer_ptr, 0);
+                readScriptSub(fp, &p_script_buffer, 0);
                 fclose(fp);
             }
         }
     }
 
-	// done with calls to readScriptSub
     delete[] tmp_script_buf;
+
+    script_buffer = raw_script_buffer;
+    if (enc == UTF8) {
+        int bytes_read = 0;
+        wchar ch = file_encoding->DecodeChar(script_buffer, bytes_read);
+        if (ch == 0xFEFF) //skip the Unicode BOM
+            script_buffer += bytes_read;
+    }
 
     // Search for gameid file (this overrides any builtin
     // ;gameid directive, or serves its purpose if none is available)
@@ -946,36 +954,7 @@ int ScriptHandler::readScript(DirPaths *path, const char* prefer_name)
         delete[] game_id;
     }
 
-    // now convert our raw buffer into a UTF8 script buffer
-    char *raw_buffer_read_ptr = raw_buffer;
-    pstring script_utf8;
-    if (raw_buffer_read_ptr < raw_buffer_ptr) {
-        //check just the first Unicode char for BOM
-        int bytes_read = 0;
-        wchar ch = file_encoding->DecodeChar(raw_buffer_read_ptr, bytes_read);
-        if (ch != 0xFEFF) //only add if not BOM
-            script_utf8 += system_encoding->Encode(ch);
-        raw_buffer_read_ptr += bytes_read;
-    }
-    while (raw_buffer_read_ptr < raw_buffer_ptr) {
-        int bytes_read = 0;
-        wchar ch = file_encoding->DecodeChar(raw_buffer_read_ptr, bytes_read);
-        script_utf8 += system_encoding->Encode(ch);
-        raw_buffer_read_ptr += bytes_read;
-    }
-
-	// free the raw buffer
-	delete [] raw_buffer;
-	// delete script_buffer if it exists
-	if (script_buffer) delete []script_buffer;
-	// set script_buffer to the new UTF8 script buffer
-	int utf8_len = script_utf8.length();
-	script_buffer = new char[utf8_len+1];
-	strncpy(script_buffer, script_utf8, utf8_len);
-	// set script buffer length
-	script_buffer_length = utf8_len;
-	// set current_script to point to beginning of script_buffer
-	current_script = script_buffer;	
+    script_buffer_length = p_script_buffer - script_buffer;
 
     /* ---------------------------------------- */
     /* screen size and value check */
@@ -1195,16 +1174,16 @@ pstring ScriptHandler::parseStr(const char** buf)
         current_variable.type |= VAR_CONST;
 	return pstring(start, len);
     }
-    else if (**buf == system_encoding->TextMarker()) {
-        pstring s(system_encoding->TextMarker());
+    else if (**buf == file_encoding->TextMarker()) {
+        pstring s(file_encoding->TextMarker());
 	(*buf)++;
 
         char ch = **buf;
-        while (ch != system_encoding->TextMarker() && ch != 0x0a && ch != '\0') {
-	    if (system_encoding->UseTags() && ch == '~' && (ch = *++ (*buf)) != '~') {
+        while (ch != file_encoding->TextMarker() && ch != 0x0a && ch != '\0') {
+	    if (file_encoding->UseTags() && ch == '~' && (ch = *++ (*buf)) != '~') {
                 while (ch != '~') {
                     int l;
-                    s += system_encoding->TranslateTag(*buf, l);
+                    s += file_encoding->TranslateTag(*buf, l);
                     *buf += l;
                     ch = **buf;
                 }
@@ -1213,12 +1192,12 @@ pstring ScriptHandler::parseStr(const char** buf)
             }
 
 	    int bytes;
-            s += system_encoding->Encode(system_encoding->DecodeChar(*buf, bytes));
+            s += file_encoding->Encode(file_encoding->DecodeChar(*buf, bytes));
             *buf += bytes;
             ch = **buf;
         }
 
-        if (**buf == system_encoding->TextMarker()) (*buf)++;
+        if (**buf == file_encoding->TextMarker()) (*buf)++;
 
         current_variable.type |= VAR_CONST;
 	return s;

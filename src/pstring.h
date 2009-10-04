@@ -18,7 +18,7 @@ replace_ascii(pstring& string, char what, char with, const Fontinfo* fi = 0)
 	char* s = string.mutable_data();
 	const char* e = s + string.length();
 	while (s < e) {
-	    int cs = system_encoding->NextCharSize(s, fi);
+	    int cs = file_encoding->NextCharSize(s, fi);
 	    if (cs == 1 && *s == what) *s = with;
 	    s += cs;
 	}
@@ -81,7 +81,7 @@ void pstrIter::next()
 {
 //printf("pstrIter::next - pos %08lx, end %08lx", (size_t) pos, (size_t) end);
     if (pos < end) {
-	curr = system_encoding->DecodeChar(pos, csize, font);
+	curr = file_encoding->DecodeChar(pos, csize, font);
 	pos += csize;
     }
     else {

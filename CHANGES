@@ -1,3 +1,34 @@
+2009-10-03
+
+  Corrected ligature handling to work with multi-byte matching characters [Mion]
+
+  Corrected "setwindow" textwindow dimension handling (should use right/bottom
+  positions, not width & height, for the final 2 parameters) [Mion]
+
+  Reimplemented indenting; preliminary support for vertical and right-to-left
+  text ("tateyoko" and "bidirect" commands) [Mion]
+
+
+2009-09-26
+
+  Added DirPaths feature, allowing multiple directories as the "root" [Mion]
+
+
+2009-09-16
+
+  Various bugfixes; added "savegame2" command [Mion]
+
+
+2009-08-23
+
+  Added XCode project for Mac OS X compilation [Roto]
+
+
+2009-07-07
+
+  Various bugfixes [Mion]
+
+
 2009-02-07
 
   Ligature selection is no longer dependent on the order of

@@ -25,7 +25,6 @@
 #include "Fontinfo.h"
 
 Encoding *file_encoding = 0; // the encoding used by the script file
-Encoding *system_encoding = 0; // internal encoding used by the engine
 
 struct ligature {
     wchar codepoint;
@@ -54,8 +53,7 @@ static ligatures ligs;
 void
 ligatures::clear()
 {
-    for (mit it = children.begin(); it != children.end(); ++it)
-        delete it->second;
+    children.clear();
 }
     
 ligature*
@@ -187,6 +185,8 @@ UTF8Encoding::Charsz_impl(const char* string, const Fontinfo* fi)
     const unsigned char* t = (const unsigned char*) string;
     const unsigned char  c = t[0];
     if (c < 0x80) {
+
+        if (!UseTags()) return 1;
         if (c >= 0x17 && c <= 0x1e) return 3; // size codes
         if (c == 0x1f) return 2;
 
@@ -205,6 +205,10 @@ UTF8Encoding::Charsz_impl(const char* string, const Fontinfo* fi)
         if ((c & 0xc0) == 0x80)
             fprintf(stderr, "Warning: NextCharSize called on incomplete "
                             "character\n");
+
+        const ligature* lig = ligs.find(string, fi);
+        if (lig) return lig->seqlen;
+
         // ZWNJ
         if (c == 0xe2 && t[1] == 0x80 && t[2] == 0x8c)
             return 3 + Charsz_impl(string + 3, fi);
@@ -223,6 +227,13 @@ UTF8Encoding::Decode_impl(const char* string, int& bytes,
     const unsigned char* t = (const unsigned char*) string;
     const unsigned char  c = t[0];
     if (c < 0x80) {
+
+    // return if tags and ligatures are disabled
+	if (!UseTags()) {
+	    bytes = 1;
+	    return c;
+	}
+
 	// Encoded tags.  Return the tag ID and skip the payload; it's
 	// up to callers to extract that if they want it.
 	// (pstrIter::getstr() will return complete tags.)
@@ -244,9 +255,9 @@ UTF8Encoding::Decode_impl(const char* string, int& bytes,
 
         if (c == '|' && t[1] == '|') { bytes = 2; return '|'; }
 	if (c == '|') {
-	    wchar c = Decode_impl(string + 1, bytes, fi);
+	    wchar wc = Decode_impl(string + 1, bytes, fi);
 	    ++bytes;
-	    return c;
+	    return wc;
 	}
 
         const ligature* lig = ligs.find(string, fi);
@@ -259,35 +270,47 @@ UTF8Encoding::Decode_impl(const char* string, int& bytes,
     }
     else {
         if ((c & 0xc0) == 0x80) {
-	    size_t len = strlen(string);
-	    int save = -1;
-	    if (len > 128) { save = string[128]; *(char*)(string + 128) = 0; }
+            size_t len = strlen(string);
+            int save = -1;
+            if (len > 128) { save = string[128]; *(char*)(string + 128) = 0; }
             fprintf(stderr, "Warning: UTF8Encoding::Decode called on "
-		    "incomplete character (string: %s)\n", string);
-	    if (save) *(char*)(string + 128) = save;
-	}
+            "incomplete character (string: %s)\n", string);
+            if (save) *(char*)(string + 128) = save;
+        }
+
+        wchar wc = 0;
+
+        if (UseTags() && fi) {
+            const ligature* lig = ligs.find(string, fi);
+            if (lig) {
+                bytes = lig->seqlen;
+                return lig->codepoint;
+            }
+        }
 
         if (c < 0xe0) {
-	    bytes = 2;
-            return (c - 0xc0) << 6 | t[1] & 0x7f;
-	}
+            bytes = 2;
+            wc = (c - 0xc0) << 6 | t[1] & 0x7f;
+        }
         else if (c < 0xf0) {
             // ZWNJ
             if (c == 0xe2 && t[1] == 0x80 && t[2] == 0x8c) {
-		wchar c = Decode_impl(string + 3, bytes, fi);
+                wc = Decode_impl(string + 3, bytes, fi);
                 bytes += 3;
-		return c;
-	    }
+                return wc;
+            }
 
-	    bytes = 3;
-            return ((c - 0xe0) << 6 | t[1] & 0x7f) << 6 | t[2] & 0x7f;
+            bytes = 3;
+            wc = ((c - 0xe0) << 6 | t[1] & 0x7f) << 6 | t[2] & 0x7f;
+        } else {
+            bytes = 4;
+            wc = (((c - 0xe0) << 6
+                   | t[1] & 0x7f) << 6
+                  | t[2] & 0x7f) << 6
+                 | t[3] & 0x7f;
         }
+        return wc;
 
-	bytes = 4;
-        return (((c - 0xe0) << 6
-                 | t[1] & 0x7f) << 6
-                | t[2] & 0x7f) << 6
-               | t[3] & 0x7f;
     }
 }
 

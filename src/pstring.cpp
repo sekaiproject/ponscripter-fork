@@ -6,16 +6,16 @@ pstring parseTags(const pstring& src)
 //print_escaped(src, stdout, true);
     pstring rv;
     pstrIter it(src);
-    if (it.get() == system_encoding->TextMarker()) {
+    if (it.get() == file_encoding->TextMarker()) {
 //puts("TextMarker");
-	rv += system_encoding->TextMarker();
+	rv += file_encoding->TextMarker();
 	it.next();
     }
     while (it.get() >= 0) {
 //fputs("  Char \"", stdout);
 //wputc_escaped(it.get());
 //putchar('"');
-	if (system_encoding->UseTags() && it.get() == '~') {
+	if (file_encoding->UseTags() && it.get() == '~') {
 	    // If end of string, or next char is also ~, treat as literal.
 	    it.next();
 	    if (it.get() < 0 || it.get() == '~') {
@@ -31,7 +31,7 @@ pstring parseTags(const pstring& src)
 //wputc_escaped(it.get());
 //printf(" (%c)\n", *(it.getptr()));
 		    int len;
-		    rv += system_encoding->TranslateTag(it.getptr(), len);
+		    rv += file_encoding->TranslateTag(it.getptr(), len);
 		    it.forward(len);
 		}
 	    }
@@ -80,11 +80,11 @@ pstring hantozen(const pstring& str)
     pstring rv;
     for (pstrIter it(str); it.get() >= 0; it.next()) {
 	if (it.get() == ' ')
-	    rv += system_encoding->Encode(0x3000);
+	    rv += file_encoding->Encode(0x3000);
 	else if (it.get() >= '!' && it.get() <= '~')
-	    rv += system_encoding->Encode(it.get() + 0xfee0);
+	    rv += file_encoding->Encode(it.get() + 0xfee0);
 	else if (it.get() >= 0xff65 && it.get() <= 0xff9f)
-	    rv += system_encoding->Encode(0x3000 | han2zen_table[it.get() - 0xff65]);
+	    rv += file_encoding->Encode(0x3000 | han2zen_table[it.get() - 0xff65]);
 	else
 	    rv += it.getstr();
     }
@@ -96,12 +96,12 @@ pstring zentohan(const pstring& str)
     pstring rv;
     for (pstrIter it(str); it.get() >= 0; it.next()) {
 	if (it.get() >= 0xff01 && it.get() <= 0xff5e)
-	    rv += system_encoding->Encode(it.get() - 0xfee0);
+	    rv += file_encoding->Encode(it.get() - 0xfee0);
 	else if (it.get() == 0x3000)
 	    rv += ' ';
 	else if (it.get() >= 0x309b && it.get() <= 0x30fc &&
 		 zen2han_table[it.get() - 0x309b])
-	    rv += system_encoding->Encode(0xff00 | zen2han_table[it.get() - 0x309b]);
+	    rv += file_encoding->Encode(0xff00 | zen2han_table[it.get() - 0x309b]);
 	else
 	    rv += it.getstr();
     }

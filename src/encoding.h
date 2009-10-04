@@ -115,7 +115,6 @@ public:
     CP932Encoding() : Encoding('`', false, "cp932") {}
 };
 
-extern Encoding *system_encoding; // global encoding for the actual engine
-extern Encoding *file_encoding; // global encoding for reading from files
+extern Encoding *file_encoding; // global encoding for script
 
 #endif

@@ -615,7 +615,7 @@ private:
 	    font_size, pitch_x, pitch_y,
 	    speed, bold, shadow;
 	pstring backdrop;
-	int w_left, w_top, w_width, w_height;
+	int w_left, w_top, w_right, w_bottom;
     };
     WindowDef::dic stored_windows;
     

@@ -102,7 +102,6 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["cell"]             = &PonscripterLabel::cellCommand;
     dict["cellcheckexbtn"]   = &PonscripterLabel::exbtnCommand;
     dict["cellcheckspbtn"]   = &PonscripterLabel::spbtnCommand;
-    dict["pcenterline"]      = &PonscripterLabel::haeleth_centre_lineCommand;
     dict["checkpage"]        = &PonscripterLabel::checkpageCommand;
     dict["chvol"]            = &PonscripterLabel::chvolCommand;
     dict["cl"]               = &PonscripterLabel::clCommand;
@@ -225,6 +224,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["ofscopy"]          = &PonscripterLabel::ofscopyCommand;
     dict["ofscpy"]           = &PonscripterLabel::ofscopyCommand;
     dict["pbreakstr"]        = &PonscripterLabel::haeleth_char_setCommand;
+    dict["pcenterline"]      = &PonscripterLabel::haeleth_centre_lineCommand;
     dict["pdefwindow"]       = &PonscripterLabel::haeleth_defwindowCommand;
     dict["pindentstr"]       = &PonscripterLabel::haeleth_char_setCommand;
     dict["play"]             = &PonscripterLabel::playCommand;
@@ -558,11 +558,10 @@ void PonscripterLabel::setKeyEXE(const char* filename)
 }
 
 #ifdef MACOSX
-pstring MacOSX_SeekArchive(ScriptHandler& script_h)
+void MacOSX_SeekArchive(ScriptHandler& script_h, DirPaths *archive_path)
 {
     // Store archives etc in the application bundle by default, but
-    // fall back to the application root directory if the bundle
-    // doesn't contain any script files.
+    // also check the application root directory and current directory.
     using namespace Carbon;
     pstring rv;
     CFURLRef url;
@@ -575,24 +574,9 @@ pstring MacOSX_SeekArchive(ScriptHandler& script_h)
                 rv = pstring((char*) path) + '/';
             CFRelease(url);
         }
-        if (rv) {
-            // Verify that this is the archive path by checking for a script
-            // file.
-            ScriptHandler::ScriptFilename::iterator it =
-                script_h.script_filenames.begin();
-            for (; it != script_h.script_filenames.end(); ++it) {
-                pstring s = rv + it->filename;
-                FSRef ref;
-                // If we've found a script file, we've found the archive
-                // path, so return it.
-                if (FSPathMakeRef(s, &ref, 0) == noErr &&
-                    FSGetCatalogInfo(&ref, kFSCatInfoNone, 0, 0, 0, 0) == noErr)
-                    return rv;
-            }
-        }
-        // There were no script files in the application bundle.
-        // Assume that the script files are intended to be in the
-        // application path.
+        if (rv) archive_path->add(rv);
+
+        // Now add the application path.
         if ((url = CFBundleCopyBundleURL(bundle))) {
             CFURLRef app =
                 CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorDefault,
@@ -602,11 +586,20 @@ pstring MacOSX_SeekArchive(ScriptHandler& script_h)
                 Boolean valid =
                     CFURLGetFileSystemRepresentation(app, true, path, max_path);
                 CFRelease(app);
-                if (valid) return pstring((char*) path) + '/';
+                if (valid) {
+                    archive_path->add(pstring((char*) path) + '/');
+                    // Add the next directory up as a fallback.
+                    strcat((char*) path, "/..");
+                    archive_path->add((const char*) path);
+                }
             }
         }
     }
-    return "";
+    else {
+        // Not in a bundle: just use current dir and parent as normal.
+        archive_path->add(".");
+        archive_path->add("..");
+    }
 }
 #endif
 
@@ -744,13 +737,13 @@ int PonscripterLabel::init(const char* preferred_script)
     // assume the current directory if nothing else was specified.
     if (archive_path.get_num_paths()==0) {
 #ifdef MACOSX
-        archive_path.add(MacOSX_SeekArchive(script_h));
+        MacOSX_SeekArchive(script_h, &archive_path);
 #else
         archive_path.add(".");
         archive_path.add("..");
 #endif
     }
-   
+
     if (key_exe_file) {
         createKeyTable(key_exe_file);
         script_h.setKeyTable(key_table);
@@ -1247,8 +1240,8 @@ bool PonscripterLabel::check_orphan_control()
     // matter?)
     if (string_buffer_offset < 5) return false;
     const char* c = script_h.getStrBuf();
-    c = system_encoding->Previous(c + string_buffer_offset, c);
-    const wchar p = system_encoding->DecodeChar(c);
+    c = file_encoding->Previous(c + string_buffer_offset, c);
+    const wchar p = file_encoding->DecodeChar(c);
     return p == '.' || p == 0xff0e || p == ',' || p == 0xff0c
         || p == ':' || p == 0xff1a || p == ';' || p == 0xff1b
         || p == '!' || p == 0xff01 || p == '?' || p == 0xff1f;
@@ -1287,7 +1280,7 @@ int PonscripterLabel::parseLine()
 
 //--------INDENT ROUTINE--------------------------------------------------------
     if (sentence_font.GetXOffset() == 0 && sentence_font.GetYOffset() == 0) {
-        const wchar first_ch = system_encoding->DecodeWithLigatures
+        const wchar first_ch = file_encoding->DecodeWithLigatures
             (script_h.getStrBuf(string_buffer_offset), sentence_font);
         if (is_indent_char(first_ch))
             sentence_font.SetIndent(first_ch);
@@ -1303,17 +1296,17 @@ int PonscripterLabel::parseLine()
     int l;
     Fontinfo f = sentence_font;
     const wchar first_ch =
-        system_encoding->DecodeWithLigatures(script_h.getStrBuf(string_buffer_offset),
+        file_encoding->DecodeWithLigatures(script_h.getStrBuf(string_buffer_offset),
                                       f, l);
 
     if (is_break_char(first_ch) && !new_line_skip_flag) {
         const char* it = script_h.getStrBuf(string_buffer_offset) + l;
-        wchar next_ch = system_encoding->DecodeWithLigatures(it, f, l);
+        wchar next_ch = file_encoding->DecodeWithLigatures(it, f, l);
         float len = f.GlyphAdvance(first_ch, next_ch);
         while (1) {
             // For each character (not char!) before a break is found,
             // get unicode.
-            wchar ch = system_encoding->DecodeWithLigatures(it, f, l);
+            wchar ch = file_encoding->DecodeWithLigatures(it, f, l);
       cont: it += l;
 
 	    // Check for special sequences.
@@ -1349,7 +1342,7 @@ int PonscripterLabel::parseLine()
             }
 
             // No inline command?  Use the glyph metrics, then!
-            next_ch = system_encoding->DecodeWithLigatures(it, f, l);
+            next_ch = file_encoding->DecodeWithLigatures(it, f, l);
             len += f.GlyphAdvance(ch, next_ch);
             ch = next_ch;
             goto cont;
