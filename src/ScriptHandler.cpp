@@ -808,7 +808,7 @@ int ScriptHandler::readScript(DirPaths *path, const char* prefer_name)
             else {
                 n = archive_path->get_num_paths(); //to only check once
                 script_path = fname.midstr(0, fname.find(DELIMITER));
-                printf("got preferred script_path '"+ script_path + "'\n");
+                printf("got preferred script_path '%s'\n", (const char*)script_path);
             }
         
             if ((fp = fopen(fname, "rb")) != NULL) {

@@ -464,7 +464,7 @@ int ScriptParser::saveFileIOBuf(const pstring& filename, int offset,
         if ((fputc('"', fp) == EOF)
             || (fwrite(savestr, 1, savelen, fp) != savelen)
             || (fputs("\"*", fp) == EOF))
-            fprintf(stderr, "Warning: error writing to " + filename + "\n");
+            fprintf(stderr, "Warning: error writing to %s\n", (const char*)filename);
     }
 
     fclose(fp);

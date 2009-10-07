@@ -223,8 +223,8 @@ int PonscripterLabel::saveSaveFile(int no, const char* savestr)
         size_t magic_len = 5;
         filename.format("sav" DELIMITER "save%d.dat", no);
         if (saveFileIOBuf(filename, magic_len, savestr))
-            fprintf(stderr, "can't open save file " + filename +
-                    " for writing (not an error)\n");
+            fprintf(stderr, "can't open save file %s for writing (not an error)\n",  
+                (const char*)filename);
     }
 
     return 0;

@@ -506,7 +506,7 @@ void PonscripterLabel::setArchivePath(const pstring& path)
 {
     archive_path.clear();
     archive_path.add(path);
-    printf("archive_path: " + archive_path.get_all_paths() + "\n");
+    printf("archive_path: %s\n", (const char*)(archive_path.get_all_paths()));
 }
 
 

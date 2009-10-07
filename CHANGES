@@ -1,3 +1,8 @@
+2009-10-07
+
+  Fixed several format string issues with debug messages that were breaking the
+  Linux build [Roto]
+
 2009-10-03
 
   Corrected ligature handling to work with multi-byte matching characters [Mion]
