@@ -3,6 +3,9 @@
   Fixed several format string issues with debug messages that were breaking the
   Linux build [Roto]
 
+  Fixed a bug in the default save/load menu [Mion]
+
+
 2009-10-03
 
   Corrected ligature handling to work with multi-byte matching characters [Mion]

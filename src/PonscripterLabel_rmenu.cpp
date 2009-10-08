@@ -266,20 +266,20 @@ void PonscripterLabel::createSaveLoadMenu(bool is_save)
 
     // Set up formatting details for saved games.
     const float sw = float (screen_width * screen_ratio2)
-	           / float (screen_ratio1);
+                   / float (screen_ratio1);
     pstring buffer, saveless_line;
     float lw, entry_offs_x, entry_date_x, entry_time_x;
     {
         float max_ew = 0, max_dw = 0, max_hw = 0, max_mw = 0;
         for (unsigned int i = 1; i <= num_save_file; i++) {
-	    buffer.format("^%s %-2d", (const char*) save_item_name, i);
+            buffer.format("^%s %-2d", (const char*) save_item_name, i);
             lw = menu_font.StringAdvance(buffer);
             if (lw > max_ew) max_ew = lw;
 
             searchSaveFile(save_file_info, i);
             if (save_file_info.valid) {
-		buffer.format("^%s %2d", short_month[save_file_info.month - 1],
-			   save_file_info.day);
+                buffer.format("^%s %2d", short_month[save_file_info.month - 1],
+                              save_file_info.day);
                 lw = menu_font.StringAdvance(buffer);
                 if (lw > max_dw) max_dw = lw;
 
@@ -294,7 +294,7 @@ void PonscripterLabel::createSaveLoadMenu(bool is_save)
         }
 
         if (max_dw < 1) {
-	    saveless_line = "------------------------";
+            saveless_line = "------------------------";
             lw = ceil(max_ew + 24 + menu_font.StringAdvance(saveless_line) + 1);
             entry_offs_x = (sw - lw) / 2;
             entry_date_x = max_ew + 24;
@@ -306,10 +306,10 @@ void PonscripterLabel::createSaveLoadMenu(bool is_save)
             entry_date_x = max_ew + 24;
             entry_time_x = lw - max_mw;
             int nslw = int((max_dw + 16 + max_hw + max_mw)
-			   / menu_font.StringAdvance("-"));
-	    // Avoid ugliness with ligatures
-	    while (nslw % 3 || nslw % 2) ++nslw;
-	    saveless_line = pstring(nslw, '-');
+                           / menu_font.StringAdvance("-"));
+            // Avoid ugliness with ligatures
+            while (nslw % 3 || nslw % 2) ++nslw;
+            saveless_line = pstring('-', nslw);
         }
     }
 
