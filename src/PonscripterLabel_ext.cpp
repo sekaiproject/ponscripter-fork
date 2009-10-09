@@ -182,7 +182,7 @@ int PonscripterLabel::haeleth_text_heightCommand(const pstring& cmd)
 	    
 	    if (ch == '!' && (*it == 's' || *it == 'd' || *it == 'w')) {
 		if (it[0] == 's' && it[1] == 'd') it += 2;
-		else do { ++it; } while (isdigit(*it));
+		else do { ++it; } while (script_h.isadigit(*it));
 		continue;
 	    }
 	    else if (ch == '#') {

@@ -448,18 +448,20 @@ int PonscripterLabel::processText()
         string_buffer_offset = string_buffer_restore;
         string_buffer_restore = -1;
     }
-
+if (debug_level > 0) {
+    fprintf(stderr,"processText: %d:'%s", string_buffer_offset, script_h.getStrBuf(string_buffer_offset));
+}
     if (event_mode & (WAIT_INPUT_MODE | WAIT_SLEEP_MODE)) {
         draw_cursor_flag = false;
         if (clickstr_state == CLICK_WAIT) {
-	    string_buffer_offset += file_encoding->NextCharSizeWithLigatures
-		(script_h.getStrBuf(string_buffer_offset), &sentence_font);
+            string_buffer_offset += file_encoding->NextCharSizeWithLigatures
+                (script_h.getStrBuf(string_buffer_offset), &sentence_font);
             clickstr_state = CLICK_NONE;
         }
         else if (clickstr_state == CLICK_NEWPAGE) {
             event_mode = IDLE_EVENT_MODE;
-	    string_buffer_offset += file_encoding->NextCharSizeWithLigatures
-		(script_h.getStrBuf(string_buffer_offset), &sentence_font);
+            string_buffer_offset += file_encoding->NextCharSizeWithLigatures
+                (script_h.getStrBuf(string_buffer_offset), &sentence_font);
             newPage(true);
             clickstr_state = CLICK_NONE;
             return RET_CONTINUE | RET_NOREAD;
@@ -467,25 +469,24 @@ int PonscripterLabel::processText()
         else if (script_h.readStrBuf(string_buffer_offset) == '!') {
             string_buffer_offset++;
             if (script_h.readStrBuf(string_buffer_offset) == 'w' ||
-		script_h.readStrBuf(string_buffer_offset) == 'd') {
+                script_h.readStrBuf(string_buffer_offset) == 'd') {
                 ++string_buffer_offset;
-                while (script_h.readStrBuf(string_buffer_offset) >= '0'
-                       && script_h.readStrBuf(string_buffer_offset) <= '9')
+                while (script_h.isadigit(script_h.readStrBuf(string_buffer_offset))) {
                     ++string_buffer_offset;
-                while (script_h.readStrBuf(string_buffer_offset) == ' ' ||
-                       script_h.readStrBuf(string_buffer_offset) == '\t')
-		    ++string_buffer_offset;
+                }
+                while (script_h.isawspace(script_h.readStrBuf(string_buffer_offset)))
+                    ++string_buffer_offset;
             }
         }
         else
             string_buffer_offset +=
-		file_encoding->NextCharSizeWithLigatures
-		(script_h.getStrBuf(string_buffer_offset), &sentence_font);
+                file_encoding->NextCharSizeWithLigatures
+                (script_h.getStrBuf(string_buffer_offset), &sentence_font);
         event_mode = IDLE_EVENT_MODE;
     }
 
     if (script_h.readStrBuf(string_buffer_offset) == 0x0a ||
-	script_h.readStrBuf(string_buffer_offset) == 0x00) {
+        script_h.readStrBuf(string_buffer_offset) == 0x00) {
         indent_offset = 0; // redundant
         return RET_CONTINUE;
     }
@@ -508,46 +509,40 @@ int PonscripterLabel::processText()
     else if (ch == '!') {
         ++string_buffer_offset;
         if (script_h.readStrBuf(string_buffer_offset) == 's') {
-            string_buffer_offset++;
+            ++string_buffer_offset;
             if (script_h.readStrBuf(string_buffer_offset) == 'd') {
                 sentence_font.wait_time = -1;
-                string_buffer_offset++;
+                ++string_buffer_offset;
             }
             else {
                 int t = 0;
-                while (script_h.readStrBuf(string_buffer_offset) >= '0'
-                       && script_h.readStrBuf(string_buffer_offset) <= '9') {
-                    t = t * 10 +
-                        script_h.readStrBuf(string_buffer_offset) -'0';
-                    string_buffer_offset++;
+                while (script_h.isadigit(script_h.readStrBuf(string_buffer_offset))) {
+                    t = t * 10 + script_h.readStrBuf(string_buffer_offset) -'0';
+                    ++string_buffer_offset;
                 }
                 sentence_font.wait_time = t;
-                while (script_h.readStrBuf(string_buffer_offset) == ' ' ||
-                       script_h.readStrBuf(string_buffer_offset) == '\t')
-		    string_buffer_offset++;
+                while (script_h.isawspace(script_h.readStrBuf(string_buffer_offset)))
+                    ++string_buffer_offset;
             }
         }
         else if (script_h.readStrBuf(string_buffer_offset) == 'w'
                  || script_h.readStrBuf(string_buffer_offset) == 'd') {
             bool flag = false;
             if (script_h.readStrBuf(string_buffer_offset) == 'd')
-		flag = true;
+                flag = true;
 
-            string_buffer_offset++;
+            ++string_buffer_offset;
             int tmp_string_buffer_offset = string_buffer_offset;
             int t = 0;
-            while (script_h.readStrBuf(string_buffer_offset) >= '0'
-                   && script_h.readStrBuf(string_buffer_offset) <= '9') {
-                t = t * 10
-		    + script_h.readStrBuf(string_buffer_offset) - '0';
-                string_buffer_offset++;
+            while (script_h.isadigit(script_h.readStrBuf(string_buffer_offset))) {
+                t = t * 10 + script_h.readStrBuf(string_buffer_offset) - '0';
+                ++string_buffer_offset;
             }
-            while (script_h.readStrBuf(string_buffer_offset) == ' '
-                   || script_h.readStrBuf(string_buffer_offset) == '\t')
-		string_buffer_offset++;
+            while (script_h.isawspace(script_h.readStrBuf(string_buffer_offset)))
+                string_buffer_offset++;
             if (skip_flag || draw_one_page_flag || ctrl_pressed_status ||
-		skip_to_wait) {
-		skip_to_wait = 0;
+                skip_to_wait) {
+                skip_to_wait = 0;
                 return RET_CONTINUE | RET_NOREAD;
             }
             else {
@@ -561,7 +556,7 @@ int PonscripterLabel::processText()
             }
         }
         else {
-            string_buffer_offset--;
+            --string_buffer_offset;
             goto notacommand;
         }
 
@@ -571,21 +566,19 @@ int PonscripterLabel::processText()
         char hexchecker;
         for (int i = 0; i <= 5; ++i) {
             hexchecker = script_h.readStrBuf(string_buffer_offset + i + 1);
-            if (!((hexchecker >= '0' && hexchecker <= '9') ||
-		  (hexchecker >= 'a' && hexchecker <= 'f') ||
-		  (hexchecker >= 'A' && hexchecker <= 'F')))
-		goto notacommand;
+            if (!script_h.isaxdigit(hexchecker))
+                goto notacommand;
         }
 
         sentence_font.color
-	    = readColour(script_h.getStrBuf(string_buffer_offset));
+            = readColour(script_h.getStrBuf(string_buffer_offset));
         string_buffer_offset += 7;
 
         return RET_CONTINUE | RET_NOREAD;
     }
     else if (ch == '/') {
         if (script_h.readStrBuf(string_buffer_offset + 1) != 0x0a)
-	    goto notacommand;
+            goto notacommand;
         else { // skip new line
             new_line_skip_flag = true;
             string_buffer_offset++;

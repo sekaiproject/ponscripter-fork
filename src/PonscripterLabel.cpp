@@ -1247,7 +1247,6 @@ bool PonscripterLabel::check_orphan_control()
         || p == '!' || p == 0xff01 || p == '?' || p == 0xff1f;
 }
 
-
 int PonscripterLabel::parseLine()
 {
     int ret = 0;
@@ -1327,14 +1326,14 @@ int PonscripterLabel::parseLine()
                     continue;
                 }
                 // ![sdw]<int>
-                do { ++it; } while (isdigit(*it));
+                do { ++it; } while (script_h.isadigit(*it));
                 continue;
             }
             else if (ch == '#') {
                 //#rrggbb: check all figures are in order
                 bool ok = true;
                 for (int offs = 1; ok && offs <= 6; ++offs)
-                    ok &= isxdigit(it[offs]);
+                    ok &= script_h.isaxdigit(it[offs]);
                 if (ok) {
                     it += 7; // really 7? or should it be 6?
                     continue;

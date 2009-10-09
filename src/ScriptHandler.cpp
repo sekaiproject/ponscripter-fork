@@ -234,10 +234,9 @@ readTokenTop:
                 }
 
                 // CHECKME: why do we ignore text markers here?
-                if (ch >= '0' && ch <= '9' &&
-                    (*buf == ' ' || *buf == '\t' ||
-                     *buf == file_encoding->TextMarker()) &&
-                    string_buffer.length() % 2) {
+                if (isadigit(ch) &&
+                    (isawspace(*buf) || *buf == file_encoding->TextMarker()) &&
+                    (string_buffer.length() % 2)) {
                     string_buffer += ' ';
                 }
 
@@ -777,7 +776,7 @@ int ScriptHandler::readScriptSub(FILE* fp, char** buf, int encrypt_mode)
         }
         else {
             *(*buf)++ = ch;
-            if (ch != ' ' && ch != '\t')
+            if (!isawspace(ch))
                 newline_flag = false;
         }
     }
@@ -996,13 +995,13 @@ int ScriptHandler::readScript(DirPaths *path, const char* prefer_name)
             break;
         }
 
-        buf++;
-        while (*buf == ' ' || *buf == '\t') ++buf;
+        ++buf;
+        while (isawspace(*buf)) ++buf;
     }
 
     // game ID check
     if ((*buf++ == ';') && (game_identifier.length() == 0))  {
-        while (*buf == ' ' || *buf == '\t') ++buf;
+        while (isawspace(*buf)) ++buf;
         if (!strncmp(buf, "gameid ", 7)) {
             buf += 7;
             int i = 0;
@@ -1310,13 +1309,13 @@ int ScriptHandler::parseInt(const char** buf)
         while (1) {
             ch = **buf;
 
-            if (hex_num_flag && isxdigit(ch)) {
+            if (hex_num_flag && isaxdigit(ch)) {
                 alias_no *= 16;
-                if (isdigit(ch)) alias_no += ch - '0';
+                if (isadigit(ch)) alias_no += ch - '0';
                 else if (isupper(ch)) alias_no += ch - 'A' + 10;
                 else alias_no += ch - 'a' + 10;
             }
-            else if (isdigit(ch)) {
+            else if (isadigit(ch)) {
                 if (!num_alias_flag) direct_num_flag = true;
 
                 if (direct_num_flag)

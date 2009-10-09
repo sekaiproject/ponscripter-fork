@@ -228,44 +228,44 @@ UTF8Encoding::Decode_impl(const char* string, int& bytes,
     const unsigned char  c = t[0];
     if (c < 0x80) {
 
-    // return if tags and ligatures are disabled
-	if (!UseTags()) {
-	    bytes = 1;
-	    return c;
-	}
+        // return if tags and ligatures are disabled
+        if (!UseTags()) {
+            bytes = 1;
+            return c;
+        }
 
-	// Encoded tags.  Return the tag ID and skip the payload; it's
-	// up to callers to extract that if they want it.
-	// (pstrIter::getstr() will return complete tags.)
+        // Encoded tags.  Return the tag ID and skip the payload; it's
+        // up to callers to extract that if they want it.
+        // (pstrIter::getstr() will return complete tags.)
         if (c >= 0x17 && c <= 0x1e) {
-	    bytes = 3;
-	    return c;
-	}
+            bytes = 3;
+            return c;
+        }
         if (c == 0x1f) {
-	    bytes = 2;
-	    return c;
-	}
-	
-	// If ligatures are disabled, all other ASCII characters are
-	// treated as themselves.
-	if (!fi) {
-	    bytes = 1;
-	    return c;
-	}
+            bytes = 2;
+            return c;
+        }
+
+        // If ligatures are disabled, all other ASCII characters are
+        // treated as themselves.
+        if (!fi) {
+            bytes = 1;
+            return c;
+        }
 
         if (c == '|' && t[1] == '|') { bytes = 2; return '|'; }
-	if (c == '|') {
-	    wchar wc = Decode_impl(string + 1, bytes, fi);
-	    ++bytes;
-	    return wc;
-	}
+        if (c == '|') {
+            wchar wc = Decode_impl(string + 1, bytes, fi);
+            ++bytes;
+            return wc;
+        }
 
         const ligature* lig = ligs.find(string, fi);
-	if (lig) {
-	    bytes = lig->seqlen;
-	    return lig->codepoint;
-	}
-	bytes = 1;
+        if (lig) {
+            bytes = lig->seqlen;
+            return lig->codepoint;
+        }
+        bytes = 1;
         return c;
     }
     else {
