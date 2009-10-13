@@ -136,7 +136,6 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["exec_dll"]         = &PonscripterLabel::exec_dllCommand;
     dict["existspbtn"]       = &PonscripterLabel::spbtnCommand;
     dict["fileexist"]        = &PonscripterLabel::fileexistCommand;
-    dict["pfontstyle"]       = &PonscripterLabel::haeleth_font_styleCommand;
     dict["game"]             = &PonscripterLabel::gameCommand;
     dict["getbgmvol"]        = &PonscripterLabel::getmp3volCommand;
     dict["getbtntimer"]      = &PonscripterLabel::gettimerCommand;
@@ -193,6 +192,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["jumpf"]            = &PonscripterLabel::jumpfCommand;
     dict["ld"]               = &PonscripterLabel::ldCommand;
     dict["loadgame"]         = &PonscripterLabel::loadgameCommand;
+    dict["localestring"]     = &PonscripterLabel::localestringCommand;
     dict["locate"]           = &PonscripterLabel::locateCommand;
     dict["logsp"]            = &PonscripterLabel::logspCommand;
     dict["logsp2"]           = &PonscripterLabel::logspCommand;
@@ -226,6 +226,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["pbreakstr"]        = &PonscripterLabel::haeleth_char_setCommand;
     dict["pcenterline"]      = &PonscripterLabel::haeleth_centre_lineCommand;
     dict["pdefwindow"]       = &PonscripterLabel::haeleth_defwindowCommand;
+    dict["pfontstyle"]       = &PonscripterLabel::haeleth_font_styleCommand;
     dict["pindentstr"]       = &PonscripterLabel::haeleth_char_setCommand;
     dict["play"]             = &PonscripterLabel::playCommand;
     dict["playonce"]         = &PonscripterLabel::playCommand;
@@ -760,6 +761,7 @@ int PonscripterLabel::init(const char* preferred_script)
     if (!script_h.save_path) script_h.save_path = archive_path.get_path(0);
 
     initSDL();
+    initLocale();
 
     image_surface = SDL_CreateRGBSurface(SDL_SWSURFACE, 1, 1, 32, 0x00ff0000,
                         0x0000ff00, 0x000000ff, 0xff000000);

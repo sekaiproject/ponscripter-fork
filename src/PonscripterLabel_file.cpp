@@ -48,8 +48,7 @@ extern "C" void c2pstrcpy(Str255 dst, const char* src);
 
 void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
 {
-    save_file_info.num_str
-	= script_h.stringFromInteger(no, num_save_file >= 10 ? 2 : 1);
+    save_file_info.num_str = stringFromInteger(no, 2);
 
     pstring filename;
     filename.format("%ssave%d.dat", (const char*) script_h.save_path, no);
@@ -65,8 +64,11 @@ void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
 
     save_file_info.month  = tm->tm_mon + 1;
     save_file_info.day    = tm->tm_mday;
+    save_file_info.wday   = tm->tm_wday;
+    save_file_info.year   = tm->tm_year + 1900;
     save_file_info.hour   = tm->tm_hour;
     save_file_info.minute = tm->tm_min;
+    save_file_info.sec    = tm->tm_sec;
 #elif defined (WIN32)
     HANDLE     handle;
     FILETIME   tm, ltm;
@@ -86,8 +88,11 @@ void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
 
     save_file_info.month  = stm.wMonth;
     save_file_info.day    = stm.wDay;
+    save_file_info.wday   = stm.wDayOfWeek;
+    save_file_info.year   = stm.wYear;
     save_file_info.hour   = stm.wHour;
     save_file_info.minute = stm.wMinute;
+    save_file_info.sec    = stm.wSecond;
 #elif defined (PSP)
     SceIoStat buf;
     if (sceIoGetstat(filename, &buf) < 0) {
@@ -97,8 +102,11 @@ void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
 
     save_file_info.month  = buf.st_mtime.month;
     save_file_info.day    = buf.st_mtime.day;
+    save_file_info.year   = buf.st_mtime.year + 1900;
     save_file_info.hour   = buf.st_mtime.hour;
     save_file_info.minute = buf.st_mtime.minute;
+    save_file_info.sec    = buf.st_mtime.second;
+    save_file_info.wday   = -1;
 #else
     FILE* fp;
     if ((fp = fopen(filename, "rb")) == NULL) {
@@ -109,8 +117,11 @@ void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
 
     save_file_info.month  = 1;
     save_file_info.day    = 1;
+    save_file_info.year   = 2000;
     save_file_info.hour   = 0;
     save_file_info.minute = 0;
+    save_file_info.sec    = 0;
+    save_file_info.wday   = -1;
 #endif
     save_file_info.valid = true;
 }

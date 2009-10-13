@@ -439,3 +439,241 @@ int PonscripterLabel::vsp_whenCommand(const pstring& cmd)
 
     return RET_CONTINUE;
 }
+
+int PonscripterLabel::localestringCommand(const pstring& cmd)
+{
+    Expression e = script_h.readStrExpr();
+    pstring tm = file_encoding->TextMarker();
+    if (e.is_bareword()) {
+        pstring msg = e.as_string();
+        if (msg == "message_save_label") {
+            locale.message_save_label = tm + script_h.readStrValue();
+        } else if (msg == "message_save_exist") {
+            locale.message_save_exist = tm + script_h.readStrValue();
+        } else if (msg == "message_save_confirm") {
+            locale.message_save_confirm = tm + script_h.readStrValue();
+        } else if (msg == "message_load_confirm") {
+            locale.message_load_confirm = tm + script_h.readStrValue();
+        } else if (msg == "message_reset_confirm") {
+            locale.message_reset_confirm = tm + script_h.readStrValue();
+        } else if (msg == "message_end_confirm") {
+            locale.message_end_confirm = tm + script_h.readStrValue();
+        } else if (msg == "message_yes") {
+            locale.message_yes = script_h.readStrValue();
+        } else if (msg == "message_no") {
+            locale.message_no = script_h.readStrValue();
+        } else if (msg == "message_empty") {
+            locale.message_empty = script_h.readStrValue();
+        } else if (msg == "message_space") {
+            locale.message_space = script_h.readStrValue();
+        } else if (msg == "months") {
+            for (int i=0; i<12; i++) {
+                locale.months[i] = script_h.readStrValue();
+            }
+        } else if (msg == "days") {
+            for (int i=0; i<7; i++) {
+                locale.days[i] = script_h.readStrValue();
+            }
+        } else if (msg == "am_pm") {
+            for (int i=0; i<2; i++) {
+                locale.am_pm[i] = script_h.readStrValue();
+            }
+        } else if (msg == "digits") {
+            for (int i=0; i<10; i++) {
+                locale.digits[i] = script_h.readStrValue();
+            }
+        } else {
+            errorAndCont("localestring: unrecognized var '" + e.as_string()
+             + "'\n");
+        }
+    } else {
+        errorAndCont("localestring: improper var " + e.as_string()
+             + " (should be bareword)\n");
+    }
+
+    return RET_CONTINUE;
+}
+
+void PonscripterLabel::initLocale()
+{
+    pstring months[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+	pstring days[7] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+	pstring am_pm[2] = { "AM", "PM" };
+    int i;
+
+    pstring tm = file_encoding->TextMarker();
+    locale.message_save_label = tm + "%s %n";
+    locale.message_save_exist = tm + "%b %d%i %k:%i%M";
+    locale.message_save_confirm = tm + "Save in %s%n?";
+    locale.message_load_confirm = tm + "Load from %s%n?";
+    locale.message_reset_confirm = tm + "Return to Title Menu?";
+    locale.message_end_confirm = tm + "Quit?";
+    locale.message_yes = "Yes";
+    locale.message_no = "No";
+    locale.message_empty = "-";
+    locale.message_space = " ";
+    for (i=0; i<12; i++) {
+        locale.months[i] = months[i];
+    }
+    for (i=0; i<7; i++) {
+        locale.days[i] = days[i];
+    }
+    for (i=0; i<2; i++) {
+        locale.am_pm[i] = am_pm[i];
+    }
+    for (i=0; i<10; i++) {
+        locale.digits[i] = char(i + '0');
+    }
+}
+
+//Mion: create integer strings using locale-defined digits
+pstring PonscripterLabel::stringFromInteger(int no, int num_column, bool is_zero_inserted)
+{
+    pstring ns = script_h.stringFromInteger(no, num_column, is_zero_inserted);
+    pstring ns2 = "";
+    const char *ptr = (const char *) ns;
+
+    while (*ptr) {
+        if (*ptr == ' ') {
+            ns2 += locale.message_space;
+        } else if ((*ptr >= '0') && (*ptr <= '9')) {
+            ns2 += locale.digits[*ptr - '0'];
+        } else
+            ns2 += *ptr;
+        ++ptr;
+    }
+
+    return ns2;
+}
+
+#define MAX_INDENTS 5
+float PonscripterLabel::processMessage(pstring &buffer, pstring message, SaveFileInfo &info, float **indents, int *num_ind, bool find_indents)
+{
+    const char *ptr = (const char *) message;
+    int val;
+
+    bool parse_indents = (indents != NULL) && (num_ind != NULL);
+    if (parse_indents && find_indents) {
+        *num_ind = 0;
+        if (*indents == NULL) {
+            *indents = new float[MAX_INDENTS];
+            for (int i=0; i<MAX_INDENTS; i++)
+                (*indents)[i] = 0;
+        }
+    }
+
+    buffer = "";
+    pstring buf = "";
+    int num = 0;
+    float total_len = 0, last_ind = 0;
+
+    while (*ptr) {
+        while (*ptr && (*ptr != '%')) {
+            if (*ptr == ' ')
+                buf += locale.message_space;
+            else
+                buf += *ptr;
+            ++ptr;
+        }
+        if (*ptr && (*ptr == '%')) {
+            ptr++;
+            if (*ptr == '%') {
+                buf += '%';
+            } else if (*ptr == 't') {
+                //tab (variable whitespace to allow indent lineup)
+                total_len += current_font->StringAdvance(buf);
+                buffer += buf;
+                buf = "";
+            } else if (*ptr == 'i') {
+                //indent (line-up position)
+                // process later or else omit
+                float sz = current_font->StringAdvance(buf);
+                total_len += sz;
+                if (parse_indents) {
+                    if (!find_indents && (num < *num_ind)) {
+                        pstring tmp = "";
+                        sz = (*indents)[num] - total_len + last_ind;
+                        if (sz > 0) {
+                            if (script_h.is_ponscripter)
+                                tmp.format("~x+%d~", int(sz));
+                            else {
+                                float sp_sz = current_font->StringAdvance(locale.message_space);
+                                int num_sp = ceil(sz/sp_sz);
+                                sz = sp_sz * num_sp;
+                                for (int j=0; j<num_sp; j++)
+                                    tmp += locale.message_space;
+                            }
+                        }
+                        total_len += sz;
+                        buffer += tmp;
+                        ++num;
+                    } else if (find_indents && (num < MAX_INDENTS)) {
+                        sz = total_len - last_ind;
+                        if ((*indents)[num] < sz)
+                            (*indents)[num] = sz;
+                        ++num;
+                    }
+                }
+                buffer += buf;
+                buf = "";
+                last_ind = total_len;
+            } else if (*ptr == 's') {
+                buf += save_item_name;
+            } else if (*ptr == 'n') {
+                buf += info.num_str;
+            } else if (*ptr == 'b') {
+                buf += locale.months[info.month - 1];
+            } else if ((*ptr == 'a') && (info.wday >= 0)) {
+                buf += locale.days[info.wday];
+            } else if (*ptr == 'm') {
+                buf += stringFromInteger(info.month, 2, true);
+            } else if (*ptr == 'd') {
+                buf += stringFromInteger(info.day, 2, true);
+            } else if (*ptr == 'e') {
+                buf += stringFromInteger(info.day, 2, false);
+            } else if (*ptr == 'y') {
+                buf += stringFromInteger(info.year % 100, 2, true);
+            } else if (*ptr == 'Y') {
+                buf += stringFromInteger(info.year, 4, true);
+            } else if (*ptr == 'H') {
+                // 0-23 hour
+                buf += stringFromInteger(info.hour, 2, true);
+            } else if (*ptr == 'k') {
+                // 0-23 hour
+                buf += stringFromInteger(info.hour, -1, false);
+            } else if ((*ptr == 'I') || (*ptr == 'l')) {
+                // 1-12 hour
+                int val = info.hour;
+                if (val == 0) {
+                    val = 12;
+                } else if (val > 12) {
+                    val -= 12;
+                }
+                if (*ptr == 'I')
+                    buf += stringFromInteger(val, 2, true);
+                else
+                    buf += stringFromInteger(val, -1, false);
+            } else if (*ptr == 'p') {
+                // AM/PM
+                if (info.hour > 12) {
+                    val = 1;
+                } else {
+                    val = 0;
+                }
+                buf += locale.am_pm[val];
+            } else if (*ptr == 'M') {
+                buf += stringFromInteger(info.minute, 2, true);
+            } else if (*ptr == 'S') {
+                buf += stringFromInteger(info.sec, 2, true);
+            }
+            ptr++;
+        }
+    }
+    total_len += current_font->StringAdvance(buf);
+	buffer += buf;
+    if (num_ind != NULL) *num_ind = num;
+    if (debug_level > 0)
+        printf("processMessage: made '%s'\n", (const char*)buffer);
+    return total_len;
+}
+

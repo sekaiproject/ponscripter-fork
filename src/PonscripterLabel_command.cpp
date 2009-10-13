@@ -1111,8 +1111,7 @@ int PonscripterLabel::prnumCommand(const pstring& cmd)
 
     prnum_info[no]->color_list[0] = readColour(script_h.readStrValue());
 
-    prnum_info[no]->file_name =
-        script_h.stringFromInteger(prnum_info[no]->param, 3, false, true);
+    prnum_info[no]->file_name = stringFromInteger(prnum_info[no]->param, 3);
 
     setupAnimationInfo(prnum_info[no]);
     dirty_rect.add(prnum_info[no]->pos);

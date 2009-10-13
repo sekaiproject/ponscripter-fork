@@ -25,16 +25,6 @@
 
 #include "PonscripterLabel.h"
 
-#define MESSAGE_SAVE_CONFIRM "^Save in "
-#define MESSAGE_LOAD_CONFIRM "^Load from "
-#define MESSAGE_CONFIRM_TAIL "?"
-#define MESSAGE_RESET_CONFIRM "^Return to Title Menu?"
-#define MESSAGE_END_CONFIRM "^Quit?"
-#define MESSAGE_YES "Yes"
-#define MESSAGE_NO "No"
-
-static const char* short_month[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-
 void PonscripterLabel::enterSystemCall()
 {
     shelter_buttons.swap(buttons);
@@ -176,17 +166,18 @@ void PonscripterLabel::executeSystemMenu()
         text_info.fill(0, 0, 0, 0);
         flush(refreshMode());
 
-        menu_font.area_x = screen_width * screen_ratio2 / screen_ratio1;
-        menu_font.area_y = menu_font.line_top(rmenu.size());
-        menu_font.top_x  = 0;
-        menu_font.top_y  = (screen_height * screen_ratio2 / screen_ratio1 - menu_font.area_y) / 2;
-        menu_font.SetXY(0, 0);
+        current_font->area_x = screen_width * screen_ratio2 / screen_ratio1;
+        current_font->area_y = current_font->line_top(rmenu.size());
+        current_font->top_x  = 0;
+        current_font->top_y  = (screen_height * screen_ratio2 / screen_ratio1 -
+                                current_font->area_y) / 2;
+        current_font->SetXY(0, 0);
 
 	for (RMenuElt::iterator it = rmenu.begin(); it != rmenu.end(); ++it) {
             const float sw = float (screen_width * screen_ratio2)
 		           / float (screen_ratio1);
-            menu_font.SetXY((sw - menu_font.StringAdvance(it->label)) / 2);
-	    buttons[counter++] = getSelectableSentence(it->label, &menu_font,
+            current_font->SetXY((sw - current_font->StringAdvance(it->label)) / 2);
+	    buttons[counter++] = getSelectableSentence(it->label, current_font,
 						       false);
             flush(refreshMode());
         }
@@ -267,90 +258,98 @@ void PonscripterLabel::createSaveLoadMenu(bool is_save)
     // Set up formatting details for saved games.
     const float sw = float (screen_width * screen_ratio2)
                    / float (screen_ratio1);
+    const int spacing = 16;
+
     pstring buffer, saveless_line;
-    float lw, entry_offs_x, entry_date_x, entry_time_x;
+    float linew, lw, ew, line_offs_x, item_x;
+    float *label_inds = NULL, *save_inds = NULL;
+    int num_label_ind = 0, num_save_ind = 0;
     {
-        float max_ew = 0, max_dw = 0, max_hw = 0, max_mw = 0;
+        float max_lw = 0, max_ew = 0;
         for (unsigned int i = 1; i <= num_save_file; i++) {
-            buffer.format("^%s %-2d", (const char*) save_item_name, i);
-            lw = menu_font.StringAdvance(buffer);
-            if (lw > max_ew) max_ew = lw;
-
             searchSaveFile(save_file_info, i);
+            lw = processMessage(buffer, locale.message_save_label,
+                                save_file_info, &label_inds, &num_label_ind);
+            if (max_lw < lw) max_lw = lw;
             if (save_file_info.valid) {
-                buffer.format("^%s %2d", short_month[save_file_info.month - 1],
-                              save_file_info.day);
-                lw = menu_font.StringAdvance(buffer);
-                if (lw > max_dw) max_dw = lw;
-
-                buffer.format("^%2d:", save_file_info.hour);
-                lw = menu_font.StringAdvance(buffer);
-                if (lw > max_hw) max_hw = lw;
-
-                buffer.format("^%02d", save_file_info.minute);
-                lw = menu_font.StringAdvance(buffer);
-                if (lw > max_mw) max_mw = lw;
+                ew = processMessage(buffer, locale.message_save_exist,
+                                    save_file_info, &save_inds, &num_save_ind);
+                if (max_ew < ew) max_ew = ew;
             }
         }
 
-        if (max_dw < 1) {
-            saveless_line = "------------------------";
-            lw = ceil(max_ew + 24 + menu_font.StringAdvance(saveless_line) + 1);
-            entry_offs_x = (sw - lw) / 2;
-            entry_date_x = max_ew + 24;
-            entry_time_x = 0;
+        pstring tm = file_encoding->TextMarker();
+        if (save_inds == NULL) {
+            saveless_line = tm;
+            for (int j=0; j<24; j++)
+                saveless_line += locale.message_empty;
+            max_ew = current_font->StringAdvance(saveless_line);
         }
         else {
-            lw = ceil(max_ew + 24 + max_dw + 16 + max_hw + max_mw);
-            entry_offs_x = (sw - lw) / 2;
-            entry_date_x = max_ew + 24;
-            entry_time_x = lw - max_mw;
-            int nslw = int((max_dw + 16 + max_hw + max_mw)
-                           / menu_font.StringAdvance("-"));
-            // Avoid ugliness with ligatures
-            while (nslw % 3 || nslw % 2) ++nslw;
-            saveless_line = pstring('-', nslw);
+            // Avoid possible ugliness of ligatures
+            pstring long_empty;
+            for (int j=0; j<6; j++)
+                long_empty += locale.message_empty;
+            saveless_line = tm;
+            while (current_font->StringAdvance(saveless_line) < max_ew)
+                saveless_line += long_empty;
+            if (max_ew < current_font->StringAdvance(saveless_line))
+                max_ew = current_font->StringAdvance(saveless_line);
         }
+        item_x = max_lw + spacing;
+        linew = ceil(item_x + max_ew + spacing);
+        line_offs_x = (sw - linew) / 2;
     }
 
     // Set up the menu.
-    menu_font.area_x = int(lw);
-    menu_font.area_y = menu_font.line_top(num_save_file + 2);
-    menu_font.top_x  = int(entry_offs_x);
-    menu_font.top_y  = (screen_height * screen_ratio2 / screen_ratio1
-			- menu_font.area_y) / 2;
+    current_font->area_x = int(linew);
+    current_font->area_y = current_font->line_top(num_save_file + 2);
+    current_font->top_x  = int(line_offs_x);
+    current_font->top_y  = (screen_height * screen_ratio2 / screen_ratio1
+			- current_font->area_y) / 2;
     pstring& menu_name = is_save ? save_menu_name : load_menu_name;
-    menu_font.SetXY((lw - menu_font.StringAdvance(menu_name)) / 2, 0);
-    buttons[0] = getSelectableSentence(menu_name, &menu_font, false); 
+    current_font->SetXY((linew - current_font->StringAdvance(menu_name)) / 2, 0);
+    buttons[0] = getSelectableSentence(menu_name, current_font, false); 
 
-    menu_font.newLine();
+    current_font->newLine();
 
     flush(refreshMode());
     bool disable = false;
 
     for (unsigned int i = 1; i <= num_save_file; i++) {
         searchSaveFile(save_file_info, i);
-        menu_font.SetXY(0);
+        lw = processMessage(buffer, locale.message_save_label, 
+                       save_file_info, &label_inds,
+                       &num_label_ind, false);
+        current_font->SetXY(0);
 
+        pstring tmp = "";
+        if (script_h.is_ponscripter)
+            tmp.format("~x%d~", int(item_x));
+        else {
+            int num_sp = ceil((spacing + 0.0) / 
+                              current_font->StringAdvance(locale.message_space));
+            for (int j=0; j<num_sp; j++)
+                tmp += locale.message_space;
+        }
+        buffer += tmp;
         if (save_file_info.valid) {
-	    buffer.format("^%2d:", save_file_info.hour);
-            float hw = menu_font.StringAdvance(buffer);
-	    buffer.format("^%s %2d~x%d~%s %-2d~x%d~%2d:%02d",
-			  (const char*) save_item_name, i, int(entry_date_x),
-			  short_month[save_file_info.month - 1],
-			  save_file_info.day, int(entry_time_x - hw),
-			  save_file_info.hour, save_file_info.minute);
+            processMessage(tmp, locale.message_save_exist,
+                           save_file_info, &save_inds,
+                           &num_save_ind, false);
             disable = false;
         }
         else {
-	    buffer.format("^%s %2d~x%d~%s", (const char*) save_item_name, i,
-			  int(entry_date_x), (const char*) saveless_line);
+            tmp = saveless_line;
             disable = !is_save;
         }
+        buffer += tmp;
 
-	buttons[i] = getSelectableSentence(buffer, &menu_font, false, disable);
+	buttons[i] = getSelectableSentence(buffer, current_font, false, disable);
         flush(refreshMode());
     }
+    if (label_inds) delete[] label_inds;
+    if (save_inds) delete[] save_inds;
 
     event_mode = WAIT_BUTTON_MODE;
     refreshMouseOverButton();
@@ -489,44 +488,40 @@ void PonscripterLabel::executeSystemYesNo()
         if (yesno_caller == SYSTEM_SAVE) {
             SaveFileInfo save_file_info;
             searchSaveFile(save_file_info, yesno_selected_file_no);
-	    name = MESSAGE_SAVE_CONFIRM
-		 + save_item_name + save_file_info.num_str
-		 + MESSAGE_CONFIRM_TAIL;
+            processMessage(name, locale.message_save_confirm, save_file_info);
         }
         else if (yesno_caller == SYSTEM_LOAD) {
             SaveFileInfo save_file_info;
             searchSaveFile(save_file_info, yesno_selected_file_no);
-	    name = MESSAGE_LOAD_CONFIRM
-		 + save_item_name + save_file_info.num_str
-		 + MESSAGE_CONFIRM_TAIL;		
+            processMessage(name, locale.message_load_confirm, save_file_info);
         }
         else if (yesno_caller == SYSTEM_RESET)
-            name = MESSAGE_RESET_CONFIRM;
+            name = locale.message_reset_confirm;
         else if (yesno_caller == SYSTEM_END)
-            name = MESSAGE_END_CONFIRM;
+            name = locale.message_end_confirm;
 
-        menu_font.area_x = int (ceil(menu_font.StringAdvance(name)));
-        menu_font.area_y = menu_font.line_top(4);
-        menu_font.top_x  = (screen_width * screen_ratio2 / screen_ratio1 - menu_font.area_x) / 2;
-        menu_font.top_y  = (screen_height * screen_ratio2 / screen_ratio1 - menu_font.area_y) / 2;
-        menu_font.SetXY(0, 0);
+        current_font->area_x = int (ceil(current_font->StringAdvance(name)));
+        current_font->area_y = current_font->line_top(4);
+        current_font->top_x  = (screen_width * screen_ratio2 / screen_ratio1 - current_font->area_x) / 2;
+        current_font->top_y  = (screen_height * screen_ratio2 / screen_ratio1 - current_font->area_y) / 2;
+        current_font->SetXY(0, 0);
 
-	buttons[0] = getSelectableSentence(name, &menu_font, false);
+	buttons[0] = getSelectableSentence(name, current_font, false);
 
         flush(refreshMode());
 
-        float yes_len = menu_font.StringAdvance(MESSAGE_YES),
-              no_len  = menu_font.StringAdvance(MESSAGE_NO);
+        float yes_len = current_font->StringAdvance(locale.message_yes),
+              no_len  = current_font->StringAdvance(locale.message_no);
 
-        name = MESSAGE_YES;
-        menu_font.SetXY(float (menu_font.area_x) / 4 - yes_len / 2,
-			menu_font.line_top(2));
-	buttons[1] = getSelectableSentence(name, &menu_font, false);
+        name = locale.message_yes;
+        current_font->SetXY(float (current_font->area_x) / 4 - yes_len / 2,
+			current_font->line_top(2));
+	buttons[1] = getSelectableSentence(name, current_font, false);
 
-        name = MESSAGE_NO;
-        menu_font.SetXY(float (menu_font.area_x) * 3 / 4 - no_len / 2,
-			menu_font.line_top(2));
-        buttons[2] = getSelectableSentence(name, &menu_font, false);
+        name = locale.message_no;
+        current_font->SetXY(float (current_font->area_x) * 3 / 4 - no_len / 2,
+			current_font->line_top(2));
+        buttons[2] = getSelectableSentence(name, current_font, false);
 
         flush(refreshMode());
 

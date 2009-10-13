@@ -277,8 +277,8 @@ protected:
     /* Save/Load related variables */
     struct SaveFileInfo {
         bool valid;
-        int month, day, hour, minute;
-	pstring num_str;
+        int month, day, wday, year, hour, minute, sec;
+	    pstring num_str;
     };
     unsigned int num_save_file;
     pstring save_menu_name;

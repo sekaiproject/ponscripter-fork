@@ -154,7 +154,7 @@ public:
 
     /* ---------------------------------------- */
     /* Commands */
-    // my extensions
+    // haeleth's extensions
     int haeleth_speedpercentCommand(const pstring& cmd);
     int haeleth_defwindowCommand(const pstring& cmd);
     int haeleth_usewindowCommand(const pstring& cmd);
@@ -170,6 +170,10 @@ public:
     int gettextspeedCommand(const pstring& cmd);
     int vsp_whenCommand(const pstring& cmd);
     
+    //Mion: locale support
+    int localestringCommand(const pstring& cmd);
+    void initLocale();
+
     // regular NScripter stuff
     int wavestopCommand(const pstring& cmd);
     int waveCommand(const pstring& cmd);
@@ -867,6 +871,27 @@ private:
     void executeSystemYesNo();
     void setupLookbackButton();
     void executeSystemLookback();
+
+    //Mion: locale support
+    pstring stringFromInteger(int no, int num_column, bool is_zero_inserted=false);
+    float processMessage(pstring &buffer, pstring message, SaveFileInfo &info, float **indents=NULL, int *num_ind=NULL, bool find_indents=true);
+
+	struct LocaleStrings {
+	    pstring message_save_label;
+        pstring message_save_exist;
+        pstring message_save_confirm;
+        pstring message_load_confirm;
+        pstring message_reset_confirm;
+        pstring message_end_confirm;
+        pstring message_yes;
+        pstring message_no;
+        pstring message_empty;
+        pstring message_space;
+        pstring months[12];
+        pstring days[7];
+        pstring am_pm[2];
+        pstring digits[10];
+	} locale;
 };
 
 #endif // __PONSCRIPTER_LABEL_H__

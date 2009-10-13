@@ -1,3 +1,10 @@
+2009-10-13
+
+  Added "localestring" command and locale handling [Mion]
+
+  Corrected right-click menus for compatibility mode [Mion]
+
+
 2009-10-08
 
   Bugfix for digit character handling [Mion]
