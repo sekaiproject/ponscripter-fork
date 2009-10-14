@@ -48,7 +48,7 @@ extern "C" void c2pstrcpy(Str255 dst, const char* src);
 
 void PonscripterLabel::searchSaveFile(SaveFileInfo &save_file_info, int no)
 {
-    save_file_info.num_str = stringFromInteger(no, 2);
+    save_file_info.no = no;
 
     pstring filename;
     filename.format("%ssave%d.dat", (const char*) script_h.save_path, no);

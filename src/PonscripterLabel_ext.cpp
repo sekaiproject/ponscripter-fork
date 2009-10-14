@@ -502,8 +502,12 @@ void PonscripterLabel::initLocale()
     int i;
 
     pstring tm = file_encoding->TextMarker();
-    locale.message_save_label = tm + "%s %n";
-    locale.message_save_exist = tm + "%b %d%i %k:%i%M";
+    if (script_h.is_ponscripter) {
+        locale.message_save_exist = tm + "%b %d%i %k:%i%M";
+    } else {
+        locale.message_save_exist = tm + "Date %_m/%d    Time %_H:%M";
+    }
+    locale.message_save_label = tm + "%s%n";
     locale.message_save_confirm = tm + "Save in %s%n?";
     locale.message_load_confirm = tm + "Load from %s%n?";
     locale.message_reset_confirm = tm + "Return to Title Menu?";
@@ -527,7 +531,9 @@ void PonscripterLabel::initLocale()
 }
 
 //Mion: create integer strings using locale-defined digits
-pstring PonscripterLabel::stringFromInteger(int no, int num_column, bool is_zero_inserted)
+pstring PonscripterLabel::stringFromInteger(int no, int num_column,
+                                            bool is_zero_inserted,
+                                            bool use_locale_digits)
 {
     pstring ns = script_h.stringFromInteger(no, num_column, is_zero_inserted);
     pstring ns2 = "";
@@ -536,7 +542,7 @@ pstring PonscripterLabel::stringFromInteger(int no, int num_column, bool is_zero
     while (*ptr) {
         if (*ptr == ' ') {
             ns2 += locale.message_space;
-        } else if ((*ptr >= '0') && (*ptr <= '9')) {
+        } else if (use_locale_digits && (*ptr >= '0') && (*ptr <= '9')) {
             ns2 += locale.digits[*ptr - '0'];
         } else
             ns2 += *ptr;
@@ -550,7 +556,6 @@ pstring PonscripterLabel::stringFromInteger(int no, int num_column, bool is_zero
 float PonscripterLabel::processMessage(pstring &buffer, pstring message, SaveFileInfo &info, float **indents, int *num_ind, bool find_indents)
 {
     const char *ptr = (const char *) message;
-    int val;
 
     bool parse_indents = (indents != NULL) && (num_ind != NULL);
     if (parse_indents && find_indents) {
@@ -562,6 +567,9 @@ float PonscripterLabel::processMessage(pstring &buffer, pstring message, SaveFil
         }
     }
 
+    enum { UNSET, NOPAD, SPACEPAD, ZEROPAD } field_pad;
+    bool use_locale_digits;
+    int field_width;
     buffer = "";
     pstring buf = "";
     int num = 0;
@@ -575,8 +583,40 @@ float PonscripterLabel::processMessage(pstring &buffer, pstring message, SaveFil
                 buf += *ptr;
             ++ptr;
         }
+        use_locale_digits = false;
+        field_pad = UNSET;
+        field_width = -1;
         if (*ptr && (*ptr == '%')) {
             ptr++;
+            // optional padding
+            if (*ptr == '-') {
+                field_pad = NOPAD;
+                ptr++;
+            } else if (*ptr == '_') {
+                field_pad = SPACEPAD;
+                ptr++;
+            } else if (*ptr == '0') {
+                field_pad = ZEROPAD;
+                ptr++;
+            }
+            // optional width
+            if ((*ptr >= '0') && (*ptr <= '9')) {
+                field_pad = UNSET;
+                field_width = 0;
+                while ((*ptr >= '0') && (*ptr <= '9')) {
+                    field_width *= 10;
+                    field_width += *ptr - '0';
+                    ptr++;
+                }
+            }
+            // optional use locale digits
+            if (*ptr == 'O') {
+                use_locale_digits = true;
+                ptr++;
+            }
+            bool handled = false;
+            pstring tmp = "";
+            int val = -1;
             if (*ptr == '%') {
                 buf += '%';
             } else if (*ptr == 't') {
@@ -584,14 +624,15 @@ float PonscripterLabel::processMessage(pstring &buffer, pstring message, SaveFil
                 total_len += current_font->StringAdvance(buf);
                 buffer += buf;
                 buf = "";
+                handled = true;
             } else if (*ptr == 'i') {
                 //indent (line-up position)
                 // process later or else omit
+                handled = true;
                 float sz = current_font->StringAdvance(buf);
                 total_len += sz;
                 if (parse_indents) {
                     if (!find_indents && (num < *num_ind)) {
-                        pstring tmp = "";
                         sz = (*indents)[num] - total_len + last_ind;
                         if (sz > 0) {
                             if (script_h.is_ponscripter)
@@ -618,41 +659,63 @@ float PonscripterLabel::processMessage(pstring &buffer, pstring message, SaveFil
                 buf = "";
                 last_ind = total_len;
             } else if (*ptr == 's') {
-                buf += save_item_name;
+                tmp = save_item_name;
+                if (field_pad == UNSET) field_pad = SPACEPAD;
             } else if (*ptr == 'n') {
-                buf += info.num_str;
+                val = info.no;
+                if (field_pad == UNSET) field_pad = SPACEPAD;
+                if (field_width <= 0) field_width = 2;
             } else if (*ptr == 'b') {
-                buf += locale.months[info.month - 1];
+                tmp = locale.months[info.month - 1];
+                if (field_pad == UNSET) field_pad = SPACEPAD;
             } else if ((*ptr == 'a') && (info.wday >= 0)) {
-                buf += locale.days[info.wday];
+                tmp = locale.days[info.wday];
+                if (field_pad == UNSET) field_pad = SPACEPAD;
             } else if (*ptr == 'm') {
-                buf += stringFromInteger(info.month, 2, true);
+                val = info.month;
+                if (field_pad == UNSET) field_pad = ZEROPAD;
+                if (field_width <= 0) field_width = 2;
             } else if (*ptr == 'd') {
-                buf += stringFromInteger(info.day, 2, true);
+                val = info.day;
+                if (field_pad == UNSET) field_pad = ZEROPAD;
+                if (field_width <= 0) field_width = 2;
             } else if (*ptr == 'e') {
-                buf += stringFromInteger(info.day, 2, false);
+                val = info.day;
+                if (field_pad == UNSET) field_pad = SPACEPAD;
+                if (field_width <= 0) field_width = 2;
             } else if (*ptr == 'y') {
-                buf += stringFromInteger(info.year % 100, 2, true);
+                val = info.year % 100;
+                if (field_pad == UNSET) field_pad = ZEROPAD;
+                if (field_width <= 0) field_width = 2;
             } else if (*ptr == 'Y') {
-                buf += stringFromInteger(info.year, 4, true);
+                val = info.year;
+                if (field_pad == UNSET) field_pad = ZEROPAD;
+                if (field_width <= 0) field_width = 4;
             } else if (*ptr == 'H') {
                 // 0-23 hour
-                buf += stringFromInteger(info.hour, 2, true);
+                val = info.hour;
+                if (field_pad == UNSET) field_pad = ZEROPAD;
+                if (field_width <= 0) field_width = 2;
             } else if (*ptr == 'k') {
                 // 0-23 hour
-                buf += stringFromInteger(info.hour, -1, false);
+                val = info.hour;
+                if (field_pad == UNSET) field_pad = SPACEPAD;
+                if (field_width <= 0) field_width = 2;
             } else if ((*ptr == 'I') || (*ptr == 'l')) {
                 // 1-12 hour
-                int val = info.hour;
+                val = info.hour;
                 if (val == 0) {
                     val = 12;
                 } else if (val > 12) {
                     val -= 12;
                 }
-                if (*ptr == 'I')
-                    buf += stringFromInteger(val, 2, true);
-                else
-                    buf += stringFromInteger(val, -1, false);
+                if (field_width <= 0) field_width = 2;
+                if (*ptr == 'I') {
+                    if (field_pad == UNSET) field_pad = ZEROPAD;
+                }
+                else {
+                    if (field_pad == UNSET) field_pad = SPACEPAD;
+                }
             } else if (*ptr == 'p') {
                 // AM/PM
                 if (info.hour > 12) {
@@ -660,20 +723,39 @@ float PonscripterLabel::processMessage(pstring &buffer, pstring message, SaveFil
                 } else {
                     val = 0;
                 }
-                buf += locale.am_pm[val];
+                tmp = locale.am_pm[val];
+                if (field_pad == UNSET) field_pad = SPACEPAD;
             } else if (*ptr == 'M') {
-                buf += stringFromInteger(info.minute, 2, true);
+                val = info.minute;
+                if (field_pad == UNSET) field_pad = ZEROPAD;
+                if (field_width <= 0) field_width = 2;
             } else if (*ptr == 'S') {
-                buf += stringFromInteger(info.sec, 2, true);
+                val = info.sec;
+                if (field_pad == UNSET) field_pad = ZEROPAD;
+                if (field_width <= 0) field_width = 2;
+            }
+            if (!handled) {
+                if (field_pad == NOPAD) field_width = -1;
+                if (tmp.length() > 0) {
+                    if (field_width < 0) field_width = 0;
+                    for (int j=0; j < (field_width - tmp.length()); j++)
+                        buf += locale.message_space;
+                    buf += tmp;
+                } else if (val >= 0) {
+                    buf += stringFromInteger(val, field_width,
+                                             (field_pad == ZEROPAD),
+                                             use_locale_digits);
+                }
             }
             ptr++;
         }
     }
     total_len += current_font->StringAdvance(buf);
-	buffer += buf;
+    buffer += buf;
     if (num_ind != NULL) *num_ind = num;
     if (debug_level > 0)
         printf("processMessage: made '%s'\n", (const char*)buffer);
+
     return total_len;
 }
 

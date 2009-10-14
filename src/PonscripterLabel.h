@@ -873,7 +873,7 @@ private:
     void executeSystemLookback();
 
     //Mion: locale support
-    pstring stringFromInteger(int no, int num_column, bool is_zero_inserted=false);
+    pstring stringFromInteger(int no, int num_column, bool is_zero_inserted=false, bool use_locale_digits=false);
     float processMessage(pstring &buffer, pstring message, SaveFileInfo &info, float **indents=NULL, int *num_ind=NULL, bool find_indents=true);
 
 	struct LocaleStrings {
