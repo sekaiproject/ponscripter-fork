@@ -725,12 +725,13 @@ pstring ScriptHandler::stringFromInteger(int no, int num_column,
 }
 
 
-int ScriptHandler::readScriptSub(FILE* fp, char** buf, int encrypt_mode)
+int ScriptHandler::readScriptSub(FILE* fp, char** buf, int encrypt_mode, bool is_utf)
 {
     char magic[5] = { 0x79, 0x57, 0x0d, 0x80, 0x04 };
     int  magic_counter = 0;
     bool newline_flag  = true;
     bool cr_flag = false;
+    int bom_check = 0;
 
     if (encrypt_mode == 3 && !key_table_flag)
         errorAndExit("readScriptSub: the EXE file must be specified with --key-exe option.");
@@ -778,6 +779,20 @@ int ScriptHandler::readScriptSub(FILE* fp, char** buf, int encrypt_mode)
             *(*buf)++ = ch;
             if (!isawspace(ch))
                 newline_flag = false;
+        }
+
+        if (is_utf) {
+            //check for UTF-8 BOM and skip it
+            if ((ch == char(0xef)) && (bom_check == 0))
+                bom_check = 1;
+            else if ((ch == char(0xbb)) && (bom_check == 1))
+                bom_check = 2;
+            else if ((ch == char(0xbf)) && (bom_check == 2)) {
+                //fprintf(stderr,"readScriptSub: found UTF-8 BOM, backtracking\n");
+                *buf -= 3;
+                bom_check = 0;
+            } else
+                bom_check = 0;
         }
     }
 
@@ -916,7 +931,7 @@ int ScriptHandler::readScript(DirPaths *path, const char* prefer_name)
             }
 
             if (fp) {
-                readScriptSub(fp, &p_script_buffer, 0);
+                readScriptSub(fp, &p_script_buffer, 0, (enc == UTF8));
                 fclose(fp);
             }
         }
@@ -925,12 +940,6 @@ int ScriptHandler::readScript(DirPaths *path, const char* prefer_name)
     delete[] tmp_script_buf;
 
     script_buffer = raw_script_buffer;
-    if (enc == UTF8) {
-        int bytes_read = 0;
-        wchar ch = file_encoding->DecodeChar(script_buffer, bytes_read);
-        if (ch == 0xFEFF) //skip the Unicode BOM
-            script_buffer += bytes_read;
-    }
 
     // Search for gameid file (this overrides any builtin
     // ;gameid directive, or serves its purpose if none is available)

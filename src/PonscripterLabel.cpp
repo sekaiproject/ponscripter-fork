@@ -833,7 +833,7 @@ int PonscripterLabel::init(const char* preferred_script)
 
     loadEnvData();
 
-    InitialiseFontSystem(archive_path.get_path(0));
+    InitialiseFontSystem(&archive_path);
 
     return 0;
 }
@@ -952,21 +952,10 @@ void PonscripterLabel::resetSub()
 
     // Initialize character sets
     DefaultLigatures(9);
-    indent_chars.clear();
-    indent_chars.insert(0x0028);
-    indent_chars.insert(0x2014);
-    indent_chars.insert(0x2018);
-    indent_chars.insert(0x201c);
-    indent_chars.insert(0x300c);
-    indent_chars.insert(0x300e);
-    indent_chars.insert(0xff08);
-    indent_chars.insert(0xff5e);
-    indent_chars.insert(0xff62);
+    indent_chars.clear(); //Mion: removing default indent chars
     break_chars.clear();
-    break_chars.insert(0x0020);
-    break_chars.insert(0x002d);
-    break_chars.insert(0x2013);
-    break_chars.insert(0x2014);
+    break_chars.insert(0x0020); //Mion: removing default break chars except space
+    //Mion: use "pindentstr basic" or "pbreakstr basic" to activate defaults
 
     dirty_rect.fill(screen_width, screen_height);
 }

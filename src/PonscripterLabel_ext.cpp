@@ -236,12 +236,31 @@ int PonscripterLabel::haeleth_centre_lineCommand(const pstring& cmd)
  */
 int PonscripterLabel::haeleth_char_setCommand(const pstring& cmd)
 {
-    std::set<wchar>& char_set = cmd == "h_indentstr"
-	                      ? indent_chars
-	                      : break_chars;
+    bool is_indent = ((cmd == "h_indentstr") || (cmd == "pindentstr"));
+    std::set<wchar>& char_set = is_indent ? indent_chars : break_chars;
     char_set.clear();
 
-    pstrIter it(script_h.readStrValue());
+    Expression e = script_h.readStrExpr();
+    pstring s = e.as_string();
+    if (e.is_bareword() && (s == "basic")) {
+        if (is_indent) {
+            indent_chars.insert(0x0028);
+            indent_chars.insert(0x2014);
+            indent_chars.insert(0x2018);
+            indent_chars.insert(0x201c);
+            indent_chars.insert(0x300c);
+            indent_chars.insert(0x300e);
+            indent_chars.insert(0xff08);
+            indent_chars.insert(0xff5e);
+            indent_chars.insert(0xff62);
+        } else {
+            break_chars.insert(0x0020);
+            break_chars.insert(0x002d);
+            break_chars.insert(0x2013);
+            break_chars.insert(0x2014);
+        }
+    }
+    pstrIter it(s);
     if (it.get() == file_encoding->TextMarker()) it.next();
     while (it.get() >= 0) {
 	char_set.insert(it.get());

@@ -1,3 +1,14 @@
+2009-10-15
+
+  Check entire DirPath for font files [Mion]
+
+  Remove every UTF-8 BOM as the script file is read [Mion]
+
+  Removed default indent and break chars (except for break on space);
+  added "basic" option to "pindentstr" and "pbreakstr", which will restore
+  those defaults (e.g. use "pindentstr basic") [Mion]
+
+
 2009-10-13
 
   Added "localestring" command and locale handling [Mion]

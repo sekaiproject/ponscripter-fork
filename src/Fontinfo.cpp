@@ -43,18 +43,19 @@ static class FontsStruct {
 
     static const int count = 8;
     bool isinit;
-    pstring path, fallback;
+    DirPaths *path;
+    pstring fallback;
     pstring mapping[count];
     pstring metrics[count];
     Font* font_[count];
 public:
     Font* font(int style);
 
-    void init(const pstring& basepath)
+    void init(DirPaths *basepath)
     {
 	isinit = true;
 	path = basepath;
-	fallback = basepath + "default.ttf";
+	fallback = "default.ttf";
         for (int i = 0; i < count; ++i) {
             font_[i] = NULL;
             mapping[i].format("face%d.ttf", i);
@@ -73,7 +74,7 @@ FontsStruct::~FontsStruct()
     FontFinished();
 }
 
-void InitialiseFontSystem(const pstring& basepath)
+void InitialiseFontSystem(DirPaths *basepath)
 {
     FontInitialise();
     Fonts.init(basepath);
@@ -101,66 +102,73 @@ Font* FontsStruct::font(int style)
     if (font_[style]) return font_[style];
 
     size_t len;
-    pstring fpath = path + mapping[style];
-    FILE* fp = fopen(fpath, "rb");
-    if (fp) {
-        fclose(fp);
-	pstring mpath;
-        const char* metnam = NULL;
-        if (metrics[style]) {
-	    mpath = path + metrics[style];
-            fp = fopen(mpath, "rb");
+    FILE* fp = NULL;
+    int n=0;
+
+    while ((fp == NULL) && (n<path->get_num_paths())) {
+        pstring curpath = path->get_path(n++);
+
+        pstring fpath = curpath + mapping[style];
+        fp = fopen(fpath, "rb");
+        if (fp) {
+            fclose(fp);
+            pstring mpath;
+            const char* metnam = NULL;
+            if (metrics[style]) {
+                mpath = curpath + metrics[style];
+                fp = fopen(mpath, "rb");
+                if (fp) {
+                    metnam = mpath;
+                    fclose(fp);
+                }
+            }
+
+            font_[style] = new Font(fpath, metnam);
+        }
+        else {
+            fpath = curpath + "fonts" + DELIMITER + mapping[style];
+            fp = fopen(fpath, "rb");
             if (fp) {
-                metnam = mpath;
                 fclose(fp);
+                pstring mpath;
+                const char* metnam = NULL;
+                if (metrics[style]) {
+                    mpath = curpath + "fonts" + DELIMITER + metrics[style];
+                    fp = fopen(mpath, "rb");
+                    if (fp) {
+                        metnam = mpath;
+                        fclose(fp);
+                    }
+                }
+                font_[style] = new Font(fpath, metnam);
+            }
+            else if ((len = ScriptHandler::cBR->getFileLength(mapping[style]))) {
+                Uint8 *data = new Uint8[len], *mdat = NULL;
+                ScriptHandler::cBR->getFile(mapping[style], data);
+                size_t mlen = 0;
+                if (metrics[style] &&
+                    (mlen = ScriptHandler::cBR->getFileLength(metrics[style]))) {
+                    mdat = new Uint8[mlen];
+                    ScriptHandler::cBR->getFile(metrics[style], mdat);
+                }
+
+                font_[style] = new Font(data, len, mdat, mlen);
+            }
+            else {
+                const InternalResource *fres, *mres = NULL;
+                fres = getResource(mapping[style]);
+                if (metrics[style]) mres = getResource(metrics[style]);
+
+                if (fres) font_[style] = new Font(fres, mres);
             }
         }
 
-        font_[style] = new Font(fpath, metnam);
-    }
-    else {
-	fpath = path + "fonts" + DELIMITER + mapping[style];
-	fp = fopen(fpath, "rb");
-	if (fp) {
-	    fclose(fp);
-	    pstring mpath;
-	    const char* metnam = NULL;
-	    if (metrics[style]) {
-		mpath = path + "fonts" + DELIMITER + metrics[style];
-		fp = fopen(mpath, "rb");
-		if (fp) {
-		    metnam = mpath;
-		    fclose(fp);
-		}
-	    }
-	    font_[style] = new Font(fpath, metnam);
-	}
-	else if ((len = ScriptHandler::cBR->getFileLength(mapping[style]))) {
-	    Uint8 *data = new Uint8[len], *mdat = NULL;
-	    ScriptHandler::cBR->getFile(mapping[style], data);
-	    size_t mlen = 0;
-	    if (metrics[style] &&
-		(mlen = ScriptHandler::cBR->getFileLength(metrics[style]))) {
-		mdat = new Uint8[mlen];
-		ScriptHandler::cBR->getFile(metrics[style], mdat);
-	    }
-	    
-	    font_[style] = new Font(data, len, mdat, mlen);
-	}
-	else {
-	    const InternalResource *fres, *mres = NULL;
-	    fres = getResource(mapping[style]);
-	    if (metrics[style]) mres = getResource(metrics[style]);
-	    
-	    if (fres) font_[style] = new Font(fres, mres);
-	}
-    }
-
-    // Fall back on default.ttf if no font was specified and
-    // face$STYLE.ttf was not found.
-    if (!font_[style] && (fp = fopen(fallback, "rb"))) {
-	fclose(fp);
-	font_[style] = new Font(fallback, (const char*) NULL);
+        // Fall back on default.ttf if no font was specified and
+        // face$STYLE.ttf was not found.
+        if (!font_[style] && (fp = fopen(curpath + fallback, "rb"))) {
+            fclose(fp);
+            font_[style] = new Font(curpath + fallback, (const char*) NULL);
+        }
     }
 
     if (font_[style]) {

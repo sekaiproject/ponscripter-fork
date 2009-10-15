@@ -206,7 +206,7 @@ public:
     pstring stringFromInteger(int no, int num_column,
 			     bool is_zero_inserted = false, bool do_wide = false);
     
-    int readScriptSub(FILE* fp, char** buf, int encrypt_mode);
+    int readScriptSub(FILE* fp, char** buf, int encrypt_mode, bool is_utf=false);
     int readScript(DirPaths *path, const char* prefer_name);
     int labelScript();
 

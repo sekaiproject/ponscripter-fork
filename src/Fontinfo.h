@@ -29,13 +29,14 @@
 #include <SDL.h>
 #include "defs.h"
 #include "font.h"
+#include "DirPaths.h"
 
 extern int screen_ratio1, screen_ratio2;
 
 extern void MapFont(int id, const pstring& filename);
 extern void MapMetrics(int id, const pstring& filename);
 
-void InitialiseFontSystem(const pstring& basepath);
+void InitialiseFontSystem(DirPaths *basepath);
 
 class Fontinfo {
     float indent;
