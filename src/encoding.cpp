@@ -475,6 +475,18 @@ Encoding::TranslateTag(const char* flag, int& in_len)
 }
 
 
+//Return whether the given Unicode character is of type 'Separator, Space'
+bool isSpace(wchar input)
+{
+    if ((input == 0x0020) || (input == 0x00a0) ||
+        (input == 0x1680) || (input == 0x180e) ||
+        ((input >= 0x2000) && (input <= 0x200a)) ||
+        (input == 0x202f) || (input == 0x205f) || (input == 0x3000)) {
+        return true;
+    }
+    return false;
+}
+
 //Return whether the given Unicode character is of type 'Mark,Nonspacing'
 bool isNonspacing(wchar input)
 {
@@ -487,8 +499,112 @@ bool isNonspacing(wchar input)
         ((input >= 0x064b) && (input <= 0x065e)) ||
         (input == 0x0670) ||
         ((input >= 0x06d6) && (input <= 0x06e4)) ||
-        ((input >= 0x06e7) && (input <= 0x06ed))) {
-        //fixme: add the rest of the nonspacings
+        (input == 0x06e7) || (input == 0x06e8) ||
+        ((input >= 0x06ea) && (input <= 0x06ed)) ||
+        (input == 0x0711) ||
+        ((input >= 0x0730) && (input <= 0x074a)) ||
+        ((input >= 0x07a6) && (input <= 0x07b0)) ||
+        ((input >= 0x07eb) && (input <= 0x07f3)) ||
+        (input == 0x0901) || (input == 0x0902) || (input == 0x093c) ||
+        ((input >= 0x0941) && (input <= 0x0948)) ||
+        (input == 0x094d) ||
+        ((input >= 0x0951) && (input <= 0x0954)) ||
+        (input == 0x0962) || (input == 0x0963) ||
+        (input == 0x0981) || (input == 0x09bc) ||
+        ((input >= 0x09c1) && (input <= 0x09c4)) ||
+        (input == 0x09cd) || (input == 0x09e2) || (input == 0x09e3) ||
+        (input == 0x0a01) || (input == 0x0a02) || (input == 0x0a3c) ||
+        (input == 0x0a41) || (input == 0x0a42) ||
+        (input == 0x0a47) || (input == 0x0a48) ||
+        ((input >= 0x0a4b) && (input <= 0x0a4d)) ||
+        (input == 0x0a51) || (input == 0x0a70) || (input == 0x0a71) ||
+        (input == 0x0a75) || (input == 0x0a81) ||
+        (input == 0x0a82) || (input == 0x0abc) ||
+        ((input >= 0x0ac1) && (input <= 0x0ac5)) ||
+        (input == 0x0ac7) || (input == 0x0ac8) || (input == 0x0acd) ||
+        (input == 0x0ae2) || (input == 0x0ae3) || (input == 0x0b01) ||
+        (input == 0x0b3c) || (input == 0x0b3f) ||
+        ((input >= 0x0b41) && (input <= 0x0b44)) ||
+        (input == 0x0b4d) || (input == 0x0b56) || (input == 0x0b62) ||
+        (input == 0x0b63) || (input == 0x0b82) || (input == 0x0bc0) ||
+        (input == 0x0bcd) || (input == 0x0c3e) ||
+        (input == 0x0c3f) || (input == 0x0c40) ||
+        ((input >= 0x0c46) && (input <= 0x0c48)) ||
+        ((input >= 0x0c4a) && (input <= 0x0c4d)) ||
+        (input == 0x0c55) || (input == 0x0c56) || (input == 0x0c62) ||
+        (input == 0x0c63) || (input == 0x0cbc) || (input == 0x0cbf) ||
+        (input == 0x0cc6) || (input == 0x0ccc) || (input == 0x0ccd) ||
+        (input == 0x0ce2) || (input == 0x0ce3) ||
+        ((input >= 0x0d41) && (input <= 0x0d44)) ||
+        (input == 0x0d4d) || (input == 0x0d62) ||
+        (input == 0x0d63) || (input == 0x0dca) ||
+        ((input >= 0x0dd2) && (input <= 0x0dd4)) ||
+        (input == 0x0dd6) || (input == 0x0e31) ||
+        ((input >= 0x0e34) && (input <= 0x0e3a)) ||
+        ((input >= 0x0e47) && (input <= 0x0e4e)) ||
+        (input == 0x0eb1) ||
+        ((input >= 0x0eb4) && (input <= 0x0eb9)) ||
+        (input == 0x0ebb) || (input == 0x0ebc) ||
+        ((input >= 0x0ec8) && (input <= 0x0ecd)) ||
+        (input == 0x0f18) || (input == 0x0f19) || (input == 0x0f35) ||
+        (input == 0x0f37) || (input == 0x0f39) ||
+        ((input >= 0x0f71) && (input <= 0x0f7e)) ||
+        ((input >= 0x0f80) && (input <= 0x0f84)) ||
+        (input == 0x0f86) || (input == 0x0f87) ||
+        ((input >= 0x0f90) && (input <= 0x0f97)) ||
+        ((input >= 0x0f99) && (input <= 0x0fbc)) ||
+        (input == 0x0fc6) ||
+        ((input >= 0x102d) && (input <= 0x1030)) ||
+        ((input >= 0x1032) && (input <= 0x1037)) ||
+        (input == 0x1039) || (input == 0x103a) || (input == 0x103d) ||
+        (input == 0x103e) || (input == 0x1058) || (input == 0x1059) ||
+        ((input >= 0x105e) && (input <= 0x1060)) ||
+        ((input >= 0x1071) && (input <= 0x1074)) ||
+        (input == 0x1082) || (input == 0x1085) || (input == 0x1086) ||
+        (input == 0x108d) || (input == 0x135f) ||
+        ((input >= 0x1712) && (input <= 0x1714)) ||
+        ((input >= 0x1732) && (input <= 0x1734)) ||
+        (input == 0x1752) || (input == 0x1753) ||
+        (input == 0x1772) || (input == 0x1773) ||
+        ((input >= 0x17b7) && (input <= 0x17bd)) ||
+        (input == 0x17c6) ||
+        ((input >= 0x17c9) && (input <= 0x17d3)) ||
+        (input == 0x17dd) ||
+        ((input >= 0x180b) && (input <= 0x180d)) ||
+        (input == 0x18a9) ||
+        ((input >= 0x1920) && (input <= 0x1922)) ||
+        (input == 0x1927) || (input == 0x1928) || (input == 0x1932) ||
+        ((input >= 0x1939) && (input <= 0x193b)) ||
+        (input == 0x1a17) || (input == 0x1a18) ||
+        ((input >= 0x1b00) && (input <= 0x1b03)) ||
+        (input == 0x1b34) ||
+        ((input >= 0x1b37) && (input <= 0x1b3a)) ||
+        (input == 0x1b3c) || (input == 0x1b42) ||
+        ((input >= 0x1b6b) && (input <= 0x1b73)) ||
+        (input == 0x1b80) || (input == 0x1b81) ||
+        ((input >= 0x1ba2) && (input <= 0x1ba5)) ||
+        (input == 0x1ba8) || (input == 0x1ba9) ||
+        ((input >= 0x1c2c) && (input <= 0x1c33)) ||
+        (input == 0x1c36) || (input == 0x1c37) ||
+        ((input >= 0x1dc0) && (input <= 0x1de6)) ||
+        (input == 0x1dfe) || (input == 0x1dff) ||
+        ((input >= 0x20d0) && (input <= 0x20dc)) ||
+        (input == 0x20e1) ||
+        ((input >= 0x20e5) && (input <= 0x20f0)) ||
+        ((input >= 0x2de0) && (input <= 0x2dff)) ||
+        ((input >= 0x302a) && (input <= 0x302f)) ||
+        (input == 0x3099) || (input == 0x309a) ||
+        (input == 0xa66f) || (input == 0xa67c) || (input == 0xa67d) ||
+        (input == 0xa802) || (input == 0xa806) || (input == 0xa80b) ||
+        (input == 0xa825) || (input == 0xa826) || (input == 0xa8c4) ||
+        ((input >= 0xa926) && (input <= 0xa92d)) ||
+        ((input >= 0xa947) && (input <= 0xa951)) ||
+        ((input >= 0xaa29) && (input <= 0xaa2e)) ||
+        (input == 0xaa31) || (input == 0xaa32) || (input == 0xaa35) ||
+        (input == 0xaa36) || (input == 0xaa43) ||
+        (input == 0xaa4c) || (input == 0xfb1e) ||
+        ((input >= 0xfe00) && (input <= 0xfe0f)) ||
+        ((input >= 0xfe20) && (input <= 0xfe26)) ) {
         return true;
     }
     return false;

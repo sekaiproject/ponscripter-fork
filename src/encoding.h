@@ -43,6 +43,8 @@ void DeleteLigature(const pstring& in);
 void DefaultLigatures(int which);
 void ClearLigatures();
 
+// Unicode category checks
+bool isSpace(wchar input);
 bool isNonspacing(wchar input);
 
 

@@ -1503,6 +1503,7 @@ void PonscripterLabel::clearCurrentTextBuffer()
     current_text_buffer->clear();
 
     num_chars_in_sentence = 0;
+    string_buffer_offset = 0;
     internal_saveon_flag  = true;
 
     text_info.fill(0, 0, 0, 0);

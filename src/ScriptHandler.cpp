@@ -1014,7 +1014,7 @@ int ScriptHandler::readScript(DirPaths *path, const char* prefer_name)
         if (!strncmp(buf, "gameid ", 7)) {
             buf += 7;
             int i = 0;
-            while ((buf[i++] != ' ') && (buf[i++] != '\n')) ;
+            while (buf[i++] >= ' ') ;
             game_identifier = pstring(buf, i - 1);
             buf += i;
         }

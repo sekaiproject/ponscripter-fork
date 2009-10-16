@@ -7,6 +7,8 @@
   Removed default indent and break chars (except for break on space);
   added "basic" option to "pindentstr" and "pbreakstr", which will restore
   those defaults (e.g. use "pindentstr basic") [Mion]
+  
+  various bugfixes [Mion]
 
 
 2009-10-13

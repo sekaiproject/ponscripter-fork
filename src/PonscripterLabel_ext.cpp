@@ -244,27 +244,28 @@ int PonscripterLabel::haeleth_char_setCommand(const pstring& cmd)
     pstring s = e.as_string();
     if (e.is_bareword() && (s == "basic")) {
         if (is_indent) {
-            indent_chars.insert(0x0028);
-            indent_chars.insert(0x2014);
-            indent_chars.insert(0x2018);
-            indent_chars.insert(0x201c);
-            indent_chars.insert(0x300c);
-            indent_chars.insert(0x300e);
-            indent_chars.insert(0xff08);
-            indent_chars.insert(0xff5e);
-            indent_chars.insert(0xff62);
+            char_set.insert(0x0028); //left paren
+            char_set.insert(0x2014); //em dash
+            char_set.insert(0x2018); //left single curly quote
+            char_set.insert(0x201c); //left double curly quote
+            char_set.insert(0x300c); //left corner bracket
+            char_set.insert(0x300e); //left white cornet bracket
+            char_set.insert(0xff08); //fullwidth left paren
+            char_set.insert(0xff5e); //fullwidth tilde
+            char_set.insert(0xff62); //halfwidth left corner bracket
         } else {
-            break_chars.insert(0x0020);
-            break_chars.insert(0x002d);
-            break_chars.insert(0x2013);
-            break_chars.insert(0x2014);
+            char_set.insert(0x0020); //space
+            char_set.insert(0x002d); //hyphen-minus
+            char_set.insert(0x2013); //en dash
+            char_set.insert(0x2014); //em dash
         }
-    }
-    pstrIter it(s);
-    if (it.get() == file_encoding->TextMarker()) it.next();
-    while (it.get() >= 0) {
-	char_set.insert(it.get());
-	it.next();
+    } else {
+        pstrIter it(s);
+        if (it.get() == file_encoding->TextMarker()) it.next();
+        while (it.get() >= 0) {
+            char_set.insert(it.get());
+            it.next();
+        }
     }
     return RET_CONTINUE;
 }
