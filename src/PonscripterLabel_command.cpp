@@ -980,6 +980,7 @@ int PonscripterLabel::resetCommand(const pstring& cmd)
 {
     resetSub();
     clearCurrentTextBuffer();
+    string_buffer_offset = 0;
 
     setCurrentLabel("start");
     saveSaveFile(-1);
