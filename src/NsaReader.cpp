@@ -56,7 +56,7 @@ int NsaReader::open(const pstring& nsa_path, int archive_type)
             archive_name = nsa_path + "arc." + nsa_archive_ext;
             archive_name2 = archive_path->get_path(n) + archive_name;
         } else {
-            archive_name2.format("arc%d", i);
+            archive_name2.format("arc%d", j+1);
             archive_name = nsa_path + archive_name2 + "." + nsa_archive_ext;
             archive_name2 = archive_path->get_path(n) + archive_name;
         }
