@@ -702,7 +702,7 @@ ScriptParser::Effect& ScriptParser::parseEffect(bool init_flag)
     if (tmp_effect.effect == 0 || tmp_effect.effect == 1) return tmp_effect;
 
     for (Effect::iterator it = effects.begin(); it != effects.end(); ++it)
-        if (it->no == tmp_effect.effect) return *it;
+        if (*it && ((*it)->no == tmp_effect.effect)) return **it;
 
     fprintf(stderr, "Effect No. %d is not found.\n", tmp_effect.effect);
     exit(-1);

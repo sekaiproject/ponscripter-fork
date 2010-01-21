@@ -967,12 +967,13 @@ int ScriptParser::effectCommand(const pstring& cmd)
 
     if (current_mode != DEFINE_MODE) errorAndExit("effect: not in the define section");
 
-    Effect e;
-    e.no = script_h.readIntValue();
-    if (e.no < 2 || e.no > 255) errorAndExit("Effect No. is out of range");
-    readEffect(e);
+    Effect *e = new Effect;
+
+    e->no = script_h.readIntValue();
+    if (e->no < 2 || e->no > 255) errorAndExit("Effect No. is out of range");
+    readEffect(*e);
     effects.push_back(e);
-    
+
     return RET_CONTINUE;
 }
 

@@ -799,7 +799,6 @@ private:
                bool clear_dirty_flag = true, bool direct_flag = false);
     void flushDirect(SDL_Rect &rect, int refresh_mode, bool updaterect = true);
     void executeLabel();
-    SDL_Surface* loadImage(const pstring& file_name, bool* has_alpha = NULL);
     int parseLine();
 
     void mouseOverCheck(int x, int y);
@@ -829,16 +828,18 @@ private:
 
     /* ---------------------------------------- */
     /* Image processing */
-    unsigned char* resize_buffer;
-    size_t resize_buffer_size;
+    SDL_Surface* loadImage(const pstring& file_name, bool* has_alpha = NULL);
+    SDL_Surface *createRectangleSurface(const pstring& filename);
+    SDL_Surface *createSurfaceFromFile(const pstring& filename, int *location);
 
-    int  resizeSurface(SDL_Surface* src, SDL_Surface* dst);
     void shiftCursorOnButton(int diff);
-    void alphaBlend(SDL_Surface* mask_surface, int trans_mode,
-             Uint32 mask_value = 255, SDL_Rect* clip = 0);
-    void alphaBlend32(SDL_Surface* dst_surface, SDL_Rect dst_rect,
-             SDL_Surface* src_surface, SDL_Color &color, SDL_Rect* clip,
-             bool rotate_flag);
+    void alphaMaskBlend(SDL_Surface *mask_surface, int trans_mode,
+                        Uint32 mask_value = 255, SDL_Rect *clip=NULL,
+                        SDL_Surface *src1=NULL, SDL_Surface *src2=NULL,
+                        SDL_Surface *dst=NULL);
+    void alphaBlendText(SDL_Surface *dst_surface, SDL_Rect dst_rect,
+                        SDL_Surface *txt_surface, SDL_Color &color,
+                        SDL_Rect *clip, bool rotate_flag);
     void makeNegaSurface(SDL_Surface* surface, SDL_Rect &clip);
     void makeMonochromeSurface(SDL_Surface* surface, SDL_Rect &clip);
     void refreshSurface(SDL_Surface* surface, SDL_Rect* clip_src,

@@ -23,6 +23,7 @@ PREFIX=/usr/local
 if [ -z "$MAKE"   ]; then MAKE=make; fi
 if [ -z "$AR"     ]; then AR=ar; fi
 if [ -z "$RANLIB" ]; then RANLIB=ranlib; fi
+WERROR="-Werror"
 UNSUPPORTED_COMPILER=false
 CROSSCOMPILE=false
 STRIPFLAG=-s
@@ -80,6 +81,8 @@ do
       --make | -make)
         prev=MAKE
         ;;
+      --no-werror | -no-werror)
+        WERROR="" ;;
       --unsupported-compiler | -unsupported-compiler)
         UNSUPPORTED_COMPILER=true ;;
       --unsupported-compiler=* | -unsupported-compiler=*)
@@ -252,6 +255,7 @@ case $PLATFORM in
 *)         echo "$PLATFORM (unsupported; using vanilla Posix build instructions)" ;;
 esac
 
+ARCH=
 if [ $PLATFORM != $BUILDPLATFORM ]
 then
     case $PLATFORM in
@@ -272,6 +276,15 @@ then
         *)
             echo "Note: detected platform is $BUILDPLATFORM; expect trouble"
             ;;
+    esac
+else
+    $echo_n "         cpu type...      ${nobr}"
+    case "$PLATFORM" in
+    *86_64*)   echo "x86_64";   ARCH=x86_64;;
+    *86*)      ARCH=`expr "x$PLATFORM" : 'x\(.*86\).*'`; \
+               echo "$ARCH";;
+    *powerpc*) echo "PowerPC";  ARCH=ppc;;
+    *)         echo "unknown";;
     esac
 fi
 
@@ -380,15 +393,17 @@ fi
 
 # Libraries
 
-rm -rf .configtest
-mkdir .configtest
-cd .configtest
-
 if $INTERNAL_SDL
 then
     SDL_CONFIG=$EXTLIB/bin/sdl-config
 else
     $echo_n "Checking for system SDL... ${nobr}"
+    case "$SYS" in
+        MinGW)  SDL_CONFIG=`pwd`/src/extlib
+                cd src/win_dll; make prefix=$SDL_CONFIG > /dev/null 2>&1; cd ../..
+                SDL_CONFIG=$SDL_CONFIG/bin/sdl-config
+                cp -p ./src/win_dll/SDL.dll `pwd`/src;;
+        esac
     VER=`($SDL_CONFIG --version) 2>/dev/null`
     if [ -n "$VER" ]
     then
@@ -403,6 +418,17 @@ else
 	internalise_SDL
     fi
 fi
+
+if $INTERNAL_SDL
+then
+    case "$SYS" in
+        MinGW)  echo "Using internal SDL - might not work with DirectX" ;;
+        esac
+fi
+
+rm -rf .configtest
+mkdir .configtest
+cd .configtest
 
 if not $INTERNAL_SDL_IMAGE
 then
@@ -729,6 +755,24 @@ MinGW)  EXE=.exe ; OBJ=.o ; LIB=.a ; W32=true ;;
    exit 1 ;;
 esac
 
+case "x$ARCH" in
+xx86_64) USE_X86_GFX=true
+         GFX_MMX_FLAGS="-mmmx -DUSE_X86_GFX"
+         GFX_SSE2_FLAGS="-msse2 -DUSE_X86_GFX"
+         GFX_EXT_OBJS="graphics_mmx.o graphics_sse2.o"
+         CFLAGSEXTRA="$CFLAGSEXTRA -DUSE_X86_GFX";;
+x*86)    USE_X86_GFX=true
+         GFX_MMX_FLAGS="-mmmx -DUSE_X86_GFX"
+         GFX_SSE2_FLAGS="-msse2 -DUSE_X86_GFX"
+         GFX_EXT_OBJS="graphics_mmx.o graphics_sse2.o"
+         CFLAGSEXTRA="$CFLAGSEXTRA -DUSE_X86_GFX";;
+xppc)    USE_PPC_GFX=true
+         GFX_MALTIVEC_FLAGS="-maltivec -DUSE_PPC_GFX"
+         GFX_EXT_OBJS="graphics_maltivec.o"
+         CFLAGSEXTRA="$CFLAGSEXTRA -DUSE_PPC_GFX";;
+*)       GFX_EXT_OBJS=;;
+esac
+
 
 cat > $MAKEFILE <<_EOF
 # -*- makefile-gmake -*-
@@ -751,6 +795,7 @@ INTERNAL_SMPEG=\$(findstring true,$INTERNAL_SMPEG)
 INTERNAL_LIBPNG=\$(findstring true,$INTERNAL_LIBPNG)
 INTERNAL_LIBJPEG=\$(findstring true,$INTERNAL_LIBJPEG)
 INTERNAL_OGGLIBS=\$(findstring true,$INTERNAL_OGGLIBS)
+SDL_CONFIG=$SDL_CONFIG
 
 export CC      := $CC
 export CXX     := $CXX
@@ -761,7 +806,7 @@ export RANLIB  := $RANLIB
 
 # Ponscripter variables
 PSCFLAGS = $CFLAGSEXTRA
-INCS = $OURINCS \$(shell $SDL_CONFIG --cflags)      \\
+INCS = $OURINCS \$(shell \$(SDL_CONFIG) --cflags)      \\
                 \$(shell $SMPEG_CONFIG --cflags)    \\
                 \$(shell $FREETYPE_CONFIG --cflags)
 _EOF
@@ -776,19 +821,27 @@ SDLOTHERCONFIG := --host=i586-mingw32msvc
 
 _EOF
 fi
+
+if $INTERNAL_SDL
+then
+  MY_SDL_LIBS="\$(filter-out -lSDLmain,\$(shell \$(SDL_CONFIG) --static-libs))"
+else
+  MY_SDL_LIBS="\$(shell \$(SDL_CONFIG) --static-libs)"
+fi
+
 cat >> $MAKEFILE <<_EOF
 export WINDRES := $WINDRES
 
 LIBS = $OURLIBS \\
        -static -Wl,--start-group \\
-       \$(filter-out -lSDLmain,\$(shell $SDL_CONFIG --static-libs)) \\
+       $MY_SDL_LIBS \\
        \$(shell $SMPEG_CONFIG --libs) \$(shell $FREETYPE_CONFIG --libs) \\
        $LINKSDL_image $LINKjpeg $LINKpng $LINKz \\
        $LINKSDL_mixer $LINKogg $LINKvorbis $LINKvorbisfile \\
        $LINKbz2 -Wl,--end-group
 
 DEFS = -DWIN32 -DUSE_OGG_VORBIS
-EXT_OBJS = SDL_win32_main.o win32rc.o
+EXT_OBJS = SDL_win32_main.o win32rc.o $GFX_EXT_OBJS
 _EOF
 ;;
 MacOSX)
@@ -802,15 +855,17 @@ LIBS = $OURLIBS \\
        $LINKSDL_mixer $LINKogg $LINKvorbis $LINKvorbisfile \\
        $LINKbz2 -lm -framework QuickTime -framework CoreFoundation
 
-DEFS = -DMACOSX -DUTF8_FILESYSTEM -DUSE_OGG_VORBIS
+DEFS = -DMACOSX -DUTF8_CAPTION -DUTF8_FILESYSTEM -DUSE_OGG_VORBIS
 NO_DEFAULT_ICON = true
+EXT_OBJS = $GFX_EXT_OBJS
 
 _EOF
 ;;
 Posix)
 case "$POSIX" in
 Linux)   INTERNAL_LDFLAGS="-ldl -lasound" ;;
-FreeBSD) INTERNAL_LDFLAGS="-L/usr/X11R6/lib -lX11 -lXi -lXrandr" ;;
+FreeBSD) INTERNAL_LDFLAGS="-L/usr/X11R6/lib -lX11 -lXi -lXrandr -liconv"
+         EXTRA_DEPS="-DCONST_ICONV" ;;
 NetBSD)  INTERNAL_LDFLAGS="\$(foreach x,11 i randr ext render,/usr/X11R6/lib/libX\$(x).a) -lossaudio" ;;
 OpenBSD) INTERNAL_LDFLAGS="-L/usr/X11R6/lib -lX11 -lXi -lXrandr -lossaudio" ;;
 Solaris) INTERNAL_LDFLAGS="-lX11 -lXext"
@@ -834,6 +889,7 @@ LIBS = $OURLIBS \\
        $LINKbz2 \$(if \$(findstring true,$INTERNAL_SDL),$INTERNAL_LDFLAGS)
 
 DEFS = -DLINUX -DUSE_OGG_VORBIS $EXTRA_DEPS
+EXT_OBJS = $GFX_EXT_OBJS
 _EOF
 ;; esac
 if [ "$POSIX" = "Linux" ]
@@ -842,15 +898,17 @@ then cat >> $MAKEFILE <<_EOF
 SDL_MIXER_FLAGS = --enable-music-native-midi-gpl
 _EOF
 fi
+
 cat >> $MAKEFILE <<_EOF
 
 .SUFFIXES:
 .SUFFIXES: $OBJ .cpp .h .c
 
 ifdef DEBUG
-PSCFLAGS += -g -ggdb3 -O0 -Wall -Wno-parentheses -Wpointer-arith -Werror
+PSCFLAGS += -g -ggdb3 -O0 -Wall -Wno-parentheses -Wpointer-arith $WERROR -pipe
+#export LDFLAGS  := -pg \$(LDFLAGS)
 else
-PSCFLAGS += -O3 -Wpointer-arith -Wno-parentheses -Wno-uninitialized -Werror -fomit-frame-pointer -pipe 
+PSCFLAGS += -O3 -Wno-parentheses -Wpointer-arith -Wno-uninitialized $WERROR -fomit-frame-pointer -pipe
 endif
 
 .PHONY: all clean distclean
@@ -886,6 +944,26 @@ SDL_win32_main.o: SDL_win32_main.c
 _EOF
 fi
 
+if $USE_X86_GFX
+then
+cat >> $MAKEFILE <<_EOF
+
+graphics_sse2.o: graphics_sse2.cpp graphics_sse2.h graphics_common.h
+	\$(CXX) \$(INCS) \$(DEFS) $GFX_SSE2_FLAGS -c \$< -o \$@
+
+graphics_mmx.o: graphics_mmx.cpp graphics_mmx.h graphics_common.h
+	\$(CXX) \$(INCS) \$(DEFS) $GFX_MMX_FLAGS -c \$< -o \$@
+_EOF
+elif $USE_PPC_GFX
+then
+cat >> $MAKEFILE <<_EOF
+
+graphics_maltivec.o: graphics_maltivec.cpp  graphics_maltivec.h graphics_common.h
+	\$(CXX) \$(INCS) \$(DEFS) $GFX_MALTIVEC_FLAGS -c \$< -o \$@
+_EOF
+fi
+
+
 cat > Makefile <<_EOF
 # -*- makefile-gmake -*-
 #
@@ -900,7 +978,7 @@ cat > Makefile <<_EOF
 
 export TARGET   := ponscr$EXE
 export PREFIX   := $PREFIX
-export PATH     := $OURPATH \$(PATH)
+export PATH     := $OURPATH\$(PATH)
 export CFLAGS   := $OURINCLUDE \$(CFLAGS)
 export CPPFLAGS := $OURINCLUDE \$(CPPFLAGS)
 export LDFLAGS  := $OURLDFLAGS \$(LDFLAGS)

@@ -242,7 +242,7 @@ protected:
     /* ---------------------------------------- */
     /* Effect related variables */
     struct Effect {
-        typedef std::vector<Effect> vector;
+        typedef std::vector<Effect*> vector;
         typedef vector::iterator iterator;
         int no;
         int effect;
@@ -250,6 +250,10 @@ protected:
         AnimationInfo anim;
 
         Effect() : effect(10), duration(0) {}
+        Effect(const Effect &e) :
+            no(e.no), effect(e.effect), duration(e.duration), anim(e.anim) {
+                anim.deepcopy(e.anim);
+            }
     } window_effect, tmp_effect;
     Effect::vector effects;
 

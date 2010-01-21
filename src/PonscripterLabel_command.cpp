@@ -2011,7 +2011,7 @@ int PonscripterLabel::getscreenshotCommand(const pstring& cmd)
     SDL_Surface* surface =
 	SDL_ConvertSurface(screen_surface,image_surface->format, SDL_SWSURFACE);
 
-    resizeSurface(surface, screenshot_surface);
+    AnimationInfo::resizeSurface(surface, screenshot_surface);
     SDL_FreeSurface(surface);
 
     return RET_CONTINUE;

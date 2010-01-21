@@ -74,18 +74,18 @@ PonscripterLabel::drawGlyph(SDL_Surface* dst_surface, Fontinfo* info,
 
         if (cache_info == &text_info) {
             // When rendering text
-            cache_info->blendBySurface(g.bitmap, dst_rect.x, dst_rect.y,
-				       color, clip);
+            cache_info->blendText(g.bitmap, dst_rect.x, dst_rect.y,
+                                  color, clip);
             cache_info->blendOnSurface(dst_surface, 0, 0, dst_rect);
         }
         else {
             if (cache_info)
-                cache_info->blendBySurface(g.bitmap, dst_rect.x, dst_rect.y,
-					   color, clip);
+                cache_info->blendText(g.bitmap, dst_rect.x, dst_rect.y,
+                                      color, clip);
 
             if (dst_surface)
-                alphaBlend32(dst_surface, dst_rect, g.bitmap, color, clip,
-			     rotate_flag);
+                alphaBlendText(dst_surface, dst_rect, g.bitmap, color, clip,
+                               rotate_flag);
         }
     }
 }

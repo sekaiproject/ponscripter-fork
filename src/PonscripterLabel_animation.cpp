@@ -193,7 +193,7 @@ void downscale4x(SDL_Surface* src, SDL_Rect* srcpos, SDL_Surface* dst, SDL_Rect*
 
 void PonscripterLabel::setupAnimationInfo(AnimationInfo* anim, Fontinfo* info)
 {
-    anim->deleteSurface();
+    anim->deleteImage();
     anim->abs_flag = true;
 
     if (anim->trans_mode == AnimationInfo::TRANS_STRING) {
@@ -248,12 +248,13 @@ void PonscripterLabel::setupAnimationInfo(AnimationInfo* anim, Fontinfo* info)
         }
     }
     else {
-	bool has_alpha;
-        SDL_Surface *surface = loadImage(anim->file_name, &has_alpha),
-                  *surface_m = anim->trans_mode == AnimationInfo::TRANS_MASK
-	                     ? loadImage(anim->mask_file_name)
-	                     : NULL;
-	
+        bool has_alpha;
+        SDL_Surface *surface = loadImage( anim->file_name, &has_alpha );
+
+        SDL_Surface *surface_m = NULL;
+        if (anim->trans_mode == AnimationInfo::TRANS_MASK)
+            surface_m = loadImage( anim->mask_file_name );
+
         anim->setupImage(surface, surface_m, has_alpha);
         if (surface)   SDL_FreeSurface(surface);
         if (surface_m) SDL_FreeSurface(surface_m);

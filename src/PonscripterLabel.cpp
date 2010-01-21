@@ -450,6 +450,53 @@ PonscripterLabel::PonscripterLabel()
       music_cmd(getenv("PLAYER_CMD")),
       midi_cmd(getenv("MUSIC_CMD"))
 {
+#if defined (USE_X86_GFX) && !defined(MACOSX)
+    // determine what functions the cpu supports (Mion)
+    {
+        unsigned int func, eax, ebx, ecx, edx;
+        func = AnimationInfo::CPUF_NONE;
+        if (__get_cpuid(1, &eax, &ebx, &ecx, &edx) != 0) {
+            printf("System info: Intel CPU, with functions: ");
+            if (edx & bit_MMX) {
+                func |= AnimationInfo::CPUF_X86_MMX;
+                printf("MMX ");
+            }
+            if (edx & bit_SSE) {
+                func |= AnimationInfo::CPUF_X86_SSE;
+                printf("SSE ");
+            }
+            if (edx & bit_SSE2) {
+                func |= AnimationInfo::CPUF_X86_SSE2;
+                printf("SSE2 ");
+            }
+            printf("\n");
+        }
+        AnimationInfo::setCpufuncs(func);
+    }
+#elif defined(USE_PPC_GFX) && defined(MACOSX)
+    // Determine if this PPC CPU supports AltiVec (Roto)
+    {
+        unsigned int func = AnimationInfo::CPUF_NONE;
+        int altivec_present = 0;
+    
+        size_t length = sizeof(altivec_present);
+        int error = sysctlbyname("hw.optional.altivec", &altivec_present, &length, NULL, 0);
+        if(error) {
+            AnimationInfo::setCpufuncs(AnimationInfo::CPUF_NONE);
+            return;
+        }
+        if(altivec_present) {
+            func |= AnimationInfo::CPUF_PPC_ALTIVEC;
+            printf("System info: PowerPC CPU, supports altivec\n");
+        } else {
+            printf("System info: PowerPC CPU, DOES NOT support altivec\n");
+        }
+        AnimationInfo::setCpufuncs(func);
+    }
+#else
+    AnimationInfo::setCpufuncs(AnimationInfo::CPUF_NONE);
+#endif
+
     cdrom_drive_number   = 0;
     cdaudio_flag         = false;
     disable_rescale_flag = false;
@@ -822,8 +869,6 @@ int PonscripterLabel::init(const char* preferred_script)
     internal_timer = SDL_GetTicks();
 
     trap_dist.trunc(0);
-    resize_buffer = new unsigned char[16];
-    resize_buffer_size = 16;
 
     for (i = 0; i < MAX_PARAM_NUM; i++)
         bar_info[i] = prnum_info[i] = 0;
@@ -860,12 +905,6 @@ void PonscripterLabel::reset()
     event_mode = IDLE_EVENT_MODE;
     all_sprite_hide_flag = false;
     all_sprite2_hide_flag = false;
-
-    if (resize_buffer_size != 16) {
-        delete[] resize_buffer;
-        resize_buffer = new unsigned char[16];
-        resize_buffer_size = 16;
-    }
 
     current_over_button = 0;
     variable_edit_mode  = NOT_EDIT_MODE;
@@ -1134,13 +1173,15 @@ void PonscripterLabel::executeLabel()
     // there's a bug in Ponscripter, but as I've just found such a
     // bug, it's clearly not unthinkable!)
     int loops;
-    const char* last_pointer;
+    const char* last_pointer = NULL;
+    int last_offset = 0;
     
     while (current_line < current_label_info.num_of_lines) {
 
         if (debug_level > 0) {
             // Protect against infinite loops
-            if (script_h.getCurrent() == last_pointer) {
+            if ((script_h.getCurrent() == last_pointer) &&
+                (last_offset == string_buffer_offset)) {
                 ++loops;
                 if (loops == 32)
                     errorAndExit("Likely infinite loop detected.");
@@ -1148,6 +1189,7 @@ void PonscripterLabel::executeLabel()
             else {
                 loops = 0;
                 last_pointer = script_h.getCurrent();
+                last_offset = string_buffer_offset;
             }
 
             pstring cmd = script_h.getStrBuf();
@@ -1388,100 +1430,6 @@ int PonscripterLabel::parseLine()
             line_enter_status = 0;
     }
 
-    return ret;
-}
-
-
-SDL_Surface* PonscripterLabel::loadImage(const pstring& file_name,
-                                         bool* has_alpha)
-{  
-    if (!file_name) return 0;
-
-    int location;
-    pstring dat = ScriptHandler::cBR->getFile(file_name, &location);
-    if (!dat) {
-        if (file_name != DEFAULT_LOOKBACK_NAME0 &&
-            file_name != DEFAULT_LOOKBACK_NAME1 &&
-            file_name != DEFAULT_LOOKBACK_NAME2 &&
-            file_name != DEFAULT_LOOKBACK_NAME3 &&
-            file_name != DEFAULT_CURSOR0 &&
-            file_name != DEFAULT_CURSOR1)
-          fprintf(stderr, " *** can't find file [%s] ***\n",
-                  (const char*) file_name);
-        return 0;
-    }
-    if (filelog_flag) script_h.file_log.add(file_name);
-
-    SDL_Surface* tmp = IMG_Load_RW(rwops(dat), 1);
-    if (!tmp && file_extension(file_name).caselessEqual("jpg")) {
-        fprintf(stderr, " *** force-loading a JPEG image [%s]\n",
-                (const char*) file_name);
-        SDL_RWops* src = rwops(dat);
-        tmp = IMG_LoadJPG_RW(src);
-        SDL_RWclose(src);
-    }
-        
-    if (!tmp) {
-        fprintf(stderr, " *** can't load file [%s] : %s ***\n",
-                (const char*) file_name, IMG_GetError());
-        return 0;
-    }
-
-    if (tmp && has_alpha)
-        *has_alpha = tmp->format->Amask;
-
-    SDL_Surface* ret = SDL_ConvertSurface(tmp, image_surface->format,
-                                          SDL_SWSURFACE);
-    if (ret
-        && screen_ratio2 != screen_ratio1
-        && (!disable_rescale_flag ||
-            location == BaseReader::ARCHIVE_TYPE_NONE)) {
-        SDL_Surface* src_s = ret;
-
-        int w, h;
-        if ((w = src_s->w * screen_ratio1 / screen_ratio2) == 0) w = 1;
-        if ((h = src_s->h * screen_ratio1 / screen_ratio2) == 0) h = 1;
-        SDL_PixelFormat* fmt = image_surface->format;
-        ret = SDL_CreateRGBSurface(SDL_SWSURFACE, w, h, fmt->BitsPerPixel,
-                       fmt->Rmask, fmt->Gmask, fmt->Bmask, fmt->Amask);
-
-        resizeSurface(src_s, ret);
-        SDL_FreeSurface(src_s);
-    }
-    SDL_FreeSurface(tmp);
-
-#ifndef BPP16
-    // Hack to detect when a PNG image is likely to have an old-style
-    // mask.  We assume that an old-style mask is intended if the
-    // image either has no alpha channel, or the alpha channel it has
-    // is completely opaque.  This behaviour can be overridden with
-    // the --force-png-alpha and --force-png-nscmask command-line
-    // options.
-    if (has_alpha && *has_alpha) {
-        if (png_mask_type == PNG_MASK_USE_NSCRIPTER)
-            *has_alpha = false;
-        else if (png_mask_type == PNG_MASK_AUTODETECT) {        
-            SDL_LockSurface(ret);
-            const Uint32 aval = *(Uint32*)ret->pixels & ret->format->Amask;
-            if (aval != 0xffUL << ret->format->Ashift) goto breakme;
-            *has_alpha = false;
-            for (int y=0; y<ret->h; ++y) {
-                Uint32* pixbuf = (Uint32*)((char*)ret->pixels + y * ret->pitch);
-                for (int x=0; x<ret->w; ++x, ++pixbuf) {
-                    if ((*pixbuf & ret->format->Amask) != aval) {
-                        *has_alpha = true;
-                        goto breakme;
-                    }
-                }
-            }
-        breakme:
-            SDL_UnlockSurface(ret);
-        }
-    }
-#else
-#warning "BPP16 defined: PNGs with NScripter-style masks will not work as expected"
-#endif
-    
     return ret;
 }
 

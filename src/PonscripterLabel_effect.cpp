@@ -226,7 +226,7 @@ int PonscripterLabel::doEffect(Effect& effect, bool clear_dirty_region)
 
     case 10: // Cross fade
         height = 256 * effect_counter / effect.duration;
-        alphaBlend(NULL, ALPHA_BLEND_CONST, height, &dirty_rect.bounding_box);
+        alphaMaskBlend(NULL, ALPHA_BLEND_CONST, height, &dirty_rect.bounding_box);
         break;
 
     case 11: // Left scroll
@@ -298,7 +298,7 @@ int PonscripterLabel::doEffect(Effect& effect, bool clear_dirty_region)
         break;
 
     case 15: // Fade with mask
-        alphaBlend(effect.anim.image_surface, ALPHA_BLEND_FADE_MASK, 256 * effect_counter / effect.duration, &dirty_rect.bounding_box);
+        alphaMaskBlend(effect.anim.image_surface, ALPHA_BLEND_FADE_MASK, 256 * effect_counter / effect.duration, &dirty_rect.bounding_box);
         break;
 
     case 16: // Mosaic out
@@ -310,7 +310,7 @@ int PonscripterLabel::doEffect(Effect& effect, bool clear_dirty_region)
         break;
 
     case 18: // Cross fade with mask
-        alphaBlend(effect.anim.image_surface, ALPHA_BLEND_CROSSFADE_MASK, 256 * effect_counter * 2 / effect.duration, &dirty_rect.bounding_box);
+        alphaMaskBlend(effect.anim.image_surface, ALPHA_BLEND_CROSSFADE_MASK, 256 * effect_counter * 2 / effect.duration, &dirty_rect.bounding_box);
         break;
 
     case (CUSTOM_EFFECT_NO + 0): // quakey
