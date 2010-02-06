@@ -111,7 +111,12 @@ int PonscripterLabel::vspCommand(const pstring& cmd)
 int PonscripterLabel::voicevolCommand(const pstring& cmd)
 {
     voice_volume = script_h.readIntValue();
-    if (wave_sample[0]) Mix_Volume(0, se_volume * 128 / 100);
+
+    if ( wave_sample[0] )
+        Mix_Volume( 0, voice_volume * 128 / 100 );
+
+    channelvolumes[0] = voice_volume;
+
     return RET_CONTINUE;
 }
 
@@ -564,14 +569,17 @@ int PonscripterLabel::sevolCommand(const pstring& cmd)
 {
     se_volume = script_h.readIntValue();
 
-    for (int i = 1; i < ONS_MIX_CHANNELS; i++)
-        if (wave_sample[i]) Mix_Volume(i, se_volume * 128 / 100);
+    for (int i = 1; i < ONS_MIX_CHANNELS; i++) {
+        if ( wave_sample[i] )
+            Mix_Volume( i, se_volume * 128 / 100 );
+        channelvolumes[i] = se_volume;
+    }
 
-    if (wave_sample[MIX_LOOPBGM_CHANNEL0])
-	Mix_Volume(MIX_LOOPBGM_CHANNEL0, se_volume * 128 / 100);
+    if ( wave_sample[MIX_LOOPBGM_CHANNEL0] )
+        Mix_Volume( MIX_LOOPBGM_CHANNEL0, se_volume * 128 / 100 );
 
-    if (wave_sample[MIX_LOOPBGM_CHANNEL1])
-	Mix_Volume(MIX_LOOPBGM_CHANNEL1, se_volume * 128 / 100);
+    if ( wave_sample[MIX_LOOPBGM_CHANNEL1] )
+        Mix_Volume( MIX_LOOPBGM_CHANNEL1, se_volume * 128 / 100 );
 
     return RET_CONTINUE;
 }
@@ -1353,8 +1361,7 @@ int PonscripterLabel::mp3volCommand(const pstring& cmd)
 {
     music_volume = script_h.readIntValue();
 
-    if (mp3_sample)
-	SMPEG_setvolume(mp3_sample, music_volume);
+    setCurMusicVolume(music_volume);
 
     return RET_CONTINUE;
 }
@@ -2715,7 +2722,13 @@ int PonscripterLabel::chvolCommand(const pstring& cmd)
     int vol = script_h.readIntValue();
     if (ch < 0) ch = 0;
     else if (ch >= ONS_MIX_CHANNELS) ch = ONS_MIX_CHANNELS - 1;
-    if (wave_sample[ch]) Mix_Volume(ch, vol * 128 / 100);
+
+    if (wave_sample[ch]){
+        Mix_Volume(ch, vol * 128 / 100);
+    }
+
+    channelvolumes[ch] = vol;
+
     return RET_CONTINUE;
 }
 

@@ -74,11 +74,19 @@ extern SDL_TimerID timer_midi_id;
 #define TMP_MIDI_FILE "tmp.mid"
 #define TMP_MUSIC_FILE "tmp.mus"
 
-extern long decodeOggVorbis(OVInfo* ovi, unsigned char* buf_dst, long len, bool do_rate_conversion)
+#define SWAP_SHORT_BYTES(sptr){          \
+            Uint8 *bptr = (Uint8 *)sptr; \
+            Uint8 tmpb = *bptr;          \
+            *bptr = *(bptr+1);           \
+            *(bptr+1) = tmpb;            \
+        }
+
+extern long decodeOggVorbis(PonscripterLabel::MusicStruct *music_struct, Uint8 *buf_dst, long len, bool do_rate_conversion)
 {
     int  current_section;
     long total_len = 0;
 
+    OVInfo *ovi = music_struct->ovi;
     char* buf = (char*) buf_dst;
     if (do_rate_conversion && ovi->cvt.needed) {
         len = len * ovi->mult1 / ovi->mult2;
@@ -101,21 +109,45 @@ extern long decodeOggVorbis(OVInfo* ovi, unsigned char* buf_dst, long len, bool 
 #endif
         if (src_len <= 0) break;
 
+        int vol = music_struct->volume;
         long dst_len = src_len;
-        if (do_rate_conversion && ovi->cvt.needed) {
+        if (do_rate_conversion && ovi->cvt.needed){
             ovi->cvt.len = src_len;
             SDL_ConvertAudio(&ovi->cvt);
             memcpy(buf_dst, ovi->cvt.buf, ovi->cvt.len_cvt);
-            dst_len  = ovi->cvt.len_cvt;
+            dst_len = ovi->cvt.len_cvt;
+
+            if (vol != DEFAULT_VOLUME){
+                // volume change under SOUND_OGG_STREAMING
+                for (int i=0 ; i<dst_len ; i+=2){
+                    short a = *(short*)(buf_dst+i);
+                    a = a*vol/100;
+                    *(short*)(buf_dst+i) = a;
+                }
+            }
             buf_dst += ovi->cvt.len_cvt;
         }
-        else {
+        else{
+            if (do_rate_conversion && vol != DEFAULT_VOLUME){ 
+                // volume change under SOUND_OGG_STREAMING
+                for (int i=0 ; i<dst_len ; i+=2){
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+                    SWAP_SHORT_BYTES( ((short*)(buf_dst+i)) )
+#endif
+                    short a = *(short*)(buf_dst+i);
+                    a = a*vol/100;
+                    *(short*)(buf_dst+i) = a;
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+                    SWAP_SHORT_BYTES( ((short*)(buf_dst+i)) )
+#endif
+                }
+            }
             buf += dst_len;
+            buf_dst += dst_len;
         }
 
         total_len += dst_len;
         if (src_len == len) break;
-
         len -= src_len;
     }
 #endif
@@ -125,18 +157,37 @@ extern long decodeOggVorbis(OVInfo* ovi, unsigned char* buf_dst, long len, bool 
 
 
 int PonscripterLabel::playSound(const pstring& filename, int format,
-				bool loop_flag, int channel)
+                                bool loop_flag, int channel)
 {
-    if (!filename || !audio_open_flag) return SOUND_NONE;
+    if ( !audio_open_flag ) return SOUND_NONE;
 
-    long length = ScriptHandler::cBR->getFileLength(filename);
+    long length = script_h.cBR->getFileLength( filename );
     if (length == 0) {
-	errorAndCont(filename + " not found");
-	return SOUND_NONE;
+        errorAndCont(filename + " not found");
+        return SOUND_NONE;
     }
 
-    unsigned char* buffer = new unsigned char[length];
-    ScriptHandler::cBR->getFile(filename, buffer);
+    //Mion: account for mode_wave_demo setting
+    //(i.e. if not set, then don't play non-bgm wave/ogg during skip mode)
+    if (!mode_wave_demo_flag &&
+        ( skip_flag || ctrl_pressed_status )) {
+        if ((format & (SOUND_OGG | SOUND_WAVE)) &&
+            ((channel < ONS_MIX_CHANNELS) || (channel == MIX_WAVE_CHANNEL) ||
+             (channel == MIX_CLICKVOICE_CHANNEL)))
+            return SOUND_NONE;
+    }
+
+    unsigned char* buffer;
+
+    if ((format & (SOUND_MP3 | SOUND_OGG_STREAMING)) && 
+        (length == music_buffer_length) &&
+        music_buffer ){
+        buffer = music_buffer;
+    }
+    else{
+        buffer = new unsigned char[length];
+        script_h.cBR->getFile( filename, buffer );
+    }
 
     if (format & (SOUND_OGG | SOUND_OGG_STREAMING)) {
         int ret = playOGG(format, buffer, length, loop_flag, channel);
@@ -156,14 +207,15 @@ int PonscripterLabel::playSound(const pstring& filename, int format,
             FILE* fp = fopen(script_h.save_path + TMP_MUSIC_FILE, "wb");
             if (fp == NULL) {
                 fprintf(stderr, "can't open temporary music file %s\n",
-			TMP_MUSIC_FILE);
+                        TMP_MUSIC_FILE);
             }
             else {
                 fwrite(buffer, 1, length, fp);
                 fclose(fp);
                 ext_music_play_once_flag = !loop_flag;
                 if (playExternalMusic(loop_flag) == 0) {
-                    delete[] buffer;
+                    music_buffer = buffer;
+                    music_buffer_length = length;
                     return SOUND_MP3;
                 }
             }
@@ -171,7 +223,8 @@ int PonscripterLabel::playSound(const pstring& filename, int format,
 
         mp3_sample = SMPEG_new_rwops(SDL_RWFromMem(buffer, length), NULL, 0);
         if (playMP3() == 0) {
-            mp3_buffer = buffer;
+            music_buffer = buffer;
+            music_buffer_length = length;
             return SOUND_MP3;
         }
     }
@@ -187,7 +240,7 @@ int PonscripterLabel::playSound(const pstring& filename, int format,
         FILE* fp = fopen(script_h.save_path + TMP_MIDI_FILE, "wb");
         if (fp == NULL) {
             fprintf(stderr, "can't open temporary MIDI file %s\n",
-		    TMP_MIDI_FILE);
+                    TMP_MIDI_FILE);
         }
         else {
             fwrite(buffer, 1, length, fp);
@@ -264,13 +317,26 @@ int PonscripterLabel::playMP3()
     }
 
 #ifndef MP3_MAD
-    SMPEG_enableaudio(mp3_sample, 0);
-    SMPEG_actualSpec(mp3_sample, &audio_format);
-    SMPEG_enableaudio(mp3_sample, 1);
+    //Mion - SMPEG doesn't handle different audio spec well, so we might
+    // reset the SDL mixer
+    SDL_AudioSpec wanted;
+    SMPEG_wantedSpec( mp3_sample, &wanted );
+    if ((wanted.format != audio_format.format) ||
+        (wanted.freq != audio_format.freq)) {
+        Mix_CloseAudio();
+        openAudio(wanted.freq, wanted.format, wanted.channels);
+        if (!audio_open_flag) {
+            // didn't work, use the old settings
+            openAudio();
+       }
+    }
+    SMPEG_enableaudio( mp3_sample, 0 );
+    SMPEG_actualSpec( mp3_sample, &audio_format );
+    SMPEG_enableaudio( mp3_sample, 1 );
 #endif
-    SMPEG_setvolume(mp3_sample, music_volume);
-    Mix_HookMusic(mp3callback, mp3_sample);
-    SMPEG_play(mp3_sample);
+    SMPEG_setvolume( mp3_sample, music_volume );
+    Mix_HookMusic( mp3callback, mp3_sample );
+    SMPEG_play( mp3_sample );
 
     return 0;
 }
@@ -284,20 +350,47 @@ int PonscripterLabel::playOGG(int format, unsigned char* buffer, long length, bo
 
     if (format & SOUND_OGG) {
         unsigned char* buffer2 = new unsigned char[sizeof(WAVE_HEADER) + ovi->decoded_length];
-        decodeOggVorbis(ovi, buffer2 + sizeof(WAVE_HEADER), ovi->decoded_length, false);
-        setupWaveHeader(buffer2, channels, rate, ovi->decoded_length);
+
+        MusicStruct ms;
+        ms.ovi = ovi;
+        ms.voice_sample = NULL;
+        ms.volume = channelvolumes[channel];
+        decodeOggVorbis(&ms, buffer2 + sizeof(WAVE_HEADER), ovi->decoded_length, false);
+        setupWaveHeader(buffer2, channels, rate, 16, ovi->decoded_length);
         Mix_Chunk* chunk = Mix_LoadWAV_RW(SDL_RWFromMem(buffer2, sizeof(WAVE_HEADER) + ovi->decoded_length), 1);
         delete[] buffer2;
         closeOggVorbis(ovi);
+        delete[] buffer;
 
         playWave(chunk, format, loop_flag, channel);
 
         return SOUND_OGG;
     }
 
-    music_ovi = ovi;
-    Mix_VolumeMusic(music_volume * 128 / 100);
-    Mix_HookMusic(oggcallback, music_ovi);
+    if ((audio_format.format != AUDIO_S16) ||
+        (audio_format.freq != rate)) {
+        Mix_CloseAudio();
+        openAudio(rate, AUDIO_S16, channels);
+        ovi->cvt.needed = 0;
+        if (!audio_open_flag) {
+            // didn't work, use the old settings
+            openAudio();
+            ovi->cvt_len = 0;
+            SDL_BuildAudioCVT(&ovi->cvt,
+                      AUDIO_S16, channels, rate,
+                      audio_format.format, audio_format.channels, audio_format.freq);
+            ovi->mult1 = 10;
+            ovi->mult2 = (int)(ovi->cvt.len_ratio*10.0);
+       }
+    }
+
+    music_struct.ovi = ovi;
+    music_struct.volume = music_volume;
+    //music_struct.is_mute = !volume_on_flag;
+    Mix_HookMusic(oggcallback, &music_struct);
+
+    music_buffer = buffer;
+    music_buffer_length = length;
 
     return SOUND_OGG_STREAMING;
 }
@@ -367,6 +460,30 @@ int PonscripterLabel::playMIDI(bool loop_flag)
     Mix_PlayMusic(midi_info, midi_looping);
 #endif
     current_cd_track = -2;
+
+    return 0;
+}
+
+
+int PonscripterLabel::playingMusic()
+{
+    if ((Mix_GetMusicHookData() != NULL) || (Mix_Playing(MIX_BGM_CHANNEL) == 1)
+        || (Mix_PlayingMusic() == 1))
+        return 1;
+    else
+        return 0;
+}
+
+int PonscripterLabel::setCurMusicVolume( int volume )
+{
+    if (Mix_GetMusicHookData() != NULL) { // for streamed MP3 & OGG
+        if ( mp3_sample ) SMPEG_setvolume( mp3_sample, volume ); // mp3
+        else music_struct.volume = volume; // ogg
+    } else if (Mix_Playing(MIX_BGM_CHANNEL) == 1) { // wave
+        Mix_Volume( MIX_BGM_CHANNEL, volume * 128 / 100 );
+    } else if (Mix_PlayingMusic() == 1) { // midi
+        Mix_VolumeMusic( volume * 128 / 100 );
+    }
 
     return 0;
 }
@@ -573,18 +690,13 @@ void PonscripterLabel::stopBGM(bool continue_flag)
         Mix_HookMusic(NULL, NULL);
         SMPEG_delete(mp3_sample);
         mp3_sample = NULL;
-
-        if (mp3_buffer) {
-            delete[] mp3_buffer;
-            mp3_buffer = NULL;
-        }
     }
 
-    if (music_ovi) {
+    if (music_struct.ovi){
         Mix_HaltMusic();
-        Mix_HookMusic(NULL, NULL);
-        closeOggVorbis(music_ovi);
-        music_ovi = NULL;
+        Mix_HookMusic( NULL, NULL );
+        closeOggVorbis(music_struct.ovi);
+        music_struct.ovi = NULL;
     }
 
     if (wave_sample[MIX_BGM_CHANNEL]) {
@@ -596,6 +708,10 @@ void PonscripterLabel::stopBGM(bool continue_flag)
     if (!continue_flag) {
         music_file_name = "";
         music_play_loop_flag = false;
+        if (music_buffer) {
+            delete[] music_buffer;
+            music_buffer = NULL;
+        }
     }
 
     if (midi_info) {
@@ -644,18 +760,21 @@ void PonscripterLabel::stopAllDWAVE()
 void PonscripterLabel::playClickVoice()
 {
     if (clickstr_state == CLICK_NEWPAGE) {
-	playSound(clickvoice_file_name[CLICKVOICE_NEWPAGE],
-		  SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
+        if (clickvoice_file_name[CLICKVOICE_NEWPAGE].length() > 0)
+            playSound(clickvoice_file_name[CLICKVOICE_NEWPAGE],
+                      SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
     }
     else if (clickstr_state == CLICK_WAIT) {
-	playSound(clickvoice_file_name[CLICKVOICE_NORMAL],
-		  SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
+        if (clickvoice_file_name[CLICKVOICE_NORMAL].length() > 0)
+            playSound(clickvoice_file_name[CLICKVOICE_NORMAL],
+                      SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
     }
 }
 
 
-void PonscripterLabel::setupWaveHeader(unsigned char* buffer, int channels,
-				       int rate, unsigned long data_length)
+void PonscripterLabel::setupWaveHeader(unsigned char *buffer, int channels,
+                                       int rate, int bits,
+                                       unsigned long data_length )
 {
     memcpy(header.chunk_riff, "RIFF", 4);
     int riff_length = sizeof(WAVE_HEADER) + data_length - 8;
@@ -673,7 +792,7 @@ void PonscripterLabel::setupWaveHeader(unsigned char* buffer, int channels,
     header.frequency[2] = (rate >> 16) & 0xff;
     header.frequency[3] = (rate >> 24) & 0xff;
 
-    int sample_byte_size = 2 * channels; // 16bit * channels
+    int sample_byte_size = channels * bits / 8;
     int byte_size = sample_byte_size * rate;
     header.byte_size[0] = byte_size & 0xff;
     header.byte_size[1] = (byte_size >> 8) & 0xff;
@@ -681,7 +800,7 @@ void PonscripterLabel::setupWaveHeader(unsigned char* buffer, int channels,
     header.byte_size[3] = (byte_size >> 24) & 0xff;
     header.sample_byte_size[0] = sample_byte_size;
     header.sample_byte_size[1] = 0;
-    header.sample_bit_size[0]  = 16; // 16bit
+    header.sample_bit_size[0] = bits;
     header.sample_bit_size[1]  = 0;
 
     memcpy(header.chunk_id, "data", 4);
@@ -747,7 +866,7 @@ static long oc_tell_func(void* datasource)
 
 #endif
 OVInfo* PonscripterLabel::openOggVorbis(unsigned char* buf, long len,
-					int &channels, int &rate)
+                                        int &channels, int &rate)
 {
     OVInfo* ovi = NULL;
 

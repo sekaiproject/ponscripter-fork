@@ -73,7 +73,7 @@ SDL_Surface *PonscripterLabel::loadImage(const pstring& filename,
         else if (png_mask_type == PNG_MASK_AUTODETECT) {
             SDL_LockSurface(ret);
             const Uint32 aval = *(Uint32*)ret->pixels & ret->format->Amask;
-            if (aval != 0xffUL << ret->format->Ashift) goto breakalpha;
+            if (aval != ret->format->Amask) goto breakalpha;
             *has_alpha = false;
             for (int y=0; y<ret->h; ++y) {
                 Uint32* pixbuf = (Uint32*)((char*)ret->pixels + y * ret->pitch);

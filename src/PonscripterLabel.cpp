@@ -53,7 +53,6 @@ extern "C" void waveCallback(int channel);
 #define REGISTRY_FILE "registry.txt"
 #define DLL_FILE "dll.txt"
 #define DEFAULT_ENV_FONT "Sans"
-#define DEFAULT_VOLUME 100
 
 typedef int (PonscripterLabel::*PonscrFun)(const pstring&);
 static class sfunc_lut_t {
@@ -852,9 +851,11 @@ int PonscripterLabel::init(const char* preferred_script)
     midi_info  = 0;
     mp3_sample = 0;
     music_file_name.trunc(0);
-    mp3_buffer = 0;
+    music_buffer = 0;
     music_info = 0;
-    music_ovi  = 0;
+    music_struct.ovi = 0;
+    music_struct.is_mute = false;
+    music_struct.voice_sample = 0;
 
     loop_bgm_name[0].trunc(0);
     loop_bgm_name[1].trunc(0);
@@ -1127,12 +1128,16 @@ void PonscripterLabel::mouseOverCheck(int x, int y)
         }
 
         if (c < buttons.size()) {
-            if (system_menu_mode != SYSTEM_NULL)
-                playSound(menuselectvoice_file_name[MENUSELECTVOICE_OVER],
-                          SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
-            else
-                playSound(selectvoice_file_name[SELECTVOICE_OVER],
-                          SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
+            if (system_menu_mode != SYSTEM_NULL) {
+                if (menuselectvoice_file_name[MENUSELECTVOICE_OVER].length() > 0)
+                    playSound(menuselectvoice_file_name[MENUSELECTVOICE_OVER],
+                              SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
+            }
+            else {
+                if (selectvoice_file_name[SELECTVOICE_OVER].length() > 0)
+                    playSound(selectvoice_file_name[SELECTVOICE_OVER],
+                              SOUND_WAVE | SOUND_OGG, false, MIX_WAVE_CHANNEL);
+            }
 
             ButtonElt& new_btn = buttons[button];
             
@@ -1660,9 +1665,11 @@ void PonscripterLabel::loadEnvData()
     cdaudio_on_flag     = true;
     default_cdrom_drive = "";
     kidokumode_flag     = true;
+    use_default_volume = true;
     fullscreen_flags    = SDL_FULLSCREEN;
     
     if (loadFileIOBuf("envdata") == 0) {
+        use_default_volume = false;
         bool do_fullscreen = false;
         if (readInt() == 1 && window_mode == false)
             do_fullscreen = true;
@@ -1682,10 +1689,12 @@ void PonscripterLabel::loadEnvData()
         music_volume = DEFAULT_VOLUME - readInt();
         if (readInt() == 0)
             kidokumode_flag = false;
+        readInt();  // 0  //Mion: added from onscripter
         readChar(); // 0
-        readInt();  // 1000
-        
-        if (readInt() == 0x534e4f50) {
+        int dummy = readInt();  // 1000
+        if (dummy == 1000)
+            dummy = readInt(); //Mion: in case it's an older envdata
+        if (dummy == 0x534e4f50) {
             // Ponscripter extras
             fullscreen_flags = readInt();
         }
@@ -1696,6 +1705,10 @@ void PonscripterLabel::loadEnvData()
         default_env_font = DEFAULT_ENV_FONT;
         voice_volume = se_volume = music_volume = DEFAULT_VOLUME;
     }
+    // set the volumes of channels
+    channelvolumes[0] = voice_volume;
+    for ( int i=1 ; i<ONS_MIX_CHANNELS ; i++ )
+        channelvolumes[i] = se_volume;
 }
 
 
@@ -1715,6 +1728,7 @@ void PonscripterLabel::saveEnvData()
         writeInt(DEFAULT_VOLUME - se_volume, output_flag);
         writeInt(DEFAULT_VOLUME - music_volume, output_flag);
         writeInt(kidokumode_flag ? 1 : 0, output_flag);
+        writeInt(0, output_flag);
         writeChar(0, output_flag); // ?
         writeInt(1000, output_flag);
 

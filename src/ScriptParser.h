@@ -26,12 +26,21 @@
 #ifndef __SCRIPT_PARSER_H__
 #define __SCRIPT_PARSER_H__
 
+#include <SDL_mixer.h>
 #include "DirPaths.h"
 #include "ScriptHandler.h"
 #include "NsaReader.h"
 #include "DirectReader.h"
 #include "AnimationInfo.h"
 #include "Fontinfo.h"
+
+#if defined(USE_OGG_VORBIS)
+#if defined(INTEGER_OGG_VORBIS)
+#include <tremor/ivorbisfile.h>
+#else
+#include <vorbis/vorbisfile.h>
+#endif
+#endif
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -48,8 +57,29 @@
 #define DEFAULT_CURSOR_WAIT ":l/3,160,2;cursor0.bmp"
 #define DEFAULT_CURSOR_NEWPAGE ":l/3,160,2;cursor1.bmp"
 
+struct OVInfo{
+    SDL_AudioCVT cvt;
+    int cvt_len;
+    int mult1;
+    int mult2;
+    unsigned char *buf;
+    long decoded_length;
+#if defined(USE_OGG_VORBIS)
+    ogg_int64_t length;
+    ogg_int64_t pos;
+    OggVorbis_File ovf;
+#endif
+};
+
 class ScriptParser {
 public:
+    typedef struct{
+        OVInfo *ovi;
+        int volume;
+        bool is_mute;
+        Mix_Chunk **voice_sample; //Mion: for bgmdownmode
+    } MusicStruct;
+
     ScriptParser();
 
     virtual ~ScriptParser();
@@ -94,6 +124,7 @@ public:
     int nextCommand(const pstring& cmd);
     int mulCommand(const pstring& cmd);
     int movCommand(const pstring& cmd);
+    int mode_wave_demoCommand(const pstring& cmd);
     int mode_sayaCommand(const pstring& cmd);
     int mode_extCommand(const pstring& cmd);
     int modCommand(const pstring& cmd);
@@ -215,6 +246,7 @@ protected:
     bool windowback_flag;
     bool usewheel_flag;
     bool useescspc_flag;
+    bool mode_wave_demo_flag;
     bool mode_saya_flag;
     bool mode_ext_flag;
     bool force_button_shortcut_flag;
@@ -318,9 +350,11 @@ protected:
 
     /* ---------------------------------------- */
     /* Sound related variables */
+    MusicStruct music_struct;
     int music_volume;
     int voice_volume;
     int se_volume;
+    bool use_default_volume;
 
     enum { CLICKVOICE_NORMAL  = 0,
            CLICKVOICE_NEWPAGE = 1,

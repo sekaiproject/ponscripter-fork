@@ -48,6 +48,10 @@ static void optionHelp()
     printf("      --force-png-nscmask\talways use NScripter-style masks\n");
     printf("      --enable-wheeldown-advance\tadvance the text on mouse "
            "wheeldown event\n");
+//    printf( "     --set-tag-page-origin-to-1\tsyntax option for setting "
+//            "'gettaglog' origin to 1 instead of 0\n");
+//    printf( "     --answer-dialog-with-yes-ok\thave 'yesnobox' and "
+//            "'okcancelbox' give 'yes/ok' result\n");
     printf("  -d, --debug\t\trun in debug mode (repeat for verbosity)\n");
     printf("  -h, --help\t\tshow this help and exit\n");
     printf("  -v, --version\t\tshow the version information and exit\n");
@@ -59,8 +63,9 @@ static void optionVersion()
 {
     printf("Ponscripter version %s (NScr %d.%02d)\n",
         ONS_VERSION, NSC_VERSION / 100, NSC_VERSION % 100);
-    printf("Based on ONScripter by Ogapee <ogapee@aqua.dti2.ne.jp>\n\n");
-    printf("Copyright (c) 2001-2008 Ogapee, 2006-2008 insani, Haeleth et al.\n");
+    printf("Based on ONScripter by Ogapee <ogapee@aqua.dti2.ne.jp>\n");
+    printf("Currently maintained by \"Uncle\" Mion Sonozaki <UncleMion@gmail.com>\n\n");
+    printf("Copyright (c) 2001-2010 Ogapee, 2006-2010 insani, Haeleth, Sonozaki et al.\n");
     printf("This is free software; see the source for copying conditions.\n");
     exit(0);
 }

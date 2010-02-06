@@ -496,6 +496,17 @@ int ScriptParser::movCommand(const pstring& cmd)
 }
 
 
+int ScriptParser::mode_wave_demoCommand(const pstring& cmd)
+{
+    if ( current_mode != DEFINE_MODE )
+        errorAndExit( "mode_wave_demo: not in the define section" );
+
+    mode_wave_demo_flag = true;
+
+    return RET_CONTINUE;
+}
+
+
 int ScriptParser::mode_sayaCommand(const pstring& cmd)
 {
     if (current_mode != DEFINE_MODE)

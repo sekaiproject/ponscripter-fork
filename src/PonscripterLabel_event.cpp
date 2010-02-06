@@ -55,7 +55,7 @@ SDL_TimerID timer_midi_id = NULL;
 #endif
 bool ext_music_play_once_flag = false;
 
-extern long decodeOggVorbis(OVInfo* ovi, unsigned char* buf_dst, long len, bool do_rate_conversion);
+extern long decodeOggVorbis(PonscripterLabel::MusicStruct *music_struct, Uint8 *buf_dst, long len, bool do_rate_conversion);
 
 /* **************************************** *
 * Callback functions
@@ -72,7 +72,7 @@ extern "C" void mp3callback(void* userdata, Uint8* stream, int len)
 
 extern "C" void oggcallback(void* userdata, Uint8* stream, int len)
 {
-    if (decodeOggVorbis((OVInfo*) userdata, stream, len, true) == 0) {
+    if (decodeOggVorbis((PonscripterLabel::MusicStruct*)userdata, stream, len, true) == 0){
         SDL_Event event;
         event.type = ONS_SOUND_EVENT;
         SDL_PushEvent(&event);

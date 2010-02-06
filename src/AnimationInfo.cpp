@@ -7,7 +7,7 @@
  *
  *  ogapee@aqua.dti2.ne.jp
  *
- *  Copyright (c) 2009 "Uncle" Mion Sonozaki
+ *  Copyright (c) 2009-2010 "Uncle" Mion Sonozaki
  *
  *  UncleMion@gmail.com
  *
@@ -948,8 +948,8 @@ void AnimationInfo::setupImage( SDL_Surface *surface, SDL_Surface *surface_m,
     else if ( trans_mode == TRANS_MASK ){
         if (surface_m){
             SDL_LockSurface( surface_m );
-            int mw = surface->w;
-            int mh = surface->h;
+            int mw = surface_m->w;
+            int mh = surface_m->h;
             if (!has_alpha){
                 for (i=0 ; i<h ; i++){
                     Uint32 *buffer_m = (Uint32 *)surface_m->pixels + mw*(i%mh);

@@ -102,6 +102,7 @@ func_lut_t::func_lut_t() {
     dict["mod"]             = &ScriptParser::modCommand;
     dict["mode_ext"]        = &ScriptParser::mode_extCommand;
     dict["mode_saya"]       = &ScriptParser::mode_sayaCommand;
+    dict["mode_wave_demo"]  = &ScriptParser::mode_wave_demoCommand;
     dict["mov"]             = &ScriptParser::movCommand;
     dict["mov10"]           = &ScriptParser::movCommand;
     dict["mov3"]            = &ScriptParser::movCommand;
@@ -207,6 +208,7 @@ void ScriptParser::reset()
     windowback_flag = false;
     usewheel_flag  = false;
     useescspc_flag = false;
+    mode_wave_demo_flag = false;
     mode_saya_flag = false;
     mode_ext_flag  = false;
     zenkakko_flag  = false;

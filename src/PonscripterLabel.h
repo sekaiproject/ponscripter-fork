@@ -39,14 +39,6 @@
 #include <smpeg.h>
 #endif
 
-#ifdef USE_OGG_VORBIS
-#ifdef INTEGER_OGG_VORBIS
-#include <tremor/ivorbisfile.h>
-#else
-#include <vorbis/vorbisfile.h>
-#endif
-#endif
-
 #define DEFAULT_VIDEO_SURFACE_FLAG (SDL_SWSURFACE)
 
 #define DEFAULT_BLIT_FLAG (0)
@@ -56,12 +48,14 @@
 #define MAX_PARAM_NUM 100
 #define CUSTOM_EFFECT_NO 100
 
+#define DEFAULT_VOLUME 100
 #define ONS_MIX_CHANNELS 50
-#define ONS_MIX_EXTRA_CHANNELS 4
-#define MIX_WAVE_CHANNEL (ONS_MIX_CHANNELS + 0)
-#define MIX_BGM_CHANNEL (ONS_MIX_CHANNELS + 1)
-#define MIX_LOOPBGM_CHANNEL0 (ONS_MIX_CHANNELS + 2)
-#define MIX_LOOPBGM_CHANNEL1 (ONS_MIX_CHANNELS + 3)
+#define ONS_MIX_EXTRA_CHANNELS 5
+#define MIX_WAVE_CHANNEL (ONS_MIX_CHANNELS+0)
+#define MIX_CLICKVOICE_CHANNEL (ONS_MIX_CHANNELS+1)
+#define MIX_BGM_CHANNEL (ONS_MIX_CHANNELS+2)
+#define MIX_LOOPBGM_CHANNEL0 (ONS_MIX_CHANNELS+3)
+#define MIX_LOOPBGM_CHANNEL1 (ONS_MIX_CHANNELS+4)
 
 #ifndef DEFAULT_WM_TITLE
 #define DEFAULT_WM_TITLE "Ponscripter"
@@ -69,20 +63,6 @@
 #define DEFAULT_WM_ICON "Ponscripter"
 
 #define NUM_GLYPH_CACHE 30
-
-struct OVInfo {
-    SDL_AudioCVT cvt;
-    int cvt_len;
-    int mult1;
-    int mult2;
-    unsigned char* buf;
-    long decoded_length;
-#ifdef USE_OGG_VORBIS
-    ogg_int64_t length;
-    ogg_int64_t pos;
-    OggVorbis_File ovf;
-#endif
-};
 
 struct Subtitle {
     int number;
@@ -745,15 +725,16 @@ private:
     bool   music_play_loop_flag;
     bool   mp3save_flag;
     pstring music_file_name;
-    unsigned char* mp3_buffer;
+    unsigned char *music_buffer; // for looped music
+    long music_buffer_length;
     SMPEG*  mp3_sample;
     Uint32  mp3fadeout_start;
     Uint32  mp3fadeout_duration;
-    OVInfo* music_ovi;
     Mix_Music* music_info;
     pstring loop_bgm_name[2];
 
-    Mix_Chunk* wave_sample[ONS_MIX_CHANNELS + ONS_MIX_EXTRA_CHANNELS];
+    int channelvolumes[ONS_MIX_CHANNELS]; //insani's addition
+    Mix_Chunk *wave_sample[ONS_MIX_CHANNELS+ONS_MIX_EXTRA_CHANNELS];
 
     pstring music_cmd;
     pstring midi_cmd;
@@ -768,6 +749,9 @@ private:
                 int channel);
     int playExternalMusic(bool loop_flag);
     int playMIDI(bool loop_flag);
+    // Mion: for music status and fades
+    int playingMusic();
+    int setCurMusicVolume(int volume);
 
     SubtitleDefs parseSubtitles(pstring file);
     int playMPEG(const pstring& filename, bool click_flag,
@@ -781,7 +765,7 @@ private:
     void stopAllDWAVE();
     void playClickVoice();
     void setupWaveHeader(unsigned char* buffer, int channels, int rate,
-                         unsigned long data_length);
+                         int bits, unsigned long data_length);
     OVInfo* openOggVorbis(unsigned char* buf, long len, int &channels,
                           int &rate);
     int  closeOggVorbis(OVInfo* ovi);
