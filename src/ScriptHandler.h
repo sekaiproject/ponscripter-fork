@@ -172,7 +172,8 @@ public:
     LabelInfo getLabelByLine(int line);
 
     bool isText();
-    //Mion: using these since 'isdigit' & 'isxdigit' behavior are locale-specific
+    //Mion: using these since 'isdigit' & 'isxdigit' behavior
+    //      are locale-specific (at least on Windows)
     static inline bool isawspace(int c) { return ((c == ' ') || (c == '\t')); }
     static inline bool isadigit(int c) { return ((c >= '0') && (c <= '9')); }
     static inline bool isaxdigit(int c) {

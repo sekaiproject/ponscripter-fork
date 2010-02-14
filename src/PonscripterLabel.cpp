@@ -1207,6 +1207,7 @@ void PonscripterLabel::executeLabel()
                    current_label_info.num_of_lines,
                    string_buffer_offset, display_mode,
                    (const char*) cmd);
+            fflush(stdout);
         }
 
         if (script_h.readStrBuf(0) == '~') {

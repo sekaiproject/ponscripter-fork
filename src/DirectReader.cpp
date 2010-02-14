@@ -177,8 +177,9 @@ FILE* DirectReader::fileopen(pstring path, const char* mode)
         // Correct the case of each.
         bool found = false;
         for (CBStringList::iterator it = parts.begin(); it != parts.end(); ++it) {
+            found = false;
             DIR* dp = opendir(full_path);
-            if (!dp) return NULL;
+            if (!dp) break;
             dirent* entry;
             while ((entry = readdir(dp))) {
                 pstring item = entry->d_name;
