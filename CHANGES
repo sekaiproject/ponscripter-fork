@@ -1,3 +1,8 @@
+2010-02-14
+  
+  Fixed case in which there's a folder in the game's search path with the
+  same name as a directory in the archive [Mion & Roto]
+
 2009-10-15
 
   Check entire DirPath for font files [Mion]

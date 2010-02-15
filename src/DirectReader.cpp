@@ -179,7 +179,10 @@ FILE* DirectReader::fileopen(pstring path, const char* mode)
         for (CBStringList::iterator it = parts.begin(); it != parts.end(); ++it) {
             found = false;
             DIR* dp = opendir(full_path);
-            if (!dp) break;
+            if (!dp) {
+                fp = NULL;
+                break;
+            }
             dirent* entry;
             while ((entry = readdir(dp))) {
                 pstring item = entry->d_name;
