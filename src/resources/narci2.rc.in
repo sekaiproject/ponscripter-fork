@@ -1,8 +1,9 @@
 #include <windows.h>
+#include "winres.h"
 
 LANGUAGE LANG_NEUTRAL, SUBLANG_DEFAULT
 
-ONSCRICON ICON "resources/narci2.ico"
+ONSCRICON ICON @I@
 
 1 VERSIONINFO
 FILEVERSION @Y@, @M@, @D@, 0
@@ -15,9 +16,9 @@ FILETYPE 1
        BLOCK "040904b0" {
            VALUE "FileDescription", "Narcissu 2"
            VALUE "OriginalFilename", "Narcissu2.exe"
-           VALUE "CompanyName", "Stage-Nana/Haeleth"
+           VALUE "CompanyName", "Stage-Nana/Haeleth/Agilis"
            VALUE "FileVersion", "@Y@-@M@-@D@"
-           VALUE "LegalCopyright", "Game copyright (c) 2007 Stage-Nana. Engine copyright (c) 1998-2007 Studio O.G.A, 2005-6 insani, 2006-@Y@ Haeleth. Data portions copyright (c) 1989-1992, Bitstream Inc., 1999 (URW)++, 2007 Haeleth."
+           VALUE "LegalCopyright", "Game copyright (c) 2007 Stage-Nana. Engine copyright (c) 1998-2007 Studio O.G.A, 2005-6 insani, 2006-2009 Haeleth, 2009-@Y@ Sonozaki. Data portions copyright (c) 1989-1992, Bitstream Inc., 1999 (URW)++, 2007 Haeleth."
            VALUE "ProductName", "Narcissu 2"
            VALUE "ProductVersion", "1"
            VALUE "Comments", "This English version runs on Ponscripter, a fork of Ogapee's ONScripter. Ponscripter is licensed under the GNU General Public License: see GPL.txt."

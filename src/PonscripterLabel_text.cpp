@@ -448,9 +448,9 @@ int PonscripterLabel::processText()
         string_buffer_offset = string_buffer_restore;
         string_buffer_restore = -1;
     }
-if (debug_level > 0) {
-    fprintf(stderr,"processText: %d:'%s", string_buffer_offset, script_h.getStrBuf(string_buffer_offset));
-}
+    if (debug_level > 1) {
+        fprintf(stderr,"processText: %d:'%s", string_buffer_offset, script_h.getStrBuf(string_buffer_offset));
+    }
     if (event_mode & (WAIT_INPUT_MODE | WAIT_SLEEP_MODE)) {
         draw_cursor_flag = false;
         if (clickstr_state == CLICK_WAIT) {

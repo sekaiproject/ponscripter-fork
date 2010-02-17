@@ -36,6 +36,8 @@ namespace Carbon {
 #endif
 #ifdef WIN32
 #include <windows.h>
+#include "SDL_syswm.h"
+#include "winres.h"
 typedef HRESULT (WINAPI * GETFOLDERPATH)(HWND, int, HANDLE, DWORD, LPTSTR);
 #endif
 #ifdef LINUX
@@ -347,16 +349,28 @@ void PonscripterLabel::initSDL()
     SDL_Surface* icon = IMG_Load("icon.png");
     // If that doesn't exist, try using an internal resource.
     if (!icon) {
+#ifdef WIN32
+        //use the (first) Windows icon resource
+        HICON wicon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(ONSCRICON));
+        if (wicon) {
+            SDL_SysWMinfo info;
+            SDL_VERSION(&info.version);
+            SDL_GetWMInfo(&info);
+            SendMessage(info.window, WM_SETICON, ICON_BIG, (LPARAM)wicon);
+        }
+        else printf("no windows icon resource\n");
+#else
         const InternalResource* internal_icon = getResource("icon.png");
         if (internal_icon) {
             SDL_RWops* rwicon = SDL_RWFromConstMem(internal_icon->buffer,
                                     internal_icon->size);
             icon = IMG_Load_RW(rwicon, 0);
         }
+#endif // WIN32
     }
     // If an icon was found, use it.
     if (icon) SDL_WM_SetIcon(icon, 0);
-#endif
+#endif // !MACOSX
 
 #ifdef BPP16
     screen_bpp = 16;
@@ -1290,7 +1304,11 @@ int PonscripterLabel::parseLine()
 {
     int ret = 0;
     pstring cmd = script_h.getStrBuf();
-    if (cmd[0] == '_') cmd.remove(0, 1);
+    bool is_orig_cmd = false;
+    if (cmd[0] == '_') {
+        cmd.remove(0, 1);
+        is_orig_cmd = true;
+    }
     
     if (!script_h.isText()) {
         
@@ -1303,7 +1321,14 @@ int PonscripterLabel::parseLine()
             return dvCommand(cmd);
 
         PonscrFun f = func_lut.get(cmd);
-        if (f) return (this->*f)(cmd);
+        if (f) {
+            if (is_orig_cmd && (debug_level > 0)) {
+                printf("** executing builtin command '%s' **\n",
+                       (const char*) cmd);
+                fflush(stdout);
+            }
+            return (this->*f)(cmd);
+        }
 
         errorAndCont("unknown command [" + cmd + "]");
 

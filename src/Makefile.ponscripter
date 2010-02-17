@@ -19,10 +19,9 @@ GUI_OBJS = PonscripterLabel$(OBJSUFFIX)					\
 	PonscripterLabel_file2$(OBJSUFFIX)				\
 	PonscripterLabel_image$(OBJSUFFIX)				\
 	PonscripterLabel_ext$(OBJSUFFIX) AnimationInfo$(OBJSUFFIX)	\
-	Fontinfo$(OBJSUFFIX) DirtyRect$(OBJSUFFIX)			\
-	resize_image$(OBJSUFFIX) encoding$(OBJSUFFIX)			\
-	font$(OBJSUFFIX) $(if $(NO_RESOURCES), ,resources$(OBJSUFFIX))  \
-	bstrlib$(OBJSUFFIX) bstrwrap$(OBJSUFFIX) pstring$(OBJSUFFIX)    \
+	Fontinfo$(OBJSUFFIX) DirtyRect$(OBJSUFFIX) $(RC_OBJS)		\
+	resize_image$(OBJSUFFIX) encoding$(OBJSUFFIX) font$(OBJSUFFIX)	\
+	bstrlib$(OBJSUFFIX) bstrwrap$(OBJSUFFIX) pstring$(OBJSUFFIX)	\
 	cp932_encoding$(OBJSUFFIX) expression$(OBJSUFFIX) prng$(OBJSUFFIX)
 DECODER_OBJS = DirectReader$(OBJSUFFIX) SarReader$(OBJSUFFIX)	\
 	NsaReader$(OBJSUFFIX)
@@ -33,7 +32,7 @@ PONSCR_OBJS = Ponscripter$(OBJSUFFIX) $(DECODER_OBJS)		\
 
 BSTRING_H = $(EXTRADEPS) bstrwrap.h bstrlib.h
 ENCODING_H = defs.h pstring.h $(BSTRING_H) encoding.h
-HANDLER_H = ScriptHandler.h $(ENCODING_H) BaseReader.h expression.h Fontinfo.h font.h resources.h
+HANDLER_H = ScriptHandler.h $(ENCODING_H) BaseReader.h expression.h Fontinfo.h font.h $(RC_HDRS)
 PARSER_H = ScriptParser.h $(HANDLER_H) NsaReader.h SarReader.h DirectReader.h AnimationInfo.h DirPaths.h
 SCRIPTER_H = PonscripterLabel.h $(PARSER_H) DirtyRect.h
 
@@ -41,10 +40,10 @@ ponscr$(EXESUFFIX): $(PONSCR_OBJS)
 	$(CXX) -o $@ $(PONSCR_OBJS) $(LIBS)
 
 pclean:
-	-$(RM) *$(OBJSUFFIX) $(CLEANUP) resources.cpp
+	-$(RM) *$(OBJSUFFIX) $(CLEANUP) $(RCCLEAN)
 
 pdistclean: pclean
-	-$(RM) $(TARGET) embed$(EXESUFFIX)
+	-$(RM) $(TARGET)
 
 .cpp$(OBJSUFFIX):
 	$(CXX) -c $(PSCFLAGS) $(INCS) $(DEFS) $<
@@ -56,9 +55,9 @@ cp932_encoding$(OBJSUFFIX): $(ENCODING_H) cp932_tables.h
 DirectReader$(OBJSUFFIX): DirectReader.h BaseReader.h $(ENCODING_H)
 DirPaths$(OBJSUFFIX): $(ENCODING_H) DirPaths.h
 DirtyRect$(OBJSUFFIX): $(EXTRADEPS) DirtyRect.h
-encoding$(OBJSUFFIX): $(ENCODING_H) Fontinfo.h font.h resources.h
+encoding$(OBJSUFFIX): $(ENCODING_H) Fontinfo.h font.h $(RC_HDRS)
 expression$(OBJSUFFIX): ScriptHandler.h $(ENCODING_H) BaseReader.h expression.h
-font$(OBJSUFFIX): $(EXTRADEPS) font.h resources.h
+font$(OBJSUFFIX): $(EXTRADEPS) font.h $(RC_HDRS)
 Fontinfo$(OBJSUFFIX): $(HANDLER_H)
 MadWrapper$(OBJSUFFIX): $(EXTRADEPS) MadWrapper.h
 NsaReader$(OBJSUFFIX): NsaReader.h SarReader.h DirectReader.h BaseReader.h $(ENCODING_H)
@@ -76,20 +75,8 @@ PonscripterLabel_rmenu$(OBJSUFFIX): $(SCRIPTER_H)
 PonscripterLabel_sound$(OBJSUFFIX): $(SCRIPTER_H)
 PonscripterLabel_text$(OBJSUFFIX): $(SCRIPTER_H)
 pstring$(OBJSUFFIX): $(ENCODING_H)
-resources$(OBJSUFFIX): $(EXTRADEPS) resources.h 
 SarReader$(OBJSUFFIX): SarReader.h DirectReader.h BaseReader.h $(ENCODING_H)
 ScriptHandler$(OBJSUFFIX): $(HANDLER_H)
 ScriptParser_command$(OBJSUFFIX): $(PARSER_H)
 ScriptParser$(OBJSUFFIX): $(PARSER_H)
 prng$(OBJSUFFIX): defs.h
-
-ifndef NO_DEFAULT_ICON
-RESOURCES ?= resources/default.png =icon.png
-endif
-
-resources.cpp: embed$(EXESUFFIX) $(filter-out =%,$(RESOURCES))
-	-$(RM) $@
-	./embed$(EXESUFFIX) $(patsubst =%,%,$(RESOURCES)) > $@
-
-embed$(EXESUFFIX): embed.cpp
-	$(CXX) $< -o $@

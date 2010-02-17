@@ -95,7 +95,7 @@ int main(int argc, char** argv)
             if (!strcmp(argv[0] + 1, "d") || !strcmp(argv[0] + 1, "-debug")) {
                 ons.setDebugMode();
             }
-            if (!strcmp(argv[0] + 1, "h") || !strcmp(argv[0] + 1, "-help")) {
+            else if (!strcmp(argv[0] + 1, "h") || !strcmp(argv[0] + 1, "-help")) {
                 optionHelp();
             }
             else if (!strcmp(argv[0] + 1, "v") || !strcmp(argv[0] + 1, "-version")) {
@@ -157,12 +157,12 @@ int main(int argc, char** argv)
                 argv++;
                 ons.setKeyEXE(argv[0]);
             }
-	    else if (!strcmp(argv[0] + 1, "-force-png-alpha")) {
-		ons.setMaskType(1);
-	    }
-	    else if (!strcmp(argv[0] + 1, "-force-png-nscmask")) {
-		ons.setMaskType(2);
-	    }
+            else if (!strcmp(argv[0] + 1, "-force-png-alpha")) {
+                ons.setMaskType(1);
+            }
+            else if (!strcmp(argv[0] + 1, "-force-png-nscmask")) {
+                ons.setMaskType(2);
+            }
             else {
                 printf(" unknown option %s\n", argv[0]);
             }

@@ -914,6 +914,37 @@ endif
 .PHONY: all clean distclean
 all: \$(TARGET)
 
+RC_OBJS =
+RC_HDRS =
+_EOF
+
+if [ "$SYS" != "MinGW" ] && [ "$SYS" != "MacOSX" ]; then
+cat >> $MAKEFILE <<_EOF
+
+ICONFILE ?= resources/default.png
+RESOURCES ?= \$(ICONFILE) =icon.png
+_EOF
+else
+cat >> $MAKEFILE <<_EOF
+
+ICONFILE =
+RESOURCES ?=
+_EOF
+fi
+
+cat >> $MAKEFILE <<_EOF
+RC_OBJS = resources\$(OBJSUFFIX)
+RC_HDRS = resources.h
+RCCLEAN = resources.cpp embed\$(EXESUFFIX) \$(RC_OBJS)
+
+resources\$(OBJSUFFIX): \$(EXTRADEPS) \$(RC_HDRS)
+
+resources.cpp: embed\$(EXESUFFIX) \$(filter-out =%,\$(RESOURCES))
+	./embed\$(EXESUFFIX) \$(patsubst =%,%,\$(RESOURCES)) > \$@
+
+embed\$(EXESUFFIX): embed.cpp
+	\$(CXX) \$< -o \$@
+
 include Makefile.extlibs
 include Makefile.ponscripter
 
@@ -929,7 +960,9 @@ if [ "$SYS" = "MinGW" ]
 then cat >> $MAKEFILE <<_EOF
 
 RCFILE ?= ponscr.rc
-win32rc.o: \$(RCFILE) \$(RCDEPS)
+WICONFILE ?= resources/default.ico
+RCCLEAN += \$(RCFILE)
+win32rc.o: \$(RCFILE) \$(RCDEPS) \$(WICONFILE)
 	\$(WINDRES) \$< -o \$@
 
 %.rc: resources/%.rc.in version.h
@@ -937,7 +970,8 @@ win32rc.o: \$(RCFILE) \$(RCDEPS)
 	y=\`expr substr $\$ver 1 4\`; \\
 	m=\`expr substr $\$ver 5 2 | sed s/^0// \`; \\
 	d=\`expr substr $\$ver 7 2 | sed s/^0// \`; \\
-	sed -e "s/@Y@/$\$y/g;s/@M@/$\$m/g;s/@D@/$\$d/g" \$< > \$@
+	i=\"\$(WICONFILE)\"; \\
+	sed -e "s/@Y@/$\$y/g;s/@M@/$\$m/g;s/@D@/$\$d/g;s%@I@%$\$i%g" \$< > \$@
 
 SDL_win32_main.o: SDL_win32_main.c
 	\$(CC) \$(INCS) \$(DEFS) -c \$< -o \$@

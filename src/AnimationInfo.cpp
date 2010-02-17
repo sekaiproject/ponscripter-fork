@@ -152,7 +152,9 @@ void AnimationInfo::reset()
 
     trans = 256;
     orig_pos.x = orig_pos.y = 0;
+    orig_pos.w = orig_pos.h = 0;
     pos.x = pos.y = 0;
+    pos.w = pos.h = 0;
     abs_flag = true;
     showing_ = false;
     visible_ = false;

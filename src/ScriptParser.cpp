@@ -388,6 +388,7 @@ int ScriptParser::parseLine()
     if (cmd[0] == ';' || cmd[0] == '*' || cmd[0] == ':' || cmd[0] == 0x0a)
 	return RET_CONTINUE;
 
+    bool is_orig_cmd = false;
     if (cmd[0] != '_') {
 	if (user_func_lut.find(cmd) != user_func_lut.end()) {
 	    gosubReal(cmd, script_h.getNext());
@@ -396,9 +397,18 @@ int ScriptParser::parseLine()
     }
     else {
 	cmd.remove(0, 1);
+	is_orig_cmd = true;
     }
     ParserFun f = func_lut.get(cmd);
-    return f ? (this->*f)(cmd) : RET_NOMATCH;
+    if (f) {
+        if (is_orig_cmd && (debug_level > 0)) {
+            printf("** executing builtin command '%s' **\n",
+                   (const char*) cmd);
+            fflush(stdout);
+        }
+        return (this->*f)(cmd);
+    } else
+        return RET_NOMATCH;
 }
 
 

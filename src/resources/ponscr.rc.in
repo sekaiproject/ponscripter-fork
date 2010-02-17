@@ -1,4 +1,6 @@
-ONSCRICON ICON "resources/default.ico"
+#include "winres.h"
+
+ONSCRICON ICON @I@
 
 1 VERSIONINFO
 FILEVERSION @Y@, @M@, @D@, 0
@@ -8,12 +10,13 @@ FILEOS 4
 FILETYPE 1
 {
    BLOCK "StringFileInfo" {
-       BLOCK "080904b0" {
+       //language ID = U.S. English, charset = Unicode
+       BLOCK "040904B0" {
            VALUE "FileDescription", "Proportional ONScripter"
            VALUE "OriginalFilename", "ponscr.exe"
            VALUE "CompanyName", "Studio OGA/insani/Haeleth/Sonozaki"
            VALUE "FileVersion", "@Y@-@M@-@D@"
-           VALUE "LegalCopyright", "Copyright (c) 1998-2007 Studio O.G.A, 2005-6 insani, 2006-2009 Haeleth, 2009 Sonozaki."
+           VALUE "LegalCopyright", "Copyright (c) 1998-2007 Studio O.G.A, 2005-6 insani, 2006-2009 Haeleth, 2009-2010 Sonozaki."
            VALUE "ProductName", "Ponscripter"
            VALUE "ProductVersion", "@Y@-@M@-@D@"
            VALUE "SpecialBuild", "A fork of ONScripter with enhanced support for international text."
@@ -21,6 +24,6 @@ FILETYPE 1
        }
    }
    BLOCK "VarFileInfo" {
-       VALUE "Translation", 0x0809, 0x04B0
+       VALUE "Translation", 0x0409, 0x04B0 // U.S. English, Unicode
    }
 }
