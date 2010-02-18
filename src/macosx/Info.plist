@@ -8,9 +8,9 @@
 	<key>CFBundleExecutable</key>
 	<string>${EXECUTABLE_NAME}</string>
 	<key>CFBundleIconFile</key>
-	<string>PONScripter.icns</string>
+	<string>default.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>net.haeleth.PONScripter</string>
+	<string>mobi.denpa.PONScripter</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -22,7 +22,7 @@
 	<key>CFBundleVersion</key>
 	<string>1.0</string>
     <key>CFBundleGetInfoString</key>
-    <string>PONScripter, (c) 2001-2008 Ogapee, insani, haeleth</string>
+    <string>PONScripter, ©2001-2010 Ogapee, insani, haeleth, UncleMion, Roto</string>
     <key>CFBundleShortVersionString</key>
     <string>VER_NUMBER</string>
     <key>LSMinimumSystemVersion</key>

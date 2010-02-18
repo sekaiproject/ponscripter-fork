@@ -340,7 +340,6 @@
 		E2072C5E0FDF8444003C50C4 /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 365A95030BE0535800786213 /* libpng.a */; };
 		E2072C5F0FDF8449003C50C4 /* libvorbis.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 365A946C0BE0503C00786213 /* libvorbis.a */; };
 		E2072C600FDF844E003C50C4 /* libogg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 365A94390BE04D1D00786213 /* libogg.a */; };
-		E2072C6F0FDF8493003C50C4 /* PONScripter.icns in Resources */ = {isa = PBXBuildFile; fileRef = E2072C6E0FDF8493003C50C4 /* PONScripter.icns */; };
 		E2072CAB0FDF84ED003C50C4 /* AnimationInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2072C710FDF84ED003C50C4 /* AnimationInfo.cpp */; };
 		E2072CAD0FDF84ED003C50C4 /* bstrlib.c in Sources */ = {isa = PBXBuildFile; fileRef = E2072C760FDF84ED003C50C4 /* bstrlib.c */; };
 		E2072CAE0FDF84ED003C50C4 /* bstrwrap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2072C780FDF84ED003C50C4 /* bstrwrap.cpp */; };
@@ -376,6 +375,7 @@
 		E2072D5B0FDF9054003C50C4 /* resources.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2072D5A0FDF9054003C50C4 /* resources.cpp */; };
 		E2072D8B0FDF9CF3003C50C4 /* jconfig.h in Headers */ = {isa = PBXBuildFile; fileRef = E2072D8A0FDF9CF3003C50C4 /* jconfig.h */; };
 		E258AAD1110169E10014C747 /* DirPaths.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E258AACE110169E10014C747 /* DirPaths.cpp */; };
+		E2F079AB112CE58B00A59BDB /* default.icns in Resources */ = {isa = PBXBuildFile; fileRef = E2F079AA112CE58B00A59BDB /* default.icns */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -1229,6 +1229,7 @@
 		E2072D8A0FDF9CF3003C50C4 /* jconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jconfig.h; sourceTree = "<group>"; };
 		E258AACE110169E10014C747 /* DirPaths.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DirPaths.cpp; path = ../DirPaths.cpp; sourceTree = SOURCE_ROOT; };
 		E258AACF110169E10014C747 /* DirPaths.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DirPaths.h; path = ../DirPaths.h; sourceTree = SOURCE_ROOT; };
+		E2F079AA112CE58B00A59BDB /* default.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = default.icns; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1379,6 +1380,7 @@
 			isa = PBXGroup;
 			children = (
 				E2072C6E0FDF8493003C50C4 /* PONScripter.icns */,
+				E2F079AA112CE58B00A59BDB /* default.icns */,
 				8D1107310486CEB800E47090 /* Info.plist */,
 			);
 			name = Resources;
@@ -2794,7 +2796,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E2072C6F0FDF8493003C50C4 /* PONScripter.icns in Resources */,
+				E2F079AB112CE58B00A59BDB /* default.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
