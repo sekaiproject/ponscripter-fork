@@ -19,6 +19,7 @@ not() {
 # ---------- Program begins here ----------
 
 # Default options
+GAME=
 PREFIX=/usr/local
 if [ -z "$MAKE"   ]; then MAKE=make; fi
 if [ -z "$AR"     ]; then AR=ar; fi
@@ -26,6 +27,7 @@ if [ -z "$RANLIB" ]; then RANLIB=ranlib; fi
 WERROR="-Werror"
 UNSUPPORTED_COMPILER=false
 CROSSCOMPILE=false
+USE_CPU_GFX=true
 STRIPFLAG=-s
 DEFAULTDOC=
 MAKEDOC=
@@ -66,6 +68,8 @@ do
   fi
   arg=`expr "x$opt" : 'x[^=]*=\(.*\)'`
   case $opt in
+      --game=* | -game=*)
+        GAME=$arg ;;
       --prefix=* | -prefix=*)
         PREFIX=$arg ;;
       --prefix | -prefix)
@@ -88,6 +92,8 @@ do
       --unsupported-compiler=* | -unsupported-compiler=*)
         UNSUPPORTED_COMPILER=$arg
         ;;
+      --no-cpu-gfx | -no-cpu-gfx)
+        USE_CPU_GFX=false ;;
       --enable-internal-libs | -enable-internal-libs | --with-internal-libs | -with-internal-libs)
         INTERNAL_LIBS=true ;;
       --disable-internal-libs | -disable-internal-libs | --without-internal-libs | -without-internal-libs | --no-internal-libs | -no-internal-libs)
@@ -170,6 +176,9 @@ do
 	  --prefix=DIR             install in prefix DIR (default is /usr/local)
 	  --make=NAME              use GNU make executable with the given name
 	  --unsupported-compiler   don't check for known compilers
+	  --no-werror              don't compile with -Werror
+	  --no-cpu-gfx             don't compile with custom intrinsic graphics
+                               routines (normally compiled for x86/PPC if GCC 4.3+)
 	
 	Library options (force compilation of included dependencies):
 	  --with-internal-libs        don't check for any system libraries
@@ -295,8 +304,9 @@ then
     echo "Unsupported compiler requested; please don't complain if anything doesn't work!"
 else
     $echo_n "Checking C compiler... ${nobr}"
-    case `($CC --version) 2>/dev/null | head -1` in
-    gcc* | *apple*gcc* | *-gcc??GCC*) echo gcc ;;
+    CC_TMP=`($CC --version) 2>/dev/null | head -1`
+    case "$CC_TMP" in
+    gcc* | *apple*gcc* | *-gcc??GCC*) CC_VER=`expr "x$CC_TMP" : 'x.* \(.*\)$'`; echo "gcc $CC_VER" ;;
     icc*) echo icc ;;
     *)  echo "error"
         cat <<-_ERR
@@ -317,11 +327,12 @@ xicc) CXX=icpc ;;
 esac
 fi
 
+CXX_TMP=`($CXX --version) 2>/dev/null | head -1`
 if not $UNSUPPORTED_COMPILER
 then
     $echo_n "Checking C++ compiler... ${nobr}"
-    case `($CXX --version) 2>/dev/null | head -1` in
-    g++* | *apple*g++* | *-g++??GCC*) echo g++ ;;
+    case "$CXX_TMP" in
+    g++* | *apple*g++* | *-g++??GCC*) CXX_VER=`expr "x$CXX_TMP" : 'x.* \(.*\)$'`; echo "g++ $CXX_VER" ;;
     icpc*) echo icpc ;;
     *)  echo "error"
         cat <<-_ERR
@@ -334,9 +345,53 @@ then
     esac
 fi
 
-case `($CXX --version) 2>/dev/null | head -1` in
+case "$CXX_TMP" in
 g++* | *apple*g++*) CFLAGSEXTRA=-Wall ;;
 esac
+
+# Custom graphics using intrinsics (requires GCC 4.3+)
+
+if $USE_CPU_GFX
+then
+    case "x$CC_VER" in
+    x4.*)
+        case "x$CC_VER" in
+            x4.1.*|x4.2.*)
+                    USE_CPU_GFX=false ;;
+            *)      USE_CPU_GFX=true ;;
+        esac;;
+    *)      USE_CPU_GFX=false ;;
+    esac
+    if not $USE_CPU_GFX
+    then
+        echo "     Not GCC 4.3+, won't compile custom graphics routines"
+    fi
+fi
+
+if $USE_CPU_GFX
+then
+    case "x$ARCH" in
+    xx86_64) USE_X86_GFX=true
+             GFX_MMX_FLAGS="-mmmx -DUSE_X86_GFX"
+             GFX_SSE2_FLAGS="-msse2 -DUSE_X86_GFX"
+             GFX_EXT_OBJS="graphics_mmx.o graphics_sse2.o"
+             CFLAGSEXTRA="$CFLAGSEXTRA -DUSE_X86_GFX"
+             echo "     Compiling with x86 MMX/SSE2 custom graphics routines";;
+    x*86)    USE_X86_GFX=true
+             GFX_MMX_FLAGS="-mmmx -DUSE_X86_GFX"
+             GFX_SSE2_FLAGS="-msse2 -DUSE_X86_GFX"
+             GFX_EXT_OBJS="graphics_mmx.o graphics_sse2.o"
+             CFLAGSEXTRA="$CFLAGSEXTRA -DUSE_X86_GFX"
+             echo "     Compiling with x86 MMX/SSE2 custom graphics routines";;
+    xppc)    USE_PPC_GFX=true
+             GFX_MALTIVEC_FLAGS="-maltivec -DUSE_PPC_GFX"
+             GFX_EXT_OBJS="graphics_maltivec.o"
+             CFLAGSEXTRA="$CFLAGSEXTRA -DUSE_PPC_GFX"
+             echo "     Compiling with PPC custom graphics routines";;
+    *)       GFX_EXT_OBJS=
+             echo "     No custom graphics routines available for the given architecture";;
+    esac
+fi
 
 # Make (must be GNU)
 $echo_n "Checking for GNU make... ${nobr}"
@@ -755,24 +810,6 @@ MinGW)  EXE=.exe ; OBJ=.o ; LIB=.a ; W32=true ;;
    exit 1 ;;
 esac
 
-case "x$ARCH" in
-xx86_64) USE_X86_GFX=true
-         GFX_MMX_FLAGS="-mmmx -DUSE_X86_GFX"
-         GFX_SSE2_FLAGS="-msse2 -DUSE_X86_GFX"
-         GFX_EXT_OBJS="graphics_mmx.o graphics_sse2.o"
-         CFLAGSEXTRA="$CFLAGSEXTRA -DUSE_X86_GFX";;
-x*86)    USE_X86_GFX=true
-         GFX_MMX_FLAGS="-mmmx -DUSE_X86_GFX"
-         GFX_SSE2_FLAGS="-msse2 -DUSE_X86_GFX"
-         GFX_EXT_OBJS="graphics_mmx.o graphics_sse2.o"
-         CFLAGSEXTRA="$CFLAGSEXTRA -DUSE_X86_GFX";;
-xppc)    USE_PPC_GFX=true
-         GFX_MALTIVEC_FLAGS="-maltivec -DUSE_PPC_GFX"
-         GFX_EXT_OBJS="graphics_maltivec.o"
-         CFLAGSEXTRA="$CFLAGSEXTRA -DUSE_PPC_GFX";;
-*)       GFX_EXT_OBJS=;;
-esac
-
 
 cat > $MAKEFILE <<_EOF
 # -*- makefile-gmake -*-
@@ -914,37 +951,33 @@ endif
 .PHONY: all clean distclean
 all: \$(TARGET)
 
-RC_OBJS =
-RC_HDRS =
+RESOURCES =
 _EOF
 
 if [ "$SYS" != "MinGW" ] && [ "$SYS" != "MacOSX" ]; then
 cat >> $MAKEFILE <<_EOF
 
-ICONFILE ?= resources/default.png
-RESOURCES ?= \$(ICONFILE) =icon.png
+EMBED_PNG_ICON=true
 _EOF
+fi
+
+if [ "x$GAME" != "x" ]; then
+# Hardcode a Makefile for the custom game (yes, really)
+cat >> $MAKEFILE <<_EOF
+GAME ?= $GAME
+
+include Makefile.$GAME
+_EOF
+
 else
+# Use the default Makefile.game
 cat >> $MAKEFILE <<_EOF
 
-ICONFILE =
-RESOURCES ?=
+include Makefile.game
 _EOF
 fi
 
 cat >> $MAKEFILE <<_EOF
-RC_OBJS = resources\$(OBJSUFFIX)
-RC_HDRS = resources.h
-RCCLEAN = resources.cpp embed\$(EXESUFFIX) \$(RC_OBJS)
-
-resources\$(OBJSUFFIX): \$(EXTRADEPS) \$(RC_HDRS)
-
-resources.cpp: embed\$(EXESUFFIX) \$(filter-out =%,\$(RESOURCES))
-	./embed\$(EXESUFFIX) \$(patsubst =%,%,\$(RESOURCES)) > \$@
-
-embed\$(EXESUFFIX): embed.cpp
-	\$(CXX) \$< -o \$@
-
 include Makefile.extlibs
 include Makefile.ponscripter
 
@@ -953,16 +986,15 @@ distclean: clean pdistclean \$(DISTCLEAN_TARGETS)
 	rm -r -f extlib/bin/* extlib/lib/* extlib/include/* \\
 	         extlib/share extlib/man
 	rm -f Makefile
-
 _EOF
 
 if [ "$SYS" = "MinGW" ]
 then cat >> $MAKEFILE <<_EOF
 
 RCFILE ?= ponscr.rc
-WICONFILE ?= resources/default.ico
+WIN_ICON ?= resources/default.ico
 RCCLEAN += \$(RCFILE)
-win32rc.o: \$(RCFILE) \$(RCDEPS) \$(WICONFILE)
+win32rc.o: \$(RCFILE) \$(RCDEPS) \$(WIN_ICON)
 	\$(WINDRES) \$< -o \$@
 
 %.rc: resources/%.rc.in version.h
@@ -970,7 +1002,7 @@ win32rc.o: \$(RCFILE) \$(RCDEPS) \$(WICONFILE)
 	y=\`expr substr $\$ver 1 4\`; \\
 	m=\`expr substr $\$ver 5 2 | sed s/^0// \`; \\
 	d=\`expr substr $\$ver 7 2 | sed s/^0// \`; \\
-	i=\"\$(WICONFILE)\"; \\
+	i=\"\$(WIN_ICON)\"; \\
 	sed -e "s/@Y@/$\$y/g;s/@M@/$\$m/g;s/@D@/$\$d/g;s%@I@%$\$i%g" \$< > \$@
 
 SDL_win32_main.o: SDL_win32_main.c

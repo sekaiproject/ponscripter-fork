@@ -1,0 +1,26 @@
+# Settings for custom Ponscripter builds.
+
+# To customize, copy this file to "Makefile.<yourgame>"
+# and then run configure with the option "--game=<yourgame>"
+
+# These are the default settings.
+
+# The "$(if $(GAME) ...)" allow you to use these default settings
+# but change the icon(s) and Windows resource - build with:
+# make GAME=<mygame>
+
+# Windows icon
+WIN_ICON = resources/$(if $(GAME),$(GAME).ico,default.ico)
+# Windows resource file
+RCFILE = $(if $(GAME),$(GAME).rc,ponscr.rc)
+# Dependencies for the Windows resource file
+RCDEPS = $(WIN_ICON)
+
+# Icon to use for systems other than Windows or Mac OS X
+PNG_ICON = resources/$(if $(GAME),$(GAME).png,default.png)
+
+# Uncomment and change to add internal resources (like embedded fonts)
+#RESOURCES += your_resource_file =resource_label
+
+# Uncomment and change to add your own custom compilation flags
+#PSCFLAGS := $(PSCFLAGS) --your-custom-flag
