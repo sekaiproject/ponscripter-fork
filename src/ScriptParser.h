@@ -268,6 +268,7 @@ protected:
 
     void gosubReal(const pstring& label, const char* next_script);
     void gosubDoTextgosub();
+    void gosubDoPretextgosub();
     void setCurrentLabel(const pstring& label);
     void readToken();
 

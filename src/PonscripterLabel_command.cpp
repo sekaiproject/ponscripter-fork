@@ -1933,11 +1933,12 @@ int PonscripterLabel::gettagCommand(const pstring& cmd)
 	    e.mutate("");
 	else {
 	    const char* buf_start = buf;
-	    int bytes;
+	    int bytes = 1;
 	    while (*buf != '/' &&
-		   (!zenkakko_flag ||
-		    file_encoding->DecodeChar(buf, bytes) != 0x3011 /* Åz*/) &&
-		   *buf != ']')
+		   ((zenkakko_flag &&
+		     (file_encoding->DecodeChar(buf, bytes) != 0x3011 /* Åz*/)) ||
+		    (!zenkakko_flag &&
+             (file_encoding->DecodeChar(buf, bytes) != ']' /* Åz*/))))
 		buf += bytes;
 	    e.mutate(pstring(buf_start, buf - buf_start));
 	}

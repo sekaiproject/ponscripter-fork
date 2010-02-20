@@ -1379,7 +1379,7 @@ int PonscripterLabel::parseLine()
 	    }
 	    
             // Check for token breaks.
-            if (ch == '\n' || ch == '@' || ch == '\\' || is_break_char(ch))
+            if (!ch || ch == '\n' || ch == '@' || ch == '\\' || is_break_char(ch))
                 break;
 
             // Look for an inline command.

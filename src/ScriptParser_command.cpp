@@ -839,9 +839,16 @@ void ScriptParser::gosubDoTextgosub()
     }
     else {
         nest_infos.push_back(NestInfo(script_h, script_h.getCurrent(),
-                                      string_buffer_offset + 1));
+                                      string_buffer_offset));
         setCurrentLabel(textgosub_label);
     }
+}
+
+void ScriptParser::gosubDoPretextgosub()
+{
+    nest_infos.push_back(NestInfo(script_h, script_h.getCurrent(),
+                                  string_buffer_offset));
+    setCurrentLabel(pretextgosub_label);
 }
 
 
@@ -1142,7 +1149,8 @@ int ScriptParser::arcCommand(const pstring& cmd)
     // arc "filename|archive reader DLL"
     // We ignore the DLL, and assume the archive is SAR.
     pstring buf = script_h.readStrValue();
-    buf.trunc(buf.find('|', 0)); // TODO: check this removes the |
+    if (buf.find('|', 0) > 0)
+        buf.trunc(buf.find('|', 0)); // TODO: check this removes the |
     if (ScriptHandler::cBR->getArchiveName() == "direct") {
         delete ScriptHandler::cBR;
         ScriptHandler::cBR = new SarReader(&archive_path, key_table);

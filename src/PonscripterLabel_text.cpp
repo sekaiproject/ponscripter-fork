@@ -424,7 +424,7 @@ int PonscripterLabel::textCommand()
             || (line_enter_status == 1
                 && (script_h.readStrBuf(string_buffer_offset) == '['
                     || (zenkakko_flag && file_encoding->DecodeChar(script_h.getStrBuf(string_buffer_offset)) == 0x3010 /* left lenticular bracket */))))) {
-        gosubReal(pretextgosub_label, script_h.getCurrent());
+        gosubDoPretextgosub();
         line_enter_status = 1;
         return RET_CONTINUE;
     }
