@@ -110,7 +110,11 @@ BaseReader::getFile(const pstring& file_name, int* location)
     if (!length) return pstring();
     char* buf = new char[length];
     length = getFile(file_name, (unsigned char*) buf, location);
-    return pstring(buf, length);
+    
+    // roto 20100227 (fixing memory leak)
+    pstring data(buf, length);
+    delete[] buf;
+    return data;
 }
 
 #endif // __BASE_READER_H__
