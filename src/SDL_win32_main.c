@@ -244,7 +244,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
     char **argv;
     int argc;
     char *cmdline;
-    DWORD pathlen;
+    DWORD pathlen = 0; //shutting up gcc warnings
 #ifdef _WIN32_WCE
     wchar_t *bufp;
     int nLen;

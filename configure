@@ -1021,7 +1021,7 @@ win32rc.o: \$(RCFILE) \$(RCDEPS) \$(WIN_ICON)
 	sed -e "s/@Y@/$\$y/g;s/@M@/$\$m/g;s/@D@/$\$d/g;s%@I@%$\$i%g" \$< > \$@
 
 SDL_win32_main.o: SDL_win32_main.c
-	\$(CC) \$(INCS) \$(DEFS) -c \$< -o \$@
+	\$(CC) \$(CSTD) \$(PSCFLAGS) \$(INCS) \$(DEFS) -c \$< -o \$@
 _EOF
 fi
 
@@ -1030,17 +1030,17 @@ then
 cat >> $MAKEFILE <<_EOF
 
 graphics_sse2.o: graphics_sse2.cpp graphics_sse2.h graphics_common.h
-	\$(CXX) \$(CXXSTD) \$(INCS) \$(DEFS) $GFX_SSE2_FLAGS -c \$< -o \$@
+	\$(CXX) \$(CXXSTD) \$(PSCFLAGS) \$(INCS) \$(DEFS) $GFX_SSE2_FLAGS -c \$< -o \$@
 
 graphics_mmx.o: graphics_mmx.cpp graphics_mmx.h graphics_common.h
-	\$(CXX) \$(CXXSTD) \$(INCS) \$(DEFS) $GFX_MMX_FLAGS -c \$< -o \$@
+	\$(CXX) \$(CXXSTD) \$(PSCFLAGS) \$(INCS) \$(DEFS) $GFX_MMX_FLAGS -c \$< -o \$@
 _EOF
 elif $USE_PPC_GFX
 then
 cat >> $MAKEFILE <<_EOF
 
 graphics_maltivec.o: graphics_maltivec.cpp  graphics_maltivec.h graphics_common.h
-	\$(CXX) \$(CXXSTD) \$(INCS) \$(DEFS) $GFX_MALTIVEC_FLAGS -c \$< -o \$@
+	\$(CXX) \$(CXXSTD) \$(PSCFLAGS) \$(INCS) \$(DEFS) $GFX_MALTIVEC_FLAGS -c \$< -o \$@
 _EOF
 fi
 
