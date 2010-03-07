@@ -434,14 +434,14 @@ int ScriptParser::nextCommand(const pstring& cmd)
         || (nest_infos.back().step > 0 && val > nest_infos.back().to)
         || (nest_infos.back().step < 0 && val < nest_infos.back().to)) {
         break_flag = false;
-	nest_infos.pop_back();
+        nest_infos.pop_back();
     }
     else {
         script_h.setCurrent(nest_infos.back().next_script);
         current_label_info =
-	    script_h.getLabelByAddress(nest_infos.back().next_script);
+            script_h.getLabelByAddress(nest_infos.back().next_script);
         current_line =
-	    script_h.getLineByAddress(nest_infos.back().next_script);
+            script_h.getLineByAddress(nest_infos.back().next_script);
     }
 
     return RET_CONTINUE;
@@ -462,35 +462,33 @@ int ScriptParser::movCommand(const pstring& cmd)
     // arguments are provided, fills remaining spaces with zeroes.
     Expression e = script_h.readExpr();
     int limit = cmd == "mov" ? 1
-	      : cmd == "movl" || cmd == "movz" ? e.dim()
-	      : atoi(((const char*) cmd) + 3);
+              : cmd == "movl" || cmd == "movz" ? e.dim()
+              : atoi(((const char*) cmd) + 3);
 
     // ONScripter has been a bit permissive in the past.
     if (!script_h.is_ponscripter && e.is_array() &&
-	cmd != "movl" && cmd != "movz" && cmd != "mov")
-	errorAndCont("NScripter does not permit `" + cmd + " " +
-		     e.debug_string() + ", ...': for portability, use "
-		     "`movl' or a series of `mov' calls instead.");
+        (cmd != "movl") && (cmd != "movz") && (cmd != "mov"))
+        errorAndCont("NScripter does not permit `" + cmd + " " +
+                     e.debug_string() + ", ...': for portability, use "
+                     "`movl' or a series of `mov' calls instead.");
     
     if (e.is_textual()) {
-	if (limit != 1)
-	    errorAndExit(cmd + " is not valid with string variables (use mov)");
-	e.mutate(script_h.readStrValue());
+        if (limit != 1)
+            errorAndExit(cmd + " is not valid with string variables (use mov)");
+        e.mutate(script_h.readStrValue());
     }
     else {
-	bool movl = cmd == "movl" || cmd == "movz";
-	for (int i = 0; i < limit; ++i) {
-	    int val;
-	    if (script_h.hasMoreArgs())
-		val = script_h.readIntValue();
-	    else if (cmd == "movz")
-		val = 0;
-	    else
-		errorAndExit("Not enough arguments to " + cmd);
-	    e.mutate(val, i, movl);
-	}
-	if (script_h.hasMoreArgs())
-	    errorAndCont("Too many arguments to " + cmd);
+        bool movl = cmd == "movl" || cmd == "movz";
+        for (int i = 0; i < limit; ++i) {
+            if (script_h.hasMoreArgs())
+                e.mutate(script_h.readIntValue(), i, movl);
+            else if (cmd == "movz")
+                e.mutate(0, i, movl);
+            else
+                errorAndExit("Not enough arguments to " + cmd);
+        }
+        if (script_h.hasMoreArgs())
+            errorAndCont("Too many arguments to " + cmd);
     }
     return RET_CONTINUE;
 }

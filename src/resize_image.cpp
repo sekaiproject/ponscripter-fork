@@ -182,7 +182,7 @@ void resizeImage( unsigned char *dst_buffer, int dst_width, int dst_height, int 
     }
     
     /* resampling */
-    int dst_to_src[dst_width]; //lookup table for horiz resampling loop
+    int* dst_to_src = new int[dst_width]; //lookup table for horiz resampling loop
     for ( j=0 ; j<dst_width ; j++ )
         dst_to_src[j] = (j<<3) * src_width / dst_width;
     unsigned char *dst_buf = dst_buffer;
@@ -216,6 +216,7 @@ void resizeImage( unsigned char *dst_buffer, int dst_width, int dst_height, int 
         for ( j=dst_total_width - dst_width*byte_per_pixel ; j>0 ; j-- )
             *dst_buf++ = 0;
     }
+    delete[] dst_to_src;
 
     /* pixels at the corners (of each cell) are preserved */
     int dst_cell_width = byte_per_pixel * dst_width / num_cells;

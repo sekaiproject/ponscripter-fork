@@ -27,10 +27,14 @@
 
 Glyph
 PonscripterLabel::renderGlyph(Font* font, Uint16 text, int size,
-			      float x_fractional_part)
+                              float x_fractional_part)
 {
     font->set_size(size);
-    static SDL_Color fcol = { 0xff, 0xff, 0xff }, bcol = { 0, 0, 0 };
+     /* Initializing SDL_Color.unused here to silence warnings about unused
+       variables. 32 bit operations should be faster than 24 bit ones anyway.
+       Users will be delighted by this 0.0000001 microsecond increase in speed.
+     (contribution by Andrius, March 2010) */
+    static SDL_Color fcol={0xff, 0xff, 0xff, 0xff}, bcol={0, 0, 0, 0};
     current_glyph = font->render_glyph(text, fcol, bcol, x_fractional_part);
     return current_glyph;
 }

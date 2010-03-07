@@ -610,7 +610,7 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
     writeInt(cd_play_loop_flag ? 1 : 0, output_flag); // play, playonce
     writeInt(music_play_loop_flag ? 1 : 0, output_flag); // bgm, mp3, mp3loop
     writeInt(mp3save_flag ? 1 : 0, output_flag);
-    writeStr(mp3save_flag ? music_file_name : "", output_flag);
+    writeStr(mp3save_flag ? music_file_name : pstring(""), output_flag);
 
     writeInt((erase_text_window_mode > 0) ? 1 : 0, output_flag);
     writeInt(1, output_flag);

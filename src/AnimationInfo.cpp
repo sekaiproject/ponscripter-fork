@@ -710,9 +710,9 @@ void AnimationInfo::blendText( SDL_Surface *surface, int dst_x, int dst_y,
     else{
         for (int i=0; i<dst_rect.h; i++){
             unsigned char *src_buffer = (unsigned char*)surface->pixels +
-                                        surface->pitch*(surface->h -
-                                                        src_rect.x - 1) +
-                                        src_rect.y;
+                                        surface->pitch * (surface->h -
+                                                          src_rect.x - 1) +
+                                        src_rect.y + i;
             for (int j=dst_rect.w; j>0; j--, dst_buffer++){
                 BLEND_PIXEL8_ALPHA();
                 src_buffer -= surface->pitch;
@@ -808,7 +808,7 @@ void AnimationInfo::copySurface(SDL_Surface* surface, SDL_Rect* src_rect,
 {
     if (!image_surface || !surface) return;
     
-    SDL_Rect _dst_rect = {0, 0};
+    SDL_Rect _dst_rect = {0, 0, image_surface->w, image_surface->h};
     if (dst_rect) _dst_rect = *dst_rect;
 
     SDL_Rect _src_rect = {0, 0, surface->w, surface->h};

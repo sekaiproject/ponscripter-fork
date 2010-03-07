@@ -272,9 +272,12 @@ UTF8Encoding::Decode_impl(const char* string, int& bytes,
         if ((c & 0xc0) == 0x80) {
             size_t len = strlen(string);
             int save = -1;
-            if (len > 128) { save = string[128]; *(char*)(string + 128) = 0; }
+            if (len > 128) {
+                save = string[128];
+                *(char*)(string + 128) = 0;
+            }
             fprintf(stderr, "Warning: UTF8Encoding::Decode called on "
-            "incomplete character (string: %s)\n", string);
+                    "incomplete character (string: %s)\n", string);
             if (save) *(char*)(string + 128) = save;
         }
 
@@ -290,24 +293,24 @@ UTF8Encoding::Decode_impl(const char* string, int& bytes,
 
         if (c < 0xe0) {
             bytes = 2;
-            wc = (c - 0xc0) << 6 | t[1] & 0x7f;
+            wc = ((c - 0xc0) << 6) | (t[1] & 0x7f);
         }
         else if (c < 0xf0) {
             // ZWNJ
-            if (c == 0xe2 && t[1] == 0x80 && t[2] == 0x8c) {
+            if ((c == 0xe2) && (t[1] == 0x80) && (t[2] == 0x8c)) {
                 wc = Decode_impl(string + 3, bytes, fi);
                 bytes += 3;
                 return wc;
             }
 
             bytes = 3;
-            wc = ((c - 0xe0) << 6 | t[1] & 0x7f) << 6 | t[2] & 0x7f;
+            wc = ((((c - 0xe0) << 6) | (t[1] & 0x7f)) << 6) | (t[2] & 0x7f);
         } else {
             bytes = 4;
-            wc = (((c - 0xe0) << 6
-                   | t[1] & 0x7f) << 6
-                  | t[2] & 0x7f) << 6
-                 | t[3] & 0x7f;
+            wc = (( (( ((c - 0xe0) << 6) |
+                      (t[1] & 0x7f)) << 6) |
+                    (t[2] & 0x7f)) << 6) |
+                 (t[3] & 0x7f);
         }
         return wc;
 
@@ -321,8 +324,8 @@ UTF8Encoding::Previous(const char* currpos, const char* strstart)
     if (currpos <= strstart + 1 || !currpos) return strstart;
     unsigned char c;
     do {
-	c = *(unsigned char*)(--currpos) & 0xc0;
-    } while (c == 0x80 && currpos > strstart);
+        c = *(unsigned char*)(--currpos) & 0xc0;
+    } while ((c == 0x80) && (currpos > strstart));
     return currpos;
 }
 
@@ -349,15 +352,15 @@ UTF8Encoding::Encode(wchar ch, char* out)
         return 1;
     }
     else if (ch < 0x800) {
-        *b++ = 0xc0 | ch >> 6;
-        *b++ = 0x80 | ch & 0x3f;
+        *b++ = 0xc0 | (ch >> 6);
+        *b++ = 0x80 | (ch & 0x3f);
         *b = 0;
         return 2;
     }
     else {
-        *b++ = 0xe0 | ch >> 12;
-        *b++ = 0x80 | ch >> 6 & 0x3f;
-        *b++ = 0x80 | ch & 0x3f;
+        *b++ = 0xe0 | (ch >> 12);
+        *b++ = 0x80 | ((ch >> 6) & 0x3f);
+        *b++ = 0x80 | (ch & 0x3f);
         *b = 0;
         return 3;
     }
@@ -371,13 +374,13 @@ UTF8Encoding::Encode(wchar ch)
         rv += (unsigned char) ch;
     }
     else if (ch < 0x800) {
-	rv += (unsigned char)(0xc0 | ch >> 6);
-	rv += (unsigned char)(0x80 | ch & 0x3f);
+        rv += (unsigned char)(0xc0 | (ch >> 6));
+        rv += (unsigned char)(0x80 | (ch & 0x3f));
     }
     else {
-	rv += (unsigned char)(0xe0 | ch >> 12);
-	rv += (unsigned char)(0x80 | ch >> 6 & 0x3f);
-        rv += (unsigned char)(0x80 | ch & 0x3f);
+        rv += (unsigned char)(0xe0 | (ch >> 12));
+        rv += (unsigned char)(0x80 | ((ch >> 6) & 0x3f));
+        rv += (unsigned char)(0x80 | (ch & 0x3f));
     }
     return rv;
 }

@@ -563,7 +563,7 @@ bool ScriptHandler::compareString(const char* buf)
     SKIP_SPACE(next_script);
     unsigned int i, num = strlen(buf);
     for (i = 0; i < num; i++) {
-        unsigned char ch = next_script[i];
+        char ch = next_script[i];
         if ('A' <= ch && 'Z' >= ch) ch += 'a' - 'A';
 
         if (ch != buf[i]) break;
@@ -727,7 +727,7 @@ pstring ScriptHandler::stringFromInteger(int no, int num_column,
 
 int ScriptHandler::readScriptSub(FILE* fp, char** buf, int encrypt_mode, bool is_utf)
 {
-    char magic[5] = { 0x79, 0x57, 0x0d, 0x80, 0x04 };
+    unsigned char magic[5] = { 0x79, 0x57, 0x0d, 0x80, 0x04 };
     int  magic_counter = 0;
     bool newline_flag  = true;
     bool cr_flag = false;
@@ -1158,7 +1158,7 @@ pstring ScriptHandler::parseStr(const char** buf)
         }
 
         current_variable.type |= VAR_CONST;
-	return s;
+        return s;
     }
     else if (**buf == '$') {
         (*buf)++;
@@ -1167,28 +1167,28 @@ pstring ScriptHandler::parseStr(const char** buf)
         current_variable.var_no = no;
         if (no < 0 || no >= VARIABLE_RANGE)
             current_variable.var_no = VARIABLE_RANGE;
-	return variable_data[no].str;
+        return variable_data[no].str;
     }
     else if (**buf == '"') {
         (*buf)++;
-	const char* const start = *buf;
-	int len = 0;
-	while (**buf != '"' && **buf != 0x0a) {
-	    ++len;
-            *(*buf)++;
-	}
+        const char* const start = *buf;
+        int len = 0;
+        while (**buf != '"' && **buf != 0x0a) {
+            ++len;
+            (*buf)++;
+        }
         if (**buf == '"') (*buf)++;
 
         current_variable.type |= VAR_CONST;
-	return pstring(start, len);
+        return pstring(start, len);
     }
     else if (**buf == file_encoding->TextMarker()) {
         pstring s(file_encoding->TextMarker());
-	(*buf)++;
+        (*buf)++;
 
         char ch = **buf;
         while (ch != file_encoding->TextMarker() && ch != 0x0a && ch != '\0') {
-	    if (file_encoding->UseTags() && ch == '~' && (ch = *++ (*buf)) != '~') {
+            if (file_encoding->UseTags() && ch == '~' && (ch = *++ (*buf)) != '~') {
                 while (ch != '~') {
                     int l;
                     s += file_encoding->TranslateTag(*buf, l);
@@ -1199,7 +1199,7 @@ pstring ScriptHandler::parseStr(const char** buf)
                 continue;
             }
 
-	    int bytes;
+            int bytes;
             s += file_encoding->Encode(file_encoding->DecodeChar(*buf, bytes));
             *buf += bytes;
             ch = **buf;
@@ -1208,31 +1208,30 @@ pstring ScriptHandler::parseStr(const char** buf)
         if (**buf == file_encoding->TextMarker()) (*buf)++;
 
         current_variable.type |= VAR_CONST;
-	return s;
+        return s;
     }
     else if (**buf == '#') { // for color
-	pstring s(*buf, 7);
-	*buf += 7;
+        pstring s(*buf, 7);
+        *buf += 7;
         current_variable.type = VAR_NONE;
-	return s;
+        return s;
     }
     else if (**buf == '*') { // label
         pstring s(*(*buf)++);
         SKIP_SPACE(*buf);
         char ch = **buf;
         while((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') ||
-              (ch >= '0' && ch <= '9') || ch == '_')
-	{
+              (ch >= '0' && ch <= '9') || ch == '_') {
             if (ch >= 'A' && ch <= 'Z') ch += 'a' - 'A';
             s += ch;
             ch = *++(*buf);
         }
         current_variable.type |= VAR_CONST | VAR_LABEL;
-	return s;
-    }   
+        return s;
+    }
     else { // bareword
         char ch;
-	pstring alias_buf;
+        pstring alias_buf;
         bool first_flag = true;
 
         while (1) {

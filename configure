@@ -25,6 +25,9 @@ if [ -z "$MAKE"   ]; then MAKE=make; fi
 if [ -z "$AR"     ]; then AR=ar; fi
 if [ -z "$RANLIB" ]; then RANLIB=ranlib; fi
 WERROR="-Werror"
+#CXXSTD="-std=c++98"
+CXXSTD=
+STRICT=
 UNSUPPORTED_COMPILER=false
 CROSSCOMPILE=false
 USE_CPU_GFX=true
@@ -85,15 +88,23 @@ do
       --make | -make)
         prev=MAKE
         ;;
+      --std=* | -std=*)
+        CXXSTD=-std=$arg ;;
+      --strict | -strict)
+        STRICT="-Wall -Wextra -Wno-unused-parameter -Wvla" ;;
+      --pedantic | -pedantic)
+        STRICT+=" -pedantic" ;;
       --no-werror | -no-werror)
-        WERROR="" ;;
+        WERROR=""
+        ;;
       --unsupported-compiler | -unsupported-compiler)
         UNSUPPORTED_COMPILER=true ;;
       --unsupported-compiler=* | -unsupported-compiler=*)
         UNSUPPORTED_COMPILER=$arg
         ;;
       --no-cpu-gfx | -no-cpu-gfx)
-        USE_CPU_GFX=false ;;
+        USE_CPU_GFX=false
+        ;;
       --enable-internal-libs | -enable-internal-libs | --with-internal-libs | -with-internal-libs)
         INTERNAL_LIBS=true ;;
       --disable-internal-libs | -disable-internal-libs | --without-internal-libs | -without-internal-libs | --no-internal-libs | -no-internal-libs)
@@ -175,10 +186,14 @@ do
 	  --help                   display this message
 	  --prefix=DIR             install in prefix DIR (default is /usr/local)
 	  --make=NAME              use GNU make executable with the given name
+	  --std=STD                c++ compiles with -std=STD (unused by default)
+	  --strict                 compile with -Wall -Wextra -Wvla
+	                           (note: g++ already uses -Wall)
+	  --pedantic               compile with -pedantic
 	  --unsupported-compiler   don't check for known compilers
 	  --no-werror              don't compile with -Werror
 	  --no-cpu-gfx             don't compile with custom intrinsic graphics
-                               routines (normally compiled for x86/PPC if GCC 4.3+)
+	                           routines (normally compiled for x86/PPC if GCC 4.3+)
 	
 	Library options (force compilation of included dependencies):
 	  --with-internal-libs        don't check for any system libraries
@@ -942,10 +957,10 @@ cat >> $MAKEFILE <<_EOF
 .SUFFIXES: $OBJ .cpp .h .c
 
 ifdef DEBUG
-PSCFLAGS += -g -ggdb3 -O0 -Wall -Wno-parentheses -Wpointer-arith $WERROR -pipe
+PSCFLAGS += -g -ggdb3 -O0 -pipe -Wpointer-arith $WERROR $STRICT
 #export LDFLAGS  := -pg \$(LDFLAGS)
 else
-PSCFLAGS += -O3 -Wno-parentheses -Wpointer-arith -Wno-uninitialized $WERROR -fomit-frame-pointer -pipe
+PSCFLAGS += -O3 -fomit-frame-pointer -pipe -Wpointer-arith $WERROR $STRICT
 endif
 
 .PHONY: all clean distclean
@@ -1015,17 +1030,17 @@ then
 cat >> $MAKEFILE <<_EOF
 
 graphics_sse2.o: graphics_sse2.cpp graphics_sse2.h graphics_common.h
-	\$(CXX) \$(INCS) \$(DEFS) $GFX_SSE2_FLAGS -c \$< -o \$@
+	\$(CXX) \$(CXXSTD) \$(INCS) \$(DEFS) $GFX_SSE2_FLAGS -c \$< -o \$@
 
 graphics_mmx.o: graphics_mmx.cpp graphics_mmx.h graphics_common.h
-	\$(CXX) \$(INCS) \$(DEFS) $GFX_MMX_FLAGS -c \$< -o \$@
+	\$(CXX) \$(CXXSTD) \$(INCS) \$(DEFS) $GFX_MMX_FLAGS -c \$< -o \$@
 _EOF
 elif $USE_PPC_GFX
 then
 cat >> $MAKEFILE <<_EOF
 
 graphics_maltivec.o: graphics_maltivec.cpp  graphics_maltivec.h graphics_common.h
-	\$(CXX) \$(INCS) \$(DEFS) $GFX_MALTIVEC_FLAGS -c \$< -o \$@
+	\$(CXX) \$(CXXSTD) \$(INCS) \$(DEFS) $GFX_MALTIVEC_FLAGS -c \$< -o \$@
 _EOF
 fi
 
@@ -1048,6 +1063,8 @@ export PATH     := $OURPATH\$(PATH)
 export CFLAGS   := $OURINCLUDE \$(CFLAGS)
 export CPPFLAGS := $OURINCLUDE \$(CPPFLAGS)
 export LDFLAGS  := $OURLDFLAGS \$(LDFLAGS)
+export CSTD     := -std=c99
+export CXXSTD   := $CXXSTD
 
 
 all: $DEFAULTDOC

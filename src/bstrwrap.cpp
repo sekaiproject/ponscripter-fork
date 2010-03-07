@@ -1615,13 +1615,13 @@ static int istreamGetc (void * parm) {
 	return c;
 }
 
-std::istream& getline (std::istream& sin, CBString& b, char terminator) {
-struct sgetc parm;
+std::istream& getline (std::istream& sin, CBString& b, unsigned char terminator) {
+	struct sgetc parm;
 	parm.sin = &sin;
 	parm.terminator = terminator;
 	b.gets ((bNgetc) istreamGetc, &parm, terminator);
-	if (b.slen > 0 && b.data[b.slen-1] == terminator) b.slen--;
- 	return sin;
+	if (b.slen > 0 && (b.data[b.slen-1] == terminator)) b.slen--;
+	return sin;
 }
 
 #endif

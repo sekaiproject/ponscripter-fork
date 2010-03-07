@@ -53,9 +53,9 @@ public:
 
     void init(DirPaths *basepath)
     {
-	isinit = true;
-	path = basepath;
-	fallback = "default.ttf";
+        isinit = true;
+        path = basepath;
+        fallback = "default.ttf";
         for (int i = 0; i < count; ++i) {
             font_[i] = NULL;
             mapping[i].format("face%d.ttf", i);
@@ -95,8 +95,8 @@ void MapMetrics(int id, const pstring& filename)
 Font* FontsStruct::font(int style)
 {
     if (!isinit) {
-	fprintf(stderr, "ERROR: fonts struct not initialised\n");
-	exit(1);
+        fprintf(stderr, "ERROR: fonts struct not initialised\n");
+        exit(1);
     }
     
     if (font_[style]) return font_[style];
@@ -177,7 +177,7 @@ Font* FontsStruct::font(int style)
     }
 
     fprintf(stderr, "Error: failed to open font %s\n",
-	    (const char*) mapping[style]);
+            (const char*) mapping[style]);
     exit(1);
 }
 
@@ -311,11 +311,12 @@ float Fontinfo::StringAdvance(const char* string)
     unicode = file_encoding->DecodeWithLigatures(string, *this, cb);
     while (*string) {
         next = file_encoding->DecodeWithLigatures(string + cb, *this, nextcb);
-        if (!processCode(string))
+        if (!processCode(string)) {
             if (is_bidirect)
                 pos_x -= GlyphAdvance(unicode, next);
             else
                 pos_x += GlyphAdvance(unicode, next);
+        }
         string += cb;
         unicode = next;
 	cb = nextcb;
@@ -423,7 +424,7 @@ SDL_Rect Fontinfo::getFullArea(int ratio1, int ratio2)
 
 
 SDL_Rect Fontinfo::calcUpdatedArea(float start_x, int start_y,
-				   int ratio1, int ratio2)
+                                   int ratio1, int ratio2)
 {
     doSize();
     SDL_Rect rect;

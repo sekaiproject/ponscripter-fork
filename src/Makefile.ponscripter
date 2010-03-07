@@ -52,7 +52,10 @@ pdistclean: pclean
 	-$(RM) $(TARGET) embed$(EXESUFFIX)
 
 .cpp$(OBJSUFFIX):
-	$(CXX) -c $(PSCFLAGS) $(INCS) $(DEFS) $<
+	$(CXX) -c $(CXXSTD) $(PSCFLAGS) $(INCS) $(DEFS) $<
+
+bstrlib$(OBJSUFFIX): bstrlib.c
+	$(CC) -c $(CSTD) $(PSCFLAGS) $(INCS) $(DEFS) $<
 
 AnimationInfo$(OBJSUFFIX): $(EXTRADEPS) AnimationInfo.h 
 AVIWrapper$(OBJSUFFIX): $(EXTRADEPS) AVIWrapper.h
@@ -90,8 +93,8 @@ prng$(OBJSUFFIX): defs.h
 resources$(OBJSUFFIX): $(EXTRADEPS) $(RC_HDRS)
 
 resources.cpp: embed$(EXESUFFIX) $(filter-out =%,$(RESOURCES))
-	./embed$(EXESUFFIX) $(patsubst =%,%,$(RESOURCES)) > \$@
+	./embed$(EXESUFFIX) $(patsubst =%,%,$(RESOURCES)) > $@
 
 embed$(EXESUFFIX): embed.cpp
-	$(CXX) $< -o $@
+	$(CXX) $(CXXSTD) $(PSCFLAGS) $< -o $@
 

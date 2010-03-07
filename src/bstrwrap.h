@@ -414,7 +414,7 @@ inline const CBString operator * (int count, const CBString& b) {
 #if defined(BSTRLIB_CAN_USE_IOSTREAM)
 extern std::ostream& operator << (std::ostream& sout, CBString b);
 extern std::istream& operator >> (std::istream& sin, CBString& b);
-extern std::istream& getline (std::istream& sin, CBString& b, char terminator='\n');
+extern std::istream& getline (std::istream& sin, CBString& b, unsigned char terminator='\n');
 #endif
 
 struct CBStream {

@@ -369,7 +369,10 @@ void PonscripterLabel::initSDL()
 #endif // WIN32
     }
     // If an icon was found, use it.
-    if (icon) SDL_WM_SetIcon(icon, 0);
+    if (icon) {
+        SDL_WM_SetIcon(icon, 0);
+        SDL_FreeSurface(icon);
+    }
 #endif // !MACOSX
 
 #ifdef BPP16
@@ -1191,7 +1194,8 @@ void PonscripterLabel::executeLabel()
     // Protect against infinite loops (these should only occur when
     // there's a bug in Ponscripter, but as I've just found such a
     // bug, it's clearly not unthinkable!)
-    int loops;
+    //    Mion: a bug like not initializing loops to zero?
+    int loops = 0;
     const char* last_pointer = NULL;
     int last_offset = 0;
     
@@ -1773,9 +1777,8 @@ void PonscripterLabel::saveEnvData()
 
 int PonscripterLabel::refreshMode()
 {
-    return display_mode == TEXT_DISPLAY_MODE
-         ? refresh_shadow_text_mode
-         : REFRESH_NORMAL_MODE;
+    return (display_mode == TEXT_DISPLAY_MODE) ?
+           refresh_shadow_text_mode : (int) REFRESH_NORMAL_MODE;
 }
 
 

@@ -99,7 +99,7 @@ public:
         CPUF_X86_MMX        =  1,
         CPUF_X86_SSE        =  2,
         CPUF_X86_SSE2       =  4,
-        CPUF_PPC_ALTIVEC    =  8,
+        CPUF_PPC_ALTIVEC    =  8
     };
 
     pstring file_name;

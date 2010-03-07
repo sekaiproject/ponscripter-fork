@@ -33,7 +33,7 @@ DirtyRect::DirtyRect()
     num_history    = 0;
     bounding_box.w = bounding_box.h = 0;
     history = new SDL_Rect[total_history];
-};
+}
 
 DirtyRect::DirtyRect(const DirtyRect &d)
 {
@@ -45,7 +45,7 @@ DirtyRect::DirtyRect(const DirtyRect &d)
 
     for (int i = 0; i < num_history; i++)
         history[i] = d.history[i];
-};
+}
 
 DirtyRect& DirtyRect::operator =(const DirtyRect &d)
 {
@@ -60,7 +60,7 @@ DirtyRect& DirtyRect::operator =(const DirtyRect &d)
         history[i] = d.history[i];
 
     return *this;
-};
+}
 
 DirtyRect::~DirtyRect()
 {
@@ -118,7 +118,7 @@ void DirtyRect::add(SDL_Rect src)
 
         delete[] tmp;
     }
-};
+}
 
 SDL_Rect DirtyRect::calcBoundingBox(SDL_Rect src1, SDL_Rect &src2)
 {

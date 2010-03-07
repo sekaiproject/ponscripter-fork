@@ -498,7 +498,7 @@ int PonscripterLabel::splitCommand(const pstring& cmd)
 	if (e.is_numeric())
 	    e.mutate(it == parts.end() ? 0 : atoi(*it));
 	else
-	    e.mutate(it == parts.end() ? "" : *it);
+	    e.mutate(it == parts.end() ? pstring("") : *it);
 	++it;
     }
     return RET_CONTINUE;
@@ -1213,49 +1213,49 @@ int PonscripterLabel::mspCommand(const pstring& cmd)
     int no = script_h.readIntValue();
     int val = script_h.readIntValue();
     bool modsp2 = false;
-    int x, y, a, sx, sy, r;
+    int x, y, a, sx = 0, sy = 0, r = 0; // set to zero to shut up gcc warnings
     AnimationInfo& si = sprite2 ? sprite2_info[no] : sprite_info[no];
     if (script_h.hasMoreArgs()) {
-	dirty_rect.add(sprite2 ? si.bounding_rect : si.pos);
-	x = val * screen_ratio1 / screen_ratio2;
-	y = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-	if (sprite2) {
-	    modsp2 = true;
-	    sx = script_h.readIntValue();
-	    sy = script_h.readIntValue();
-	    r  = script_h.readIntValue();
-	}
-	a = script_h.hasMoreArgs() ? script_h.readIntValue()
-	                           : (absolute ? si.trans : 0);
+        dirty_rect.add(sprite2 ? si.bounding_rect : si.pos);
+        x = val * screen_ratio1 / screen_ratio2;
+        y = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+        if (sprite2) {
+            modsp2 = true;
+            sx = script_h.readIntValue();
+            sy = script_h.readIntValue();
+            r  = script_h.readIntValue();
+        }
+        a = script_h.hasMoreArgs() ? script_h.readIntValue()
+                                   : (absolute ? si.trans : 0);
     }
     else {
-	x = absolute ? si.pos.x : 0;
-	y = absolute ? si.pos.y : 0;
-	a = val;
+        x = absolute ? si.pos.x : 0;
+        y = absolute ? si.pos.y : 0;
+        a = val;
     }
 
     if (absolute) {
-    	si.pos.x = x;
-	si.pos.y = y;
-	si.trans = a;
+        si.pos.x = x;
+        si.pos.y = y;
+        si.trans = a;
     }
     else {
-	si.pos.x += x;
-	si.pos.y += y;
-	si.trans += a;
+        si.pos.x += x;
+        si.pos.y += y;
+        si.trans += a;
     }
     if (modsp2) {
-	if (absolute) {
-	    si.scale_x = sx;
-	    si.scale_y = sy;
-	    si.rot     = r;
-	}
-	else {
-	    si.scale_x += sx;
-	    si.scale_y += sy;
-	    si.rot     += r;
-	}
-	si.calcAffineMatrix();
+        if (absolute) {
+            si.scale_x = sx;
+            si.scale_y = sy;
+            si.rot     = r;
+        }
+        else {
+            si.scale_x += sx;
+            si.scale_y += sy;
+            si.rot     += r;
+        }
+        si.calcAffineMatrix();
     }
     dirty_rect.add(sprite2 ? si.bounding_rect : si.pos);
 
@@ -1295,8 +1295,8 @@ Subtitle SubtitleDefs::pop()
     if (!sorted) sort();
     Subtitle rv;
     if (!text.empty()) {
-	rv = text.front();
-	text.pop_front();
+        rv = text.front();
+        text.pop_front();
     }
     return rv;
 }
@@ -1318,27 +1318,28 @@ SubtitleDefs PonscripterLabel::parseSubtitles(pstring file)
     CBStringList lines = ScriptHandler::cBR->getFile(file).split(0x0a);
 
     for (CBStringList::iterator it = lines.begin(); it != lines.end(); ++it) {
-	it->trim();
-	if (!*it || (*it)[0] == ';') continue;
-	if (it->midstr(0, 7) == "define ") {
-	    CBStringList e = it->midstr(7, it->length()).split(',');
-	    if (e.size() > 2) {
-		int alpha = e.size() > 3 ? (int) e[3] : 255;
-		rgb_t col = readColour(e.size() > 2 ? e[2].trim() : "#FFFFFF");
-		defs.define(e[0], col, e[1], alpha);
-	    }
-	    else fprintf(stderr, "Bad line in subtitle file: %s\n",
-			 (const char*) *it);
-	}
-	else {
-	    CBStringList e = it->split(',', 4);
-	    if (e.size() == 4) {
-		defs.add(e[2], e[0], e[3].ltrim());
-		defs.add(e[2], e[1], "");
-	    }
-	    else fprintf(stderr, "Bad line in subtitle file: %s\n",
-			 (const char*) *it);
-	}
+        it->trim();
+        if (!*it || (*it)[0] == ';') continue;
+        if (it->midstr(0, 7) == "define ") {
+            CBStringList e = it->midstr(7, it->length()).split(',');
+            if (e.size() > 2) {
+                int alpha = e.size() > 3 ? (int) e[3] : 255;
+                rgb_t col = readColour(e.size() > 2 ?
+                                       (const char*)e[2].trim() : "#FFFFFF");
+                defs.define(e[0], col, e[1], alpha);
+            }
+            else fprintf(stderr, "Bad line in subtitle file: %s\n",
+                         (const char*) *it);
+        }
+        else {
+            CBStringList e = it->split(',', 4);
+            if (e.size() == 4) {
+                defs.add(e[2], e[0], e[3].ltrim());
+                defs.add(e[2], e[1], "");
+            }
+            else fprintf(stderr, "Bad line in subtitle file: %s\n",
+                         (const char*) *it);
+        }
     }
     return defs;
 }
@@ -1349,10 +1350,10 @@ int PonscripterLabel::mpegplayCommand(const pstring& cmd)
     bool cancel  = script_h.readIntValue() == 1;
     SubtitleDefs subtitles;
     if (script_h.hasMoreArgs())
-	subtitles = parseSubtitles(script_h.readStrValue());
+        subtitles = parseSubtitles(script_h.readStrValue());
     stopBGM(false);
     if (playMPEG(name, cancel, subtitles))
-	endCommand("end");
+        endCommand("end");
     return RET_CONTINUE;
 }
 
@@ -1468,7 +1469,7 @@ int PonscripterLabel::menu_fullCommand(const pstring& cmd)
         if (!SDL_WM_ToggleFullScreen(screen_surface)) {
             SDL_FreeSurface(screen_surface);
             screen_surface = SDL_SetVideoMode(screen_width, screen_height,
-	            screen_bpp, DEFAULT_VIDEO_SURFACE_FLAG | fullscreen_flags);
+                    screen_bpp, DEFAULT_VIDEO_SURFACE_FLAG | fullscreen_flags);
             SDL_Rect rect = { 0, 0, screen_width, screen_height };
             flushDirect(rect, refreshMode());
         }
@@ -2128,7 +2129,7 @@ int PonscripterLabel::getlogCommand(const pstring& cmd)
         page_no--;
         t_buf = t_buf->previous;
     }
-    e.mutate(page_no > 0 ? "" : t_buf->contents);
+    e.mutate(page_no > 0 ? pstring("") : t_buf->contents);
     return RET_CONTINUE;
 }
 

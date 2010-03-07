@@ -1,7 +1,53 @@
+2010-03-06
+
+  Corrections for building on non-gcc compilers; fixes for
+  gcc4.5+ compilation, added strict compilation option [Andrius & Mion]
+
+  Plugged icon-related memory leak [Roto & Mion]
+
+  Various small bugfixes [Mion]
+
+
+2010-02-28
+
+  Fixed memory leak in BaseReader [Roto]
+
+
+2010-02-19
+
+  Pretextgosub-related fixes (also for "gettag" cmd) [Mion]
+
+
+2010-02-17
+
+  Various bugfixes; cleaned up custom build process, added "--no-cpu-gfx"
+  configure option [Mion]
+
+
 2010-02-14
   
   Fixed case in which there's a folder in the game's search path with the
   same name as a directory in the archive [Mion & Roto]
+
+  Bugfix for Mac file reading issue [Mion]
+
+
+2010-02-05
+  
+  Ported audio fixes from ons-en, added "mode_wave_demo" cmd [Mion]
+
+  Bugfix for alpha png images, various other bugfixes [Mion]
+
+
+2010-01-20
+  
+  Began porting image processing routines from ons-en [Mion]
+
+
+2010-01-15
+  
+  Updated XCode for 10.6, added DirPath support [Roto]
+
 
 2009-10-15
 

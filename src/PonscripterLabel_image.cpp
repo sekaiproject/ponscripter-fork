@@ -570,7 +570,7 @@ void PonscripterLabel::createBackground()
         bg_info.fill(0, 0, 0, 0xff);
         if (anim.image_surface){
             SDL_Rect src_rect = {0, 0, anim.image_surface->w, anim.image_surface->h};
-            SDL_Rect dst_rect = {0, 0};
+            SDL_Rect dst_rect = {0, 0, screen_width, screen_height};
             if (screen_width >= anim.image_surface->w){
                 dst_rect.x = (screen_width - anim.image_surface->w) / 2;
             }
