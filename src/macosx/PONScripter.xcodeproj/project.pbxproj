@@ -374,8 +374,8 @@
 		E2072D1F0FDF8C14003C50C4 /* embed.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2072C810FDF84ED003C50C4 /* embed.cpp */; };
 		E2072D5B0FDF9054003C50C4 /* resources.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2072D5A0FDF9054003C50C4 /* resources.cpp */; };
 		E2072D8B0FDF9CF3003C50C4 /* jconfig.h in Headers */ = {isa = PBXBuildFile; fileRef = E2072D8A0FDF9CF3003C50C4 /* jconfig.h */; };
+		E232D3E21143A193005CD1FD /* default.icns in Resources */ = {isa = PBXBuildFile; fileRef = E232D3E11143A193005CD1FD /* default.icns */; };
 		E258AAD1110169E10014C747 /* DirPaths.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E258AACE110169E10014C747 /* DirPaths.cpp */; };
-		E2F079AB112CE58B00A59BDB /* default.icns in Resources */ = {isa = PBXBuildFile; fileRef = E2F079AA112CE58B00A59BDB /* default.icns */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -1168,7 +1168,6 @@
 		E2072C550FDF8416003C50C4 /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = System/Library/Frameworks/QuickTime.framework; sourceTree = SDKROOT; };
 		E2072C570FDF841F003C50C4 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		E2072C590FDF842B003C50C4 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
-		E2072C6E0FDF8493003C50C4 /* PONScripter.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = PONScripter.icns; sourceTree = "<group>"; };
 		E2072C710FDF84ED003C50C4 /* AnimationInfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AnimationInfo.cpp; path = ../AnimationInfo.cpp; sourceTree = SOURCE_ROOT; };
 		E2072C720FDF84ED003C50C4 /* AnimationInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AnimationInfo.h; path = ../AnimationInfo.h; sourceTree = SOURCE_ROOT; };
 		E2072C740FDF84ED003C50C4 /* AVIWrapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AVIWrapper.h; path = ../AVIWrapper.h; sourceTree = SOURCE_ROOT; };
@@ -1227,9 +1226,9 @@
 		E2072D1A0FDF8BE8003C50C4 /* embed */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = embed; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2072D5A0FDF9054003C50C4 /* resources.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = resources.cpp; path = ../resources.cpp; sourceTree = SOURCE_ROOT; };
 		E2072D8A0FDF9CF3003C50C4 /* jconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jconfig.h; sourceTree = "<group>"; };
+		E232D3E11143A193005CD1FD /* default.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = default.icns; path = ../resources/default.icns; sourceTree = SOURCE_ROOT; };
 		E258AACE110169E10014C747 /* DirPaths.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DirPaths.cpp; path = ../DirPaths.cpp; sourceTree = SOURCE_ROOT; };
 		E258AACF110169E10014C747 /* DirPaths.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DirPaths.h; path = ../DirPaths.h; sourceTree = SOURCE_ROOT; };
-		E2F079AA112CE58B00A59BDB /* default.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = default.icns; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1379,8 +1378,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				E2072C6E0FDF8493003C50C4 /* PONScripter.icns */,
-				E2F079AA112CE58B00A59BDB /* default.icns */,
+				E232D3E11143A193005CD1FD /* default.icns */,
 				8D1107310486CEB800E47090 /* Info.plist */,
 			);
 			name = Resources;
@@ -2796,7 +2794,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E2F079AB112CE58B00A59BDB /* default.icns in Resources */,
+				E232D3E21143A193005CD1FD /* default.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4037,6 +4035,7 @@
 				GCC_ENABLE_SSE3_EXTENSIONS = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = "";
 				GCC_PREPROCESSOR_DEFINITIONS = "MACOSX=1";
