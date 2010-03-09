@@ -112,11 +112,18 @@ public:
     bool hasArchivePath() { return (archive_path.get_num_paths()!=0); }
     void setFullscreenMode();
     void setWindowMode();
+#ifdef WIN32
+    void setUserAppData();
+#endif
+    void setUseAppIcons();
+    void setPreferredWidth(const char *widthstr);
     void enableButtonShortCut();
     void enableWheelDownAdvance();
+    void disableCpuGfx();
     void disableRescale();
     void enableEdit();
     void setKeyEXE(const char* path);
+    void setGameIdentifier(const char *gameid);
     void setMaskType(int mask_type) { png_mask_type = mask_type; }
     
     int  init(const char* preferred_script);
@@ -417,6 +424,10 @@ private:
     bool   fullscreen_mode;
     Uint32 fullscreen_flags;
     bool   window_mode;
+#ifdef WIN32
+    bool current_user_appdata;
+#endif
+    bool use_app_icons;
 
     bool btntime2_flag;
     long btntime_value;

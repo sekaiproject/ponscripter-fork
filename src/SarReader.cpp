@@ -128,12 +128,15 @@ int SarReader::readArchive(ArchiveInfo* ai, int archive_type)
             ai->fi_list[i].compression_type =
 		getRegisteredCompressionType(ai->fi_list[i].name);
 
-        if (ai->fi_list[i].compression_type == NBZ_COMPRESSION
-            || ai->fi_list[i].compression_type == SPB_COMPRESSION) {
+        //Mion: only checking decompressed file length on non-NSA archives,
+        //      since NSA header already contains the original length
+        if ((archive_type != ARCHIVE_TYPE_NSA) &&
+            ( (ai->fi_list[i].compression_type == NBZ_COMPRESSION) ||
+              (ai->fi_list[i].compression_type == SPB_COMPRESSION) )) {
             ai->fi_list[i].original_length =
-		getDecompressedFileLength(ai->fi_list[i].compression_type,
-					  ai->file_handle,
-					  ai->fi_list[i].offset);
+                    getDecompressedFileLength(ai->fi_list[i].compression_type,
+                                              ai->file_handle,
+                                              ai->fi_list[i].offset);
         }
     }
 

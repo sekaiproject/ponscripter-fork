@@ -943,23 +943,24 @@ int ScriptHandler::readScript(DirPaths *path, const char* prefer_name)
 
     // Search for gameid file (this overrides any builtin
     // ;gameid directive, or serves its purpose if none is available)
-    game_identifier = "";
-    fp = fileopen(script_path, pstring("game.id"), "rb"); //Mion: search only the script path
-    if (fp) {
-	size_t line_size = 0;
-	char c;
-	do {
-	    c = fgetc(fp);
-	    ++line_size;
-	} while (c != '\r' && c != '\n' && c != EOF);
-	fseek(fp, 0, SEEK_SET);
-	char *game_id = new char[line_size];
-        if (fgets(game_id, line_size, fp) == NULL)
-            fputs("Warning: couldn't read game ID from game.id\n", stderr);
-        else
-            game_identifier = game_id;
-        fclose(fp);
-        delete[] game_id;
+    if (game_identifier.length() == 0) { //Mion: only if gameid not already set
+        fp = fileopen(script_path, pstring("game.id"), "rb"); //Mion: search only the script path
+        if (fp) {
+            size_t line_size = 0;
+            char c;
+            do {
+                c = fgetc(fp);
+                ++line_size;
+            } while (c != '\r' && c != '\n' && c != EOF);
+            fseek(fp, 0, SEEK_SET);
+            char *game_id = new char[line_size];
+            if (fgets(game_id, line_size, fp) == NULL)
+                fputs("Warning: couldn't read game ID from game.id\n", stderr);
+            else
+                game_identifier = game_id;
+            fclose(fp);
+            delete[] game_id;
+        }
     }
 
     script_buffer_length = p_script_buffer - script_buffer;

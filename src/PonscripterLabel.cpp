@@ -520,6 +520,10 @@ PonscripterLabel::PonscripterLabel()
     fullscreen_mode      = false;
     fullscreen_flags     = SDL_FULLSCREEN;
     window_mode          = false;
+#ifdef WIN32
+    current_user_appdata = false;
+#endif
+    use_app_icons        = false;
     skip_to_wait         = 0;
     sprite_info          = new AnimationInfo[MAX_SPRITE_NUM];
     sprite2_info         = new AnimationInfo[MAX_SPRITE2_NUM];
@@ -592,6 +596,31 @@ void PonscripterLabel::setWindowMode()
 }
 
 
+#ifdef WIN32
+void PonscripterLabel::setUserAppData()
+{
+    current_user_appdata = true;
+}
+#endif
+
+
+void PonscripterLabel::setUseAppIcons()
+{
+    use_app_icons = true;
+}
+
+
+void PonscripterLabel::setPreferredWidth(const char *widthstr)
+{
+    int width = atoi(widthstr);
+    //minimum preferred window width of 160 (gets ridiculous if smaller)
+    if (width > 160)
+        preferred_width = width;
+    else if (width > 0)
+        preferred_width = 160;
+}
+
+
 void PonscripterLabel::enableButtonShortCut()
 {
     force_button_shortcut_flag = true;
@@ -601,6 +630,12 @@ void PonscripterLabel::enableButtonShortCut()
 void PonscripterLabel::enableWheelDownAdvance()
 {
     enable_wheeldown_advance_flag = true;
+}
+
+
+void PonscripterLabel::disableCpuGfx()
+{
+    AnimationInfo::setCpufuncs(AnimationInfo::CPUF_NONE);
 }
 
 
@@ -620,6 +655,13 @@ void PonscripterLabel::setKeyEXE(const char* filename)
 {
     key_exe_file = filename;
 }
+
+
+void PonscripterLabel::setGameIdentifier(const char *gameid)
+{
+    cmdline_game_id = gameid;
+}
+
 
 #ifdef MACOSX
 void MacOSX_SeekArchive(ScriptHandler& script_h, DirPaths *archive_path)
@@ -668,11 +710,12 @@ void MacOSX_SeekArchive(ScriptHandler& script_h, DirPaths *archive_path)
 #endif
 
 #ifdef WIN32
-pstring Platform_GetSavePath(pstring gameid) // Windows version
+pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windows version
 {
     // On Windows, store saves in [Profiles]/All Users/Application Data.
-    // TODO: optionally permit saves to be per-user rather than shared?
-    replace_ascii(gameid, '\\', '_');    
+    // Permit saves to be per-user rather than shared if
+    // option --current-user-appdata is specified
+    replace_ascii(gameid, '\\', '_');
     HMODULE shdll = LoadLibrary("shfolder");
     pstring rv;
     if (shdll) {
@@ -682,7 +725,11 @@ pstring Platform_GetSavePath(pstring gameid) // Windows version
             char hpath[MAX_PATH];
 #define CSIDL_COMMON_APPDATA 0x0023 // for [Profiles]/All Users/Application Data
 #define CSIDL_APPDATA        0x001a // for [Profiles]/[User]/Application Data
-            HRESULT res = gfp(0, CSIDL_COMMON_APPDATA, 0, 0, hpath);
+            HRESULT res;
+            if (current_user_appdata)
+                res = gfp(0, CSIDL_APPDATA, 0, 0, hpath);
+            else
+                res = gfp(0, CSIDL_COMMON_APPDATA, 0, 0, hpath);
             if (res != S_FALSE && res != E_FAIL && res != E_INVALIDARG) {
                 rv = pstring(hpath) + '/' + gameid + '/';
                 CreateDirectory(rv, 0);
@@ -723,9 +770,9 @@ pstring Platform_GetSavePath(pstring gameid) // POSIX version
     replace_ascii(gameid, ' ', '_');
     replace_ascii(gameid, '/', '_');
     replace_ascii(gameid, '(', '_');
-    replace_ascii(gameid, ')', '_');               
+    replace_ascii(gameid, ')', '_');
     replace_ascii(gameid, '[', '_');
-    replace_ascii(gameid, ']', '_');               
+    replace_ascii(gameid, ']', '_');
     passwd* pwd = getpwuid(getuid());
     if (pwd) {
         pstring rv = pstring(pwd->pw_dir) + "/." + gameid + '/';
@@ -817,7 +864,12 @@ int PonscripterLabel::init(const char* preferred_script)
 
     // Try to determine an appropriate location for saved games.
     if (!script_h.save_path)
+#ifdef WIN32
+        script_h.save_path = Platform_GetSavePath(getGameId(script_h),
+                                                  current_user_appdata);
+#else
         script_h.save_path = Platform_GetSavePath(getGameId(script_h));
+#endif
 
     // If we couldn't find anything obvious, fall back on ONScripter
     // behaviour of putting saved games in the archive path.

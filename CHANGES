@@ -1,3 +1,14 @@
+2010-03-08
+
+  Fix for the enormously slow startup time for Umineko (caused by
+  unnecessarily decompressing all bitmaps to find their lengths) [Mion & Roto]
+
+  Added support for "pns.cfg" file containing command-line options [Mion]
+
+  Grafted "--gameid", "--current-user-appdata", "--disable-cpu-gfx"
+  command-line option support from ons-en [Mion]
+
+
 2010-03-06
 
   Corrections for building on non-gcc compilers; fixes for

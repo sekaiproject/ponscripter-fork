@@ -161,6 +161,10 @@ ScriptParser::ScriptParser()
     debug_level = 0;
     init_rnd();
 
+#ifdef MACOSX
+    is_bundled = false;
+#endif
+    nsa_offset = 0;
     key_table = NULL;
     force_button_shortcut_flag = false;
 
@@ -306,6 +310,8 @@ int ScriptParser::open(const char* preferred_script)
     ScriptHandler::cBR = new DirectReader(&archive_path, key_table);
     ScriptHandler::cBR->open();
 
+    script_h.game_identifier = cmdline_game_id;
+
     if (script_h.readScript(&archive_path, preferred_script)) return -1;
 
     switch (script_h.screen_size) {
@@ -353,6 +359,68 @@ int ScriptParser::open(const char* preferred_script)
 
     return 0;
 }
+
+
+#ifdef MACOSX
+void ScriptParser::checkBundled()
+{
+    // check whether this ponscripter is bundled, and if so find the
+    // resources and app directories
+    using namespace Carbon;
+    const int maxpath=32768;
+    Uint8 path[maxpath];
+    CFBundleRef bundle = CFBundleGetMainBundle();
+    if (bundle) {
+        is_bundled = true;
+        CFURLRef resourceurl = CFBundleCopyResourcesDirectoryURL(bundle);
+        if (resourceurl) {
+            Boolean validpath =
+                CFURLGetFileSystemRepresentation(resourceurl,true,path,maxpath);
+            CFRelease(resourceurl);
+            if (validpath) {
+                bundle_res_path = new char[strlen((char*)path)+1];
+                strcpy(bundle_res_path, (char*)path);
+            }
+        }
+
+        // Now add the application path.
+        CFURLRef bundleurl = CFBundleCopyBundleURL(bundle);
+        if (bundleurl) {
+            Boolean validpath =
+                CFURLGetFileSystemRepresentation(bundleurl, true,
+                                                 path, maxpath);
+            if (validpath) {
+                bundle_app_path = new char[strlen((char*)path)+1];
+                strcpy(bundle_app_path, (char*)path);
+                //get the app name (e.g. ".../thing.app" -> "thing")
+                char *aptr = strrchr((char*)path, '/');
+                if (aptr == NULL)
+                    aptr = (char *)path;
+                else
+                    ++aptr;
+                bundle_app_name = new char[strlen(aptr)+1];
+                strcpy(bundle_app_name, aptr);
+                aptr = strstr(bundle_app_name, ".app");
+                if (aptr) *aptr = '\0';
+            }
+            CFURLRef archiveurl =
+                CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorDefault,
+                                                         bundleurl);
+            if (archiveurl) {
+                Boolean validpath =
+                    CFURLGetFileSystemRepresentation(archiveurl, true,
+                                                     path, maxpath);
+                CFRelease(archiveurl);
+                if (validpath) {
+                    bundle_app_path = new char[strlen((char*)path)+1];
+                    strcpy(bundle_app_path, (char*)path);
+                }
+            }
+            CFRelease(bundleurl);
+        }
+    }
+}
+#endif
 
 
 unsigned char ScriptParser::convHexToDec(char ch)
@@ -422,6 +490,14 @@ int ScriptParser::getSystemCallNo(const pstring& buffer)
         printf("Unsupported system call %s\n", (const char*) buffer);
         return -1;
     }
+}
+
+
+void ScriptParser::setNsaOffset(const char *off)
+{
+    int offset = atoi(off);
+    if (offset > 0)
+        nsa_offset = offset;
 }
 
 

@@ -89,6 +89,15 @@ public:
     int parseLine();
 
     void saveGlobalData();
+    void setNsaOffset(const char *off);
+
+#ifdef MACOSX
+    void checkBundled();
+    bool isBundled() {return is_bundled; }
+    const char *bundleResPath() { return (const char *)bundle_res_path; }
+    const char *bundleAppPath() { return (const char *)bundle_app_path; }
+    const char *bundleAppName() { return (const char *)bundle_app_name; }
+#endif
 
     /* Command */
     int zenkakkoCommand(const pstring& cmd);
@@ -232,9 +241,17 @@ protected:
     int current_mode;
     int debug_level;
 
+#ifdef MACOSX
+    bool is_bundled;
+    pstring bundle_res_path;
+    pstring bundle_app_path;
+    pstring bundle_app_name;
+#endif
+    pstring cmdline_game_id;
     DirPaths archive_path;
     pstring nsa_path;
 
+    int nsa_offset;
     bool globalon_flag;
     bool labellog_flag;
     bool filelog_flag;
@@ -260,11 +277,15 @@ protected:
 
     /* ---------------------------------------- */
     /* Global definitions */
+    int preferred_width;
+    int script_width, script_height;
     int    screen_width, screen_height;
     int    screen_texture_width, screen_texture_height;
     int    screen_bpp;
     pstring version_str;
     int    underline_value;
+    int humanpos[3]; // l,c,r
+    pstring savedir;
 
     void gosubReal(const pstring& label, const char* next_script);
     void gosubDoTextgosub();

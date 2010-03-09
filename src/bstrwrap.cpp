@@ -556,7 +556,8 @@ unsigned int d = 0;
 #define START_VSNBUFF (256)
 #else
 
-#if defined (__GNUC__) && !defined (__PPC__)
+//clang check added for Andrius
+#if defined (__GNUC__) && !defined (__PPC__) && !defined(__clang__)
 /* Something is making gcc complain about this prototype not being here, so 
    I've just gone ahead and put it in. */
 extern "C" {
