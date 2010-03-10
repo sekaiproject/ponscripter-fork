@@ -77,6 +77,10 @@ struct BaseReader {
             fi_list = NULL;
             num_of_files = 0;
         }
+        ~ArchiveInfo(){
+            if (file_handle) fclose( file_handle );
+            if (fi_list) delete[] fi_list;
+        }
     };
 
     virtual ~BaseReader() { };

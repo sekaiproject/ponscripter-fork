@@ -32,13 +32,14 @@ struct ligature {
     ligature() : codepoint(0), seqlen(0) {}
 };
 
+// A "tree" mapping character sequences to particular ligatures
 class ligatures {
-    typedef std::map<char, ligatures*> map;
-    typedef map::iterator mit;
-    typedef std::pair<char, ligatures*> clunk;
-    typedef std::pair<mit, bool> ins;
+    typedef std::map<char, ligatures*> ligmap;
+    typedef ligmap::iterator ligmap_iter;
+    typedef std::pair<char, ligatures*> lignode;
+    typedef std::pair<ligmap_iter, bool> ligmap_insertion;
     ligature val;
-    map children;
+    ligmap children;
     
 public:
     void clear();
@@ -50,46 +51,50 @@ public:
 };
 static ligatures ligs;
 
-void
-ligatures::clear()
+void ligatures::clear()
 {
     children.clear();
 }
     
-ligature*
-ligatures::find(const char* seq, const Fontinfo* face)
+ligature* ligatures::find(const char* seq, const Fontinfo* face)
 {
     ligature* v = 0;
-    mit lit = children.find(*seq);
-    if (lit != children.end())
-        v = lit->second->find(seq + 1, face);
+    ligmap_iter e = children.find(*seq);
+    if (e != children.end())
+        v = e->second->find(seq + 1, face);
     if (!v && val.codepoint &&
         (!face || face->font()->has_char(val.codepoint)))
         v = &val;
     return v;
 }
 
-void
-ligatures::add(const char* seq, wchar value, int depth)
+void ligatures::add(const char* seq, wchar value, int depth)
 {
     if (*seq) {
-        ins p = children.insert(clunk(*seq, 0));
+        // add/retrieve the branch to the node for *seq char
+        ligmap_insertion p = children.insert(lignode(*seq, 0));
         if (!p.first->second) p.first->second = new ligatures;
+        // process the *seq node (p.first->second), adding more of the sequence
         p.first->second->add(seq + 1, value, depth + 1);
     }
     else {
+        //end of the sequence - put the ligature code into the contents
         val.codepoint = value;
         val.seqlen = depth;
     }
 }
 
-void
-ligatures::del(const char* seq)
+void ligatures::del(const char* seq)
 {
     if (*seq) {
-        mit e = children.find(*seq);
+        // retrieve the branch to the node for *seq char
+        ligmap_iter e = children.find(*seq);
         if (e != children.end()) {
+            // got the branch, now process the *seq node (e->second),
+            // deleting further along the sequence
             e->second->del(seq + 1);
+            // if *seq node is now empty (no branches or content),
+            // remove it entirely
             if (!e->second->val.codepoint && e->second->children.empty())
                 children.erase(e);
         }
@@ -100,26 +105,22 @@ ligatures::del(const char* seq)
 }
 
 
-void
-AddLigature(const pstring& in, wchar out)
+void AddLigature(const pstring& in, wchar out)
 {
     ligs.add(in, out);
 }
 
-void
-ClearLigatures()
+void ClearLigatures()
 {
     ligs.clear();
 }
 
-void
-DeleteLigature(const pstring& in)
+void DeleteLigature(const pstring& in)
 {
     ligs.del(in);
 }
-    
-void
-DefaultLigatures(int which)
+
+void DefaultLigatures(int which)
 {
     if (which & 1) {
         AddLigature("`",    0x2018);
@@ -163,8 +164,8 @@ DefaultLigatures(int which)
     }
 }
 
-wchar
-Encoding::DecodeWithLigatures(const char* str, const Fontinfo& info, int& bytes)
+wchar Encoding::DecodeWithLigatures(const char* str, const Fontinfo& info,
+                                    int& bytes)
 {
 //    wchar rv = Decode_impl(str, bytes, &info);
 //    // If likely a ligature, check for its presence in the target font.
@@ -178,8 +179,7 @@ Encoding::DecodeWithLigatures(const char* str, const Fontinfo& info, int& bytes)
 
 const pstring Encoding::which() const { return name; }
 
-int
-UTF8Encoding::Charsz_impl(const char* string, const Fontinfo* fi)
+int UTF8Encoding::Charsz_impl(const char* string, const Fontinfo* fi)
 {
     if (!string) return 0;
     const unsigned char* t = (const unsigned char*) string;
@@ -190,13 +190,13 @@ UTF8Encoding::Charsz_impl(const char* string, const Fontinfo* fi)
         if (c >= 0x17 && c <= 0x1e) return 3; // size codes
         if (c == 0x1f) return 2;
 
-	// tags disabled?
-	if (!fi)
-	    return 1;
-	
+        // tags disabled?
+        if (!fi)
+            return 1;
+
         // extended codes
         if (c == '|')
-	    return t[1] == '|' ? 2 : 1 + Charsz_impl(string + 1, fi);
+            return t[1] == '|' ? 2 : 1 + Charsz_impl(string + 1, fi);
 
         const ligature* lig = ligs.find(string, fi);
         return lig ? lig->seqlen : 1;
@@ -218,9 +218,8 @@ UTF8Encoding::Charsz_impl(const char* string, const Fontinfo* fi)
 }
 
 
-wchar
-UTF8Encoding::Decode_impl(const char* string, int& bytes,
-                          const Fontinfo* fi)
+wchar UTF8Encoding::Decode_impl(const char* string, int& bytes,
+                                const Fontinfo* fi)
 {
     bytes = 0;
     if (!string) return 0;
@@ -318,8 +317,7 @@ UTF8Encoding::Decode_impl(const char* string, int& bytes,
 }
 
 
-const char*
-UTF8Encoding::Previous(const char* currpos, const char* strstart)
+const char* UTF8Encoding::Previous(const char* currpos, const char* strstart)
 {
     if (currpos <= strstart + 1 || !currpos) return strstart;
     unsigned char c;
@@ -330,8 +328,7 @@ UTF8Encoding::Previous(const char* currpos, const char* strstart)
 }
 
 
-size_t
-Encoding::CharacterCount(const char* string, const Fontinfo* fi)
+size_t Encoding::CharacterCount(const char* string, const Fontinfo* fi)
 {
     size_t rv = 0;
     while (*string) {
@@ -342,8 +339,7 @@ Encoding::CharacterCount(const char* string, const Fontinfo* fi)
 }
 
 
-int
-UTF8Encoding::Encode(wchar ch, char* out)
+int UTF8Encoding::Encode(wchar ch, char* out)
 {
     unsigned char* b = (unsigned char*) out;
     if (ch <= 0x80) {
@@ -366,8 +362,7 @@ UTF8Encoding::Encode(wchar ch, char* out)
     }
 }
 
-pstring
-UTF8Encoding::Encode(wchar ch)
+pstring UTF8Encoding::Encode(wchar ch)
 {
     pstring rv;
     if (ch <= 0x80) {
@@ -386,8 +381,7 @@ UTF8Encoding::Encode(wchar ch)
 }
 
 
-void
-Encoding::SetStyle(int& style, const char flag)
+void Encoding::SetStyle(int& style, const char flag)
 {
     switch (flag) {
     case ' ': return;
@@ -401,7 +395,7 @@ Encoding::SetStyle(int& style, const char flag)
     case '+': case '-':   case '*': case '/':
     case 'x': case 'y': case 'n': case 'u':
         fprintf(stderr, "Warning: tag ~%c~ cannot be used in this context\n",
-		flag);
+                flag);
         return;
     case 'c':
     case 0:
@@ -413,8 +407,8 @@ Encoding::SetStyle(int& style, const char flag)
 }
 
 
-pstring
-set_int(char val, const char* src, int& in_len, int mulby = 1, int offset = 0)
+pstring set_int(char val, const char* src, int& in_len, int mulby = 1,
+                int offset = 0)
 {
     pstring rv(val);
     ++src;
@@ -425,15 +419,14 @@ set_int(char val, const char* src, int& in_len, int mulby = 1, int offset = 0)
     }
     i = i * mulby + offset;
     char c1 = i & 0x7f,
-	 c2 = (i >> 7) & 0x7f;
+         c2 = (i >> 7) & 0x7f;
     rv += char(c1 ? c1 : -1);
     rv += char(c2 ? c2 : -1);
     return rv;
 }
 
 
-pstring
-Encoding::TranslateTag(const char* flag, int& in_len)
+pstring Encoding::TranslateTag(const char* flag, int& in_len)
 {
     in_len = 1;
     switch (*flag) {
@@ -453,17 +446,19 @@ Encoding::TranslateTag(const char* flag, int& in_len)
         if (flag[1] == '+' || flag[1] == '-') {
             ++in_len;
             return set_int(0x1a, flag + 1, in_len,
-			   flag[1] == '-' ? -1 : 1, 8192);
+                           flag[1] == '-' ? -1 : 1, 8192);
         }
         else
-	    return set_int(0x1b, flag, in_len);
+            return set_int(0x1b, flag, in_len);
 
-    case 'y': if (flag[1] == '+' || flag[1] == '-') {
+    case 'y':
+        if (flag[1] == '+' || flag[1] == '-') {
             ++in_len;
             return set_int(0x1c, flag + 1, in_len,
-			   flag[1] == '-' ? -1 : 1, 8192);
-	}
-        else return set_int(0x1d, flag, in_len);
+                           flag[1] == '-' ? -1 : 1, 8192);
+        }
+        else
+            return set_int(0x1d, flag, in_len);
 
     case 'c': return set_int(0x1e, flag, in_len);
     case 'n': return "\x1f\x10";

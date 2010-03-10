@@ -110,6 +110,7 @@ void ScriptHandler::reset()
     clickstr_list.clear();
 
     Fontinfo::default_encoding = 0;
+    ClearLigatures();
 }
 
 
@@ -1139,9 +1140,10 @@ pstring ScriptHandler::parseStr(const char** buf)
     SKIP_SPACE(*buf);
 
     if (**buf == '(') {
-	// (foo) bar baz : apparently returns bar if foo has been
-	// viewed, baz otherwise.
-	
+        // (foo) bar baz : apparently returns bar if foo has been
+        // viewed, baz otherwise.
+        // (Rather like a trigram implicitly using "fchk")
+
         (*buf)++;
         pstring s = parseStr(buf);
         SKIP_SPACE(*buf);

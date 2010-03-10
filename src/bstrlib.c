@@ -1,8 +1,8 @@
 /*
  * This source file is part of the bstring string library.  This code was
- * written by Paul Hsieh in 2002-2007, and is covered by the BSD open source 
- * license. Refer to the accompanying documentation for details on usage and 
- * license.
+ * written by Paul Hsieh in 2002-2008, and is covered by the BSD open source 
+ * license and the GPL. Refer to the accompanying documentation for details 
+ * on usage and license.
  */
 
 /*
@@ -318,11 +318,11 @@ bstring aux = (bstring) b1;
 
 	d = b0->slen;
 	len = b1->slen;
-	if ((d | (b0->mlen - d) | len) < 0) return BSTR_ERR;
+	if ((d | (b0->mlen - d) | len | (d + len)) < 0) return BSTR_ERR;
 
 	if (b0->mlen <= d + len + 1) {
-		ptrdiff_t pd;
-		if (0 <= (pd = b1->data - b0->data) && pd < b0->mlen) {
+		ptrdiff_t pd = b1->data - b0->data;
+		if (0 <= pd && pd < b0->mlen) {
 			if (NULL == (aux = bstrcpy (b1))) return BSTR_ERR;
 		}
 		if (balloc (b0, d + len + 1) != BSTR_OK) {
@@ -333,13 +333,13 @@ bstring aux = (bstring) b1;
 
 	bBlockCopy (&b0->data[d], &aux->data[0], (size_t) len);
 	b0->data[d + len] = (unsigned char) '\0';
-	b0->slen += len;
+	b0->slen = d + len;
 	if (aux != b1) bdestroy (aux);
 	return BSTR_OK;
 }
 
 /*  int bconchar (bstring b, char c)
- *
+/ *
  *  Concatenate the single character c to the bstring b.
  */
 int bconchar (bstring b, char c) {

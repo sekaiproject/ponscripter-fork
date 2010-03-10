@@ -126,17 +126,18 @@ int SarReader::readArchive(ArchiveInfo* ai, int archive_type)
         /* Registered Plugin check */
         if (ai->fi_list[i].compression_type == NO_COMPRESSION)
             ai->fi_list[i].compression_type =
-		getRegisteredCompressionType(ai->fi_list[i].name);
+                getRegisteredCompressionType(ai->fi_list[i].name);
 
-        //Mion: only checking decompressed file length on non-NSA archives,
-        //      since NSA header already contains the original length
-        if ((archive_type != ARCHIVE_TYPE_NSA) &&
-            ( (ai->fi_list[i].compression_type == NBZ_COMPRESSION) ||
-              (ai->fi_list[i].compression_type == SPB_COMPRESSION) )) {
-            ai->fi_list[i].original_length =
-                    getDecompressedFileLength(ai->fi_list[i].compression_type,
-                                              ai->file_handle,
-                                              ai->fi_list[i].offset);
+        //Mion: delaying checking decompressed file length until
+        // file is opened for real: original_length = 0 means
+        // it hasn't been checked yet
+        // (checking every compressed file in this function caused
+        //  a massive slowdown at program start when an archive had
+        //  many compressed images...)
+        if ( (ai->fi_list[i].compression_type == NBZ_COMPRESSION) ||
+              (ai->fi_list[i].compression_type == SPB_COMPRESSION) ){
+            ai->fi_list[i].original_length = 0;
+            //ai->fi_list[i].original_length = getDecompressedFileLength( ai->fi_list[i].compression_type, ai->file_handle, ai->fi_list[i].offset );
         }
     }
 
@@ -149,15 +150,11 @@ int SarReader::close()
     ArchiveInfo* info = archive_info.next;
 
     for (int i = 0; i < num_of_sar_archives; i++) {
-        if (info->file_handle) {
-            fclose(info->file_handle);
-            delete[] info->fi_list;
-        }
-
         last_archive_info = info;
         info = info->next;
         delete last_archive_info;
     }
+    num_of_sar_archives = 0;
 
     return 0;
 }
@@ -206,11 +203,15 @@ size_t SarReader::getFileLength(const pstring& file_name)
 
     if (!info) return 0;
 
-    if (info->fi_list[j].compression_type == NO_COMPRESSION) {
-        int type = getRegisteredCompressionType(file_name);
-        if (type == NBZ_COMPRESSION || type == SPB_COMPRESSION)
-            return getDecompressedFileLength(type, info->file_handle,
-					     info->fi_list[j].offset);
+    if ( info->fi_list[j].original_length != 0 ){
+        return info->fi_list[j].original_length;
+    }
+
+    int type = info->fi_list[j].compression_type;
+    if ( type == NO_COMPRESSION )
+        type = getRegisteredCompressionType( file_name );
+    if ( type == NBZ_COMPRESSION || type == SPB_COMPRESSION ) {
+        info->fi_list[j].original_length = getDecompressedFileLength( type, info->file_handle, info->fi_list[j].offset );
     }
 
     return info->fi_list[j].original_length;
