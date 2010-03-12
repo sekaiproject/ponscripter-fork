@@ -663,39 +663,6 @@ void PonscripterLabel::setGameIdentifier(const char *gameid)
 }
 
 
-#ifdef MACOSX
-void MacOSX_SeekArchive(ScriptHandler& script_h, DirPaths *archive_path)
-{
-    // Store archives etc in the application bundle by default, but
-    // also check the application root directory and current directory.
-    if (isBundled()) {
-        pstring path = bundleResPath();
-        if (path) {
-            archive_path->add(path);
-        }
-
-        // Now add the application path.
-        path = bundleAppPath();
-        if (path) {
-            archive_path->add(path);
-            // Add the next directory up as a fallback.
-            path += "/..";
-            archive_path->add(path);
-        } else {
-            //if we couldn't find the application path, we still need
-            //something - use current dir and parent
-            archive_path->add(".");
-            archive_path->add("..");
-        }
-    }
-    else {
-        // Not in a bundle: just use current dir and parent as normal.
-        archive_path->add(".");
-        archive_path->add("..");
-    }
-}
-#endif
-
 #ifdef WIN32
 pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windows version
 {
@@ -835,7 +802,33 @@ int PonscripterLabel::init(const char* preferred_script)
     // assume the current directory if nothing else was specified.
     if (archive_path.get_num_paths()==0) {
 #ifdef MACOSX
-        MacOSX_SeekArchive(script_h, &archive_path);
+        // Store archives etc in the application bundle by default, but
+        // also check the application root directory and current directory.
+        if (isBundled()) {
+            pstring path = bundleResPath();
+            if (path) {
+                archive_path->add(path);
+            }
+
+            // Now add the application path.
+            path = bundleAppPath();
+            if (path) {
+                archive_path->add(path);
+                // Add the next directory up as a fallback.
+                path += "/..";
+                archive_path->add(path);
+            } else {
+                //if we couldn't find the application path, we still need
+                //something - use current dir and parent
+                archive_path->add(".");
+                archive_path->add("..");
+            }
+        }
+        else {
+            // Not in a bundle: just use current dir and parent as normal.
+            archive_path->add(".");
+            archive_path->add("..");
+        }
 #else
         archive_path.add(".");
         archive_path.add("..");
