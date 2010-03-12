@@ -25,6 +25,14 @@
 
 #include "ScriptParser.h"
 
+#ifdef MACOSX
+namespace Carbon {
+#include <sys/stat.h>
+#include <Carbon/Carbon.h>
+#include <CoreServices/CoreServices.h>
+}
+#endif
+
 #define VERSION_STR1 "Ponscripter"
 #define VERSION_STR2 "Copyright (C) 2001-2006 Studio O.G.A., 2006-2007 Haeleth."
 
@@ -367,20 +375,16 @@ void ScriptParser::checkBundled()
     // check whether this ponscripter is bundled, and if so find the
     // resources and app directories
     using namespace Carbon;
-    const int maxpath=32768;
+    CFURLRef url;
+    const CFIndex max_path = 32768;
     Uint8 path[maxpath];
     CFBundleRef bundle = CFBundleGetMainBundle();
     if (bundle) {
         is_bundled = true;
-        CFURLRef resourceurl = CFBundleCopyResourcesDirectoryURL(bundle);
-        if (resourceurl) {
-            Boolean validpath =
-                CFURLGetFileSystemRepresentation(resourceurl,true,path,maxpath);
-            CFRelease(resourceurl);
-            if (validpath) {
-                bundle_res_path = new char[strlen((char*)path)+1];
-                strcpy(bundle_res_path, (char*)path);
-            }
+        if ((url = CFBundleCopyResourcesDirectoryURL(bundle))) {
+            if (CFURLGetFileSystemRepresentation(url, true, path, max_path))
+                bundle_res_path = pstring((char*) path);
+            CFRelease(url);
         }
 
         // Now add the application path.
@@ -390,18 +394,20 @@ void ScriptParser::checkBundled()
                 CFURLGetFileSystemRepresentation(bundleurl, true,
                                                  path, maxpath);
             if (validpath) {
-                bundle_app_path = new char[strlen((char*)path)+1];
-                strcpy(bundle_app_path, (char*)path);
+                bundle_app_path = pstring((char*) path);
                 //get the app name (e.g. ".../thing.app" -> "thing")
+                //not bothering to use pstring methods for now
                 char *aptr = strrchr((char*)path, '/');
                 if (aptr == NULL)
                     aptr = (char *)path;
                 else
                     ++aptr;
-                bundle_app_name = new char[strlen(aptr)+1];
-                strcpy(bundle_app_name, aptr);
-                aptr = strstr(bundle_app_name, ".app");
+                char *tmp = new char[strlen(aptr)+1];
+                strcpy(tmp, aptr);
+                aptr = strstr(tmp, ".app");
                 if (aptr) *aptr = '\0';
+                bundle_app_name = pstring(aptr);
+                delete[] tmp;
             }
             CFURLRef archiveurl =
                 CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorDefault,
@@ -412,8 +418,7 @@ void ScriptParser::checkBundled()
                                                      path, maxpath);
                 CFRelease(archiveurl);
                 if (validpath) {
-                    bundle_app_path = new char[strlen((char*)path)+1];
-                    strcpy(bundle_app_path, (char*)path);
+                    bundle_app_path = pstring((char*) path);
                 }
             }
             CFRelease(bundleurl);

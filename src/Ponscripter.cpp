@@ -368,6 +368,11 @@ int main(int argc, char** argv)
     ons.enableButtonShortCut();
 #endif
 
+#ifdef MACOSX
+    //Check for application bundle on Mac OS X
+    ons.checkBundled();
+#endif
+
     // ----------------------------------------
     // Parse options
     bool hasArchivePath = false;
