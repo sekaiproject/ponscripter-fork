@@ -807,27 +807,27 @@ int PonscripterLabel::init(const char* preferred_script)
         if (isBundled()) {
             pstring path = bundleResPath();
             if (path) {
-                archive_path->add(path);
+                archive_path.add(path);
             }
 
             // Now add the application path.
             path = bundleAppPath();
             if (path) {
-                archive_path->add(path);
+                archive_path.add(path);
                 // Add the next directory up as a fallback.
                 path += "/..";
-                archive_path->add(path);
+                archive_path.add(path);
             } else {
                 //if we couldn't find the application path, we still need
                 //something - use current dir and parent
-                archive_path->add(".");
-                archive_path->add("..");
+                archive_path.add(".");
+                archive_path.add("..");
             }
         }
         else {
             // Not in a bundle: just use current dir and parent as normal.
-            archive_path->add(".");
-            archive_path->add("..");
+            archive_path.add(".");
+            archive_path.add("..");
         }
 #else
         archive_path.add(".");
