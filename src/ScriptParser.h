@@ -94,9 +94,9 @@ public:
 #ifdef MACOSX
     void checkBundled();
     bool isBundled() {return is_bundled; }
-    const char *bundleResPath() { return (const char *)bundle_res_path; }
-    const char *bundleAppPath() { return (const char *)bundle_app_path; }
-    const char *bundleAppName() { return (const char *)bundle_app_name; }
+    pstring bundleResPath() { return bundle_res_path; }
+    pstring bundleAppPath() { return bundle_app_path; }
+    pstring bundleAppName() { return bundle_app_name; }
 #endif
 
     /* Command */

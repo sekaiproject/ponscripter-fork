@@ -668,37 +668,24 @@ void MacOSX_SeekArchive(ScriptHandler& script_h, DirPaths *archive_path)
 {
     // Store archives etc in the application bundle by default, but
     // also check the application root directory and current directory.
-    using namespace Carbon;
-    pstring rv;
-    CFURLRef url;
-    const CFIndex max_path = 32768;
-    UInt8 path[max_path];
-    CFBundleRef bundle = CFBundleGetMainBundle();
-    if (bundle) {
-        if ((url = CFBundleCopyResourcesDirectoryURL(bundle))) {
-            if (CFURLGetFileSystemRepresentation(url, true, path, max_path))
-                rv = pstring((char*) path) + '/';
-            CFRelease(url);
+    if (isBundled()) {
+        pstring path = bundleResPath();
+        if (path) {
+            archive_path->add(path);
         }
-        if (rv) archive_path->add(rv);
 
         // Now add the application path.
-        if ((url = CFBundleCopyBundleURL(bundle))) {
-            CFURLRef app =
-                CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorDefault,
-                                                         url);
-            CFRelease(url);
-            if (app) {
-                Boolean valid =
-                    CFURLGetFileSystemRepresentation(app, true, path, max_path);
-                CFRelease(app);
-                if (valid) {
-                    archive_path->add(pstring((char*) path) + '/');
-                    // Add the next directory up as a fallback.
-                    strcat((char*) path, "/..");
-                    archive_path->add((const char*) path);
-                }
-            }
+        path = bundleAppPath();
+        if (path) {
+            archive_path->add(path);
+            // Add the next directory up as a fallback.
+            path += "/..";
+            archive_path->add(path);
+        } else {
+            //if we couldn't find the application path, we still need
+            //something - use current dir and parent
+            archive_path->add(".");
+            archive_path->add("..");
         }
     }
     else {

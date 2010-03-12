@@ -377,7 +377,7 @@ void ScriptParser::checkBundled()
     using namespace Carbon;
     CFURLRef url;
     const CFIndex max_path = 32768;
-    Uint8 path[maxpath];
+    Uint8 path[max_path];
     CFBundleRef bundle = CFBundleGetMainBundle();
     if (bundle) {
         is_bundled = true;
@@ -392,7 +392,7 @@ void ScriptParser::checkBundled()
         if (bundleurl) {
             Boolean validpath =
                 CFURLGetFileSystemRepresentation(bundleurl, true,
-                                                 path, maxpath);
+                                                 path, max_path);
             if (validpath) {
                 bundle_app_path = pstring((char*) path);
                 //get the app name (e.g. ".../thing.app" -> "thing")
@@ -415,7 +415,7 @@ void ScriptParser::checkBundled()
             if (archiveurl) {
                 Boolean validpath =
                     CFURLGetFileSystemRepresentation(archiveurl, true,
-                                                     path, maxpath);
+                                                     path, max_path);
                 CFRelease(archiveurl);
                 if (validpath) {
                     bundle_app_path = pstring((char*) path);
