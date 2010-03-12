@@ -804,7 +804,7 @@ private:
     int  estimateNextDuration(AnimationInfo* anim, SDL_Rect &rect, int minimum);
     void resetRemainingTime(int t);
     void setupAnimationInfo(AnimationInfo* anim, Fontinfo* info = NULL);
-    void parseTaggedString(AnimationInfo* anim);
+    void parseTaggedString(AnimationInfo *anim, bool is_mask=false);
     void drawTaggedSurface(SDL_Surface* dst_surface, AnimationInfo* anim,
                            SDL_Rect &clip);
     void stopAnimation(int click);

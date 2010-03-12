@@ -53,9 +53,13 @@ static ligatures ligs;
 
 void ligatures::clear()
 {
-    children.clear();
+    for (ligmap_iter it=children.begin() ; it != children.end(); ) {
+        if (it->second) delete it->second;
+        it->second = 0;
+        children.erase(it++);
+    }
 }
-    
+
 ligature* ligatures::find(const char* seq, const Fontinfo* face)
 {
     ligature* v = 0;
@@ -73,7 +77,10 @@ void ligatures::add(const char* seq, wchar value, int depth)
     if (*seq) {
         // add/retrieve the branch to the node for *seq char
         ligmap_insertion p = children.insert(lignode(*seq, 0));
-        if (!p.first->second) p.first->second = new ligatures;
+        if (p.second) {
+            if (p.first->second) delete p.first->second;
+            p.first->second = new ligatures;
+        }
         // process the *seq node (p.first->second), adding more of the sequence
         p.first->second->add(seq + 1, value, depth + 1);
     }

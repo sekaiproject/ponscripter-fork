@@ -940,6 +940,8 @@ int PonscripterLabel::init(const char* preferred_script)
 
     trap_dist.trunc(0);
 
+    draw_one_page_flag = false;
+
     for (i = 0; i < MAX_PARAM_NUM; i++)
         bar_info[i] = prnum_info[i] = 0;
 
@@ -973,6 +975,7 @@ void PonscripterLabel::reset()
     ctrl_pressed_status  = 0;
     display_mode = NORMAL_DISPLAY_MODE;
     event_mode = IDLE_EVENT_MODE;
+    did_leavetext = false;
     all_sprite_hide_flag = false;
     all_sprite2_hide_flag = false;
 
@@ -1057,7 +1060,6 @@ void PonscripterLabel::resetSub()
     prnumclearCommand("prnumclear");
     for (i = 0; i < 2; i++) cursor_info[i].reset();
     for (i = 0; i < 4; i++) lookback_info[i].reset();
-    sentence_font_info.reset();
 
     // Initialize character sets
     DefaultLigatures(9);
@@ -1082,10 +1084,11 @@ void PonscripterLabel::resetSentenceFont()
     sentence_font.area_y = 16 * (sentence_font.size() + sentence_font.pitch_y);
     sentence_font.wait_time = 20;
     sentence_font.window_color.set(0x99);
+    sentence_font_info.reset();
     sentence_font_info.pos.x = 0;
     sentence_font_info.pos.y = 0;
-    sentence_font_info.pos.w = 640;
-    sentence_font_info.pos.h = 480;
+    sentence_font_info.pos.w = screen_width;
+    sentence_font_info.pos.h = screen_height;
 }
 
 

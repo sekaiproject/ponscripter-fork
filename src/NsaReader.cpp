@@ -107,11 +107,15 @@ size_t NsaReader::getFileLengthSub(ArchiveInfo* ai, const pstring& file_name)
 
     if (i == ai->num_of_files) return 0;
 
-    if (ai->fi_list[i].compression_type == NO_COMPRESSION) {
-        int type = getRegisteredCompressionType(file_name);
-        if (type == NBZ_COMPRESSION || type == SPB_COMPRESSION)
-            return getDecompressedFileLength(type, ai->file_handle,
-					     ai->fi_list[i].offset);
+    if ( ai->fi_list[i].original_length != 0 ){
+        return ai->fi_list[i].original_length;
+    }
+
+    int type = ai->fi_list[i].compression_type;
+    if ( type == NO_COMPRESSION )
+        type = getRegisteredCompressionType( file_name );
+    if ( type == NBZ_COMPRESSION || type == SPB_COMPRESSION ) {
+        ai->fi_list[i].original_length = getDecompressedFileLength( type, ai->file_handle, ai->fi_list[i].offset );
     }
 
     return ai->fi_list[i].original_length;

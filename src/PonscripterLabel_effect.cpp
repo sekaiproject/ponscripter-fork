@@ -60,10 +60,7 @@ int PonscripterLabel::setEffect(Effect& effect, bool generate_effect_dst, bool u
     /* Load mask image */
     if (effect_no == 15 || effect_no == 18){
         if (!effect.anim.image_surface){
-            parseTaggedString(&effect.anim);
-            //Mion: this will be a mask, so be sure it's not "alpha"
-            if (effect.anim.trans_mode == AnimationInfo::TRANS_ALPHA)
-                effect.anim.trans_mode = AnimationInfo::TRANS_COPY;
+            parseTaggedString(&effect.anim, true);
             setupAnimationInfo(&effect.anim);
         }
     }

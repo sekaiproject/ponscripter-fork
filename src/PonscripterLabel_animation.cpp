@@ -262,7 +262,7 @@ void PonscripterLabel::setupAnimationInfo(AnimationInfo* anim, Fontinfo* info)
 }
 
 
-void PonscripterLabel::parseTaggedString(AnimationInfo* anim)
+void PonscripterLabel::parseTaggedString(AnimationInfo* anim, bool is_mask)
 {
     if (!anim->image_name) return;
 
@@ -271,7 +271,10 @@ void PonscripterLabel::parseTaggedString(AnimationInfo* anim)
     int i;
     const char* buffer = anim->image_name;
     anim->num_of_cells = 1;
+    anim->current_cell = 0;
     anim->trans_mode = trans_mode;
+    //use COPY as default trans_mode for masks
+    if (is_mask) anim->trans_mode = AnimationInfo::TRANS_COPY;
 
     if (buffer[0] == ':') {
         while (*++buffer == ' ') ;
