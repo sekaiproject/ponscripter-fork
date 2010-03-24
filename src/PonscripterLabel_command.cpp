@@ -33,8 +33,10 @@
 #endif
 
 #if defined (MACOSX) && (SDL_COMPILEDVERSION >= 1208)
+namespace Carbon {
 #include <CoreFoundation/CoreFoundation.h>
 #include <ApplicationServices/ApplicationServices.h>
+};
 #endif
 
 #define CONTINUOUS_PLAY
@@ -150,8 +152,8 @@ int PonscripterLabel::trapCommand(const pstring& cmd)
         trap_dist = e.as_string();
     else
         printf("%s: [%s] is not supported\n",
-	       (const char*) cmd,
-	       (const char*) e.debug_string());
+               (const char*) cmd,
+               (const char*) e.debug_string());
 
     return RET_CONTINUE;
 }
@@ -572,6 +574,32 @@ int PonscripterLabel::skipoffCommand(const pstring& cmd)
 }
 
 
+#ifdef LINUX
+int tryToLaunch(const char* command, const char* target)
+{
+    if (!command || !target) return -1;
+    pid_t child = vfork();
+    if (child == -1) {
+	// Parent, failed
+	fprintf(stderr, "Could not open `%s': fork error: %s\n",
+		target, strerror(errno));
+	return 0;
+    }
+    else if (child) {
+	// Parent, success
+	int status;
+	waitpid(child, &status, 0);
+	if (WIFEXITED(status)) return WEXITSTATUS(status);
+	return -1;
+    }
+    else {
+	// Child
+	execlp(command, command, target, (char*) NULL);
+	_exit(255);
+    }
+}
+#endif
+
 int PonscripterLabel::shellCommand(const pstring& cmd)
 {
 #ifdef WIN32
@@ -615,7 +643,7 @@ int PonscripterLabel::shellCommand(const pstring& cmd)
 
     case 2: // File not found
         fprintf(stderr, "Failed to open %s: xdg-error reports that it doesn't "
-                "exist\n", url);
+                "exist\n", (const char *)url);
         return RET_CONTINUE;
 
     case 255: // execlp() failed (e.g. xdg-open not present)
@@ -632,8 +660,8 @@ int PonscripterLabel::shellCommand(const pstring& cmd)
     }
 
     // Failing that, try $BROWSER, or give up.
-    const char* browser = getenv("BROWSER");
-    if (browser) {
+    pstring browser = getenv("BROWSER");
+    if (browser.length() > 0) {
         pstring cmd = "\""  + browser + "\" '" + url + "' &";
         if (system((const char*)cmd) != 0)
             fprintf(stderr, "Couldn't launch web browser `%s': check your "
