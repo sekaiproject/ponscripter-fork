@@ -39,6 +39,12 @@ namespace Carbon {
 };
 #endif
 
+#ifdef LINUX
+#include <sys/wait.h>
+#include <unistd.h>
+#include <errno.h>
+#endif
+
 #define CONTINUOUS_PLAY
 
 extern SDL_TimerID timer_mp3fadeout_id;
@@ -153,7 +159,7 @@ int PonscripterLabel::trapCommand(const pstring& cmd)
     else
         printf("%s: [%s] is not supported\n",
                (const char*) cmd,
-               (const char*) e.debug_string());
+               (char*) e.debug_string());
 
     return RET_CONTINUE;
 }
@@ -643,7 +649,7 @@ int PonscripterLabel::shellCommand(const pstring& cmd)
 
     case 2: // File not found
         fprintf(stderr, "Failed to open %s: xdg-error reports that it doesn't "
-                "exist\n", (const char *)url);
+                "exist\n", (const char*)url);
         return RET_CONTINUE;
 
     case 255: // execlp() failed (e.g. xdg-open not present)
@@ -1930,7 +1936,7 @@ int PonscripterLabel::inputCommand(const pstring& cmd)
 
     e.mutate(script_h.readStrValue());
     printf("%s: %s is set to the default value, %s\n", (const char*) cmd,
-	   (const char*) e.debug_string(), (const char*) e.as_string());
+           (char*) e.debug_string(), (char*) e.as_string());
 
     script_h.readIntValue(); // maxlen
     script_h.readIntValue(); // widechar flag
