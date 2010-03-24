@@ -270,6 +270,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["setwindow3"]       = &PonscripterLabel::setwindow3Command;
     dict["sevol"]            = &PonscripterLabel::sevolCommand;
     dict["skipoff"]          = &PonscripterLabel::skipoffCommand;
+    dict["shell"]          = &PonscripterLabel::shellCommand;
     dict["sp_rgb_gradation"] = &PonscripterLabel::sp_rgb_gradationCommand;
     dict["spbtn"]            = &PonscripterLabel::spbtnCommand;
     dict["spclclk"]          = &PonscripterLabel::spclclkCommand;
@@ -340,15 +341,16 @@ void PonscripterLabel::initSDL()
     /* ---------------------------------------- */
     /* Initialize SDL */
 
-    // Don't set an icon on OS X - the applicaton bundle's icon is
-    // used anyway, and is usually higher resolution.
-#ifndef MACOSX
     // Apparently the window icon must be set before the display is
     // initialised.  An ONScripter-style PNG in the current folder
     // takes precedence.
     SDL_Surface* icon = IMG_Load("icon.png");
-    // If that doesn't exist, try using an internal resource.
-    if (!icon) {
+    //use icon.png preferably, but try embedded resources if not found
+    //(cmd-line option --use-app-icons to prefer app resources over icon.png)
+    //(Mac apps can set use-app-icons in a pns.cfg file within the
+    //bundle, to have it always use the bundle icns)
+#ifndef MACOSX
+    if (!icon || use_app_icons) {
 #ifdef WIN32
         //use the (first) Windows icon resource
         HICON wicon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(ONSCRICON));
@@ -358,22 +360,52 @@ void PonscripterLabel::initSDL()
             SDL_GetWMInfo(&info);
             SendMessage(info.window, WM_SETICON, ICON_BIG, (LPARAM)wicon);
         }
-        else printf("no windows icon resource\n");
 #else
         const InternalResource* internal_icon = getResource("icon.png");
         if (internal_icon) {
+            if (icon) SDL_FreeSurface(icon);
             SDL_RWops* rwicon = SDL_RWFromConstMem(internal_icon->buffer,
-                                    internal_icon->size);
+                                                   internal_icon->size);
             icon = IMG_Load_RW(rwicon, 0);
+            use_app_icons = false;
         }
 #endif // WIN32
     }
-    // If an icon was found, use it.
-    if (icon) {
-        SDL_WM_SetIcon(icon, 0);
-        SDL_FreeSurface(icon);
+#endif //!MACOSX
+    // If an icon was found (and desired), use it.
+    if (icon && !use_app_icons) {
+#if defined(MACOSX) || defined(WIN32)
+#if defined(MACOSX)
+        //resize the (usually 32x32) icon to 128x128
+        SDL_Surface *tmp2 = SDL_CreateRGBSurface(SDL_SWSURFACE, 128, 128,
+                                                 32, 0x00ff0000, 0x0000ff00,
+                                                 0x000000ff, 0xff000000);
+#elif defined(WIN32)
+        //resize the icon to 32x32
+        SDL_Surface *tmp2 = SDL_CreateRGBSurface(SDL_SWSURFACE, 32, 32,
+                                                 32, 0x00ff0000, 0x0000ff00,
+                                                 0x000000ff, 0xff000000);
+#endif //MACOSX, WIN32
+        SDL_Surface *tmp = SDL_ConvertSurface( icon, tmp2->format, SDL_SWSURFACE );
+        if ((tmp->w == tmp2->w) && (tmp->h == tmp2->h)) {
+            //already the right size, just use converted surface as-is
+            SDL_FreeSurface(tmp2);
+            tmp2 = icon;
+            icon = tmp;
+            SDL_FreeSurface(tmp2);
+        } else {
+            //resize converted surface
+            AnimationInfo::resizeSurface(tmp, tmp2);
+            SDL_FreeSurface(tmp);
+            tmp = icon;
+            icon = tmp2;
+            SDL_FreeSurface(tmp);
+        }
+#endif //MACOSX || WIN32
+        SDL_WM_SetIcon(icon, NULL);
     }
-#endif // !MACOSX
+    if (icon)
+        SDL_FreeSurface(icon);
 
 #ifdef BPP16
     screen_bpp = 16;
@@ -855,6 +887,41 @@ int PonscripterLabel::init(const char* preferred_script)
     // behaviour of putting saved games in the archive path.
     if (!script_h.save_path) script_h.save_path = archive_path.get_path(0);
 
+#ifdef WIN32
+    if (debug_level > 0) {
+        // to make it easier to debug user issues on Windows, open
+        // the current directory, save_path and Ponscripter output folders
+        // in Explorer
+        HMODULE shdll = LoadLibrary("shell32");
+        if (shdll) {
+            char hpath[MAX_PATH];
+            bool havefp = false;
+            GETFOLDERPATH gfp =
+                GETFOLDERPATH(GetProcAddress(shdll, "SHGetFolderPathA"));
+            if (gfp) {
+                HRESULT res = gfp(0, CSIDL_APPDATA, 0, 0, hpath); //user-based
+                if (res != S_FALSE && res != E_FAIL && res != E_INVALIDARG) {
+                    havefp = true;
+                    sprintf((char *)&hpath + strlen(hpath), "%s%s",
+                            DELIMITER, "Ponscripter");
+                }
+            }
+            typedef HINSTANCE (WINAPI *SHELLEXECUTE)(HWND, LPCSTR, LPCSTR,
+                               LPCSTR, LPCSTR, int);
+            SHELLEXECUTE shexec =
+                SHELLEXECUTE(GetProcAddress(shdll, "ShellExecuteA"));
+            if (shexec) {
+                shexec(NULL, "open", "", NULL, NULL, SW_SHOWNORMAL);
+                shexec(NULL, "open", (const char *)script_h.save_path,
+                       NULL, NULL, SW_SHOWNORMAL);
+                if (havefp)
+                    shexec(NULL, "open", hpath, NULL, NULL, SW_SHOWNORMAL);
+            }
+            FreeLibrary(shdll);
+        }
+    }
+#endif
+
     initSDL();
     initLocale();
 
@@ -901,6 +968,7 @@ int PonscripterLabel::init(const char* preferred_script)
     mp3_sample = 0;
     music_file_name.trunc(0);
     music_buffer = 0;
+    music_buffer_length = 0;
     music_info = 0;
     music_struct.ovi = 0;
     music_struct.is_mute = false;

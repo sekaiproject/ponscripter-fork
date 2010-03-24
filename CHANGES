@@ -1,3 +1,24 @@
+2010-03-24
+
+  Changed basic functionality on Windows: stdout.txt & stderr.txt will
+  go under the current user's AppData instead of AllUsers' from now on [Mion]
+
+  Added "shell" cmd [Mion]
+
+  Grafted grafted nicer non-ASCII Windows caption handling from ons-en [Mion]
+
+
+2010-03-11
+
+  Updated bstrlib (used for pstring type) [Mion]
+
+  Fixed memory leaks and uninitialized variables [Mion & Andrius]
+
+  Grafted recent (and some not-so-recent) small fixes from ons-en [Mion]
+
+  Added Mac app bundle handling [Mion & Roto]
+
+
 2010-03-08
 
   Fix for the enormously slow startup time for Umineko (caused by

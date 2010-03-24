@@ -190,6 +190,7 @@ public:
     int spclclkCommand(const pstring& cmd);
     int spbtnCommand(const pstring& cmd);
     int skipoffCommand(const pstring& cmd);
+    int shellCommand(const pstring& cmd);
     int sevolCommand(const pstring& cmd);
     int setwindow3Command(const pstring& cmd);
     int setwindow2Command(const pstring& cmd);

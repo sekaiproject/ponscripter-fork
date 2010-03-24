@@ -276,7 +276,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 
 #define CSIDL_COMMON_APPDATA 0x0023 // for [Profiles]/All Users/Application Data
 #define CSIDL_APPDATA        0x001a // for [Profiles]/[User]/Application Data
-            HRESULT res = gfp(0, CSIDL_COMMON_APPDATA, 0, 0, hpath);
+            HRESULT res = gfp(0, CSIDL_APPDATA, 0, 0, hpath); //now user-based
 
             if (res != S_FALSE && res != E_FAIL && res != E_INVALIDARG) {
                 sprintf(outputPath, "%s\\Ponscripter\\", hpath);

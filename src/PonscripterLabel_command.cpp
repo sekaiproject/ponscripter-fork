@@ -26,8 +26,15 @@
 #include "PonscripterLabel.h"
 #include "version.h"
 
+#ifdef WIN32
+#include <direct.h>
+#include <windows.h>
+#include "SDL_syswm.h"
+#endif
+
 #if defined (MACOSX) && (SDL_COMPILEDVERSION >= 1208)
 #include <CoreFoundation/CoreFoundation.h>
+#include <ApplicationServices/ApplicationServices.h>
 #endif
 
 #define CONTINUOUS_PLAY
@@ -560,6 +567,86 @@ int PonscripterLabel::spbtnCommand(const pstring& cmd)
 int PonscripterLabel::skipoffCommand(const pstring& cmd)
 {
     setSkipMode(false);
+
+    return RET_CONTINUE;
+}
+
+
+int PonscripterLabel::shellCommand(const pstring& cmd)
+{
+#ifdef WIN32
+    pstring url = script_h.readStrValue();
+    HMODULE shdll = LoadLibrary("shell32");
+    if (shdll) {
+        typedef HINSTANCE (WINAPI *SHELLEXECUTE)(HWND, LPCSTR, LPCSTR, LPCSTR,
+                                                 LPCSTR, int);
+        SHELLEXECUTE shexec =
+            SHELLEXECUTE(GetProcAddress(shdll, "ShellExecuteA"));
+        if (shexec) {
+            shexec(NULL, "open", (const char*)url, NULL, NULL, SW_SHOW);
+        }
+        FreeLibrary(shdll);
+    }
+    
+#elif defined MACOSX
+    using namespace Carbon;
+    CFStringRef url_string =
+        CFStringCreateWithCString(NULL, (const char*)script_h.readStrValue(),
+                                  kCFStringEncodingShiftJIS);
+    CFURLRef url = CFURLCreateWithString(NULL, url_string, NULL);
+    LSOpenCFURLRef(url, NULL);
+    CFRelease(url);
+    CFRelease(url_string);
+    
+#elif defined LINUX
+    // Linux/BSD/other Unixes don't provide standard APIs for this
+    // kind of thing, but there are various things we can try.
+    
+    pstring url = script_h.readStrValue();
+    int status;
+
+    // First up is xdg-open, the freedesktop solution that's becoming
+    // standard in the Linux world, at least.
+    //
+    status = tryToLaunch("xdg-open", (const char*)url);
+    switch (status) {
+    case 0: // Success
+        return RET_CONTINUE;
+
+    case 2: // File not found
+        fprintf(stderr, "Failed to open %s: xdg-error reports that it doesn't "
+                "exist\n", url);
+        return RET_CONTINUE;
+
+    case 255: // execlp() failed (e.g. xdg-open not present)
+        // Don't say anything.
+        break;
+
+    case 1:   // Syntax error
+    case 3:   // Required tool missing
+    case 4:   // Action failed
+    case -1:  // child didn't exit normally
+    default:  // unknown problem
+        fprintf(stderr, "Open URL with xdg-open failed with status %d\n",
+                status);
+    }
+
+    // Failing that, try $BROWSER, or give up.
+    const char* browser = getenv("BROWSER");
+    if (browser) {
+        pstring cmd = "\""  + browser + "\" '" + url + "' &";
+        if (system((const char*)cmd) != 0)
+            fprintf(stderr, "Couldn't launch web browser `%s': check your "
+                    "BROWSER setting.\n", browser);
+    }
+    else {
+        fputs("Could not determine which web browser to use. "
+              "Please set BROWSER appropriately.\n", stderr);
+    }
+    
+#else
+    fprintf(stderr, "[shell] command not supported for this OS\n");
+#endif
 
     return RET_CONTINUE;
 }
@@ -2791,6 +2878,25 @@ int PonscripterLabel::captionCommand(const pstring& cmd)
         }
     }
     SDL_WM_SetCaption(cap, cap);
+#ifdef WIN32
+    //convert from UTF-8 to Wide (Unicode) and thence to system ANSI
+    // (since SDL 1.2 doesn't support Unicode app compilation)
+    int len = MultiByteToWideChar(CP_UTF8, 0, (const char*)cap, -1, NULL, 0);
+    wchar_t *u16_tmp = new wchar_t[len];
+    MultiByteToWideChar(CP_UTF8, 0, (const char*)cap, -1, u16_tmp, len);
+    len = WideCharToMultiByte(CP_ACP, 0, u16_tmp, -1, NULL, 0, NULL, NULL);
+    char *cvt = new char[len+1];
+    WideCharToMultiByte(CP_ACP, 0, u16_tmp, -1, cvt, len, NULL, NULL);
+    delete[] u16_tmp;
+
+    //set the window caption directly
+    SDL_SysWMinfo info;
+    SDL_VERSION(&info.version);
+    SDL_GetWMInfo(&info);
+    SendMessageA(info.window, WM_SETTEXT, 0, (LPARAM)cvt);
+    delete[] cvt;
+#endif //WIN32
+
     return RET_CONTINUE;
 }
 
