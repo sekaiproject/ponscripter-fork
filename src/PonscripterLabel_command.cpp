@@ -159,7 +159,7 @@ int PonscripterLabel::trapCommand(const pstring& cmd)
     else
         printf("%s: [%s] is not supported\n",
                (const char*) cmd,
-               (char*) e.debug_string());
+               (const char*) (e.debug_string()));
 
     return RET_CONTINUE;
 }
@@ -1936,7 +1936,7 @@ int PonscripterLabel::inputCommand(const pstring& cmd)
 
     e.mutate(script_h.readStrValue());
     printf("%s: %s is set to the default value, %s\n", (const char*) cmd,
-           (char*) e.debug_string(), (char*) e.as_string());
+           (const char*) (e.debug_string()), (const char*) (e.as_string()));
 
     script_h.readIntValue(); // maxlen
     script_h.readIntValue(); // widechar flag
