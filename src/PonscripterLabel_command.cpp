@@ -156,10 +156,12 @@ int PonscripterLabel::trapCommand(const pstring& cmd)
         trap_mode = TRAP_NONE;
     else if (e.is_label())
         trap_dist = e.as_string();
-    else
+    else {
+        pstring d = e.debug_string();
         printf("%s: [%s] is not supported\n",
                (const char*) cmd,
-               (const char*) (e.debug_string()));
+               (const char*) d);
+    }
 
     return RET_CONTINUE;
 }
@@ -671,7 +673,7 @@ int PonscripterLabel::shellCommand(const pstring& cmd)
         pstring cmd = "\""  + browser + "\" '" + url + "' &";
         if (system((const char*)cmd) != 0)
             fprintf(stderr, "Couldn't launch web browser `%s': check your "
-                    "BROWSER setting.\n", browser);
+                    "BROWSER setting.\n", (const char*)browser);
     }
     else {
         fputs("Could not determine which web browser to use. "
@@ -1935,8 +1937,9 @@ int PonscripterLabel::inputCommand(const pstring& cmd)
     script_h.readStrValue(); // description
 
     e.mutate(script_h.readStrValue());
+    pstring d = e.debug_string();
     printf("%s: %s is set to the default value, %s\n", (const char*) cmd,
-           (const char*) (e.debug_string()), (const char*) (e.as_string()));
+           (const char*) d, (const char*) e.as_string());
 
     script_h.readIntValue(); // maxlen
     script_h.readIntValue(); // widechar flag
