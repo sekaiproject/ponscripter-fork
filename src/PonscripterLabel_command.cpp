@@ -162,10 +162,9 @@ int PonscripterLabel::trapCommand(const pstring& cmd)
     else if (e.is_label())
         trap_dist = e.as_string();
     else {
-        pstring d = e.debug_string();
         printf("%s: [%s] is not supported\n",
                (const char*) cmd,
-               (const char*) d);
+               (const char*) e.debug_string());
     }
 
     return RET_CONTINUE;
@@ -1942,9 +1941,8 @@ int PonscripterLabel::inputCommand(const pstring& cmd)
     script_h.readStrValue(); // description
 
     e.mutate(script_h.readStrValue());
-    pstring d = e.debug_string();
     printf("%s: %s is set to the default value, %s\n", (const char*) cmd,
-           (const char*) d, (const char*) e.as_string());
+           (const char*) e.debug_string(), (const char*) e.as_string());
 
     script_h.readIntValue(); // maxlen
     script_h.readIntValue(); // widechar flag
