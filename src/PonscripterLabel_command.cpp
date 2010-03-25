@@ -36,7 +36,7 @@
 namespace Carbon {
 #include <CoreFoundation/CoreFoundation.h>
 #include <ApplicationServices/ApplicationServices.h>
-};
+}
 #endif
 
 #ifdef LINUX
