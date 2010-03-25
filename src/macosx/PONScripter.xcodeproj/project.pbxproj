@@ -378,113 +378,6 @@
 		E258AAD1110169E10014C747 /* DirPaths.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E258AACE110169E10014C747 /* DirPaths.cpp */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXBuildRule section */
-		E258AABC110168DD0014C747 /* PBXBuildRule */ = {
-			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.gcc.4_0;
-			fileType = sourcecode.c;
-			isEditable = 1;
-			outputFiles = (
-			);
-		};
-		E258AABD110168DD0014C747 /* PBXBuildRule */ = {
-			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.gcc.4_0;
-			fileType = sourcecode.c;
-			isEditable = 1;
-			outputFiles = (
-			);
-		};
-		E258AABE110168DD0014C747 /* PBXBuildRule */ = {
-			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.gcc.4_0;
-			fileType = sourcecode.c;
-			isEditable = 1;
-			outputFiles = (
-			);
-		};
-		E258AABF110168DD0014C747 /* PBXBuildRule */ = {
-			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.gcc.4_0;
-			fileType = sourcecode.c;
-			isEditable = 1;
-			outputFiles = (
-			);
-		};
-		E258AAC0110168DD0014C747 /* PBXBuildRule */ = {
-			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.gcc.4_0;
-			fileType = sourcecode.c;
-			isEditable = 1;
-			outputFiles = (
-			);
-		};
-		E258AAC1110168DD0014C747 /* PBXBuildRule */ = {
-			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.gcc.4_0;
-			fileType = sourcecode.c;
-			isEditable = 1;
-			outputFiles = (
-			);
-		};
-		E258AAC2110168DD0014C747 /* PBXBuildRule */ = {
-			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.gcc.4_0;
-			fileType = sourcecode.cpp;
-			isEditable = 1;
-			outputFiles = (
-			);
-		};
-		E258AAC3110168DD0014C747 /* PBXBuildRule */ = {
-			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.gcc.4_0;
-			fileType = sourcecode.c;
-			isEditable = 1;
-			outputFiles = (
-			);
-		};
-		E258AAC4110168DD0014C747 /* PBXBuildRule */ = {
-			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.gcc.4_0;
-			fileType = sourcecode.cpp;
-			isEditable = 1;
-			outputFiles = (
-			);
-		};
-		E258AAC71101692B0014C747 /* PBXBuildRule */ = {
-			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.gcc.4_0;
-			fileType = sourcecode.c;
-			isEditable = 1;
-			outputFiles = (
-			);
-		};
-		E258AAC81101692B0014C747 /* PBXBuildRule */ = {
-			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.gcc.4_0;
-			fileType = sourcecode.c;
-			isEditable = 1;
-			outputFiles = (
-			);
-		};
-		E258AACB1101699E0014C747 /* PBXBuildRule */ = {
-			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.gcc.4_0;
-			fileType = sourcecode.cpp;
-			isEditable = 1;
-			outputFiles = (
-			);
-		};
-		E258AACC1101699E0014C747 /* PBXBuildRule */ = {
-			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.gcc.4_0;
-			fileType = sourcecode.c;
-			isEditable = 1;
-			outputFiles = (
-			);
-		};
-/* End PBXBuildRule section */
-
 /* Begin PBXContainerItemProxy section */
 		365D3BAD0BE4376700D1832A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -2555,7 +2448,6 @@
 				365D40C00BE4643400D1832A /* ShellScript */,
 			);
 			buildRules = (
-				E258AABC110168DD0014C747 /* PBXBuildRule */,
 			);
 			dependencies = (
 			);
@@ -2573,7 +2465,6 @@
 				365A94370BE04D1D00786213 /* Frameworks */,
 			);
 			buildRules = (
-				E258AABD110168DD0014C747 /* PBXBuildRule */,
 			);
 			dependencies = (
 			);
@@ -2591,7 +2482,6 @@
 				365A946A0BE0503C00786213 /* Frameworks */,
 			);
 			buildRules = (
-				E258AABE110168DD0014C747 /* PBXBuildRule */,
 			);
 			dependencies = (
 			);
@@ -2609,7 +2499,6 @@
 				365A95010BE0535800786213 /* Frameworks */,
 			);
 			buildRules = (
-				E258AABF110168DD0014C747 /* PBXBuildRule */,
 			);
 			dependencies = (
 			);
@@ -2628,7 +2517,6 @@
 				365D40D60BE4654000D1832A /* ShellScript */,
 			);
 			buildRules = (
-				E258AAC0110168DD0014C747 /* PBXBuildRule */,
 			);
 			dependencies = (
 			);
@@ -2646,8 +2534,6 @@
 				365D35A30BE428E400D1832A /* Frameworks */,
 			);
 			buildRules = (
-				E258AAC1110168DD0014C747 /* PBXBuildRule */,
-				E258AAC2110168DD0014C747 /* PBXBuildRule */,
 			);
 			dependencies = (
 				365D3BB00BE4376C00D1832A /* PBXTargetDependency */,
@@ -2666,7 +2552,6 @@
 				365D39E10BE42F2100D1832A /* Frameworks */,
 			);
 			buildRules = (
-				E258AAC3110168DD0014C747 /* PBXBuildRule */,
 			);
 			dependencies = (
 				365D3BAE0BE4376700D1832A /* PBXTargetDependency */,
@@ -2685,7 +2570,6 @@
 				365D3AFC0BE4333900D1832A /* Frameworks */,
 			);
 			buildRules = (
-				E258AAC71101692B0014C747 /* PBXBuildRule */,
 			);
 			dependencies = (
 				365D3BB40BE4377500D1832A /* PBXTargetDependency */,
@@ -2706,7 +2590,6 @@
 				365D3BBB0BE437A200D1832A /* Frameworks */,
 			);
 			buildRules = (
-				E258AAC81101692B0014C747 /* PBXBuildRule */,
 			);
 			dependencies = (
 			);
@@ -2725,8 +2608,6 @@
 				E2072C2C0FDF837E003C50C4 /* Frameworks */,
 			);
 			buildRules = (
-				E258AACC1101699E0014C747 /* PBXBuildRule */,
-				E258AAC4110168DD0014C747 /* PBXBuildRule */,
 			);
 			dependencies = (
 				E2072C350FDF838C003C50C4 /* PBXTargetDependency */,
@@ -2753,7 +2634,6 @@
 				E2072D180FDF8BE8003C50C4 /* Frameworks */,
 			);
 			buildRules = (
-				E258AACB1101699E0014C747 /* PBXBuildRule */,
 			);
 			dependencies = (
 			);
@@ -2813,7 +2693,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "ranlib ${BUILD_DIR}/${BUILD_STYLE}/libjpeg.a";
+			shellScript = "ranlib \"${BUILD_DIR}/${BUILD_STYLE}/libjpeg.a\"";
 		};
 		365D40D60BE4654000D1832A /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -2841,7 +2721,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\n# This stuff is still kind of hacky and hardcoded for now... compiling in the resources\n# probably isn't the ideal solution for OS X anyway... FIXME\n\nrm -f ../resources.cpp\n${BUILD_DIR}/${BUILD_STYLE}/embed ../resources/default.png =icon.png > ../resources.cpp\n\nexit 0\n";
+			shellScript = "\n# This stuff is still kind of hacky and hardcoded for now... compiling in the resources\n# probably isn't the ideal solution for OS X anyway... FIXME\n\nrm -f ../resources.cpp\n\"${BUILD_DIR}/${BUILD_STYLE}/embed\" ../resources/default.png =icon.png > ../resources.cpp\n\nexit 0\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -3305,10 +3185,6 @@
 		365A93520BE04B0000786213 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
 				COPY_PHASE_STRIP = YES;
 				EXECUTABLE_EXTENSION = a;
 				EXECUTABLE_PREFIX = "";
@@ -3353,10 +3229,6 @@
 		365A943D0BE04D2D00786213 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
 				COPY_PHASE_STRIP = YES;
 				EXECUTABLE_EXTENSION = a;
 				EXECUTABLE_PREFIX = "";
@@ -3413,10 +3285,6 @@
 		365A94710BE0504400786213 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
 				COPY_PHASE_STRIP = YES;
 				EXECUTABLE_EXTENSION = a;
 				EXECUTABLE_PREFIX = "";
@@ -3485,10 +3353,6 @@
 		365A950B0BE0537600786213 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
 				COPY_PHASE_STRIP = YES;
 				EXECUTABLE_EXTENSION = a;
 				EXECUTABLE_PREFIX = "";
@@ -3559,10 +3423,6 @@
 		365A95780BE0574200786213 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
 				COPY_PHASE_STRIP = YES;
 				EXECUTABLE_EXTENSION = a;
 				EXECUTABLE_PREFIX = lib;
@@ -3649,10 +3509,6 @@
 		365D35AC0BE428F100D1832A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
 				COPY_PHASE_STRIP = YES;
 				GCC_DEBUGGING_SYMBOLS = default;
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
@@ -3731,10 +3587,6 @@
 		365D39E90BE42F2700D1832A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
 				COPY_PHASE_STRIP = YES;
 				GCC_DEBUGGING_SYMBOLS = default;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
@@ -3818,10 +3670,6 @@
 		365D3B030BE4333C00D1832A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
 				COPY_PHASE_STRIP = YES;
 				GCC_DEBUGGING_SYMBOLS = default;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
@@ -3936,10 +3784,6 @@
 		365D3BC40BE437B100D1832A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
 				COPY_PHASE_STRIP = YES;
 				GCC_DEBUGGING_SYMBOLS = default;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
@@ -3966,10 +3810,12 @@
 		C01FCF4F08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_VERSION = 4.0;
+				"GCC_VERSION[arch=x86_64]" = 4.2;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				PREBINDING = NO;
 				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.4u.sdk";
+				"SDKROOT[arch=i386]" = "$(DEVELOPER_SDK_DIR)/MacOSX10.6.sdk";
 			};
 			name = Debug;
 		};
@@ -3978,10 +3824,13 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
 				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
+				GCC_AUTO_VECTORIZATION = YES;
+				GCC_VERSION = 4.0;
+				"GCC_VERSION[arch=x86_64]" = 4.2;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				PREBINDING = NO;
 				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.4u.sdk";
+				"SDKROOT[arch=x86_64]" = "$(DEVELOPER_SDK_DIR)/MacOSX10.6.sdk";
 			};
 			name = Release;
 		};
@@ -3989,15 +3838,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
-				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = /Library/Frameworks;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PRECOMPILE_PREFIX_HEADER = NO;
-				GCC_PREFIX_HEADER = "";
-				GCC_PREPROCESSOR_DEFINITIONS = "MACOSX=1";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"USE_OGG_VORBIS=1",
+					"MACOSX=1",
+				);
 				HEADER_SEARCH_PATHS = (
 					.,
 					"../extlib/src/SDL-1.2.13/include/",
@@ -4010,14 +3856,12 @@
 				);
 				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_PREPROCESS = YES;
-				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_LDFLAGS = (
 					"-framework",
 					Foundation,
 					"-framework",
 					AppKit,
 				);
-				PREBINDING = NO;
 				PRODUCT_NAME = PONScripter;
 			};
 			name = Debug;
@@ -4026,19 +3870,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
-				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
-				COPY_PHASE_STRIP = YES;
 				FRAMEWORK_SEARCH_PATHS = /Library/Frameworks;
-				GCC_AUTO_VECTORIZATION = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_ENABLE_SSE3_EXTENSIONS = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 3;
-				GCC_PRECOMPILE_PREFIX_HEADER = NO;
-				GCC_PREFIX_HEADER = "";
-				GCC_PREPROCESSOR_DEFINITIONS = "MACOSX=1";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"USE_OGG_VORBIS=1",
+					"MACOSX=1",
+				);
 				HEADER_SEARCH_PATHS = (
 					.,
 					"../extlib/src/SDL-1.2.13/include/",
@@ -4051,17 +3887,13 @@
 				);
 				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_PREPROCESS = YES;
-				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_LDFLAGS = (
 					"-framework",
 					Foundation,
 					"-framework",
 					AppKit,
 				);
-				PREBINDING = NO;
 				PRODUCT_NAME = PONScripter;
-				SEPARATE_STRIP = YES;
-				STRIP_INSTALLED_PRODUCT = YES;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -4100,6 +3932,411 @@
 			};
 			name = Release;
 		};
+		E2C17A78115B340E006A89B5 /* Release (32 and 64-bit Universal) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1)";
+				ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1 = "x86_64 i386 ppc";
+				GCC_AUTO_VECTORIZATION = YES;
+				GCC_VERSION = 4.0;
+				"GCC_VERSION[arch=x86_64]" = 4.2;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.4u.sdk";
+				"SDKROOT[arch=x86_64]" = "$(DEVELOPER_SDK_DIR)/MacOSX10.5.sdk";
+			};
+			name = "Release (32 and 64-bit Universal)";
+		};
+		E2C17A79115B340E006A89B5 /* Release (32 and 64-bit Universal) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				FRAMEWORK_SEARCH_PATHS = /Library/Frameworks;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"USE_OGG_VORBIS=1",
+					"MACOSX=1",
+				);
+				HEADER_SEARCH_PATHS = (
+					.,
+					"../extlib/src/SDL-1.2.13/include/",
+					"../extlib/src/SDL_image-1.2.6/",
+					../extlib/src/smpeg/,
+					"../extlib/src/SDL_mixer-1.2.8/",
+					"../extlib/src/libogg-1.1.3/include",
+					"../extlib/src/libvorbis-1.2.0/include",
+					"../extlib/src/freetype-2.3.5/include",
+				);
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_PREPROCESS = YES;
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PRODUCT_NAME = PONScripter;
+				ZERO_LINK = NO;
+			};
+			name = "Release (32 and 64-bit Universal)";
+		};
+		E2C17A7A115B340E006A89B5 /* Release (32 and 64-bit Universal) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				EXECUTABLE_EXTENSION = a;
+				EXECUTABLE_PREFIX = "";
+				GCC_DEBUGGING_SYMBOLS = default;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_WARN_UNUSED_VARIABLE = NO;
+				HEADER_SEARCH_PATHS = .;
+				INSTALL_PATH = ../extlib/lib/;
+				MACH_O_TYPE = staticlib;
+				PREBINDING = NO;
+				PRODUCT_NAME = libjpeg;
+				ZERO_LINK = NO;
+			};
+			name = "Release (32 and 64-bit Universal)";
+		};
+		E2C17A7B115B340E006A89B5 /* Release (32 and 64-bit Universal) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				EXECUTABLE_EXTENSION = a;
+				EXECUTABLE_PREFIX = "";
+				GCC_DEBUGGING_SYMBOLS = default;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_WARN_UNUSED_VARIABLE = NO;
+				HEADER_SEARCH_PATHS = (
+					.,
+					"../extlib/src/libogg-1.1.3/include",
+				);
+				INSTALL_PATH = /usr/local/lib;
+				MACH_O_TYPE = staticlib;
+				OTHER_CFLAGS = "-fsigned-char";
+				PREBINDING = NO;
+				PRODUCT_NAME = libogg;
+				ZERO_LINK = NO;
+			};
+			name = "Release (32 and 64-bit Universal)";
+		};
+		E2C17A7C115B340E006A89B5 /* Release (32 and 64-bit Universal) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				EXECUTABLE_EXTENSION = a;
+				EXECUTABLE_PREFIX = "";
+				GCC_DEBUGGING_SYMBOLS = default;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_WARN_UNUSED_VARIABLE = NO;
+				HEADER_SEARCH_PATHS = (
+					.,
+					"../extlib/src/libogg-1.1.3/include",
+					"../extlib/src/libvorbis-1.2.0/include",
+				);
+				INSTALL_PATH = /usr/local/lib;
+				MACH_O_TYPE = staticlib;
+				OTHER_CFLAGS = (
+					"-DDARWIN",
+					"-fno-common",
+					"-force_cpusubtype_ALL",
+					"-ffast-math",
+					"-fsigned-char",
+					"-DUSE_MEMORY_H",
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = libvorbis;
+				ZERO_LINK = NO;
+			};
+			name = "Release (32 and 64-bit Universal)";
+		};
+		E2C17A7D115B340E006A89B5 /* Release (32 and 64-bit Universal) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				EXECUTABLE_EXTENSION = a;
+				EXECUTABLE_PREFIX = "";
+				GCC_DEBUGGING_SYMBOLS = default;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"HAVE_DLFCN_H=1",
+					"HAVE_INTTYPES_H=1",
+					"HAVE_LIBZ=1",
+					"HAVE_MEMORY_H=1",
+					"HAVE_MEMSET=1",
+					"HAVE_POW=1",
+					"HAVE_STDINT_H=1",
+					"HAVE_STDLIB_H=1",
+					"HAVE_STRINGS_H=1",
+					"HAVE_STRING_H=1",
+					"HAVE_SYS_STAT_H=1",
+					"HAVE_SYS_TYPES_H=1",
+					"HAVE_UNISTD_H=1",
+				);
+				GCC_WARN_UNUSED_VARIABLE = NO;
+				HEADER_SEARCH_PATHS = "../extlib/src/libpng-1.2.24/";
+				INSTALL_PATH = /usr/local/lib;
+				MACH_O_TYPE = staticlib;
+				OTHER_CFLAGS = "-DPNG_CONFIGURE_LIBPNG";
+				PREBINDING = NO;
+				PRODUCT_NAME = libpng;
+				ZERO_LINK = NO;
+			};
+			name = "Release (32 and 64-bit Universal)";
+		};
+		E2C17A7E115B340E006A89B5 /* Release (32 and 64-bit Universal) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				EXECUTABLE_EXTENSION = a;
+				EXECUTABLE_PREFIX = lib;
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				GCC_DEBUGGING_SYMBOLS = default;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				GCC_WARN_UNUSED_VARIABLE = NO;
+				HEADER_SEARCH_PATHS = "";
+				INSTALL_PATH = /usr/local/lib;
+				MACH_O_TYPE = staticlib;
+				OTHER_CFLAGS = (
+					"-D_GNU_SOURCE=1",
+					"-DTARGET_API_MAC_CARBON",
+					"-DTARGET_API_MAC_OSX",
+					"-fvisibility=hidden",
+					"-D_THREAD_SAFE",
+					"-force_cpusubtype_ALL",
+					"-fpascal-strings",
+				);
+				PER_ARCH_CFLAGS_ppc = "-DHAVE_ALTIVEC_H -maltivec";
+				PREBINDING = NO;
+				PRODUCT_NAME = SDL;
+				SEPARATE_STRIP = YES;
+				USER_HEADER_SEARCH_PATHS = ". ../extlib/src/SDL-1.2.13/include ../extlib/src/SDL-1.2.13/src ../extlib/src/SDL-1.2.13/src/cdrom/macosx/ ../extlib/src/SDL-1.2.13/src/video/ ../extlib/src/SDL-1.2.13/src/joystick/darwin/ ../extlib/src/SDL-1.2.13/src/thread/ ../extlib/src/SDL-1.2.13/src/thread/pthread ../extlib/src/SDL-1.2.13/src/timer/unix ../extlib/src/SDL-1.2.13/src/video/quartz";
+				ZERO_LINK = NO;
+			};
+			name = "Release (32 and 64-bit Universal)";
+		};
+		E2C17A7F115B340E006A89B5 /* Release (32 and 64-bit Universal) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_DEBUGGING_SYMBOLS = default;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_WARN_UNUSED_VARIABLE = NO;
+				INSTALL_PATH = /usr/local/lib;
+				OTHER_CFLAGS = (
+					"$(OTHER_CFLAGS_QUOTED_1)",
+					"$(OTHER_CFLAGS_QUOTED_2)",
+					"$(OTHER_CFLAGS_QUOTED_3)",
+					"$(OTHER_CFLAGS_QUOTED_4)",
+					"$(OTHER_CFLAGS_QUOTED_5)",
+					"$(OTHER_CFLAGS_QUOTED_6)",
+					"$(OTHER_CFLAGS_QUOTED_7)",
+					"-DSTDC_HEADERS=1",
+					"-DHAVE_SYS_TYPES_H=1",
+					"-DHAVE_SYS_STAT_H=1",
+					"-DHAVE_STDLIB_H=1",
+					"-DHAVE_STRING_H=1",
+					"-DHAVE_MEMORY_H=1",
+					"-DHAVE_STRINGS_H=1",
+					"-DHAVE_INTTYPES_H=1",
+					"-DHAVE_STDINT_H=1",
+					"-DHAVE_UNISTD_H=1",
+					"-DHAVE_DLFCN_H=1",
+					"-D_GNU_SOURCE=1",
+					"-D_THREAD_SAFE",
+					"-DTHREADED_AUDIO",
+					"-DNDEBUG",
+					"-DNOCONTROLS",
+				);
+				OTHER_CFLAGS_QUOTED_1 = "-DPACKAGE_NAME=\"smpeg\"";
+				OTHER_CFLAGS_QUOTED_2 = "-DPACKAGE_TARNAME=\"smpeg\"";
+				OTHER_CFLAGS_QUOTED_3 = "-DPACKAGE_VERSION=\"0.4.5\"";
+				OTHER_CFLAGS_QUOTED_4 = "-DPACKAGE_STRING=\"smpeg 0.4.5\"";
+				OTHER_CFLAGS_QUOTED_5 = "-DPACKAGE_BUGREPORT=\"\"";
+				OTHER_CFLAGS_QUOTED_6 = "-DPACKAGE=\"smpeg\"";
+				OTHER_CFLAGS_QUOTED_7 = "-DVERSION=\"0.4.5\"";
+				PREBINDING = NO;
+				PRODUCT_NAME = smpeg;
+				USER_HEADER_SEARCH_PATHS = ". ../extlib/src/SDL-1.2.13/include ../extlib/src/SDL-1.2.13/src ../extlib/src/SDL-1.2.13/src/cdrom/macosx/ ../extlib/src/SDL-1.2.13/src/video/ ../extlib/src/SDL-1.2.13/src/joystick/darwin/ ../extlib/src/SDL-1.2.13/src/thread/ ../extlib/src/SDL-1.2.13/src/thread/pthread ../extlib/src/SDL-1.2.13/src/timer/unix ../extlib/src/SDL-1.2.13/src/video/quartz";
+				ZERO_LINK = NO;
+			};
+			name = "Release (32 and 64-bit Universal)";
+		};
+		E2C17A80115B340E006A89B5 /* Release (32 and 64-bit Universal) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_DEBUGGING_SYMBOLS = default;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_UNUSED_VARIABLE = NO;
+				GENERATE_MASTER_OBJECT_FILE = YES;
+				INSTALL_PATH = /usr/local/lib;
+				OTHER_CFLAGS = (
+					"-D_GNU_SOURCE=1",
+					"-D_THREAD_SAFE",
+					"-DCMD_MUSIC",
+					"-DWAV_MUSIC",
+					"-DOGG_MUSIC",
+					"-DMP3_MUSIC",
+					"-DMID_MUSIC",
+					"-DUSE_NATIVE_MIDI",
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = SDL_mixer;
+				USER_HEADER_SEARCH_PATHS = ". ../extlib/src/SDL-1.2.13/include ../extlib/src/libvorbis-1.2.0/include ../extlib/src/libogg-1.1.3/include ../extlib/src/SDL_mixer-1.2.8/native_midi";
+				ZERO_LINK = NO;
+			};
+			name = "Release (32 and 64-bit Universal)";
+		};
+		E2C17A81115B340E006A89B5 /* Release (32 and 64-bit Universal) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_DEBUGGING_SYMBOLS = default;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(GCC_PREPROCESSOR_DEFINITIONS_QUOTED_1)",
+					"$(GCC_PREPROCESSOR_DEFINITIONS_QUOTED_2)",
+					"$(GCC_PREPROCESSOR_DEFINITIONS_QUOTED_3)",
+					"$(GCC_PREPROCESSOR_DEFINITIONS_QUOTED_4)",
+					"$(GCC_PREPROCESSOR_DEFINITIONS_QUOTED_5)",
+					"$(GCC_PREPROCESSOR_DEFINITIONS_QUOTED_6)",
+					"$(GCC_PREPROCESSOR_DEFINITIONS_QUOTED_7)",
+					"STDC_HEADERS=1",
+					"HAVE_SYS_TYPES_H=1",
+					"HAVE_SYS_STAT_H=1",
+					"HAVE_STDLIB_H=1",
+					"HAVE_STRING_H=1",
+					"HAVE_MEMORY_H=1",
+					"HAVE_STRINGS_H=1",
+					"HAVE_INTTYPES_H=1",
+					"HAVE_STDINT_H=1",
+					"HAVE_UNISTD_H=1",
+					"HAVE_DLFCN_H=1",
+					"LOAD_JPG=1",
+					"LOAD_PNG=1",
+					"LOAD_BMP=1",
+					"LOAD_GIF=1",
+					"LOAD_LBM=1",
+					"LOAD_PNM=1",
+					"LOAD_TGA=1",
+				);
+				GCC_PREPROCESSOR_DEFINITIONS_QUOTED_1 = "PACKAGE_NAME=\"SDL_image\"";
+				GCC_PREPROCESSOR_DEFINITIONS_QUOTED_2 = "PACKAGE_TARNAME=\"sdl_image\"";
+				GCC_PREPROCESSOR_DEFINITIONS_QUOTED_3 = "PACKAGE_VERSION=\"1.2.5\"";
+				GCC_PREPROCESSOR_DEFINITIONS_QUOTED_4 = "PACKAGE_STRING=\"SDL_image 1.2.5\"";
+				GCC_PREPROCESSOR_DEFINITIONS_QUOTED_5 = "PACKAGE_BUGREPORT=\"\"";
+				GCC_PREPROCESSOR_DEFINITIONS_QUOTED_6 = "PACKAGE=\"sdl_image\"";
+				GCC_PREPROCESSOR_DEFINITIONS_QUOTED_7 = "VERSION=\"1.2.5\"";
+				GCC_WARN_UNUSED_VARIABLE = NO;
+				HEADER_SEARCH_PATHS = "";
+				INSTALL_PATH = /usr/local/lib;
+				OTHER_CFLAGS = (
+					"$(OTHER_CFLAGS_QUOTED_1)",
+					"$(OTHER_CFLAGS_QUOTED_2)",
+					"$(OTHER_CFLAGS_QUOTED_3)",
+					"$(OTHER_CFLAGS_QUOTED_4)",
+					"$(OTHER_CFLAGS_QUOTED_5)",
+					"$(OTHER_CFLAGS_QUOTED_6)",
+					"$(OTHER_CFLAGS_QUOTED_7)",
+					"-DSTDC_HEADERS=1",
+					"-DHAVE_SYS_TYPES_H=1",
+					"-DHAVE_SYS_STAT_H=1",
+					"-DHAVE_STDLIB_H=1",
+					"-DHAVE_STRING_H=1",
+					"-DHAVE_MEMORY_H=1",
+					"-DHAVE_STRINGS_H=1",
+					"-DHAVE_INTTYPES_H=1",
+					"-DHAVE_STDINT_H=1",
+					"-DHAVE_UNISTD_H=1",
+					"-DHAVE_DLFCN_H=1",
+					"-DLOAD_JPG=1",
+					"-DLOAD_PNG=1",
+					"-DLOAD_BMP=1",
+					"-DLOAD_GIF=1",
+					"-DLOAD_LBM=1",
+					"-DLOAD_PCX=1",
+					"-DLOAD_PNM=1",
+					"-DLOAD_TGA=1",
+				);
+				OTHER_CFLAGS_QUOTED_1 = "-DPACKAGE_NAME=\"SDL_image\"";
+				OTHER_CFLAGS_QUOTED_2 = "-DPACKAGE_TARNAME=\"sdl_image\"";
+				OTHER_CFLAGS_QUOTED_3 = "-DPACKAGE_VERSION=\"1.2.5\"";
+				OTHER_CFLAGS_QUOTED_4 = "-DPACKAGE_STRING=\"SDL_image 1.2.5\"";
+				OTHER_CFLAGS_QUOTED_5 = "-DPACKAGE_BUGREPORT=\"\"";
+				OTHER_CFLAGS_QUOTED_6 = "-DPACKAGE=\"sdl_image\"";
+				OTHER_CFLAGS_QUOTED_7 = "-DVERSION=\"1.2.5\"";
+				PREBINDING = NO;
+				PRODUCT_NAME = SDL_image;
+				USER_HEADER_SEARCH_PATHS = ". ../extlib/src/SDL-1.2.13/include";
+				ZERO_LINK = NO;
+			};
+			name = "Release (32 and 64-bit Universal)";
+		};
+		E2C17A82115B340E006A89B5 /* Release (32 and 64-bit Universal) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_DEBUGGING_SYMBOLS = default;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_WARN_UNUSED_VARIABLE = NO;
+				INSTALL_PATH = /usr/local/lib;
+				OTHER_CFLAGS = (
+					"-DFT_CONFIG_OPTION_SYSTEM_ZLIB",
+					"-DDARWIN_NO_CARBON",
+					"$(OTHER_CFLAGS_QUOTED_1)",
+					"-DFT2_BUILD_LIBRARY",
+					"$(OTHER_CFLAGS_QUOTED_2)",
+				);
+				OTHER_CFLAGS_QUOTED_1 = "-DFT_CONFIG_CONFIG_H=\\\"ftconfig.h\\\"";
+				OTHER_CFLAGS_QUOTED_2 = "-DFT_CONFIG_MODULES_H=\\\"ftmodule.h\\\"";
+				PREBINDING = NO;
+				PRODUCT_NAME = freetype;
+				USER_HEADER_SEARCH_PATHS = ". ../extlib/src/freetype-2.3.5/builds/unix ../extlib/src/freetype-2.3.5/include ../extlib/src/freetype-2.3.5/include/freetype/config";
+				ZERO_LINK = NO;
+			};
+			name = "Release (32 and 64-bit Universal)";
+		};
+		E2C17A83115B340E006A89B5 /* Release (32 and 64-bit Universal) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(NATIVE_ARCH)";
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PREBINDING = NO;
+				PRODUCT_NAME = embed;
+				SEPARATE_STRIP = YES;
+				STRIP_INSTALLED_PRODUCT = YES;
+				ZERO_LINK = NO;
+			};
+			name = "Release (32 and 64-bit Universal)";
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -4108,6 +4345,7 @@
 			buildConfigurations = (
 				365A93510BE04B0000786213 /* Debug */,
 				365A93520BE04B0000786213 /* Release */,
+				E2C17A7A115B340E006A89B5 /* Release (32 and 64-bit Universal) */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -4117,6 +4355,7 @@
 			buildConfigurations = (
 				365A943C0BE04D2D00786213 /* Debug */,
 				365A943D0BE04D2D00786213 /* Release */,
+				E2C17A7B115B340E006A89B5 /* Release (32 and 64-bit Universal) */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -4126,6 +4365,7 @@
 			buildConfigurations = (
 				365A94700BE0504400786213 /* Debug */,
 				365A94710BE0504400786213 /* Release */,
+				E2C17A7C115B340E006A89B5 /* Release (32 and 64-bit Universal) */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -4135,6 +4375,7 @@
 			buildConfigurations = (
 				365A950A0BE0537600786213 /* Debug */,
 				365A950B0BE0537600786213 /* Release */,
+				E2C17A7D115B340E006A89B5 /* Release (32 and 64-bit Universal) */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -4144,6 +4385,7 @@
 			buildConfigurations = (
 				365A95770BE0574200786213 /* Debug */,
 				365A95780BE0574200786213 /* Release */,
+				E2C17A7E115B340E006A89B5 /* Release (32 and 64-bit Universal) */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -4153,6 +4395,7 @@
 			buildConfigurations = (
 				365D35AB0BE428F100D1832A /* Debug */,
 				365D35AC0BE428F100D1832A /* Release */,
+				E2C17A7F115B340E006A89B5 /* Release (32 and 64-bit Universal) */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -4162,6 +4405,7 @@
 			buildConfigurations = (
 				365D39E80BE42F2700D1832A /* Debug */,
 				365D39E90BE42F2700D1832A /* Release */,
+				E2C17A80115B340E006A89B5 /* Release (32 and 64-bit Universal) */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -4171,6 +4415,7 @@
 			buildConfigurations = (
 				365D3B020BE4333C00D1832A /* Debug */,
 				365D3B030BE4333C00D1832A /* Release */,
+				E2C17A81115B340E006A89B5 /* Release (32 and 64-bit Universal) */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -4180,6 +4425,7 @@
 			buildConfigurations = (
 				365D3BC30BE437B100D1832A /* Debug */,
 				365D3BC40BE437B100D1832A /* Release */,
+				E2C17A82115B340E006A89B5 /* Release (32 and 64-bit Universal) */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -4189,6 +4435,7 @@
 			buildConfigurations = (
 				C01FCF4F08A954540054247B /* Debug */,
 				C01FCF5008A954540054247B /* Release */,
+				E2C17A78115B340E006A89B5 /* Release (32 and 64-bit Universal) */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -4198,6 +4445,7 @@
 			buildConfigurations = (
 				E2072C310FDF837E003C50C4 /* Debug */,
 				E2072C320FDF837E003C50C4 /* Release */,
+				E2C17A79115B340E006A89B5 /* Release (32 and 64-bit Universal) */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -4207,6 +4455,7 @@
 			buildConfigurations = (
 				E2072D1C0FDF8BE9003C50C4 /* Debug */,
 				E2072D1D0FDF8BE9003C50C4 /* Release */,
+				E2C17A83115B340E006A89B5 /* Release (32 and 64-bit Universal) */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

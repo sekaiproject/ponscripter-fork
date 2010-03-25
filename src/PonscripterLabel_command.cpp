@@ -36,8 +36,13 @@
 namespace Carbon {
 #include <CoreFoundation/CoreFoundation.h>
 #include <ApplicationServices/ApplicationServices.h>
+    
+#ifdef debug_string
+#undef debug_string
+#endif // debug_string
+    
 }
-#endif
+#endif // MACOSX
 
 #ifdef LINUX
 #include <sys/wait.h>
