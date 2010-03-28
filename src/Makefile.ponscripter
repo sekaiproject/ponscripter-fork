@@ -47,9 +47,10 @@ ponscr$(EXESUFFIX): $(PONSCR_OBJS)
 
 pclean:
 	-$(RM) *$(OBJSUFFIX) $(CLEANUP) $(RCCLEAN)
-	-$(RM) $(TARGET) embed$(EXESUFFIX)
+	-$(RM) embed$(EXESUFFIX)
 
 pdistclean: pclean
+	-$(RM) $(TARGET)
 
 .cpp$(OBJSUFFIX):
 	$(CXX) -c $(CXXSTD) $(PSCFLAGS) $(INCS) $(DEFS) $<
