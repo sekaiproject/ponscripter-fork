@@ -494,20 +494,21 @@ typedef std::vector<AnimationInfo*> olvec;
 static olvec overlays;
 static SDL_Surface *offscreen = NULL, *screenptr = NULL;
 void UpdateMPEG(SDL_Surface* surface, int x, int y,
-		unsigned int w, unsigned int h)
+                unsigned int w, unsigned int h)
 {
     SDL_Rect r;
     r.x = 0; r.y = 0; r.w = screenptr->w; r.h = screenptr->h;
     SDL_BlitSurface(offscreen, &r, screenptr, &r);
-    for (olvec::iterator it = overlays.begin(); it != overlays.end(); ++it)
-	if (*it)
-	    (*it)->blendOnSurface(screenptr, (*it)->pos.x, (*it)->pos.y, r,
-		                  (*it)->trans);
+    for (olvec::iterator it = overlays.begin(); it != overlays.end(); ++it) {
+        if (*it)
+            (*it)->blendOnSurface(screenptr, (*it)->pos.x, (*it)->pos.y, r,
+                                  (*it)->trans);
+    }
     SDL_UpdateRect(screenptr, r.x, r.y, r.w, r.h);
 }
 
 int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
-			       SubtitleDefs& subtitles)
+                               SubtitleDefs& subtitles)
 {
     int ret = 0;
 #ifndef MP3_MAD
@@ -527,7 +528,7 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
             //       (wanted.channels > 1) ? "stereo" : "mono");
             if ((wanted.format != audio_format.format) ||
                 (wanted.freq != audio_format.freq))
-	    {
+            {
                 different_spec = true;
                 Mix_CloseAudio();
                 openAudio(wanted.freq, wanted.format, wanted.channels);
@@ -543,17 +544,18 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
 
         SMPEG_enablevideo(mpeg_sample, 1);
 
-	if (subtitles) {
-	    screenptr = screen_surface;
-	    offscreen = SDL_CreateRGBSurface(SDL_SWSURFACE,
-					     screenptr->w, screenptr->h, 32,
-					     0xff0000, 0xff00, 255, 0xff000000);
-	    SDL_SetAlpha(offscreen, 0, 255);
-	    SMPEG_setdisplay(mpeg_sample, offscreen, NULL, &UpdateMPEG);
-	    overlays.assign(size_t(subtitles.numdefs()), NULL);
-	}
-	else
-	    SMPEG_setdisplay(mpeg_sample, screen_surface, NULL, NULL);
+        if (subtitles) {
+            screenptr = screen_surface;
+            offscreen = SDL_CreateRGBSurface(SDL_SWSURFACE,
+                                             screenptr->w, screenptr->h, 32,
+                                             0x00ff0000, 0x0000ff00,
+                                             0x000000ff, 0xff000000);
+            SDL_SetAlpha(offscreen, 0, 255);
+            SMPEG_setdisplay(mpeg_sample, offscreen, NULL, &UpdateMPEG);
+            overlays.assign(size_t(subtitles.numdefs()), NULL);
+        }
+        else
+            SMPEG_setdisplay(mpeg_sample, screen_surface, NULL, NULL);
 
         SMPEG_setvolume(mpeg_sample, music_volume);
 
@@ -561,19 +563,19 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
         SMPEG_play(mpeg_sample);
 
         bool done_flag = false;
-	Uint32 zero_time = SDL_GetTicks();
+        Uint32 zero_time = SDL_GetTicks();
         while (!(done_flag & click_flag) &&
-	       SMPEG_status(mpeg_sample) == SMPEG_PLAYING)
-	{
+               SMPEG_status(mpeg_sample) == SMPEG_PLAYING)
+        {
             SDL_Event event;
             while (SDL_PollEvent(&event)) {
                 switch (event.type) {
                 case SDL_KEYDOWN: {
-		    int s = ((SDL_KeyboardEvent*) &event)->keysym.sym;
+                    int s = ((SDL_KeyboardEvent*) &event)->keysym.sym;
                     if (s == SDLK_RETURN || s == SDLK_SPACE || s == SDLK_ESCAPE)
                         done_flag = true;
                     break;
-		}
+                }
                 case SDL_QUIT:
                     ret = 1;
                 case SDL_MOUSEBUTTONDOWN:
@@ -584,28 +586,29 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
                 }
             }
 
-	    if (subtitles) {
-		float time = (SDL_GetTicks() - zero_time) / 1000;
-		if (time >= subtitles.next()) {
-		    Subtitle s = subtitles.pop();
-		    AnimationInfo* overlay = 0;
-		    if (s.text) {
-			overlay = new AnimationInfo();
-			overlay->setImageName(s.text);
-			overlay->pos.x = screen_width / 2;
-			overlay->pos.y = subtitles.pos(s.number);
-			parseTaggedString(overlay);
-			overlay->color_list[0] = subtitles.colour(s.number);
-			setupAnimationInfo(overlay);
-			overlay->trans = subtitles.alpha(s.number);
-		    }
-		    if (overlays[s.number]) delete overlays[s.number];
-		    overlays[s.number] = overlay;
-		}
-	    }
-	    
+            if (subtitles) {
+                float time = (SDL_GetTicks() - zero_time) / 1000;
+                if (time >= subtitles.next()) {
+                    Subtitle s = subtitles.pop();
+                    AnimationInfo* overlay = 0;
+                    if (s.text) {
+                        overlay = new AnimationInfo();
+                        overlay->setImageName(s.text);
+                        overlay->pos.x = screen_width / 2;
+                        overlay->pos.y = subtitles.pos(s.number);
+                        parseTaggedString(overlay);
+                        overlay->color_list[0] = subtitles.colour(s.number);
+                        setupAnimationInfo(overlay);
+                        overlay->trans = subtitles.alpha(s.number);
+                    }
+                    if (overlays[s.number]) delete overlays[s.number];
+                    overlays[s.number] = overlay;
+                }
+            }
             SDL_Delay(10);
         }
+
+        ctrl_pressed_status = 0;
 
         SMPEG_stop(mpeg_sample);
         Mix_HookMusic(NULL, NULL);
@@ -616,15 +619,15 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
             Mix_CloseAudio();
             openAudio();
         }
-	
-	if (offscreen) {
-	    SDL_FreeSurface(offscreen);
-	    offscreen = NULL;
-	    screenptr = NULL;
-	}
-	for (olvec::iterator it = overlays.begin(); it != overlays.end(); ++it)
-	    if (*it) delete *it;
-	overlays.clear();
+
+        if (offscreen) {
+            SDL_FreeSurface(offscreen);
+            offscreen = NULL;
+            screenptr = NULL;
+        }
+        for (olvec::iterator it = overlays.begin(); it != overlays.end(); ++it)
+            if (*it) delete *it;
+        overlays.clear();
     }
 
 #else

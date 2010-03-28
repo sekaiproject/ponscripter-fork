@@ -698,7 +698,7 @@ void PonscripterLabel::setGameIdentifier(const char *gameid)
 #ifdef WIN32
 pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windows version
 {
-    // On Windows, store saves in [Profiles]/All Users/Application Data.
+    // On Windows, store saves in [Profiles]\All Users\Application Data.
     // Permit saves to be per-user rather than shared if
     // option --current-user-appdata is specified
     replace_ascii(gameid, '\\', '_');
@@ -709,15 +709,15 @@ pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windo
             GETFOLDERPATH(GetProcAddress(shdll, "SHGetFolderPathA"));
         if (gfp) {
             char hpath[MAX_PATH];
-#define CSIDL_COMMON_APPDATA 0x0023 // for [Profiles]/All Users/Application Data
-#define CSIDL_APPDATA        0x001a // for [Profiles]/[User]/Application Data
+#define CSIDL_COMMON_APPDATA 0x0023 // for [Profiles]\All Users\Application Data
+#define CSIDL_APPDATA        0x001a // for [Profiles]\[User]\Application Data
             HRESULT res;
             if (current_user_appdata)
                 res = gfp(0, CSIDL_APPDATA, 0, 0, hpath);
             else
                 res = gfp(0, CSIDL_COMMON_APPDATA, 0, 0, hpath);
             if (res != S_FALSE && res != E_FAIL && res != E_INVALIDARG) {
-                rv = pstring(hpath) + '/' + gameid + '/';
+                rv = pstring(hpath) + DELIMITER + gameid + DELIMITER;
                 CreateDirectory(rv, 0);
             }
         }
@@ -736,7 +736,7 @@ pstring Platform_GetSavePath(pstring gameid) // MacOS X version
                  &appsupport);
     char path[32768];
     FSRefMakePath(&appsupport, (UInt8*) path, 32768);
-    pstring rv = pstring(path) + '/' + gameid + '/';
+    pstring rv = pstring(path) + DELIMITER + gameid + DELIMITER;
     if (mkdir(rv, 0755) == 0 || errno == EEXIST) 
         return rv;
     // If that fails, die.
@@ -1366,6 +1366,9 @@ void PonscripterLabel::executeLabel()
 
         if (!(ret & RET_NOREAD)) {
             if (script_h.readStrBuf(string_buffer_offset) == 0x0a) {
+                if (skip_to_wait)
+                    flush(refreshMode());
+                skip_to_wait = 0;
                 string_buffer_offset = 0;
                 if (++current_line >= current_label_info.num_of_lines) break;
             }

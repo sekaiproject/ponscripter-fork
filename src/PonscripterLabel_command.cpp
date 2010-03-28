@@ -91,12 +91,18 @@ int PonscripterLabel::waittimerCommand(const pstring& cmd)
 int PonscripterLabel::waitCommand(const pstring& cmd)
 {
     int count = script_h.readIntValue();
-    if (skip_flag || draw_one_page_flag || ctrl_pressed_status)
-	return RET_CONTINUE;
+    if (skip_flag || draw_one_page_flag || ctrl_pressed_status) {
+        //Mion: instead of skipping entirely, let's do a shortened wait (safer)
+        if (count > 100) {
+            count = count / 10;
+        } else if (count > 10) {
+            count = 10;
+        }
+    }
+    if (count < 0) count = 0;
     if (skip_to_wait) {
-	skip_to_wait = 0;
-	return RET_CONTINUE;
-    }	
+        skip_to_wait = 0;
+    }
     startTimer(count);
     return RET_WAIT;
 }
@@ -2702,6 +2708,10 @@ int PonscripterLabel::delayCommand(const pstring& cmd)
         return RET_CONTINUE;
     }
     else {
+        //Mion: use a shorter delay during skip mode
+        if (skip_flag || skip_to_wait || ctrl_pressed_status) {
+            t = 0;
+        }
         event_mode = WAIT_INPUT_MODE;
         key_pressed_flag = false;
         startTimer(t);

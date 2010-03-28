@@ -330,40 +330,42 @@ int PonscripterLabel::clickWait(bool display_char)
 {
     const char* c = script_h.getStrBuf(string_buffer_offset);
 
-    skip_to_wait = 0;
-
     if ((skip_flag || draw_one_page_flag || ctrl_pressed_status) &&
-	!textgosub_label) {
+        !textgosub_label) {
         clickstr_state = CLICK_NONE;
-	int bytes;
-	if (display_char)
-	    bytes = drawChar(c, &sentence_font, false, true,
-			     accumulation_surface, &text_info);
-	else {
-	    bytes = 1; // @, \, etc...?
-	    flush(refreshMode());
-	}
-	string_buffer_offset += bytes;
+        skip_to_wait = 0;
+        int bytes;
+        if (display_char)
+            bytes = drawChar(c, &sentence_font, false, true,
+                             accumulation_surface, &text_info);
+        else {
+            bytes = 1; // @, \, etc...?
+            flush(refreshMode());
+        }
+        string_buffer_offset += bytes;
         num_chars_in_sentence = 0;
         return RET_CONTINUE | RET_NOREAD;
     }
     else {
         clickstr_state   = CLICK_WAIT;
+        if (skip_to_wait) {
+            skip_to_wait = 0;
+            flush(refreshMode());
+        }
         key_pressed_flag = false;
-	if (display_char) {
-	    drawChar(c, &sentence_font, false, true, accumulation_surface,
-		     &text_info);
-	    ++num_chars_in_sentence;
-	}
+        if (display_char) {
+            drawChar(c, &sentence_font, false, true, accumulation_surface,
+                     &text_info);
+            ++num_chars_in_sentence;
+        }
         if (textgosub_label) {
             const char* next_text = c + 1;
             
             saveoffCommand("saveoff");
             textgosub_clickstr_state =
-		(next_text[0] == 0x0a)
+                (next_text[0] == 0x0a)
                 ? CLICK_WAITEOL : CLICK_WAIT;
 
-//            gosubReal(textgosub_label, next_text);
             gosubDoTextgosub();
             
             indent_offset = 0;        // Do we want to reset all these?
@@ -383,18 +385,19 @@ int PonscripterLabel::clickNewPage(bool display_char)
 {
     const char* c = script_h.getStrBuf(string_buffer_offset);
 
-    skip_to_wait = 0;
-
     clickstr_state = CLICK_NEWPAGE;
 
     if (display_char) {
         drawChar(c, &sentence_font, true, true, accumulation_surface,
-		 &text_info);
+                 &text_info);
         ++num_chars_in_sentence;
     }
     
-    if (skip_flag || draw_one_page_flag || ctrl_pressed_status)
-	flush(refreshMode());
+    if (skip_flag || draw_one_page_flag || skip_to_wait ||
+        ctrl_pressed_status)
+        flush(refreshMode());
+
+    skip_to_wait = 0;
 
     if ((skip_flag || ctrl_pressed_status) && !textgosub_label) {
         event_mode = WAIT_SLEEP_MODE;
@@ -492,6 +495,7 @@ int PonscripterLabel::processText()
     if (script_h.readStrBuf(string_buffer_offset) == 0x0a ||
         script_h.readStrBuf(string_buffer_offset) == 0x00) {
         indent_offset = 0; // redundant
+        skip_to_wait = 0;
         return RET_CONTINUE;
     }
 
@@ -532,6 +536,7 @@ int PonscripterLabel::processText()
         else if (script_h.readStrBuf(string_buffer_offset) == 'w'
                  || script_h.readStrBuf(string_buffer_offset) == 'd') {
             bool flag = false;
+            bool in_skip = (skip_flag || draw_one_page_flag || ctrl_pressed_status);
             if (script_h.readStrBuf(string_buffer_offset) == 'd')
                 flag = true;
 
@@ -544,12 +549,21 @@ int PonscripterLabel::processText()
             }
             while (script_h.isawspace(script_h.readStrBuf(string_buffer_offset)))
                 string_buffer_offset++;
-            if (skip_flag || draw_one_page_flag || ctrl_pressed_status ||
-                skip_to_wait) {
+            flush(refreshMode());
+            if (flag && in_skip) {
                 skip_to_wait = 0;
                 return RET_CONTINUE | RET_NOREAD;
             }
             else {
+                if (!flag && in_skip) {
+                    //Mion: instead of skipping entirely, let's do a shortened wait (safer)
+                    if (t > 100) {
+                        t = t / 10;
+                    } else if (t > 10) {
+                        t = 10;
+                    }
+                }
+                skip_to_wait = 0;
                 event_mode = WAIT_SLEEP_MODE;
                 if (flag) event_mode |= WAIT_INPUT_MODE;
 
@@ -592,58 +606,40 @@ int PonscripterLabel::processText()
     else {
         notacommand:
 
-	if (clickstr_state == CLICK_IGNORE) {
-	    clickstr_state = CLICK_NONE;
-	}
-	else {
-	    const char* c = script_h.getStrBuf(string_buffer_offset);
-	    if (script_h.checkClickstr(c)) {
-		if (sentence_font.isNoRoomForLines(clickstr_line))
-		    return clickNewPage(true);
-		else
-		    return clickWait(true);
-	    }
-	}
-
-        bool flush_flag = !(skip_flag || draw_one_page_flag ||
-			    ctrl_pressed_status);
-
-	// Or possibly just:
-//	flush_flag = true;
-	
-#ifdef BROKEN_SKIP_WRAPPING
-        int bytes =
-#endif	    
-	drawChar(script_h.getStrBuf(string_buffer_offset), &sentence_font,
-		 flush_flag, true, accumulation_surface, &text_info);
-        ++num_chars_in_sentence;
-
-        if (skip_flag || draw_one_page_flag || ctrl_pressed_status) {
-#ifdef BROKEN_SKIP_WRAPPING
-            string_buffer_offset += bytes;
-            return RET_CONTINUE | RET_NOREAD;
-#else
-//#ifdef SKIP_TO_WAIT
-            skip_to_wait = 1;
-//#endif	    
-            event_mode = WAIT_SLEEP_MODE;
-            advancePhase(0);
-            return RET_WAIT | RET_NOREAD;
-#endif
+        if (clickstr_state == CLICK_IGNORE) {
+            clickstr_state = CLICK_NONE;
         }
         else {
+            const char* c = script_h.getStrBuf(string_buffer_offset);
+            if (script_h.checkClickstr(c)) {
+                if (sentence_font.isNoRoomForLines(clickstr_line))
+                    return clickNewPage(true);
+                else
+                    return clickWait(true);
+            }
+        }
+
+        bool flush_flag = !(skip_flag || draw_one_page_flag ||
+                            skip_to_wait || ctrl_pressed_status ||
+                            (sentence_font.wait_time == 0));
+
+        int bytes = drawChar(script_h.getStrBuf(string_buffer_offset), &sentence_font,
+                 flush_flag, true, accumulation_surface, &text_info);
+        ++num_chars_in_sentence;
+
+        if (flush_flag) {
             event_mode = WAIT_SLEEP_MODE;
-	    int wait_time;
-            if (skip_to_wait == 1)
-                wait_time = 0;
-            else if (sentence_font.wait_time == -1)
+            int wait_time = 0;
+            if ( sentence_font.wait_time == -1 )
                 wait_time = default_text_speed[text_speed_no];
             else
                 wait_time = sentence_font.wait_time;
-	    advancePhase(wait_time * 100 / global_speed_modifier);
-
+            advancePhase(wait_time * 100 / global_speed_modifier);
             return RET_WAIT | RET_NOREAD;
         }
+        string_buffer_offset += bytes;
+        event_mode = IDLE_EVENT_MODE;
+        return RET_CONTINUE | RET_NOREAD;
     }
 
     return RET_NOMATCH;

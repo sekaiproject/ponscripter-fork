@@ -1,3 +1,13 @@
+2010-03-28
+
+  Little fixes to paths handling [Mion]
+
+  Cleared ctrl-press after a movie [Mion]
+
+  Fix for text output "skip to end of line/wait on click" for Mac;
+  also grafted additional skip/wait/delay handling from ons-en [Mion]
+
+
 2010-03-24
 
   Changed basic functionality on Windows: stdout.txt & stderr.txt will
@@ -5,7 +15,9 @@
 
   Added "shell" cmd [Mion]
 
-  Grafted grafted nicer non-ASCII Windows caption handling from ons-en [Mion]
+  Grafted nicer non-ASCII Windows caption handling from ons-en [Mion]
+
+  Some Mac fixes related to "debug_string" [Roto]
 
 
 2010-03-11

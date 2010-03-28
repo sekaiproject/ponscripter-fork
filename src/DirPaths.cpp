@@ -90,8 +90,8 @@ void DirPaths::add( const pstring& new_paths )
             }
         }
         if (*ptr2 != '\0') {
-            ptr1++;
             ptr2++;
+            ptr1 = ptr2;
         }
     } while (*ptr2 != '\0');
 }
