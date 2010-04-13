@@ -360,6 +360,7 @@ int PonscripterLabel::playOGG(int format, unsigned char* buffer, long length, bo
         Mix_Chunk* chunk = Mix_LoadWAV_RW(SDL_RWFromMem(buffer2, sizeof(WAVE_HEADER) + ovi->decoded_length), 1);
         delete[] buffer2;
         closeOggVorbis(ovi);
+        delete[] buffer;
 
         playWave(chunk, format, loop_flag, channel);
 
@@ -918,7 +919,6 @@ OVInfo* PonscripterLabel::openOggVorbis(unsigned char* buf, long len,
 int PonscripterLabel::closeOggVorbis(OVInfo* ovi)
 {
     if (ovi->buf) {
-        delete[] ovi->buf;
         ovi->buf = NULL;
 #ifdef USE_OGG_VORBIS
         ovi->length = 0;
