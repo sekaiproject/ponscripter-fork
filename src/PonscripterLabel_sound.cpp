@@ -160,6 +160,7 @@ int PonscripterLabel::playSound(const pstring& filename, int format,
                                 bool loop_flag, int channel)
 {
     if ( !audio_open_flag ) return SOUND_NONE;
+    if (filename.length() == 0) return SOUND_NONE;
 
     long length = script_h.cBR->getFileLength( filename );
     if (length == 0) {

@@ -83,11 +83,11 @@ int PonscripterLabel::haeleth_usewindowCommand(const pstring& cmd)
     pstring name = script_h.readStrValue();
     DoSetwindow(stored_windows[name]);
 
-    if (cmd == "h_usewindow") {
-	lookbackflushCommand("lookbackflush");
+    if ((cmd == "h_usewindow") || (cmd == "pusewindow")) {
+        lookbackflushCommand("lookbackflush");
     }
     else /* h_usewindow3 */ {
-	clearCurrentTextBuffer();
+        clearCurrentTextBuffer();
     }
     indent_offset = 0;
     line_enter_status = 0;

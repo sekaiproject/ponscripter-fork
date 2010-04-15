@@ -394,7 +394,7 @@ int PonscripterLabel::clickNewPage(bool display_char)
     }
     
     if (skip_flag || draw_one_page_flag || skip_to_wait ||
-        ctrl_pressed_status)
+        ctrl_pressed_status || (sentence_font.wait_time == 0))
         flush(refreshMode());
 
     skip_to_wait = 0;
