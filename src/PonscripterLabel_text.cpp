@@ -623,7 +623,7 @@ int PonscripterLabel::processText()
                             skip_to_wait || ctrl_pressed_status ||
                             (sentence_font.wait_time == 0));
 
-        int bytes = drawChar(script_h.getStrBuf(string_buffer_offset), &sentence_font,
+        drawChar(script_h.getStrBuf(string_buffer_offset), &sentence_font,
                  flush_flag, true, accumulation_surface, &text_info);
         ++num_chars_in_sentence;
 
@@ -637,9 +637,9 @@ int PonscripterLabel::processText()
             advancePhase(wait_time * 100 / global_speed_modifier);
             return RET_WAIT | RET_NOREAD;
         }
-        string_buffer_offset += bytes;
         event_mode = IDLE_EVENT_MODE;
-        return RET_CONTINUE | RET_NOREAD;
+        //Mion: hack using RET_CONTINUE | RET_WAIT for unflushed text
+        return RET_CONTINUE | RET_WAIT | RET_NOREAD;
     }
 
     return RET_NOMATCH;

@@ -1466,14 +1466,15 @@ int PonscripterLabel::parseLine()
 
 //--------LINE BREAKING ROUTINE-------------------------------------------------
 
-    int l;
+    int lf;
     Fontinfo f = sentence_font;
     const wchar first_ch =
         file_encoding->DecodeWithLigatures(script_h.getStrBuf(string_buffer_offset),
-                                      f, l);
+                                      f, lf);
 
     if (is_break_char(first_ch) && !new_line_skip_flag) {
-        const char* it = script_h.getStrBuf(string_buffer_offset) + l;
+        int l;
+        const char* it = script_h.getStrBuf(string_buffer_offset) + lf;
         wchar next_ch = file_encoding->DecodeWithLigatures(it, f, l);
         float len = f.GlyphAdvance(first_ch, next_ch);
         while (1) {
@@ -1569,6 +1570,13 @@ int PonscripterLabel::parseLine()
         // again and again with line_enter_status == 0.
         if (line_enter_status > 1)
             line_enter_status = 0;
+    }
+
+    if ((ret & RET_CONTINUE) && (ret & RET_WAIT)) {
+        // Mion: handle case of text output while in skip mode
+        //(this is hacky, but necessary until I can do a code overhaul)
+        ret &= ~RET_WAIT;
+        string_buffer_offset += lf;
     }
 
     return ret;
