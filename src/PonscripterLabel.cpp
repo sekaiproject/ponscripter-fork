@@ -698,10 +698,28 @@ void PonscripterLabel::setGameIdentifier(const char *gameid)
 #ifdef WIN32
 pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windows version
 {
+    //Convert gameid from UTF-8 to Wide (Unicode) and thence to system ANSI
+    // (since SDL 1.2 doesn't support Unicode app compilation)
+    //Thought: Maybe in the future allow non-ANSI UTF8 chars in save path,
+    // by using _wmkdir instead of CreateDirectory?
+    // But then the save folder won't open in Explorer in debug mode,
+    // since only ShellExecuteA (ANSI) is available to non-Unicode apps
+
+    int len = MultiByteToWideChar(CP_UTF8, 0, (const char*)gameid, -1, NULL, 0);
+    wchar_t *u16_tmp = new wchar_t[len];
+    MultiByteToWideChar(CP_UTF8, 0, (const char*)gameid, -1, u16_tmp, len);
+    len = WideCharToMultiByte(CP_ACP, 0, u16_tmp, -1, NULL, 0, NULL, NULL);
+    char *cvt = new char[len+1];
+    WideCharToMultiByte(CP_ACP, 0, u16_tmp, -1, cvt, len, NULL, NULL);
+    pstring ansi_gameid = cvt;
+    delete[] u16_tmp; delete[] cvt;
+    // Replace troublesome characters for Windows
+    replace_ascii(ansi_gameid, '\\', '_');
+    replace_ascii(ansi_gameid, '?', '_');
+    replace_ascii(ansi_gameid, '/', '_');
     // On Windows, store saves in [Profiles]\All Users\Application Data.
     // Permit saves to be per-user rather than shared if
     // option --current-user-appdata is specified
-    replace_ascii(gameid, '\\', '_');
     HMODULE shdll = LoadLibrary("shfolder");
     pstring rv;
     if (shdll) {
@@ -717,7 +735,7 @@ pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windo
             else
                 res = gfp(0, CSIDL_COMMON_APPDATA, 0, 0, hpath);
             if (res != S_FALSE && res != E_FAIL && res != E_INVALIDARG) {
-                rv = pstring(hpath) + DELIMITER + gameid + DELIMITER;
+                rv = pstring(hpath) + DELIMITER + ansi_gameid + DELIMITER;
                 CreateDirectory(rv, 0);
             }
         }

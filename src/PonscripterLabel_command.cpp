@@ -2816,6 +2816,7 @@ int PonscripterLabel::clickCommand(const pstring& cmd)
         return RET_CONTINUE;
     }
     else {
+        flush(refreshMode());
         setSkipMode(false);
         event_mode = WAIT_INPUT_MODE;
         key_pressed_flag = false;

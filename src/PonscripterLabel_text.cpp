@@ -348,7 +348,7 @@ int PonscripterLabel::clickWait(bool display_char)
     }
     else {
         clickstr_state   = CLICK_WAIT;
-        if (skip_to_wait) {
+        if (skip_to_wait || (sentence_font.wait_time == 0)) {
             skip_to_wait = 0;
             flush(refreshMode());
         }
@@ -518,6 +518,8 @@ int PonscripterLabel::processText()
         ++string_buffer_offset;
         if (script_h.readStrBuf(string_buffer_offset) == 's') {
             ++string_buffer_offset;
+            bool in_skip = (skip_flag || ctrl_pressed_status);
+            int prev_t = sentence_font.wait_time;
             if (script_h.readStrBuf(string_buffer_offset) == 'd') {
                 sentence_font.wait_time = -1;
                 ++string_buffer_offset;
@@ -532,6 +534,8 @@ int PonscripterLabel::processText()
                 while (script_h.isawspace(script_h.readStrBuf(string_buffer_offset)))
                     ++string_buffer_offset;
             }
+            if (!in_skip && (prev_t == 0) && (sentence_font.wait_time != 0))
+                flush(refreshMode());
         }
         else if (script_h.readStrBuf(string_buffer_offset) == 'w'
                  || script_h.readStrBuf(string_buffer_offset) == 'd') {
