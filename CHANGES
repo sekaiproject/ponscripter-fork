@@ -1,3 +1,22 @@
+2010-04-28
+
+  More bugfixes for text refresh [Mion]
+
+  Converting gameid to system ANSI on Windows when creating the
+  save path (will be changed to handle non-ANSI Unicode once non-ASCII
+  filename support is added) [Mion]
+
+
+2010-04-15
+
+  Bugfix for looped ogg bgm playback [Mion]
+
+  Fixes to text refresh when wait_time is 0 [Mion]
+
+  Little hack to word-wrap code in order to fix the
+  "space at start of wrapped line" issue on click-to-wait [Mion]
+
+
 2010-03-28
 
   Little fixes to paths handling [Mion]
