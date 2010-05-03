@@ -1,3 +1,9 @@
+2010-05-02
+
+  Changed movie subtitle timing to be based on the movie stream's
+  "current time" instead of using an SDL Timer [Mion]
+
+
 2010-04-28
 
   More bugfixes for text refresh [Mion]

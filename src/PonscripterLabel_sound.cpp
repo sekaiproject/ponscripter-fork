@@ -565,7 +565,6 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
         SMPEG_play(mpeg_sample);
 
         bool done_flag = false;
-        Uint32 zero_time = SDL_GetTicks();
         while (!(done_flag & click_flag) &&
                SMPEG_status(mpeg_sample) == SMPEG_PLAYING)
         {
@@ -589,8 +588,9 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
             }
 
             if (subtitles) {
-                float time = (SDL_GetTicks() - zero_time) / 1000;
-                if (time >= subtitles.next()) {
+                SMPEG_Info info;
+                SMPEG_getinfo(mpeg_sample, &info);
+                if (info.current_time >= subtitles.next()) {
                     Subtitle s = subtitles.pop();
                     AnimationInfo* overlay = 0;
                     if (s.text) {
