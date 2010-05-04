@@ -42,7 +42,8 @@ HANDLER_H = ScriptHandler.h $(ENCODING_H) BaseReader.h expression.h Fontinfo.h f
 PARSER_H = ScriptParser.h $(HANDLER_H) NsaReader.h SarReader.h DirectReader.h AnimationInfo.h DirPaths.h
 SCRIPTER_H = PonscripterLabel.h $(PARSER_H) DirtyRect.h
 
-ponscr$(EXESUFFIX): $(PONSCR_OBJS)
+TARGET ?= ponscr$(EXESUFFIX)
+$(TARGET): $(PONSCR_OBJS)
 	$(CXX) -o $@ $(PONSCR_OBJS) $(LIBS)
 
 pclean:

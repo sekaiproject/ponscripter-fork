@@ -186,6 +186,7 @@ do
 	  --help                   display this message
 	  --prefix=DIR             install in prefix DIR (default is /usr/local)
 	  --make=NAME              use GNU make executable with the given name
+	  --game=NAME              build game NAME by default
 	  --std=STD                c++ compiles with -std=STD (unused by default)
 	  --strict                 compile with -Wall -Wextra -Wvla
 	                           (note: g++ already uses -Wall)
@@ -964,7 +965,7 @@ PSCFLAGS += -O3 -fomit-frame-pointer -pipe -Wpointer-arith $WERROR $STRICT
 endif
 
 .PHONY: all clean distclean
-all: \$(TARGET)
+all: target
 
 RESOURCES =
 _EOF
@@ -977,34 +978,42 @@ _EOF
 fi
 
 if [ "x$GAME" != "x" ]; then
-# Hardcode a Makefile for the custom game (yes, really)
+# Set default GAME to the given value
 cat >> $MAKEFILE <<_EOF
 GAME ?= $GAME
 
-include Makefile.$GAME
-_EOF
-
-else
-# Use the default Makefile.game
-cat >> $MAKEFILE <<_EOF
-
-include Makefile.game
 _EOF
 fi
 
 cat >> $MAKEFILE <<_EOF
+ifdef GAME
+  include Makefile.\$(if \$(wildcard Makefile.\$(GAME)),\$(GAME),game)
+else
+  include Makefile.game
+endif
 include Makefile.extlibs
 include Makefile.ponscripter
+
+TARGET ?= ponscr\$(EXESUFFIX)
 
 clean: pclean \$(CLEAN_TARGETS)
 distclean: clean pdistclean \$(DISTCLEAN_TARGETS)
 	rm -r -f extlib/bin/* extlib/lib/* extlib/include/* \\
 	         extlib/share extlib/man
 	rm -f Makefile
+
+target: \$(TARGET)
 _EOF
 
 if [ "$SYS" = "MinGW" ]
 then cat >> $MAKEFILE <<_EOF
+
+.PHONY: final
+final: \$(TARGET)
+	strip -p --strip-all \$<
+ifndef NOPACK
+	upx \$<
+endif
 
 RCFILE ?= ponscr.rc
 WIN_ICON ?= resources/default.ico
@@ -1057,7 +1066,6 @@ cat > Makefile <<_EOF
 .PHONY: all install install-bin uninstall pclean clean \\
         distclean distdir dist deb rpm $MAKEDOC clean-doc
 
-export TARGET   := ponscr$EXE
 export PREFIX   := $PREFIX
 export PATH     := $OURPATH\$(PATH)
 export CFLAGS   := $OURINCLUDE \$(CFLAGS)
@@ -1069,6 +1077,14 @@ export CXXSTD   := $CXXSTD
 
 all: $DEFAULTDOC
 	\$(MAKE) -C $SRC all
+
+ifdef GAME
+  include src/Makefile.\$(if \$(wildcard src/Makefile.\$(GAME)),\$(GAME),game)
+else
+  include src/Makefile.game
+endif
+
+TARGET ?= ponscr\$(EXESUFFIX)
 
 install-bin: all
 	util/install-sh -c $STRIPFLAG $SRC/\$(TARGET) \$(PREFIX)/bin/\$(TARGET)
@@ -1125,6 +1141,16 @@ rpm: dist
 	rpmbuild -ta \$(DIST).tar.bz2
 
 _EOF
+
+if [ "$SYS" = "MinGW" ]
+then cat >> Makefile <<_EOF
+.PHONY: final
+final: 
+	\$(MAKE) -C src final
+
+_EOF
+fi
+
 if test -n "$MAKEDOC"; then
     cat >> Makefile <<_EOF
 $CLEANDOC:

@@ -1,29 +1,28 @@
 # Custom Make settings for Narcissu 2.
+# (Run "make GAME=narci2" to use this file)
 
-# Run configure with the option "--game=narci2" to use this file.
-# (Note that it also sets the variable $(GAME) to "narci2")
+GAME ?= narci2
+
+# Game executable
+TARGET ?= $(if $(WIN32),Narcissu2.exe,narcissu2$(EXESUFFIX))
 
 # Windows icon
-WIN_ICON = resources/$(GAME).ico
+WIN_ICON ?= resources/$(GAME).ico
+
 # Windows resource file
-RCFILE = $(GAME).rc
+RCFILE ?= $(GAME).rc
+
 # Dependencies for the Windows resource file
-RCDEPS = $(WIN_ICON) $(addprefix resources/$(GAME),.gdf -boxart.png)
+RCDEPS ?= $(WIN_ICON) $(addprefix resources/$(GAME),.gdf -boxart.png)
 
 # Icon to use for systems other than Windows or Mac OS X
-PNG_ICON = resources/default.png
+PNG_ICON ?= resources/$(GAME).png
+
+# Since the Windows executable contains non-icon resources, don't pack it
+NOPACK=true
 
 # Uncomment and change to add internal resources (like embedded fonts)
 #RESOURCES += your_resource_file =resource_label
 
 # Uncomment and change to add your own custom compilation flags
 PSCFLAGS := $(PSCFLAGS) -D 'DEFAULT_WM_TITLE="Narcissu Side 2nd"'
-
-FINAL_TARGET = $(if $(WIN32),Narcissu2.exe,narcissu2$(EXESUFFIX))
-
-.PHONY: final
-final: ponscr$(EXESUFFIX)
-	-strip $<
-	-upx --best $<
-	$(RM) $(FINAL_TARGET)
-	mv $< $(FINAL_TARGET)

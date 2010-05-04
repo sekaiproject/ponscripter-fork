@@ -1,23 +1,52 @@
 # Settings for custom Ponscripter builds.
 
 # To customize, copy this file to "Makefile.<yourgame>"
-# and then run configure with the option "--game=<yourgame>"
 
 # These are the default settings.
 
-# The "$(if $(GAME) ...)" allow you to use these default settings
+# The "ifneq ($(GAME),)" section allows you to use this makefile
 # but change the icon(s) and Windows resource - build with:
 # make GAME=<mygame>
 
-# Windows icon
-WIN_ICON = resources/$(if $(GAME),$(GAME).ico,default.ico)
-# Windows resource file
-RCFILE = $(if $(GAME),$(GAME).rc,ponscr.rc)
-# Dependencies for the Windows resource file
-RCDEPS = $(WIN_ICON)
+ifneq ($(GAME),)
+  # Settings if GAME is set
 
-# Icon to use for systems other than Windows or Mac OS X
-PNG_ICON = resources/$(if $(GAME),$(GAME).png,default.png)
+  # Game executable
+  TARGET ?= $(GAME)$(EXESUFFIX)
+
+  # Windows icon
+  WIN_ICON ?= resources/$(if $(wildcard resources/$(GAME).ico),$(GAME).ico,default.ico)
+
+  # Windows resource file
+  RCFILE ?= $(if $(wildcard resources/$(GAME).rc),$(GAME).rc,ponscr.rc)
+
+  # Icon to use for systems other than Windows or Mac OS X
+  PNG_ICON ?= resources/$(if $(wildcard resources/$(GAME).png),$(GAME).png,default.png)
+
+else
+
+  # Default settings
+
+  # Game executable
+  TARGET ?= ponscr$(EXESUFFIX)
+
+  # Windows icon
+  WIN_ICON ?= resources/default.ico
+
+  # Windows resource file
+  RCFILE ?= ponscr.rc
+
+  # Icon to use for systems other than Windows or Mac OS X
+  PNG_ICON ?= resources/default.png
+
+endif
+
+# Dependencies for the Windows resource file
+RCDEPS ?= $(WIN_ICON)
+
+# Uncomment the following line if you don't want the executable
+# to be packed (e.g. by UPX)
+#NOPACK=true
 
 # Uncomment and change to add internal resources (like embedded fonts)
 #RESOURCES += your_resource_file =resource_label
