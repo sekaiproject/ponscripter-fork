@@ -83,6 +83,10 @@ void InitialiseFontSystem(DirPaths *basepath)
 void MapFont(int id, const pstring& filename)
 {
     Fonts.mapping[id] = filename;
+    if (Fonts.font_[id] != NULL) {
+        delete Fonts.font_[id];
+        Fonts.font_[id] = NULL;
+    }
 }
 
 
