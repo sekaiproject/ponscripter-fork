@@ -199,13 +199,19 @@ void PonscripterLabel::setupAnimationInfo(AnimationInfo* anim, Fontinfo* info)
     if (anim->trans_mode == AnimationInfo::TRANS_STRING) {
         Fontinfo f_info = info ? *info : sentence_font;
 
-        // handle tags
-	anim->file_name = parseTags(anim->file_name);
+        // parse ponscripter tags if a standard text string,
+        //otherwise don't; logsp strings are "predigested", as it were,
+        //so they shouldn't be parsed for tags again
+        // ...really should do some more explicit indication
+        //if something is a log string than using "skip_whitespace";
+        //moving parseTags out of this function could help too FIXME
+        if (anim->skip_whitespace)
+            anim->file_name = parseTags(anim->file_name);
 
         if (anim->font_size_x >= 0) { // in case of Sprite, not rclick menu
             f_info.top_x = anim->pos.x * screen_ratio2 / screen_ratio1;
             f_info.top_y = anim->pos.y * screen_ratio2 / screen_ratio1;
-	    f_info.setTateYoko(0);
+            f_info.setTateYoko(0);
             f_info.style = Default;
 
             f_info.set_size(anim->font_size_y);
@@ -227,7 +233,7 @@ void PonscripterLabel::setupAnimationInfo(AnimationInfo* anim, Fontinfo* info)
         SDL_Rect pos;
         if (anim->is_tight_region) {
             drawString(anim->file_name, anim->color_list[anim->current_cell],
-		       &f_info, false, NULL, &pos);
+                       &f_info, false, NULL, &pos, NULL, anim->skip_whitespace);
         }
         else {
             pos = f_info.getFullArea(screen_ratio1, screen_ratio2);
@@ -243,7 +249,7 @@ void PonscripterLabel::setupAnimationInfo(AnimationInfo* anim, Fontinfo* info)
             f_info.clear();
             f_info.style = Default;
             drawString(anim->file_name, anim->color_list[i], &f_info, false,
-		       NULL, NULL, anim);
+                       NULL, NULL, anim, anim->skip_whitespace);
             f_info.top_x += anim->pos.w * screen_ratio2 / screen_ratio1;
         }
     }

@@ -160,8 +160,9 @@ PonscripterLabel::drawChar(const char* text, Fontinfo* info, bool flush_flag,
 
 void
 PonscripterLabel::drawString(const char* str, rgb_t color, Fontinfo* info,
-			     bool flush_flag, SDL_Surface* surface,
-			     SDL_Rect* rect, AnimationInfo* cache_info)
+                             bool flush_flag, SDL_Surface* surface,
+                             SDL_Rect* rect, AnimationInfo* cache_info,
+                             bool skip_whitespace_flag)
 {
     float start_x = info->GetXOffset();
     int   start_y = info->GetYOffset();
@@ -174,7 +175,6 @@ PonscripterLabel::drawString(const char* str, rgb_t color, Fontinfo* info,
     rgb_t org_color = info->color;
     info->color = color;
 
-    bool skip_whitespace_flag = true;
     while (*str) {
         while (*str == ' ' && skip_whitespace_flag) str++;
 

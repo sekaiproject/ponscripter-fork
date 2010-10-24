@@ -643,7 +643,8 @@ private:
                   AnimationInfo* cache_info, SDL_Rect* clip = 0);
     void drawString(const char* str, rgb_t color, Fontinfo* info,
                     bool flush_flag, SDL_Surface* surface, SDL_Rect* rect = 0,
-                    AnimationInfo* cache_info = 0);
+                    AnimationInfo* cache_info = 0,
+                    bool skip_whitespace_flag = true);
 
 /*  void drawString(const pstring& str, rgb_t color, Fontinfo* info,
                     bool flush_flag, SDL_Surface* surface, SDL_Rect* rect = 0,

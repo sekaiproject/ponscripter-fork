@@ -1732,8 +1732,7 @@ int PonscripterLabel::logspCommand(const pstring& cmd)
     if (si.showing()) dirty_rect.add(si.pos);
 
     si.remove();
-    si.file_name = cmd == "logsp2utf" ? "^" : "";
-    si.file_name += script_h.readStrValue();
+    si.file_name = script_h.readStrValue();
 
     si.pos.x = script_h.readIntValue();
     si.pos.y = script_h.readIntValue();
@@ -1746,9 +1745,15 @@ int PonscripterLabel::logspCommand(const pstring& cmd)
         script_h.readIntValue(); // dummy read for y pitch
     }
     else if (cmd == "logsp2utf") {
+        //"logsp2utf" appears to have been defined because
+        //"logsp" & "logsp2" were assumed to strip whitespace;
+        //in actuality, not even NScr stripped whitespace from
+        //log strings, so there's no real need for "log2utf".
+        //Keeping for compatibility, plus it appears to process the
+        //font-pitch argument differently from "logsp2". [Mion, 10/23/2010]
         si.font_size_x = script_h.readIntValue();
         si.font_size_y = script_h.readIntValue();
-	si.font_pitch = script_h.readIntValue();
+        si.font_pitch = script_h.readIntValue();
         script_h.readIntValue(); // dummy read for y pitch
     }
     else {
@@ -1758,9 +1763,9 @@ int PonscripterLabel::logspCommand(const pstring& cmd)
     }
 
     if (script_h.hasMoreArgs()) {
-	si.color_list.clear();
-	while (script_h.hasMoreArgs())
-	    si.color_list.push_back(readColour(script_h.readStrValue()));
+        si.color_list.clear();
+        while (script_h.hasMoreArgs())
+            si.color_list.push_back(readColour(script_h.readStrValue()));
     }
     else {
         si.color_list.assign(1, rgb_t(0xff));
@@ -1769,8 +1774,9 @@ int PonscripterLabel::logspCommand(const pstring& cmd)
 
     si.is_single_line  = false;
     si.is_tight_region = false;
+    si.skip_whitespace = false;
     sentence_font.is_newline_accepted = true;
-    setupAnimationInfo(&si);
+    setupAnimationInfo(&si, NULL);
     sentence_font.is_newline_accepted = false;
     si.visible(true);
     dirty_rect.add(si.pos);
