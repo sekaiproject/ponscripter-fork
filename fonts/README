@@ -1,0 +1,6 @@
+Ponscripter requires either a TrueType font file, 'default.ttf', or
+a set of 8 font files (named 'font0.ttf' to 'font7.ttf' by default) that,
+again by default, should be in the game root or a subfolder called 'fonts'.
+
+This folder contains freely distributable proportional fonts, and may be
+used as-is.
