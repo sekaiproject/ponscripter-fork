@@ -60,6 +60,8 @@ MAKEFILE=$SRC/Makefile
 
 VERSION=`awk '/define VER_NUMBER/ {print $3}' $SRC/version.h`
 
+DISTCLEAN_OTHER=
+
 # Parse options
 prev=
 for opt
@@ -473,6 +475,7 @@ else
         MinGW)  SDL_CONFIG=`pwd`/src/extlib
                 cd src/win_dll; make prefix=$SDL_CONFIG > /dev/null 2>&1; cd ../..
                 SDL_CONFIG=$SDL_CONFIG/bin/sdl-config
+                DISTCLEAN_OTHER=SDL.dll $DISTCLEAN_OTHER
                 cp -p ./src/win_dll/SDL.dll `pwd`/src;;
         esac
     VER=`($SDL_CONFIG --version) 2>/dev/null`
@@ -998,9 +1001,9 @@ TARGET ?= ponscr\$(EXESUFFIX)
 
 clean: pclean \$(CLEAN_TARGETS)
 distclean: clean pdistclean \$(DISTCLEAN_TARGETS)
-	rm -r -f extlib/bin/* extlib/lib/* extlib/include/* \\
+	rm -r -f extlib/bin extlib/lib extlib/include \\
 	         extlib/share extlib/man
-	rm -f Makefile
+	rm -f Makefile $DISTCLEAN_OTHER
 
 target: \$(TARGET)
 _EOF
