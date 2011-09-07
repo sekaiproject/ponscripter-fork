@@ -5,6 +5,7 @@ all:
 	if test -d $(prefix); then \
 	    mkdir $(prefix)/bin; \
 	    cp -v bin/* $(prefix)/bin; \
+	    cp -v SDL.dll $(prefix)/bin; \
 	    mkdir $(prefix)/lib; \
 	    cp -v lib/* $(prefix)/lib; \
 	    mkdir $(prefix)/include; \
