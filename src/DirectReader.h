@@ -46,10 +46,10 @@ public:
     FileInfo getFileByIndex(unsigned int index);
     size_t getFileLength(const pstring& file_name);
     size_t getFile(const pstring& file_name, unsigned char* buffer,
-		   int* location = NULL);
+                   int* location = NULL);
 
 //    static string convertFromSJISToEUC(string buf);
-//    static string convertFromSJISToUTF8(string src_buf);
+    static pstring convertFromSJISToUTF8(const pstring& src);
 
 protected:
     DirPaths *archive_path;
@@ -70,9 +70,9 @@ protected:
             next = NULL;
         };
         RegisteredCompressionType(pstring new_ext, int type)
-	    : ext(new_ext)
-	{
-	    ext.toupper();
+            : ext(new_ext)
+        {
+            ext.toupper();
             this->type = type;
             this->next = NULL;
         };

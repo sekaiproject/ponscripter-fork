@@ -30,6 +30,11 @@
 #include <dirent.h>
 #endif
 
+#ifdef WIN32
+//Mion: support for non-ASCII (SJIS) filenames
+#include <wchar.h>
+#endif
+
 #ifdef UTF8_FILESYSTEM
 #ifdef MACOSX
 #include <CoreFoundation/CoreFoundation.h>
@@ -106,48 +111,34 @@ DirectReader::~DirectReader()
     }
 }
 
-static bool fnwarned = false;
-bool InvalidFilename(const pstring& filename)
+bool NonAsciiFilename(const pstring& filename)
 {
-    // For simplicity's sake, we simply refuse to allow non-ASCII
-    // filenames outside archives.  They are never going to be
-    // portable.  Anyone porting an existing game to Ponscripter can
-    // rename existing non-ASCII files in a matter of minutes.
-    //
-    // This may seem like it could potentially cause pain for
-    // patch-style translations, but in practice most games of the
-    // sort where a patch is required will have all assets within
-    // archives anyway, and it's nothing compared to the pain that
-    // would be caused to ME in trying to handle non-ASCII filenames
-    // in any remotely robust way.
-    //
-    // Since all files are sought outside archives before they're
-    // sought inside archives, a warning will always be issued if any
-    // non-ASCII filenames are in use.  To avoid being too pesky we
-    // only issue it once per run.
     int len = filename.length();
     const unsigned char* c = filename;
     for (int i = 0; i < len; ++i) {
-	if (c[i] >= 0x80) {
-	    if (!fnwarned)
-		fprintf(stderr, "To ensure portability, filenames should "
-			"contain only ASCII characters.\nNon-ASCII files "
-			"will be found within archives, but not otherwise.\n");
-	    fnwarned = true;
-	    return true;
-	}
+        if (c[i] >= 0x80) {
+            return true;
+        }
     }
     return false;
 }
 
 FILE* DirectReader::fileopen(pstring path, const char* mode)
 {
-    if (InvalidFilename(path)) return NULL;
-    
     pstring full_path = "";
     FILE* fp = NULL;
 
+#if defined (UTF8_FILESYSTEM) && !defined (WIN32)
+    //preconvert Shift-JIS filename to UTF-8
+    //(assumes path uses the script file encoding)
+    if ((file_encoding->which() == "cp932") &&
+        NonAsciiFilename(path)) {
+        path = convertFromSJISToUTF8(path);
+    }
+#endif
+
     // Check each archive path until found
+    //(full_path probably needs to be ASCII, needs testing...)
     for (int n=-1; n<archive_path->get_num_paths(); n++) {
         if (n == -1) {
             if (archive_path->get_num_paths() == 0) {
@@ -164,10 +155,36 @@ FILE* DirectReader::fileopen(pstring path, const char* mode)
         fp = fopen(full_path + path, mode);
         if (fp) return fp;
 
-#if !defined (WIN32) && !defined (PSP) && !defined (__OS2__)    
-        // Otherwise, split the path into directories and check each for
-        // correct case, correcting the case in memory as appropriate,
-        // until we either find the file or show that it doesn't exist.
+#ifdef WIN32
+        pstring file_full_path = full_path + path;
+        // Windows uses UTF-16, so convert for Japanese characters
+        if (NonAsciiFilename(file_full_path)) {
+            UINT cpage = 932;
+            if (file_encoding->which() != "cp932") {
+                cpage = CP_UTF8;
+            }
+            wchar_t *u16_tmp, *umode;
+            //convert the file path to from Shift-JIS/UTF-8 to Wide chars (Unicode)
+            int wc_size = MultiByteToWideChar(cpage, 0, (const char*)file_full_path, -1, NULL, 0);
+            u16_tmp = new wchar_t[wc_size];
+            MultiByteToWideChar(cpage, 0, (const char*)file_full_path, -1, u16_tmp, wc_size);
+            //need to convert the file mode too
+            wc_size = MultiByteToWideChar(cpage, 0, (char*)mode, -1, NULL, 0);
+            umode = new wchar_t[wc_size];
+            MultiByteToWideChar(cpage, 0, (char*)mode, -1, umode, wc_size);
+            fp = _wfopen( u16_tmp, umode );
+            //printf("checking utf16 filename: %s\n", fp ? "found" : "not found");
+            delete[] u16_tmp;
+            delete[] umode;
+            if (fp) return fp;
+        }
+#endif
+
+#if !defined (WIN32) && !defined (PSP) && !defined (__OS2__)
+        // For systems that are case-sensitive, split the path into
+        // directories and check each for correct case, correcting
+        // the case in memory as appropriate, until we either
+        // find the file or show that it doesn't exist.
 
         full_path.rtrim(DELIMITER);
 
@@ -287,18 +304,17 @@ DirectReader::FileInfo DirectReader::getFileByIndex(unsigned int index)
 
 
 FILE* DirectReader::getFileHandle(pstring filename, int& compression_type,
-				  size_t* length)
+                                  size_t* length)
 {
-    FILE* fp;
+    FILE* fp = NULL;
     *length = 0;
     compression_type = NO_COMPRESSION;
-    if (InvalidFilename(filename)) return NULL;
     filename.findreplace("/", DELIMITER);
     filename.findreplace("\\", DELIMITER);
-    if ((fp = fileopen(filename, "rb")) != NULL && filename.length() >= 3) {
+    if ((filename.length() >= 3) && ((fp = fileopen(filename, "rb")) != NULL)) {
         compression_type = getRegisteredCompressionType(filename);
         if (compression_type == NBZ_COMPRESSION ||
-	    compression_type == SPB_COMPRESSION) {
+            compression_type == SPB_COMPRESSION) {
             *length = getDecompressedFileLength(compression_type, fp, 0);
         }
         else {
@@ -351,57 +367,34 @@ size_t DirectReader::getFile(const pstring& file_name, unsigned char* buffer,
 }
 
 
-//void DirectReader::convertFromSJISToEUC(char* buf)
-//{
-//    int i = 0;
-//    while (buf[i]) {
-//        if ((unsigned char) buf[i] > 0x80) {
-//            unsigned char c1, c2;
-//            c1 = buf[i];
-//            c2 = buf[i + 1];
-//
-//            c1 -= (c1 <= 0x9f) ? 0x71 : 0xb1;
-//            c1  = c1 * 2 + 1;
-//            if (c2 > 0x9e) {
-//                c2 -= 0x7e;
-//                c1++;
-//            }
-//            else if (c2 >= 0x80) {
-//                c2 -= 0x20;
-//            }
-//            else {
-//                c2 -= 0x1f;
-//            }
-//
-//            buf[i] = c1 | 0x80;
-//            buf[i + 1] = c2 | 0x80;
-//            i++;
-//        }
-//
-//        i++;
-//    }
-//}
-//
-//
-//void DirectReader::convertFromSJISToUTF8(char* dst_buf, char* src_buf, size_t src_len)
-//{
-//#ifdef UTF8_FILESYSTEM
-//#ifdef MACOSX
-//    CFStringRef unicodeStrRef = CFStringCreateWithBytes(nil, (const UInt8*) src_buf, src_len,
-//                                    kCFStringEncodingShiftJIS, false);
-//    Boolean ret = CFStringGetCString(unicodeStrRef, dst_buf, src_len * 2 + 1, kCFStringEncodingUTF8);
-//    CFRelease(unicodeStrRef);
-//    if (!ret) strcpy(dst_buf, src_buf);
-//
-//#else
-//    src_len++;
-//    size_t dst_len = src_len * 2 + 1;
-//    int ret = iconv(iconv_cd, &src_buf, &src_len, &dst_buf, &dst_len);
-//    if (ret == -1) strcpy(dst_buf, src_buf);
-//
-//#endif
-//#endif
-//}
+pstring DirectReader::convertFromSJISToUTF8(const pstring& src)
+{
+#if defined(UTF8_FILESYSTEM)
+    //not sure how efficient this is...
+    CP932Encoding cp932;
+    UTF8Encoding utf8;
+    const char* c = src;
+    pstring dst = "";
+    while (*c) {
+        int b;
+        dst += utf8->Encode(cp932.DecodeChar(c, b));
+        c += b;
+    }
+#elif defined(WIN32)
+    const char *src_ptr = src;
+    int wc_size = MultiByteToWideChar(932, 0, src_ptr, -1, NULL, 0);
+    wchar_t *u16_tmp = new wchar_t[wc_size];
+    MultiByteToWideChar(932, 0, src_ptr, -1, u16_tmp, wc_size);
+    int mb_size = WideCharToMultiByte(CP_UTF8, 0, u16_tmp, wc_size, NULL, 0, NULL, NULL);
+    char *dst_buf = new char[mb_size];
+    WideCharToMultiByte(CP_UTF8, 0, u16_tmp, wc_size, dst_buf, mb_size, NULL, NULL);
+    pstring dst = pstring(dst_buf);
+    delete[] u16_tmp;
+    delete[] dst_buf;
+#endif //UTF8_FILESYSTEM, WIN32
+
+    return dst;
+}
 
 
 size_t DirectReader::decodeNBZ(FILE* fp, size_t offset, unsigned char* buf)
