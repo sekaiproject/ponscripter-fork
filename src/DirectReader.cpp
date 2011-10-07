@@ -35,13 +35,10 @@
 #include <wchar.h>
 #endif
 
-#ifdef UTF8_FILESYSTEM
+#if defined(MACOSX) || defined(LINUX) || defined(UTF8_FILESYSTEM)
+#define RECODING_FILENAMES
 #ifdef MACOSX
 #include <CoreFoundation/CoreFoundation.h>
-#else
-#include <iconv.h>
-static int iconv_ref_count = 0;
-static iconv_t iconv_cd = NULL;
 #endif
 #endif
 
@@ -59,12 +56,6 @@ static iconv_t iconv_cd = NULL;
 
 DirectReader::DirectReader(DirPaths *path, const unsigned char* key_table)
 {
-#if defined (UTF8_FILESYSTEM) && !defined (MACOSX)
-    if (iconv_cd == NULL) iconv_cd = iconv_open("UTF-8", "SJIS");
-
-    iconv_ref_count++;
-#endif
-
     if ( path != NULL )
         archive_path = path;
     else
@@ -93,13 +84,6 @@ DirectReader::DirectReader(DirPaths *path, const unsigned char* key_table)
 
 DirectReader::~DirectReader()
 {
-#if defined (UTF8_FILESYSTEM) && !defined (MACOSX)
-    if (--iconv_ref_count == 0) {
-        iconv_close(iconv_cd);
-        iconv_cd = NULL;
-    }
-
-#endif
     delete[] read_buf;
     delete[] decomp_buffer;
 
@@ -110,6 +94,7 @@ DirectReader::~DirectReader()
         delete cur;
     }
 }
+
 
 bool NonAsciiFilename(const pstring& filename)
 {
@@ -123,12 +108,13 @@ bool NonAsciiFilename(const pstring& filename)
     return false;
 }
 
+
 FILE* DirectReader::fileopen(pstring path, const char* mode)
 {
     pstring full_path = "";
     FILE* fp = NULL;
 
-#if defined (UTF8_FILESYSTEM) && !defined (WIN32)
+#if defined (RECODING_FILENAMES) && !defined (WIN32)
     //preconvert Shift-JIS filename to UTF-8
     //(assumes path uses the script file encoding)
     if ((file_encoding->which() == "cp932") &&
@@ -369,15 +355,16 @@ size_t DirectReader::getFile(const pstring& file_name, unsigned char* buffer,
 
 pstring DirectReader::convertFromSJISToUTF8(const pstring& src)
 {
-#if defined(UTF8_FILESYSTEM)
+    pstring dst = "";
+
+#if defined(RECODING_FILENAMES) || defined(UTF8_FILESYSTEM)
     //not sure how efficient this is...
     CP932Encoding cp932;
     UTF8Encoding utf8;
     const char* c = src;
-    pstring dst = "";
     while (*c) {
         int b;
-        dst += utf8->Encode(cp932.DecodeChar(c, b));
+        dst += utf8.Encode(cp932.DecodeChar(c, b));
         c += b;
     }
 #elif defined(WIN32)
@@ -388,10 +375,10 @@ pstring DirectReader::convertFromSJISToUTF8(const pstring& src)
     int mb_size = WideCharToMultiByte(CP_UTF8, 0, u16_tmp, wc_size, NULL, 0, NULL, NULL);
     char *dst_buf = new char[mb_size];
     WideCharToMultiByte(CP_UTF8, 0, u16_tmp, wc_size, dst_buf, mb_size, NULL, NULL);
-    pstring dst = pstring(dst_buf);
+    dst = pstring(dst_buf);
     delete[] u16_tmp;
     delete[] dst_buf;
-#endif //UTF8_FILESYSTEM, WIN32
+#endif //RECODING_FILENAMES || UTF8_FILESYSTEM, WIN32
 
     return dst;
 }
