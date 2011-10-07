@@ -273,7 +273,7 @@ public:
             if (str) str.trunc(0);
         };
     };
-    std::vector<VariableData> variable_data;
+    VariableData &getVariableData(int no);
 
     VariableInfo current_variable;
 
@@ -311,6 +311,14 @@ private:
     
     /* ---------------------------------------- */
     /* Variable */
+    std::vector<VariableData> variable_data;
+    struct ExtendedVariableData{
+        int no;
+        VariableData vd;
+        ExtendedVariableData(int n): no(n) {}
+    };
+    std::vector<ExtendedVariableData> extended_variable_data;
+
     typedef dictionary<pstring, int>::t    numalias_t;
     typedef dictionary<pstring, pstring>::t stralias_t;
     void checkalias(const pstring& alias);// warns if an alias may cause trouble

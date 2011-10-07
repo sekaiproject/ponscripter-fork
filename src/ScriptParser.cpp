@@ -658,8 +658,8 @@ pstring ScriptParser::readStr()
 void ScriptParser::writeVariables(int from, int to, bool output_flag)
 {
     for (int i = from; i < to; i++) {
-        writeInt(script_h.variable_data[i].get_num(), output_flag);
-        writeStr(script_h.variable_data[i].str, output_flag);
+        writeInt(script_h.getVariableData(i).get_num(), output_flag);
+        writeStr(script_h.getVariableData(i).str, output_flag);
     }
 }
 
@@ -667,8 +667,8 @@ void ScriptParser::writeVariables(int from, int to, bool output_flag)
 void ScriptParser::readVariables(int from, int to)
 {
     for (int i = from; i < to; i++) {
-        script_h.variable_data[i].set_num(readInt());
-        script_h.variable_data[i].str = readStr();
+        script_h.getVariableData(i).set_num(readInt());
+        script_h.getVariableData(i).str = readStr();
     }
 }
 

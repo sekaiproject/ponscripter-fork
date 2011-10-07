@@ -2379,7 +2379,7 @@ int PonscripterLabel::gameCommand(const pstring& cmd)
     /* ---------------------------------------- */
     /* Initialize local variables */
     for (i = 0; i < script_h.global_variable_border; i++)
-        script_h.variable_data[i].reset(false);
+        script_h.getVariableData(i).reset(false);
 
     setCurrentLabel("start");
     saveSaveFile(-1);

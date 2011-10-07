@@ -1081,7 +1081,7 @@ void PonscripterLabel::resetSub()
     int i;
 
     for (i = 0; i < script_h.global_variable_border; i++)
-        script_h.variable_data[i].reset(false);
+        script_h.getVariableData(i).reset(false);
 
     for (i = 0; i < 3; i++) human_order[i] = 2 - i; // "rcl"
 

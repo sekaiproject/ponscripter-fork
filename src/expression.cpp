@@ -103,7 +103,7 @@ pstring Expression::as_string() const
     if (is_textual() && is_constant())
 	return strval_;
     else if (is_textual())
-	return h.variable_data[intval_].str;
+	return h.getVariableData(intval_).str;
     else if (is_numeric()) {
 	pstring rv;
 	rv.format("%d", as_int());
@@ -119,7 +119,7 @@ int Expression::as_int() const
     else if (type_ == Array)
 	return h.arrays.find(intval_)->second.getValue(index_);
     else if (type_ == Int)
-	return h.variable_data[intval_].get_num();
+	return h.getVariableData(intval_).get_num();
     else if (is_textual())
 	return as_string();
     throw "Error: invalid expression type";
@@ -162,19 +162,19 @@ void Expression::mutate(int newval, int offset, bool as_array)
 void Expression::mutate(const pstring& newval)
 {
     require(String, true);
-    h.variable_data[intval_].str = newval;
+    h.getVariableData(intval_).str = newval;
 }
 
 void Expression::append(const pstring& newval)
 {
     require(String, true);
-    h.variable_data[intval_].str += newval;
+    h.getVariableData(intval_).str += newval;
 }
 
 void Expression::append(wchar newval)
 {
     require(String, true);
-    h.variable_data[intval_].str += file_encoding->Encode(newval);
+    h.getVariableData(intval_).str += file_encoding->Encode(newval);
 }
 
 Expression::Expression(ScriptHandler& sh)
@@ -183,19 +183,15 @@ Expression::Expression(ScriptHandler& sh)
 
 Expression::Expression(ScriptHandler& sh, type_t t, bool is_v, int val)
     : h(sh), type_(t), var_(is_v), strval_(""), intval_(val)
-{
-    if (is_v && (val < 0 || val > VARIABLE_RANGE)) intval_ = VARIABLE_RANGE;
-}
+{}
 
 Expression::Expression(ScriptHandler& sh, type_t t, bool is_v, int val,
-		       const h_index_t& idx)
+                       const h_index_t& idx)
     : h(sh), type_(t), var_(is_v), index_(idx), strval_(""), intval_(val)
-{
-    if (is_v && (val < 0 || val > VARIABLE_RANGE)) intval_ = VARIABLE_RANGE;
-}
+{}
 
 Expression::Expression(ScriptHandler& sh, type_t t, bool is_v,
-		       const pstring& val)
+                       const pstring& val)
     : h(sh), type_(t), var_(is_v), strval_(val), intval_(0)
 {}
 

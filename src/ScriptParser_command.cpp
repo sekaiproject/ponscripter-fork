@@ -382,7 +382,7 @@ int ScriptParser::watch_varCommand(const pstring& cmd)
         errorAndCont("watch_var not implemented for string variables");
     }
     else {
-        script_h.variable_data[e.var_no()].watch_int_variable = e.var_no();
+        script_h.getVariableData(e.var_no()).watch_int_variable = e.var_no();
     }
     return RET_CONTINUE;
 }
@@ -721,9 +721,9 @@ int ScriptParser::intlimitCommand(const pstring& cmd)
 
     int no = script_h.readIntValue();
 
-    script_h.variable_data[no].num_limit_flag  = true;
-    script_h.variable_data[no].num_limit_lower = script_h.readIntValue();
-    script_h.variable_data[no].num_limit_upper = script_h.readIntValue();
+    script_h.getVariableData(no).num_limit_flag  = true;
+    script_h.getVariableData(no).num_limit_lower = script_h.readIntValue();
+    script_h.getVariableData(no).num_limit_upper = script_h.readIntValue();
 
     return RET_CONTINUE;
 }
