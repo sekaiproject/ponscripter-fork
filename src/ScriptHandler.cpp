@@ -264,7 +264,8 @@ readTokenTop:
     else if (ch == file_encoding->TextMarker()) {
         ch = *++buf;
         while (ch != file_encoding->TextMarker() && ch != 0x0a && ch != '\0') {
-            if ((ch == '\\' || ch == '@') && (buf[1] == 0x0a || buf[1] == 0)) {
+            if ((ch == '\\' || ch == '@') &&
+                (textgosub_flag || buf[1] == 0x0a || buf[1] == 0)) {
                 string_buffer += *buf++;
                 ch = *buf;
                 break;
@@ -310,7 +311,7 @@ readTokenTop:
             buf += bytes;
             ch = *buf;
         }
-        if (ch == file_encoding->TextMarker()) ++buf;
+        if (ch == file_encoding->TextMarker() && !textgosub_flag) ++buf;
 
         if (ch == 0x0a && !(textgosub_flag && linepage_flag)) {
             string_buffer += ch;
@@ -347,7 +348,10 @@ readTokenTop:
         goto readTokenTop;
     }
 
-    next_script = checkComma(buf);
+    if (text_flag)
+        next_script = buf;
+    else
+        next_script = checkComma(buf);
 
     return string_buffer;
 }
@@ -1114,8 +1118,9 @@ ScriptHandler::VariableData &ScriptHandler::getVariableData(int no)
             return extended_variable_data[i].vd;
     }
     extended_variable_data.push_back(ExtendedVariableData(no));
-    printf("SHandler.getVariableData: adding extended variable for var no %d "
-           "(ext_var_data.size() is now %d\n", no, extended_variable_data.size());
+    //printf("SHandler.getVariableData: adding extended variable for var no %d "
+    //       "(vector size/capacity is now %d/%d\n", no, 
+    //       extended_variable_data.size(), extended_variable_data.capacity());
 
     return extended_variable_data.back().vd;
 }
