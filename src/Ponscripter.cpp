@@ -35,8 +35,13 @@ static void optionHelp()
 {
 //Mion: a number of these options are stubs; will be commented-out
 // in this function until they are actually implemented
+#ifdef PNS_CODENAME
+    printf("Ponscripter version %s '%s' (NScr %d.%02d)\n",
+        PNS_VERSION, PNS_CODENAME, NSC_VERSION / 100, NSC_VERSION % 100);
+#else
     printf("Ponscripter version %s (NScr %d.%02d)\n",
-        ONS_VERSION, NSC_VERSION / 100, NSC_VERSION % 100);
+        PNS_VERSION, NSC_VERSION / 100, NSC_VERSION % 100);
+#endif
     printf("Usage: ponscripter [option ...] [root path]\n");
     printf("      --cdaudio\t\tuse CD audio if available\n");
     printf("      --cdnumber no\tchoose the CD-ROM drive number\n");
@@ -90,11 +95,16 @@ static void optionHelp()
 
 static void optionVersion()
 {
+#ifdef PNS_CODENAME
+    printf("Ponscripter version %s '%s' (NScr %d.%02d)\n",
+        PNS_VERSION, PNS_CODENAME, NSC_VERSION / 100, NSC_VERSION % 100);
+#else
     printf("Ponscripter version %s (NScr %d.%02d)\n",
-        ONS_VERSION, NSC_VERSION / 100, NSC_VERSION % 100);
+        PNS_VERSION, NSC_VERSION / 100, NSC_VERSION % 100);
+#endif
     printf("Based on ONScripter by Ogapee <ogapee@aqua.dti2.ne.jp>\n");
     printf("Currently maintained by \"Uncle\" Mion Sonozaki <UncleMion@gmail.com>\n\n");
-    printf("Copyright (c) 2001-2010 Ogapee, 2006-2010 insani, Haeleth, Sonozaki et al.\n");
+    printf("Copyright (c) 2001-2011 Ogapee, 2006-2011 insani, Haeleth, Sonozaki et al.\n");
     printf("This is free software; see the source for copying conditions.\n");
     exit(0);
 }
