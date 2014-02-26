@@ -24,7 +24,7 @@ PREFIX=/usr/local
 if [ -z "$MAKE"   ]; then MAKE=make; fi
 if [ -z "$AR"     ]; then AR=ar; fi
 if [ -z "$RANLIB" ]; then RANLIB=ranlib; fi
-WERROR="-Werror"
+#WERROR="-Werror"
 #CXXSTD="-std=c++98"
 CXXSTD=
 STRICT=

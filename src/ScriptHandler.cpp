@@ -733,7 +733,6 @@ int ScriptHandler::readScriptSub(FILE* fp, char** buf, int encrypt_mode, bool is
 {
     unsigned char magic[5] = { 0x79, 0x57, 0x0d, 0x80, 0x04 };
     int  magic_counter = 0;
-    bool newline_flag  = true;
     bool cr_flag = false;
     int bom_check = 0;
 
@@ -765,7 +764,6 @@ int ScriptHandler::readScriptSub(FILE* fp, char** buf, int encrypt_mode, bool is
 
         if (cr_flag && ch != 0x0a) {
             *(*buf)++    = 0x0a;
-            newline_flag = true;
             cr_flag = false;
         }
 
@@ -776,13 +774,10 @@ int ScriptHandler::readScriptSub(FILE* fp, char** buf, int encrypt_mode, bool is
 
         if (ch == 0x0a) {
             *(*buf)++    = 0x0a;
-            newline_flag = true;
             cr_flag = false;
         }
         else {
             *(*buf)++ = ch;
-            if (!isawspace(ch))
-                newline_flag = false;
         }
 
         if (is_utf) {
