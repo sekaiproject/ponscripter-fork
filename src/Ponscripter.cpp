@@ -410,6 +410,7 @@ int main(int argc, char** argv)
 
     const char* s = preferred_script;
     if (*s == 0) s = NULL;
+
     if (ons.init(s)) exit(-1);
 
     ons.eventLoop();

@@ -42,16 +42,16 @@
 #define EDIT_MODE_PREFIX "[EDIT MODE]  "
 #define EDIT_SELECT_STRING "MP3 vol (m)  SE vol (s)  Voice vol (v)  Numeric variable (n)"
 
-static SDL_TimerID timer_id  = NULL;
-SDL_TimerID timer_cdaudio_id = NULL;
+static SDL_TimerID timer_id  = 0;
+SDL_TimerID timer_cdaudio_id = 0;
 
 // This block does two things: it sets up the timer id for mp3 fadeout, and it also sets up a timer id for midi looping --
 // the reason we have a separate midi loop timer id here is that on Mac OS X, looping midis via SDL will cause SDL itself
 // to hard crash after the first play.  So, we work around that by manually causing the midis to loop.  This OS X midi
 // workaround is the work of Ben Carter.  Recommend for integration.  [Seung Park, 20060621]
-SDL_TimerID timer_mp3fadeout_id = NULL;
+SDL_TimerID timer_mp3fadeout_id = 0;
 #ifdef MACOSX
-SDL_TimerID timer_midi_id = NULL;
+SDL_TimerID timer_midi_id = 0;
 #endif
 bool ext_music_play_once_flag = false;
 
@@ -83,7 +83,7 @@ extern "C" void oggcallback(void* userdata, Uint8* stream, int len)
 extern "C" Uint32 SDLCALL timerCallback(Uint32 interval, void* param)
 {
     SDL_RemoveTimer(timer_id);
-    timer_id = NULL;
+    timer_id = 0;
 
     SDL_Event event;
     event.type = ONS_TIMER_EVENT;
@@ -96,7 +96,7 @@ extern "C" Uint32 SDLCALL timerCallback(Uint32 interval, void* param)
 extern "C" Uint32 cdaudioCallback(Uint32 interval, void* param)
 {
     SDL_RemoveTimer(timer_cdaudio_id);
-    timer_cdaudio_id = NULL;
+    timer_cdaudio_id = 0;
 
     SDL_Event event;
     event.type = ONS_CDAUDIO_EVENT;
@@ -119,7 +119,7 @@ extern "C" Uint32 SDLCALL mp3fadeoutCallback(Uint32 interval, void* param)
 }
 
 
-SDLKey transKey(SDLKey key)
+SDL_Keycode transKey(SDL_Keycode key)
 {
 #ifdef IPODLINUX
     switch (key) {
@@ -139,10 +139,10 @@ SDLKey transKey(SDLKey key)
 }
 
 
-SDLKey transJoystickButton(Uint8 button)
+SDL_Keycode transJoystickButton(Uint8 button)
 {
 #ifdef PSP
-    SDLKey button_map[] = { SDLK_ESCAPE, /* TRIANGLE */
+    SDL_Keycode button_map[] = { SDLK_ESCAPE, /* TRIANGLE */
                             SDLK_RETURN, /* CIRCLE   */
                             SDLK_SPACE,  /* CROSS    */
                             SDLK_RCTRL,  /* SQUARE   */
@@ -168,7 +168,7 @@ SDL_KeyboardEvent transJoystickAxis(SDL_JoyAxisEvent &jaxis)
 
     SDL_KeyboardEvent event;
 
-    SDLKey axis_map[] = { SDLK_LEFT,  /* AL-LEFT  */
+    SDL_Keycode axis_map[] = { SDLK_LEFT,  /* AL-LEFT  */
                           SDLK_RIGHT,/* AL-RIGHT */
                           SDLK_UP,   /* AL-UP    */
                           SDLK_DOWN /* AL-DOWN  */ };
@@ -231,7 +231,7 @@ void PonscripterLabel::flushEventSub(SDL_Event &event)
         }
         else {
             SDL_RemoveTimer(timer_mp3fadeout_id);
-            timer_mp3fadeout_id = NULL;
+            timer_mp3fadeout_id = 0;
 
             event_mode &= ~WAIT_TIMER_MODE;
             stopBGM(false);
@@ -308,13 +308,13 @@ void PonscripterLabel::startTimer(int count)
 
 void PonscripterLabel::advancePhase(int count)
 {
-    if (timer_id != NULL) {
+    if (timer_id != 0) {
         SDL_RemoveTimer(timer_id);
     }
 
     if (count > 0) {
         timer_id = SDL_AddTimer(count, timerCallback, NULL);
-        if (timer_id != NULL) return;
+        if (timer_id != 0) return;
     }
 
     SDL_Event event;
@@ -451,7 +451,10 @@ void PonscripterLabel::mousePressEvent(SDL_MouseButtonEvent* event)
     }
 
 #if SDL_VERSION_ATLEAST(1, 2, 5)
-    else if (event->button == SDL_BUTTON_WHEELUP
+    //TODO, handle the new mousewheel events
+    // https://wiki.libsdl.org/SDL_EventType
+    // https://wiki.libsdl.org/SDL_MouseWheelEvent
+    /*else if (event->button == SDL_BUTTON_WHEELUP
              && ((event_mode & WAIT_TEXT_MODE)
                  || (usewheel_flag && (event_mode & WAIT_BUTTON_MODE))
                  || system_menu_mode == SYSTEM_LOOKBACK)) {
@@ -472,7 +475,7 @@ void PonscripterLabel::mousePressEvent(SDL_MouseButtonEvent* event)
             current_button_state.button  = -3;
             volatile_button_state.button = -3;
         }
-    }
+    }*/
 #endif
     else return;
 
@@ -515,25 +518,25 @@ void PonscripterLabel::variableEditMode(SDL_KeyboardEvent* event)
         variable_edit_num  = 0;
         break;
 
-    case SDLK_9: case SDLK_KP9:
+    case SDLK_9: case SDLK_KP_9:
 	variable_edit_num = variable_edit_num * 10 + 9; break;
-    case SDLK_8: case SDLK_KP8:
+    case SDLK_8: case SDLK_KP_8:
 	variable_edit_num = variable_edit_num * 10 + 8; break;
-    case SDLK_7: case SDLK_KP7:
+    case SDLK_7: case SDLK_KP_7:
 	variable_edit_num = variable_edit_num * 10 + 7; break;
-    case SDLK_6: case SDLK_KP6:
+    case SDLK_6: case SDLK_KP_6:
 	variable_edit_num = variable_edit_num * 10 + 6; break;
-    case SDLK_5: case SDLK_KP5:
+    case SDLK_5: case SDLK_KP_5:
 	variable_edit_num = variable_edit_num * 10 + 5; break;
-    case SDLK_4: case SDLK_KP4:
+    case SDLK_4: case SDLK_KP_4:
 	variable_edit_num = variable_edit_num * 10 + 4; break;
-    case SDLK_3: case SDLK_KP3:
+    case SDLK_3: case SDLK_KP_3:
 	variable_edit_num = variable_edit_num * 10 + 3; break;
-    case SDLK_2: case SDLK_KP2:
+    case SDLK_2: case SDLK_KP_2:
 	variable_edit_num = variable_edit_num * 10 + 2; break;
-    case SDLK_1: case SDLK_KP1:
+    case SDLK_1: case SDLK_KP_1:
 	variable_edit_num = variable_edit_num * 10 + 1; break;
-    case SDLK_0: case SDLK_KP0:
+    case SDLK_0: case SDLK_KP_0:
 	variable_edit_num = variable_edit_num * 10 + 0; break;
 
     case SDLK_MINUS: case SDLK_KP_MINUS:
@@ -607,9 +610,12 @@ void PonscripterLabel::variableEditMode(SDL_KeyboardEvent* event)
     case SDLK_ESCAPE:
         if (variable_edit_mode == EDIT_SELECT_MODE) {
             variable_edit_mode = NOT_EDIT_MODE;
-            SDL_WM_SetCaption(DEFAULT_WM_TITLE, DEFAULT_WM_ICON);
+            SDL_SetWindowTitle(screen, DEFAULT_WM_TITLE);
+            //TODO
+            //SDL_SetWindowIcon(screen, DEFAULT_WM_ICON);
             SDL_Delay(100);
-            SDL_WM_SetCaption(wm_title_string, wm_icon_string);
+            SDL_SetWindowTitle(screen, wm_title_string);
+            //SDL_SetWindowIcon(screen, wm_icon_string);
             return;
         }
 
@@ -654,7 +660,9 @@ void PonscripterLabel::variableEditMode(SDL_KeyboardEvent* event)
 			      variable_edit_num * variable_edit_sign);
     }
 
-    SDL_WM_SetCaption(wm_edit_string, wm_icon_string);
+    SDL_SetWindowTitle(screen, wm_title_string);
+    //TODO
+    //SDL_SetWindowIcon(screen, wm_icon_string);
 }
 
 
@@ -686,7 +694,7 @@ void PonscripterLabel::shiftCursorOnButton(int diff)
     int y = e.select_rect.y + e.select_rect.h / 2;
     if (x < 0) x = 0; else if (x >= screen_width) x = screen_width - 1;
     if (y < 0) y = 0; else if (y >= screen_height) y = screen_height - 1;
-    SDL_WarpMouse(x, y);
+    SDL_WarpMouseInWindow(screen, x, y);
 }
 
 
@@ -763,7 +771,9 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
             variable_edit_sign = 1;
             variable_edit_num  = 0;
             wm_edit_string = EDIT_MODE_PREFIX EDIT_SELECT_STRING;
-            SDL_WM_SetCaption(wm_edit_string, wm_icon_string);
+            SDL_SetWindowTitle(screen, wm_title_string);
+            //TODO
+            //SDL_SetWindowIcon(screen, wm_icon_string);
         }
     }
 
@@ -1141,11 +1151,11 @@ int PonscripterLabel::eventLoop()
     while (SDL_WaitEvent(&event)) {
         // ignore continous SDL_MOUSEMOTION
         while (event.type == SDL_MOUSEMOTION) {
-            if (SDL_PeepEvents(&tmp_event, 1, SDL_PEEKEVENT, SDL_ALLEVENTS) == 0) break;
+            if (SDL_PeepEvents(&tmp_event, 1, SDL_PEEKEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT) == 0) break;
 
             if (tmp_event.type != SDL_MOUSEMOTION) break;
 
-            SDL_PeepEvents(&tmp_event, 1, SDL_GETEVENT, SDL_ALLEVENTS);
+            SDL_PeepEvents(&tmp_event, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT);
             event = tmp_event;
         }
 
@@ -1238,11 +1248,13 @@ int PonscripterLabel::eventLoop()
 
             break;
 
-        case SDL_ACTIVEEVENT:
-            if (!event.active.gain) break;
-
-        case SDL_VIDEOEXPOSE:
-            SDL_UpdateRect(screen_surface, 0, 0, screen_width, screen_height);
+        case SDL_WINDOWEVENT:
+            switch(event.window.event) {
+              case SDL_WINDOWEVENT_FOCUS_LOST:
+                break;
+              case SDL_WINDOWEVENT_EXPOSED:
+                SDL_RenderPresent(renderer);
+            }
             break;
 
         case SDL_QUIT:

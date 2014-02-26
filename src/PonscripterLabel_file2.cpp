@@ -357,10 +357,9 @@ int PonscripterLabel::loadSaveFile2(SaveFileType file_type, int file_version)
     btndef_info.remove();
     btndef_info.image_name = readStr();
     if (btndef_info.image_name) {
-	parseTaggedString(&btndef_info);
-	setupAnimationInfo(&btndef_info);
-	SDL_SetAlpha(btndef_info.image_surface, DEFAULT_BLIT_FLAG,
-		     SDL_ALPHA_OPAQUE);
+      parseTaggedString(&btndef_info);
+      setupAnimationInfo(&btndef_info);
+      SDL_SetSurfaceAlphaMod(btndef_info.image_surface, SDL_ALPHA_OPAQUE);
     }
 
     if (file_version >= 202)

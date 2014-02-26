@@ -48,6 +48,13 @@ struct WAVE_HEADER {
     char data_length[4];
 } header;
 
+typedef struct
+{
+  SMPEG_Frame *frame;
+  int frameCount;
+  SDL_mutex *lock;
+} update_context;
+
 extern bool ext_music_play_once_flag;
 
 extern "C" {
@@ -222,7 +229,7 @@ int PonscripterLabel::playSound(const pstring& filename, int format,
             }
         }
 
-        mp3_sample = SMPEG_new_rwops(SDL_RWFromMem(buffer, length), NULL, 0);
+        mp3_sample = SMPEG_new_rwops(SDL_RWFromMem(buffer, length), NULL, 0, 0);
         if (playMP3() == 0) {
             music_buffer = buffer;
             music_buffer_length = length;
@@ -262,27 +269,22 @@ int PonscripterLabel::playSound(const pstring& filename, int format,
 
 void PonscripterLabel::playCDAudio()
 {
-    if (cdaudio_flag) {
-        if (cdrom_info) {
-            int length = cdrom_info->track[current_cd_track - 1].length / 75;
-            SDL_CDPlayTracks(cdrom_info, current_cd_track - 1, 0, 1, 0);
-            timer_cdaudio_id = SDL_AddTimer(length * 1000, cdaudioCallback, NULL);
-        }
-    }
-    else {
-	pstring filename;
-	filename.format("cd/track%2.2d.mp3", current_cd_track);
-        int ret = playSound(filename, SOUND_MP3, cd_play_loop_flag);
-        if (ret == SOUND_MP3) return;
+  if (cdaudio_flag) {
+    fprintf(stderr, "cdrom usage depreciated\n");
+  } else {
+    pstring filename;
+    filename.format("cd/track%2.2d.mp3", current_cd_track);
+    int ret = playSound(filename, SOUND_MP3, cd_play_loop_flag);
+    if (ret == SOUND_MP3) return;
 
-	filename.format("cd/track%2.2d.ogg", current_cd_track);
-        ret = playSound(filename, SOUND_OGG_STREAMING, cd_play_loop_flag);
-        if (ret == SOUND_OGG_STREAMING) return;
+    filename.format("cd/track%2.2d.ogg", current_cd_track);
+    ret = playSound(filename, SOUND_OGG_STREAMING, cd_play_loop_flag);
+    if (ret == SOUND_OGG_STREAMING) return;
 
-	filename.format("cd/track%2.2d.wav", current_cd_track);
-        ret = playSound(filename, SOUND_WAVE, cd_play_loop_flag,
-			MIX_BGM_CHANNEL);
-    }
+    filename.format("cd/track%2.2d.wav", current_cd_track);
+    ret = playSound(filename, SOUND_WAVE, cd_play_loop_flag,
+        MIX_BGM_CHANNEL);
+  }
 }
 
 
@@ -494,150 +496,155 @@ int PonscripterLabel::setCurMusicVolume( int volume )
 // simply must shift all this stuff into plain C variables.
 typedef std::vector<AnimationInfo*> olvec;
 static olvec overlays;
-static SDL_Surface *offscreen = NULL, *screenptr = NULL;
-void UpdateMPEG(SDL_Surface* surface, int x, int y,
-                unsigned int w, unsigned int h)
-{
-    SDL_Rect r;
-    r.x = 0; r.y = 0; r.w = screenptr->w; r.h = screenptr->h;
-    SDL_BlitSurface(offscreen, &r, screenptr, &r);
-    for (olvec::iterator it = overlays.begin(); it != overlays.end(); ++it) {
-        if (*it)
-            (*it)->blendOnSurface(screenptr, (*it)->pos.x, (*it)->pos.y, r,
-                                  (*it)->trans);
-    }
-    SDL_UpdateRect(screenptr, r.x, r.y, r.w, r.h);
-}
+//static SDL_Surface *offscreen = NULL, *screenptr = NULL;
 
-int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
-                               SubtitleDefs& subtitles)
-{
-    int ret = 0;
-#ifndef MP3_MAD
-    bool different_spec = false;
-    pstring mpeg_dat = ScriptHandler::cBR->getFile(filename);
-    SMPEG* mpeg_sample = SMPEG_new_rwops(rwops(mpeg_dat), 0, 0);
-    if (!SMPEG_error(mpeg_sample)) {
-        SMPEG_enableaudio(mpeg_sample, 0);
+//void UpdateMPEG(SDL_Surface* surface, int x, int y,
+//                unsigned int w, unsigned int h)
+//{
+//    SDL_Rect r;
+//    r.x = 0; r.y = 0; r.w = screenptr->w; r.h = screenptr->h;
+//    SDL_BlitSurface(offscreen, &r, screenptr, &r);
+//    for (olvec::iterator it = overlays.begin(); it != overlays.end(); ++it) {
+//        if (*it)
+//            (*it)->blendOnSurface(screenptr, (*it)->pos.x, (*it)->pos.y, r,
+//                                  (*it)->trans);
+//    }
+//    //TODO, this is probably for the surface, not screen
+//    //SDL_RenderPresent(renderer);
+//}
 
-        if (audio_open_flag) {
-            //Mion - SMPEG doesn't handle different audio spec well, so
-            // let's redo the SDL mixer just for this video playback
-            SDL_AudioSpec wanted;
-            SMPEG_wantedSpec(mpeg_sample, &wanted);
-            //printf("SMPEG wants audio: %d Hz %d bit %s\n", wanted.freq,
-            //       (wanted.format&0xFF),
-            //       (wanted.channels > 1) ? "stereo" : "mono");
-            if ((wanted.format != audio_format.format) ||
-                (wanted.freq != audio_format.freq))
-            {
-                different_spec = true;
-                Mix_CloseAudio();
-                openAudio(wanted.freq, wanted.format, wanted.channels);
-                if (!audio_open_flag) {
-                    // didn't work, use the old settings
-                    openAudio();
-                    different_spec = false;
-                }
-            }
-            SMPEG_actualSpec(mpeg_sample, &audio_format);
-            SMPEG_enableaudio(mpeg_sample, 1);
-        }
-
-        SMPEG_enablevideo(mpeg_sample, 1);
-
-        if (subtitles) {
-            screenptr = screen_surface;
-            offscreen = SDL_CreateRGBSurface(SDL_SWSURFACE,
-                                             screenptr->w, screenptr->h, 32,
-                                             0x00ff0000, 0x0000ff00,
-                                             0x000000ff, 0xff000000);
-            SDL_SetAlpha(offscreen, 0, 255);
-            SMPEG_setdisplay(mpeg_sample, offscreen, NULL, &UpdateMPEG);
-            overlays.assign(size_t(subtitles.numdefs()), NULL);
-        }
-        else
-            SMPEG_setdisplay(mpeg_sample, screen_surface, NULL, NULL);
-
-        SMPEG_setvolume(mpeg_sample, music_volume);
-
-        Mix_HookMusic(mp3callback, mpeg_sample);
-        SMPEG_play(mpeg_sample);
-
-        bool done_flag = false;
-        while (!(done_flag & click_flag) &&
-               SMPEG_status(mpeg_sample) == SMPEG_PLAYING)
-        {
-            SDL_Event event;
-            while (SDL_PollEvent(&event)) {
-                switch (event.type) {
-                case SDL_KEYDOWN: {
-                    int s = ((SDL_KeyboardEvent*) &event)->keysym.sym;
-                    if (s == SDLK_RETURN || s == SDLK_SPACE || s == SDLK_ESCAPE)
-                        done_flag = true;
-                    break;
-                }
-                case SDL_QUIT:
-                    ret = 1;
-                case SDL_MOUSEBUTTONDOWN:
-                    done_flag = true;
-                    break;
-                default:
-                    break;
-                }
-            }
-
-            if (subtitles) {
-                SMPEG_Info info;
-                SMPEG_getinfo(mpeg_sample, &info);
-                if (info.current_time >= subtitles.next()) {
-                    Subtitle s = subtitles.pop();
-                    AnimationInfo* overlay = 0;
-                    if (s.text) {
-                        overlay = new AnimationInfo();
-                        overlay->setImageName(s.text);
-                        overlay->pos.x = screen_width / 2;
-                        overlay->pos.y = subtitles.pos(s.number);
-                        parseTaggedString(overlay);
-                        overlay->color_list[0] = subtitles.colour(s.number);
-                        setupAnimationInfo(overlay);
-                        overlay->trans = subtitles.alpha(s.number);
-                    }
-                    if (overlays[s.number]) delete overlays[s.number];
-                    overlays[s.number] = overlay;
-                }
-            }
-            SDL_Delay(10);
-        }
-
-        ctrl_pressed_status = 0;
-
-        SMPEG_stop(mpeg_sample);
-        Mix_HookMusic(NULL, NULL);
-        SMPEG_delete(mpeg_sample);
-
-        if (different_spec) {
-            //restart mixer with the old audio spec
-            Mix_CloseAudio();
-            openAudio();
-        }
-
-        if (offscreen) {
-            SDL_FreeSurface(offscreen);
-            offscreen = NULL;
-            screenptr = NULL;
-        }
-        for (olvec::iterator it = overlays.begin(); it != overlays.end(); ++it)
-            if (*it) delete *it;
-        overlays.clear();
-    }
-
-#else
-    fprintf(stderr, "mpegplay command is disabled.\n");
-#endif
-
-    return ret;
-}
+// TODO
+//int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
+//                               SubtitleDefs& subtitles)
+//{
+//    int ret = 0;
+//#ifndef MP3_MAD
+//    bool different_spec = false;
+//    pstring mpeg_dat = ScriptHandler::cBR->getFile(filename);
+//    SMPEG* mpeg_sample = SMPEG_new_rwops(rwops(mpeg_dat), 0, 0, 0);
+//    if (!SMPEG_error(mpeg_sample)) {
+//        SMPEG_enableaudio(mpeg_sample, 0);
+//
+//        if (audio_open_flag) {
+//            //Mion - SMPEG doesn't handle different audio spec well, so
+//            // let's redo the SDL mixer just for this video playback
+//            SDL_AudioSpec wanted;
+//            SMPEG_wantedSpec(mpeg_sample, &wanted);
+//            //printf("SMPEG wants audio: %d Hz %d bit %s\n", wanted.freq,
+//            //       (wanted.format&0xFF),
+//            //       (wanted.channels > 1) ? "stereo" : "mono");
+//            if ((wanted.format != audio_format.format) ||
+//                (wanted.freq != audio_format.freq))
+//            {
+//                different_spec = true;
+//                Mix_CloseAudio();
+//                openAudio(wanted.freq, wanted.format, wanted.channels);
+//                if (!audio_open_flag) {
+//                    // didn't work, use the old settings
+//                    openAudio();
+//                    different_spec = false;
+//                }
+//            }
+//            SMPEG_actualSpec(mpeg_sample, &audio_format);
+//            SMPEG_enableaudio(mpeg_sample, 1);
+//        }
+//
+//        SMPEG_enablevideo(mpeg_sample, 1);
+//
+//        if (subtitles) {
+//            screenptr = screen_surface;
+//            offscreen = SDL_CreateRGBSurface(SDL_SWSURFACE,
+//                                             screenptr->w, screenptr->h, 32,
+//                                             0x00ff0000, 0x0000ff00,
+//                                             0x000000ff, 0xff000000);
+//            //SDL_SetAlpha(offscreen, 0, 255);
+//            //TODO, make sure this is right
+//            SDL_SetSurfaceAlphaMod(offscreen, SDL_ALPHA_OPAQUE);
+//            SMPEG_setdisplay(mpeg_sample, &UpdateMPEG, NULL);
+//            overlays.assign(size_t(subtitles.numdefs()), NULL);
+//        }
+//        else
+//            SMPEG_setdisplay(mpeg_sample, screen_surface, NULL, NULL);
+//
+//        SMPEG_setvolume(mpeg_sample, music_volume);
+//
+//        Mix_HookMusic(mp3callback, mpeg_sample);
+//        SMPEG_play(mpeg_sample);
+//
+//        bool done_flag = false;
+//        while (!(done_flag & click_flag) &&
+//               SMPEG_status(mpeg_sample) == SMPEG_PLAYING)
+//        {
+//            SDL_Event event;
+//            while (SDL_PollEvent(&event)) {
+//                switch (event.type) {
+//                case SDL_KEYDOWN: {
+//                    int s = ((SDL_KeyboardEvent*) &event)->keysym.sym;
+//                    if (s == SDLK_RETURN || s == SDLK_SPACE || s == SDLK_ESCAPE)
+//                        done_flag = true;
+//                    break;
+//                }
+//                case SDL_QUIT:
+//                    ret = 1;
+//                case SDL_MOUSEBUTTONDOWN:
+//                    done_flag = true;
+//                    break;
+//                default:
+//                    break;
+//                }
+//            }
+//
+//            if (subtitles) {
+//                SMPEG_Info info;
+//                SMPEG_getinfo(mpeg_sample, &info);
+//                if (info.current_time >= subtitles.next()) {
+//                    Subtitle s = subtitles.pop();
+//                    AnimationInfo* overlay = 0;
+//                    if (s.text) {
+//                        overlay = new AnimationInfo();
+//                        overlay->setImageName(s.text);
+//                        overlay->pos.x = screen_width / 2;
+//                        overlay->pos.y = subtitles.pos(s.number);
+//                        parseTaggedString(overlay);
+//                        overlay->color_list[0] = subtitles.colour(s.number);
+//                        setupAnimationInfo(overlay);
+//                        overlay->trans = subtitles.alpha(s.number);
+//                    }
+//                    if (overlays[s.number]) delete overlays[s.number];
+//                    overlays[s.number] = overlay;
+//                }
+//            }
+//            SDL_Delay(10);
+//        }
+//
+//        ctrl_pressed_status = 0;
+//
+//        SMPEG_stop(mpeg_sample);
+//        Mix_HookMusic(NULL, NULL);
+//        SMPEG_delete(mpeg_sample);
+//
+//        if (different_spec) {
+//            //restart mixer with the old audio spec
+//            Mix_CloseAudio();
+//            openAudio();
+//        }
+//
+//        if (offscreen) {
+//            SDL_FreeSurface(offscreen);
+//            offscreen = NULL;
+//            screenptr = NULL;
+//        }
+//        for (olvec::iterator it = overlays.begin(); it != overlays.end(); ++it)
+//            if (*it) delete *it;
+//        overlays.clear();
+//    }
+//
+//#else
+//    fprintf(stderr, "mpegplay command is disabled.\n");
+//#endif
+//
+//    return ret;
+//}
 
 
 void PonscripterLabel::playAVI(const pstring& filename, bool click_flag)
@@ -677,16 +684,13 @@ void PonscripterLabel::stopBGM(bool continue_flag)
 
 #endif
 
-    if (cdaudio_flag && cdrom_info) {
+    if (cdaudio_flag) {
         extern SDL_TimerID timer_cdaudio_id;
 
         if (timer_cdaudio_id) {
             SDL_RemoveTimer(timer_cdaudio_id);
-            timer_cdaudio_id = NULL;
+            timer_cdaudio_id = 0;
         }
-
-        if (SDL_CDStatus(cdrom_info) >= CD_PLAYING)
-            SDL_CDStop(cdrom_info);
     }
 
     if (mp3_sample) {

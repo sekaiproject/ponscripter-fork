@@ -191,41 +191,41 @@ protected:
     set<pstring>::t user_func_lut;
 
     struct NestInfo {
-	typedef std::vector<NestInfo> vector;
-	typedef vector::iterator iterator;
-	
-        enum { LABEL = 0, FOR = 1, TEXTGOSUB = 2 } nest_mode;
-        const char* next_script; // used in gosub and for
-	Expression var; // used in for
-        int to, step; // used in for
+    typedef std::vector<NestInfo> vector;
+    typedef vector::iterator iterator;
 
-        NestInfo(ScriptHandler& h, const char* ns = 0)
-	    : nest_mode(LABEL), next_script(ns), var(h) {}
-	NestInfo(Expression e, const char* ns = 0)
-	    : nest_mode(FOR), next_script(ns), var(e) {}
+    enum { LABEL = 0, FOR = 1, TEXTGOSUB = 2 } nest_mode;
+    const char* next_script; // used in gosub and for
+    Expression var; // used in for
+    int to, step; // used in for
 
-        NestInfo(ScriptHandler& h, const char* cs, int string_buffer_offset)
-            : nest_mode(TEXTGOSUB), next_script(cs), var(h),
-              to(string_buffer_offset) {}
+    NestInfo(ScriptHandler& h, const char* ns = 0)
+      : nest_mode(LABEL), next_script(ns), var(h) {}
+    NestInfo(Expression e, const char* ns = 0)
+      : nest_mode(FOR), next_script(ns), var(e) {}
+
+    NestInfo(ScriptHandler& h, const char* cs, int string_buffer_offset)
+      : nest_mode(TEXTGOSUB), next_script(cs), var(h),
+      to(string_buffer_offset) {}
     };
     const char* last_tilde;
     NestInfo::vector nest_infos;
     void deleteNestInfo() { nest_infos.clear(); }
 
     enum syscall { SYSTEM_NULL        = 0,
-		   SYSTEM_SKIP        = 1,
-		   SYSTEM_RESET       = 2,
-		   SYSTEM_SAVE        = 3,
-		   SYSTEM_LOAD        = 4,
-		   SYSTEM_LOOKBACK    = 5,
-		   SYSTEM_WINDOWERASE = 6,
-		   SYSTEM_MENU        = 7,
-		   SYSTEM_YESNO       = 8,
-		   SYSTEM_AUTOMODE    = 9,
-		   SYSTEM_END         = 10 };
+      SYSTEM_SKIP        = 1,
+      SYSTEM_RESET       = 2,
+      SYSTEM_SAVE        = 3,
+      SYSTEM_LOAD        = 4,
+      SYSTEM_LOOKBACK    = 5,
+      SYSTEM_WINDOWERASE = 6,
+      SYSTEM_MENU        = 7,
+      SYSTEM_YESNO       = 8,
+      SYSTEM_AUTOMODE    = 9,
+      SYSTEM_END         = 10 };
     typedef dictionary<pstring, syscall>::t syscall_dict_t;
     syscall_dict_t syscall_dict;
-    
+
     enum { RET_NOMATCH   = 0,
            RET_SKIP_LINE = 1,
            RET_CONTINUE  = 2,
@@ -277,9 +277,12 @@ protected:
 
     /* ---------------------------------------- */
     /* Global definitions */
+    SDL_Window *screen;
+    SDL_Renderer *renderer;
+    SDL_Texture *screen_tex;
     int preferred_width;
     int script_width, script_height;
-    int    screen_width, screen_height;
+    uint16_t    screen_width, screen_height;
     int    screen_texture_width, screen_texture_height;
     int    screen_bpp;
     pstring version_str;
@@ -445,7 +448,9 @@ protected:
     pstring pretextgosub_label;
     pstring loadgosub_label;
 
+public:
     ScriptHandler script_h;
+protected:
 
     unsigned char* key_table;
 

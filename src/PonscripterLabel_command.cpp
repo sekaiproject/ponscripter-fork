@@ -1480,13 +1480,14 @@ SubtitleDefs PonscripterLabel::parseSubtitles(pstring file)
 int PonscripterLabel::mpegplayCommand(const pstring& cmd)
 {
     pstring name = script_h.readStrValue();
-    bool cancel  = script_h.readIntValue() == 1;
+    //bool cancel  = script_h.readIntValue() == 1;
     SubtitleDefs subtitles;
     if (script_h.hasMoreArgs())
         subtitles = parseSubtitles(script_h.readStrValue());
     stopBGM(false);
-    if (playMPEG(name, cancel, subtitles))
-        endCommand("end");
+    fprintf(stderr, "mpegplay unsupported temporarily\n");
+    //if (playMPEG(name, cancel, subtitles))
+    //    endCommand("end");
     return RET_CONTINUE;
 }
 
@@ -1547,7 +1548,7 @@ int PonscripterLabel::movemousecursorCommand(const pstring& cmd)
     int x = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
     int y = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
 
-    SDL_WarpMouse(x, y);
+    SDL_WarpMouseInWindow(screen, x, y);
 
     return RET_CONTINUE;
 }
@@ -1581,12 +1582,15 @@ int PonscripterLabel::menu_windowCommand(const pstring& cmd)
 {
     if (fullscreen_mode) {
 #if !defined (PSP)
-        if (!SDL_WM_ToggleFullScreen(screen_surface)) {
-            SDL_FreeSurface(screen_surface);
-            screen_surface = SDL_SetVideoMode(screen_width, screen_height, screen_bpp, DEFAULT_VIDEO_SURFACE_FLAG);
-            SDL_Rect rect = { 0, 0, screen_width, screen_height };
-            flushDirect(rect, refreshMode());
-        }
+      //TODO FIX
+        //if (!SDL_WM_ToggleFullScreen(screen_surface)) {
+        //    SDL_FreeSurface(screen_surface);
+        //    screen_surface = SDL_SetVideoMode(screen_width, screen_height, screen_bpp, DEFAULT_VIDEO_SURFACE_FLAG);
+        //    SDL_Rect rect = { 0, 0, screen_width, screen_height };
+        //    flushDirect(rect, refreshMode());
+        //}
+      SDL_Rect rect = { 0, 0, screen_width, screen_height };
+      flushDirect(rect, refreshMode());
 #endif
         fullscreen_mode = false;
     }
@@ -1599,13 +1603,14 @@ int PonscripterLabel::menu_fullCommand(const pstring& cmd)
 {
     if (!fullscreen_mode) {
 #if !defined (PSP)
-        if (!SDL_WM_ToggleFullScreen(screen_surface)) {
-            SDL_FreeSurface(screen_surface);
-            screen_surface = SDL_SetVideoMode(screen_width, screen_height,
-                    screen_bpp, DEFAULT_VIDEO_SURFACE_FLAG | fullscreen_flags);
-            SDL_Rect rect = { 0, 0, screen_width, screen_height };
-            flushDirect(rect, refreshMode());
-        }
+      //TODO fix
+        //if (!SDL_WM_ToggleFullScreen(screen_surface)) {
+        //    SDL_FreeSurface(screen_surface);
+        //    screen_surface = SDL_SetVideoMode(screen_width, screen_height,
+        //            screen_bpp, DEFAULT_VIDEO_SURFACE_FLAG | fullscreen_flags);
+        //    SDL_Rect rect = { 0, 0, screen_width, screen_height };
+        //    flushDirect(rect, refreshMode());
+        //}
 #endif
         fullscreen_mode = true;
     }
@@ -2934,7 +2939,7 @@ int PonscripterLabel::captionCommand(const pstring& cmd)
             bufp += bytes;
         }
     }
-    SDL_WM_SetCaption(cap, cap);
+    SDL_SetWindowTitle(screen, cap);
 #ifdef WIN32
     //convert from UTF-8 to Wide (Unicode) and thence to system ANSI
     // (since SDL 1.2 doesn't support Unicode app compilation)
@@ -3081,8 +3086,7 @@ int PonscripterLabel::btndefCommand(const pstring& cmd)
             btndef_info.trans_mode = AnimationInfo::TRANS_COPY;
             setupAnimationInfo(&btndef_info);
 	    if (btndef_info.image_surface) {
-		SDL_SetAlpha(btndef_info.image_surface, DEFAULT_BLIT_FLAG,
-			     SDL_ALPHA_OPAQUE);
+        SDL_SetSurfaceAlphaMod(btndef_info.image_surface, SDL_ALPHA_OPAQUE);
 	    }
 	    else {
 		btntime_value = 0; //Mion - clear the btn wait time
@@ -3192,7 +3196,9 @@ int PonscripterLabel::bltCommand(const pstring& cmd)
         SDL_Rect dst_rect = { dx, dy, dw, dh };
 
         SDL_BlitSurface(btndef_info.image_surface, &src_rect, screen_surface, &dst_rect);
-        SDL_UpdateRect(screen_surface, dst_rect.x, dst_rect.y, dst_rect.w, dst_rect.h);
+        //TODO, see if this is important
+        //SDL_UpdateRect(screen_surface, dst_rect.x, dst_rect.y, dst_rect.w, dst_rect.h);
+        SDL_RenderPresent(renderer);
         dirty_rect.clear();
     }
     else {

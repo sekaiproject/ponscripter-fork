@@ -45,7 +45,6 @@
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
-#include <unistd.h>
 
 //Mion: for special graphics routine handling
 static unsigned int cpufuncs;
@@ -130,6 +129,7 @@ void AnimationInfo::deepcopy(const AnimationInfo &anim)
 #include <windows.h>
 #define msleep Sleep
 #else
+#include <unistd.h>
 #define msleep(x) usleep(x * 1000)
 #endif
 

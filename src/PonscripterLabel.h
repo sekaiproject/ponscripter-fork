@@ -732,7 +732,6 @@ private:
     pstring midi_file_name;
     Mix_Music* midi_info;
 
-    SDL_CD* cdrom_info;
     int    current_cd_track;
     bool   cd_play_loop_flag;
     bool   music_play_loop_flag;
@@ -767,8 +766,7 @@ private:
     int setCurMusicVolume(int volume);
 
     SubtitleDefs parseSubtitles(pstring file);
-    int playMPEG(const pstring& filename, bool click_flag,
-		 SubtitleDefs& subtitles);
+    //int playMPEG(const pstring& filename, bool click_flag,SubtitleDefs& subtitles);
     void playAVI(const pstring& filename, bool click_flag);
 
     enum { WAVE_PLAY        = 0,

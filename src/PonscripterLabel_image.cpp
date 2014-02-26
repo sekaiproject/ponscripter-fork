@@ -43,13 +43,11 @@ SDL_Surface *PonscripterLabel::loadImage(const pstring& filename,
     if (tmp == NULL) return NULL;
 
     bool has_colorkey = false;
-    Uint32 colorkey = 0;
 
     if ( has_alpha ){
         *has_alpha = (tmp->format->Amask != 0);
-        if (!(*has_alpha) && (tmp->flags & SDL_SRCCOLORKEY)){
+        if (!(*has_alpha) && (tmp->flags & SDL_TRUE)){
             has_colorkey = true;
-            colorkey = tmp->format->colorkey;
             if (tmp->format->palette){
                 //palette will be converted to RGBA, so don't do colorkey check
                 has_colorkey = false;
@@ -92,7 +90,7 @@ SDL_Surface *PonscripterLabel::loadImage(const pstring& filename,
           breakalpha:
             if (!*has_alpha && has_colorkey) {
                 // has a colorkey, so run a match against rgb values
-                const Uint32 aval = colorkey & ~(ret->format->Amask);
+                const Uint32 aval = SDL_TRUE & ~(ret->format->Amask);
                 if (aval == (*(Uint32*)ret->pixels & ~(ret->format->Amask)))
                     goto breakkey;
                 *has_alpha = false;
@@ -140,7 +138,7 @@ SDL_Surface *PonscripterLabel::createRectangleSurface(const pstring& filename)
     while (filename[c] == ' ' || filename[c] == '\t') c++;
     int n=0, c2 = c;
     while(filename[c] == '#'){
-        rgb_t col = readColour((const char *)filename + c);
+        //rgb_t col = readColour((const char *)filename + c);
         n++;
         c += 7;
         while (filename[c] == ' ' || filename[c] == '\t') c++;

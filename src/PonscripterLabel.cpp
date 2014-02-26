@@ -317,14 +317,13 @@ void PonscripterLabel::initSDL()
 {
     /* ---------------------------------------- */
     /* Initialize SDL */
-
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO) < 0) {
         fprintf(stderr, "Couldn't initialize SDL: %s\n", SDL_GetError());
         exit(-1);
     }
     atexit(SDL_Quit_Wrapper); // work-around for OS/2
 
-    if (cdaudio_flag && SDL_InitSubSystem(SDL_INIT_CDROM) < 0) {
+    if (cdaudio_flag) {
         fprintf(stderr, "Couldn't initialize CD-ROM: %s\n", SDL_GetError());
         exit(-1);
     }
@@ -402,7 +401,8 @@ void PonscripterLabel::initSDL()
             SDL_FreeSurface(tmp);
         }
 #endif //MACOSX || WIN32
-        SDL_WM_SetIcon(icon, NULL);
+        SDL_SetWindowIcon(screen, icon);
+        //SDL_SetWindowIcon(window, icon);
     }
     if (icon)
         SDL_FreeSurface(icon);
@@ -441,8 +441,26 @@ void PonscripterLabel::initSDL()
     }
 #endif
     
-    screen_surface = SDL_SetVideoMode(screen_width, screen_height, screen_bpp,
-        DEFAULT_VIDEO_SURFACE_FLAG | (fullscreen_mode ? fullscreen_flags : 0));
+    /*screen_surface = SDL_SetVideoMode(screen_width, screen_height, screen_bpp,
+        DEFAULT_VIDEO_SURFACE_FLAG | (fullscreen_mode ? fullscreen_flags : 0));*/
+
+
+    wm_title_string = DEFAULT_WM_TITLE;
+    wm_icon_string = DEFAULT_WM_ICON;
+    //SDL_WM_SetCaption(wm_title_string, wm_icon_string);
+
+    screen = SDL_CreateWindow(wm_title_string, 
+        SDL_WINDOWPOS_UNDEFINED,
+        SDL_WINDOWPOS_UNDEFINED,
+        screen_width, screen_height,
+        (fullscreen_mode ? fullscreen_flags : 0));
+    renderer = SDL_CreateRenderer(screen, -1, 0);
+
+    screen_surface = SDL_CreateRGBSurface(0, screen_width, screen_height, 32,
+        0xFF000000,0x00FF0000,0x0000FF00,0x000000FF);
+
+    screen_tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
+        SDL_TEXTUREACCESS_STREAMING, screen_width, screen_height);
 
     /* ---------------------------------------- */
     /* Check if VGA screen is available. */
@@ -451,8 +469,8 @@ void PonscripterLabel::initSDL()
         screen_ratio1 /= 2;
         screen_width  /= 2;
         screen_height /= 2;
-        screen_surface = SDL_SetVideoMode(screen_width,screen_height,screen_bpp,
-            DEFAULT_VIDEO_SURFACE_FLAG | (fullscreen_mode? fullscreen_flags : 0));
+        //screen_surface = SDL_SetVideoMode(screen_width,screen_height,screen_bpp,
+        //    DEFAULT_VIDEO_SURFACE_FLAG | (fullscreen_mode? fullscreen_flags : 0));
     }
 #endif
     underline_value = screen_height - 1;
@@ -463,9 +481,8 @@ void PonscripterLabel::initSDL()
         exit(-1);
     }
 
-    wm_title_string = DEFAULT_WM_TITLE;
-    wm_icon_string = DEFAULT_WM_ICON;
-    SDL_WM_SetCaption(wm_title_string, wm_icon_string);
+    SDL_RenderClear(renderer);
+    SDL_RenderPresent(renderer);
 
     openAudio();
 }
@@ -550,7 +567,7 @@ PonscripterLabel::PonscripterLabel()
     disable_rescale_flag = false;
     edit_flag            = false;
     fullscreen_mode      = false;
-    fullscreen_flags     = SDL_FULLSCREEN;
+    fullscreen_flags     = SDL_WINDOW_FULLSCREEN;
     window_mode          = false;
 #ifdef WIN32
     current_user_appdata = false;
@@ -954,10 +971,10 @@ int PonscripterLabel::init(const char* preferred_script)
         AnimationInfo::allocSurface(screen_width, screen_height);
     effect_dst_surface =
         AnimationInfo::allocSurface(screen_width, screen_height);
-    SDL_SetAlpha(accumulation_surface, 0, SDL_ALPHA_OPAQUE);
-    SDL_SetAlpha(backup_surface, 0, SDL_ALPHA_OPAQUE);
-    SDL_SetAlpha(effect_src_surface, 0, SDL_ALPHA_OPAQUE);
-    SDL_SetAlpha(effect_dst_surface, 0, SDL_ALPHA_OPAQUE);
+    SDL_SetSurfaceAlphaMod(accumulation_surface, SDL_ALPHA_OPAQUE);
+    SDL_SetSurfaceAlphaMod(backup_surface, SDL_ALPHA_OPAQUE);
+    SDL_SetSurfaceAlphaMod(effect_src_surface, SDL_ALPHA_OPAQUE);
+    SDL_SetSurfaceAlphaMod(effect_dst_surface, SDL_ALPHA_OPAQUE);
     screenshot_surface = 0;
     text_info.num_of_cells = 1;
     text_info.allocImage(screen_width, screen_height);
@@ -966,18 +983,8 @@ int PonscripterLabel::init(const char* preferred_script)
     // ----------------------------------------
     // Sound related variables
     this->cdaudio_flag = cdaudio_flag;
-    cdrom_info = 0;
     if (cdaudio_flag) {
-        if (cdrom_drive_number >= 0 && cdrom_drive_number < SDL_CDNumDrives())
-            cdrom_info = SDL_CDOpen(cdrom_drive_number);
-        if (!cdrom_info) {
-            fprintf(stderr, "Couldn't open default CD-ROM: %s\n", SDL_GetError());
-        }
-        else if (cdrom_info && !CD_INDRIVE(SDL_CDStatus(cdrom_info))) {
-            fprintf(stderr, "no CD-ROM in the drive\n");
-            SDL_CDClose(cdrom_info);
-            cdrom_info = 0;
-        }
+      fprintf(stderr, "CD-ROM audio depreciated\n");
     }
 
     wave_file_name.trunc(0);
@@ -1176,8 +1183,8 @@ flush(int refresh_mode, SDL_Rect* rect, bool clear_dirty_flag,
             else {
                 for (int i = 0; i < dirty_rect.num_history; i++)
                     flushDirect(dirty_rect.history[i], refresh_mode, false);
-                SDL_UpdateRects(screen_surface, dirty_rect.num_history,
-                                dirty_rect.history);
+                SDL_UpdateWindowSurfaceRects(screen, dirty_rect.history, dirty_rect.num_history);
+                SDL_RenderPresent(renderer);
             }
         }
     }
@@ -1204,7 +1211,16 @@ void PonscripterLabel::flushDirect(SDL_Rect &rect, int refresh_mode, bool update
     }
 */    
     SDL_BlitSurface(accumulation_surface, &rect, screen_surface, &rect);
-    if (updaterect) SDL_UpdateRect(screen_surface, rect.x, rect.y, rect.w, rect.h);
+    //TODO see if this is important
+    //if (updaterect) SDL_UpdateRect(screen_surface, rect.x, rect.y, rect.w, rect.h);
+    SDL_UpdateTexture(screen_tex, NULL, screen_surface->pixels, screen_surface->pitch);
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, screen_tex, NULL, NULL);
+    SDL_RenderPresent(renderer);
+    //if(updaterect) {
+    //  SDL_RenderClear(renderer);
+    //  SDL_RenderPresent(renderer);
+    //}
 }
 
 
@@ -1628,7 +1644,7 @@ void PonscripterLabel::clearCurrentTextBuffer()
 void PonscripterLabel::shadowTextDisplay(SDL_Surface* surface, SDL_Rect &clip)
 {
     if (current_font->is_transparent) {
-        SDL_Rect rect = { 0, 0, screen_width, screen_height };
+        SDL_Rect rect = { 0, 0, (uint16_t)screen_width, (uint16_t)screen_height };
         if (current_font == &sentence_font)
             rect = sentence_font_info.pos;
         if (AnimationInfo::doClipping(&rect, &clip)) return;
@@ -1828,7 +1844,7 @@ void PonscripterLabel::loadEnvData()
     default_cdrom_drive = "";
     kidokumode_flag     = true;
     use_default_volume = true;
-    fullscreen_flags    = SDL_FULLSCREEN;
+    fullscreen_flags    = SDL_WINDOW_FULLSCREEN;
     
     if (loadFileIOBuf("envdata") == 0) {
         use_default_volume = false;
@@ -1918,10 +1934,6 @@ void PonscripterLabel::quit()
 {
     saveAll();
 
-    if (cdrom_info) {
-        SDL_CDStop(cdrom_info);
-        SDL_CDClose(cdrom_info);
-    }
     if (midi_info) {
         Mix_HaltMusic();
         Mix_FreeMusic(midi_info);

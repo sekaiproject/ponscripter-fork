@@ -51,8 +51,8 @@ INTERNAL_LIBJPEG=false
 INTERNAL_OGGLIBS=false
 EXPLICIT_OGGLIBS=false
 
-SDL_CONFIG=sdl-config
-SMPEG_CONFIG=smpeg-config
+SDL_CONFIG=sdl2-config
+SMPEG_CONFIG=smpeg2-config
 FREETYPE_CONFIG=freetype-config
 EXTLIB=./extlib
 SRC=src
@@ -225,8 +225,8 @@ internalise_SDL() {
     INTERNAL_SDL_IMAGE=true
     INTERNAL_SDL_MIXER=true
     INTERNAL_SMPEG=true
-    SDL_CONFIG=$EXTLIB/bin/sdl-config
-    SMPEG_CONFIG=$EXTLIB/bin/smpeg-config
+    SDL_CONFIG=$EXTLIB/bin/sdl2-config
+    SMPEG_CONFIG=$EXTLIB/bin/smpeg2-config
 }
 
 if $INTERNAL_LIBS
@@ -468,15 +468,15 @@ fi
 
 if $INTERNAL_SDL
 then
-    SDL_CONFIG=$EXTLIB/bin/sdl-config
+    SDL_CONFIG=$EXTLIB/bin/sdl2-config
 else
     $echo_n "Checking for system SDL... ${nobr}"
     case "$SYS" in
         MinGW)  SDL_CONFIG=`pwd`/src/extlib
                 cd src/win_dll; make prefix=$SDL_CONFIG > /dev/null 2>&1; cd ../..
-                SDL_CONFIG=$SDL_CONFIG/bin/sdl-config
-                DISTCLEAN_OTHER=SDL.dll $DISTCLEAN_OTHER
-                cp -p ./src/win_dll/SDL.dll `pwd`/src;;
+                SDL_CONFIG=$SDL_CONFIG/bin/sdl2-config
+                DISTCLEAN_OTHER=SDL2.dll $DISTCLEAN_OTHER
+                cp -p ./src/win_dll/SDL2.dll `pwd`/src;;
         esac
     VER=`($SDL_CONFIG --version) 2>/dev/null`
     if [ -n "$VER" ]
@@ -515,7 +515,7 @@ then
 	int main(int argc, char**argv){bool j=IMG_Load_RW(SDL_RWFromConstMem(jpeg,309),1),p=IMG_Load_RW(SDL_RWFromConstMem(png,69),1);return j&&p?0:(j?1:(p?2:3));}
 	_EOF
     INTERNAL_SDL_IMAGE=true
-    $CXX `$SDL_CONFIG --cflags` `$SDL_CONFIG --libs` -lSDL_image test.cc -o itest >/dev/null 2>&1
+    $CXX `$SDL_CONFIG --cflags` `$SDL_CONFIG --libs` -lSDL2_image test.cc -o itest >/dev/null 2>&1
     ./itest 2>/dev/null
     case $? in
     0) echo "yes"; INTERNAL_SDL_IMAGE=false ;;
@@ -605,7 +605,7 @@ then
 	Mix_Music*m;bool ogg=m=Mix_LoadMUS("o.ogg");if(m)Mix_FreeMusic(m);bool mp3=m=Mix_LoadMUS("o.mp3");if(m)Mix_FreeMusic(m);return ogg&&mp3?0:(ogg?1:(mp3?2:3));}
 	_EOF
     INTERNAL_SDL_MIXER=true
-    $CXX `$SDL_CONFIG --cflags` `$SDL_CONFIG --libs` -lSDL_mixer test.cc -o mtest >/dev/null 2>&1
+    $CXX `$SDL_CONFIG --cflags` `$SDL_CONFIG --libs` -lSDL2_mixer test.cc -o mtest >/dev/null 2>&1
     ./mtest 2>/dev/null
     case $? in
     0) echo "yes"; INTERNAL_SDL_MIXER=false ;;
@@ -649,7 +649,7 @@ then
 	OggVorbis_File vf;f=fopen("o.ogg","rb");int n=ov_open(f,&vf,0,0)<0;fclose(f);return n;}
 	_EOF
     EXPLICIT_OGGLIBS=true
-    $CXX `$SDL_CONFIG --cflags` `$SDL_CONFIG --libs` -lSDL_mixer test.cc -o mtest >/dev/null 2>&1
+    $CXX `$SDL_CONFIG --cflags` `$SDL_CONFIG --libs` -lSDL2_mixer test.cc -o mtest >/dev/null 2>&1
     case $? in
     0) echo "no"; EXPLICIT_OGGLIBS=false ;;
     *) echo "yes" ;;
@@ -677,7 +677,7 @@ rm -rf .configtest
 
 if $INTERNAL_SMPEG
 then
-    SMPEG_CONFIG=$EXTLIB/bin/smpeg-config
+    SMPEG_CONFIG=$EXTLIB/bin/smpeg2-config
 else
     $echo_n "Checking for system libsmpeg... ${nobr}"
     VER=`($SMPEG_CONFIG --version) 2>/dev/null`
@@ -685,7 +685,7 @@ else
     then echo "yes"
     else echo "no"
 	INTERNAL_SMPEG=true
-	SMPEG_CONFIG=$EXTLIB/bin/smpeg-config
+	SMPEG_CONFIG=$EXTLIB/bin/smpeg2-config
     fi
 fi
 
@@ -757,12 +757,12 @@ require() {
 	MLIB="$MLIB$3"
     fi
 }
-require $INTERNAL_SDL       internal_sdl       SDL
+require $INTERNAL_SDL       internal_sdl       SDL2
 require $INTERNAL_LIBPNG    internal_png       libpng
 require $INTERNAL_LIBJPEG   internal_jpeg      libjpeg
-require $INTERNAL_SDL_IMAGE internal_sdl_image SDL_image
+require $INTERNAL_SDL_IMAGE internal_sdl_image SDL2_image
 require $INTERNAL_OGGLIBS   internal_ogglibs   "libogg, libvorbis"
-require $INTERNAL_SDL_MIXER internal_sdl_mixer SDL_mixer
+require $INTERNAL_SDL_MIXER internal_sdl_mixer SDL2_mixer
 require $INTERNAL_BZIP2     internal_bzip2     libbz2
 require $INTERNAL_SMPEG     internal_smpeg     libsmpeg
 require $INTERNAL_FREETYPE  internal_freetype  Freetype
@@ -778,11 +778,11 @@ genlink() {
 genlink $INTERNAL_LIBPNG    z
 genlink $INTERNAL_LIBPNG    png
 genlink $INTERNAL_LIBJPEG   jpeg
-genlink $INTERNAL_SDL_IMAGE SDL_image
+genlink $INTERNAL_SDL_IMAGE SDL2_image
 genlink $INTERNAL_OGGLIBS   ogg
 genlink $INTERNAL_OGGLIBS   vorbis
 genlink $INTERNAL_OGGLIBS   vorbisfile
-genlink $INTERNAL_SDL_MIXER SDL_mixer
+genlink $INTERNAL_SDL_MIXER SDL2_mixer
 genlink $INTERNAL_BZIP2     bz2
 
 if [ -n "$MLIB" -a ! -d $SRC/extlib ]
@@ -880,7 +880,7 @@ fi
 
 if $INTERNAL_SDL
 then
-  MY_SDL_LIBS="\$(filter-out -lSDLmain,\$(shell \$(SDL_CONFIG) --static-libs))"
+  MY_SDL_LIBS="\$(filter-out -lSDL2main,\$(shell \$(SDL_CONFIG) --static-libs))"
 else
   MY_SDL_LIBS="\$(shell \$(SDL_CONFIG) --static-libs)"
 fi
