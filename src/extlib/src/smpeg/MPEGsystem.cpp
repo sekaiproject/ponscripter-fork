@@ -781,7 +781,7 @@ header_size, packet_size, stream_id, stream_timestamp);
     int cur_seconds=int(timestamp)%60;
 
     if (cur_seconds%5==0){
-      fprintf(stderr, "Skiping to %02d:%02d (%02d:%02d)\r",
+      fprintf(stderr, "Skipping to %02d:%02d (%02d:%02d)\r",
               int(skip_timestamp)/60, int(skip_timestamp)%60,
               int(timestamp)/60, cur_seconds);
     }
@@ -973,7 +973,7 @@ double MPEGsystem::TotalTime()
   }
 
   file_ptr = 0;
-  buffer = new Uint8[MPEG_BUFFER_SIZE];
+  p = buffer = new Uint8[MPEG_BUFFER_SIZE];
   time = 0;
 
   /* If audio, compute total time according to bitrate of the first header and total size */
@@ -1004,8 +1004,8 @@ double MPEGsystem::TotalTime()
     while(p >= MPEG_BUFFER_SIZE + buffer);
 
     /* Extract time info from the first header */
-    Uint32 framesize;
-    double frametime;
+    Uint32 framesize = 0;
+    double frametime = 0.0;
     Uint32 totalsize;
 
     audio_header(p, &framesize, &frametime);
@@ -1117,7 +1117,7 @@ double MPEGsystem::TimeElapsedAudio(int atByte)
   }
 
   file_ptr = 0;
-  buffer = new Uint8[MPEG_BUFFER_SIZE];
+  p = buffer = new Uint8[MPEG_BUFFER_SIZE];
 
   /* If audio, compute total time according to bitrate of the first header and total size */
   /* Note: this doesn't work on variable bitrate streams */
@@ -1147,8 +1147,8 @@ double MPEGsystem::TimeElapsedAudio(int atByte)
     while(p >= MPEG_BUFFER_SIZE + buffer);
 
     /* Extract time info from the first header */
-    Uint32 framesize;
-    double frametime;
+    Uint32 framesize = 0;
+    double frametime = 0.0;
     Uint32 totalsize;
 
     audio_header(p, &framesize, &frametime);

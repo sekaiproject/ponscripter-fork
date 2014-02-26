@@ -89,7 +89,6 @@
 #include "util.h"
 
 #include "MPEGvideo.h"
-#include "MPEGfilter.h"
 
 /*--------------------------------------------------------------*/
 
@@ -133,8 +132,6 @@ MPEGvideo::MPEGvideo(MPEGstream *stream)
 
     /* Set default playback variables */
     _thread = NULL;
-    _dst = NULL;
-    _mutex = NULL;
     _stream = NULL;
 
     /* Mark the data to leave the stream unchanged */
@@ -191,22 +188,15 @@ MPEGvideo::MPEGvideo(MPEGstream *stream)
     _w = (_w + 15) & ~15;
     _h = (_h + 15) & ~15;
 
-    /* Set the default playback area */
-    _dstrect.x = 0;
-    _dstrect.y = 0;
-    _dstrect.w = 0;
-    _dstrect.h = 0;
+    _frame.w = _ow;
+    _frame.h = _oh;
+    _frame.image_width = _w;
+    _frame.image_height = _h;
+    _frame.image = (Uint8*)SDL_malloc((_w * _h) + (_w * _h)/4 + (_w * _h)/4);
 
-    /* Set the source area */
-    _srcrect.x = 0;
-    _srcrect.y = 0;
-    _srcrect.w = _ow;
-    _srcrect.h = _oh;
-
-    _image = 0;
-    _filter = SMPEGfilter_null();
-    _filter_mutex = SDL_CreateMutex();
-//	printf("[MPEGvideo::MPEGvideo]_filter_mutex[%lx] = SDL_CreateMutex()\n",_filter_mutex);
+    _callback = 0;
+    _callback_data = 0;
+    _callback_lock = 0;
 }
 
 MPEGvideo:: ~MPEGvideo()
@@ -217,13 +207,6 @@ MPEGvideo:: ~MPEGvideo()
     /* Free actual video stream */
     if( _stream )
         DestroyVidStream( _stream );
-
-    /* Free overlay */
-    if(_image) SDL_FreeYUVOverlay(_image);
-
-    /* Release filter */
-    SDL_DestroyMutex(_filter_mutex);
-    _filter->destroy(_filter);
 }
 
 /* Simple thread play function */
@@ -286,7 +269,7 @@ MPEGvideo:: Play(void)
 #ifdef DISABLE_VIDEO_CALLBACK_THREAD
 		Play_MPEGvideo(this);
 #else
-        _thread = SDL_CreateThread( Play_MPEGvideo, this );
+        _thread = SDL_CreateThread( Play_MPEGvideo, "MPEG video decode", this );
         if ( !_thread ) {
             playing = false;
         }
@@ -427,29 +410,15 @@ MPEGvideo:: GetVideoInfo(MPEG_VideoInfo *info)
 /*
    Returns zero if fails.
 
-   surf - Surface to play movie on.
    lock - lock is held while MPEG stream is playing
    callback - called on every frame, for display update
 */
 bool
-MPEGvideo:: SetDisplay(SDL_Surface *dst, SDL_mutex *lock,
-                             MPEG_DisplayCallback callback)
+MPEGvideo:: SetDisplay(MPEG_DisplayCallback callback, void *data, SDL_mutex *lock)
 {
-    _mutex = lock;
-    _dst = dst;
     _callback = callback;
-    if ( _image ) {
-      SDL_FreeYUVOverlay(_image);
-    }
-    _image = SDL_CreateYUVOverlay(_srcrect.w, _srcrect.h, SDL_YV12_OVERLAY, dst);
-    if ( _image == NULL ) {
-        return false;
-    }
-
-    if ( !_dstrect.w || !_dstrect.h ) {
-        _dstrect.w = dst->w;
-        _dstrect.h = dst->h;
-    }
+    _callback_data = data;
+    _callback_lock = lock;
 
     if ( !_stream ) {
         decodeInitTables();
@@ -461,7 +430,6 @@ MPEGvideo:: SetDisplay(SDL_Surface *dst, SDL_mutex *lock,
         if( _stream ) {
             _stream->_smpeg        = this;
             _stream->ditherType    = FULL_COLOR_DITHER;
-            _stream->matched_depth = dst->format->BitsPerPixel;
 
             if( mpegVidRsrc( 0, _stream, 1 ) == NULL ) {
                 SetError("Not an MPEG video stream");
@@ -469,56 +437,12 @@ MPEGvideo:: SetDisplay(SDL_Surface *dst, SDL_mutex *lock,
             }
         }
 
-        if ( ! InitPictImages(_stream, _w, _h, _dst) )
+        if ( ! InitPictImages(_stream, _w, _h) )
             return false;
     }
     return true;
 }
 
-
-/* If this is being called during play, the calling program is responsible
-   for clearing the old area and coordinating with the update callback.
-*/
-void
-MPEGvideo:: MoveDisplay( int x, int y )
-{
-    SDL_mutexP( _mutex );
-    _dstrect.x = x;
-    _dstrect.y = y;
-    SDL_mutexV( _mutex );
-}
-
-void
-MPEGvideo:: ScaleDisplayXY( int w, int h )
-{
-    SDL_mutexP( _mutex );
-    _dstrect.w = w;
-    _dstrect.h = h;
-    SDL_mutexV( _mutex );
-}
-
-void
-MPEGvideo:: SetDisplayRegion(int x, int y, int w, int h)
-{
-    SDL_mutexP( _mutex );
-    _srcrect.x = x;
-    _srcrect.y = y;
-    _srcrect.w = w;
-    _srcrect.h = h;
-
-    if(_image)
-    {
-      SDL_FreeYUVOverlay(_image);
-      _image = SDL_CreateYUVOverlay(_srcrect.w, _srcrect.h, SDL_YV12_OVERLAY, _dst);
-      /* !!! FIXME: Uhh...what if this one fails? */
-    }
-
-    SDL_mutexV( _mutex );
-}
-
-/* API CHANGE: This function no longer takes a destination surface and x/y
-   You must use SetDisplay() and MoveDisplay() to set those attributes.
-*/
 void
 MPEGvideo:: RenderFrame( int frame )
 {
@@ -542,20 +466,10 @@ MPEGvideo:: RenderFrame( int frame )
 }
 
 void
-MPEGvideo:: RenderFinal(SDL_Surface *dst, int x, int y)
+MPEGvideo:: RenderFinal()
 {
-    SDL_Surface *saved_dst;
-    int saved_x, saved_y;
-
     /* This operation can only be performed when stopped */
     Stop();
-
-    /* Set (and save) the destination and location */
-    saved_dst = _dst;
-    saved_x = _dstrect.x;
-    saved_y = _dstrect.y;
-    SetDisplay(dst, _mutex, _callback);
-    MoveDisplay(x, y);
 
     if ( ! _stream->film_has_ended ) {
         /* Search for the last "group of pictures" start code */
@@ -600,10 +514,6 @@ MPEGvideo:: RenderFinal(SDL_Surface *dst, int x, int y)
 
     /* Display the frame */
     DisplayFrame(_stream);
-
-    /* Restore the destination and location */
-    SetDisplay(saved_dst, _mutex, _callback);
-    MoveDisplay(saved_x, saved_y);
 }
 
 /* EOF */

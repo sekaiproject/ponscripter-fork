@@ -1,0 +1,15 @@
+Title smpeg-devel 0.4.4
+Version 1
+Description smpeg Library for Mac OS X 
+DefaultLocation /Developer/Documentation/smpeg
+Diskname (null)
+DeleteWarning 
+NeedsAuthorization YES
+DisableStop NO
+UseUserMask YES
+Application NO
+Relocatable NO
+Required NO
+InstallOnly NO
+RequiresReboot NO
+InstallFat NO

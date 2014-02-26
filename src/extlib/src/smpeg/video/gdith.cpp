@@ -54,10 +54,6 @@
 #include "dither.h"
 #include "SDL_timer.h"
 
-#ifdef USE_ATI
-#include "vhar128.h"
-#endif
-
 #ifdef __STDC__
 #include <stdlib.h>
 #include <string.h>
@@ -283,96 +279,20 @@ printf("A lot behind, skipping %d frames\n", vid_stream->_skipFrame);
 */
 void MPEGvideo::DisplayFrame( VidStream * vid_stream )
 {
-  SMPEG_FilterInfo info;
+  Uint8 *image = (Uint8 *)vid_stream->current->image;
+  size_t size = (_frame.image_width * _frame.image_height);
 
-  if ( !_image ) {
-    return;
-  }
+  /* Hold the lock while the frame is updated and callback are running */
+  if ( _callback_lock )
+    SDL_mutexP( _callback_lock );
 
-  if ( _filter_mutex )
-    SDL_mutexP( _filter_mutex );
-
-  /* Get a pointer to _image pixels */
-  if ( SDL_LockYUVOverlay( _image ) ) {
-    return;
-  }
-
-  /* Compute additionnal info for the filter */
-  if((_filter->flags & SMPEG_FILTER_INFO_PIXEL_ERROR) && vid_stream->current->mb_qscale)
-  {
-    register int x, y;
-    register Uint16 * ptr;
-
-    /* Compute quantization error for each pixel */
-    info.yuv_pixel_square_error = (Uint16 *) malloc(_w*_h*12/8*sizeof(Uint16));
-
-    ptr =  info.yuv_pixel_square_error;
-    for(y = 0; y < _h; y++)
-      for(x = 0; x < _w; x++)
-	*ptr++ = (Uint16) (((Uint32) vid_stream->noise_base_matrix[x & 7][y & 7] * 
-			    vid_stream->current->mb_qscale[((y>>4) * (_w>>4)) + (x >> 4)]) >> 8);
-  }
-  
-  if((_filter->flags & SMPEG_FILTER_INFO_MB_ERROR) && vid_stream->current->mb_qscale)
-  {
-    /* Retreive macroblock quantization error info */
-    info.yuv_mb_square_error = (Uint16 *)vid_stream->current->mb_qscale;
-  }
-    
-  if( _filter )
-  {
-    SDL_Overlay src;
-    Uint16 pitches[3];
-    Uint8 *pixels[3];
-
-    /* Fill in an SDL YV12 overlay structure for the source */
-#ifdef USE_ATI
-    vhar128_lockimage(vid_stream->ati_handle, vid_stream->current->image, &src);
-#else
-    src.format = SDL_YV12_OVERLAY;
-    src.w = _w;
-    src.h = _h;
-    src.planes = 3;
-    pitches[0] = _w;
-    pitches[1] = _w / 2;
-    pitches[2] = _w / 2;
-    src.pitches = pitches;
-    pixels[0] = (Uint8 *)vid_stream->current->image;
-    pixels[1] = (Uint8 *)vid_stream->current->image + pitches[0] * _h;
-    pixels[2] = (Uint8 *)vid_stream->current->image + pitches[0] * _h +
-                                                      pitches[1] * _h / 2;
-    src.pixels = pixels;
-#endif
-
-    _filter->callback(_image, &src, &_srcrect, &info, _filter->data );
-
-#ifdef USE_ATI
-    vhar128_unlockimage(vid_stream->ati_handle, vid_stream->current->image, &src);
-#endif
-  }
-
-  /* Now display the image */
-  if ( _mutex )
-    SDL_mutexP( _mutex );
-
-  SDL_DisplayYUVOverlay(_image, &_dstrect);
+  SDL_memcpy(_frame.image, image, size + (size/4) + (size/4));
 
   if ( _callback )
-    _callback(_dst, _dstrect.x, _dstrect.y, _dstrect.w, _dstrect.h);
+    _callback(_callback_data, &_frame);
 
-  SDL_UnlockYUVOverlay( _image );
-
-  if( _filter )
-  {
-    if( _filter->flags & SMPEG_FILTER_INFO_PIXEL_ERROR )
-      free(info.yuv_pixel_square_error);
-  }
-
-  if ( _filter_mutex )
-    SDL_mutexV( _filter_mutex );
-  
-  if ( _mutex )
-    SDL_mutexV( _mutex );
+  if ( _callback_lock )
+    SDL_mutexV( _callback_lock );
 }
 
 /*
@@ -403,22 +323,6 @@ void MPEGvideo::ExecuteDisplay( VidStream* vid_stream )
 #endif
     }
     timeSync( vid_stream );
-}
-
-
-SMPEG_Filter *
-MPEGvideo:: Filter(SMPEG_Filter * filter)
-{
-  SMPEG_Filter * old_filter;
-
-  old_filter = _filter;
-  if ( _filter_mutex )
-    SDL_mutexP( _filter_mutex );
-  _filter = filter;
-  if ( _filter_mutex )
-    SDL_mutexV( _filter_mutex );
-
-  return(old_filter);
 }
 
 /* EOF */

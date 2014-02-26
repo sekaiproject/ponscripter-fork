@@ -32,7 +32,7 @@ public:
     }
 
     /* Set an error message */
-    void SetError(char *fmt, ...) {
+    void SetError(const char *fmt, ...) {
         va_list ap;
 
         va_start(ap, fmt);

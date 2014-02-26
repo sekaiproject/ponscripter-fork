@@ -26,10 +26,22 @@
 #include "MPEGaudio.h"
 #include "MPEGstream.h"
 
-MPEGaudio:: MPEGaudio(MPEGstream *stream, bool initSDL) : sdl_audio(initSDL)
+MPEGaudio:: MPEGaudio(MPEGstream *stream, bool initSDL)
+    : sdl_audio(initSDL)
+    , mpeg(stream)
+    , valid_stream(0)
+    , stereo(false)
+    , rate_in_s(0.0)
+    , frags_playing(0)
+    , frag_time(0)
+#ifdef THREADED_AUDIO
+    , decoding(false)
+    , decode_thread(NULL)
+#endif
 {
+    memset(&sideinfo, '\0', sizeof (sideinfo));
+
     /* Initialize MPEG audio */
-    mpeg = stream;
     initialize();
 
     /* Just be paranoid.  If all goes well, this will be set to true */
@@ -155,7 +167,7 @@ MPEGaudio:: StartDecoding(void)
         ring = new MPEG_ring(samplesperframe*2);
     }
     if ( ! decode_thread ) {
-        decode_thread = SDL_CreateThread(Decode_MPEGaudio, this);
+        decode_thread = SDL_CreateThread(Decode_MPEGaudio, "MPEG audio decode", this);
     }
 }
 void
@@ -207,9 +219,6 @@ MPEGaudio:: Stop(void)
             SDL_LockAudio();
 
         playing = false;
-//#ifdef THREADED_AUDIO
-//        StopDecoding();
-//#endif
 
         if ( sdl_audio )
             SDL_UnlockAudio();
@@ -244,14 +253,23 @@ MPEGaudio:: ResetSynchro(double time)
 void
 MPEGaudio:: Skip(float seconds)
 {
-   /* Called only when there is no timestamp info in the MPEG */
-   printf("Audio: Skipping %f seconds...\n", seconds);
-   while(seconds > 0)
-   {
-     seconds -= (float) samplesperframe / ((float) frequencies[version][frequency]*(1+inputstereo));
-     if(!loadheader()) break;
-   }
- }
+#ifdef THREADED_AUDIO
+    /* Stop the decode thread */
+    StopDecoding();
+#endif
+
+    /* Called only when there is no timestamp info in the MPEG */
+    //printf("Audio: Skipping %f seconds...\n", seconds);
+    while(seconds > 0)
+    {
+        seconds -= (float) samplesperframe / ((float) frequencies[version][frequency]*(1+inputstereo));
+        if(!loadheader()) break;
+    }
+
+#ifdef THREADED_AUDIO
+    StartDecoding();
+#endif
+}
 void
 MPEGaudio:: Volume(int vol)
 {

@@ -1379,7 +1379,7 @@ void MPEGaudio::layer3reorderandantialias(int ch,int gr,
   {
     if(gi->mixed_block_flag)
     {
-      fprintf(stderr,"Notchecked!");
+      //fprintf(stderr,"Notchecked!");
       layer3reorder_1  (version,frequency,in,out);    // Not checked...
       layer3antialias_1(out);
     }

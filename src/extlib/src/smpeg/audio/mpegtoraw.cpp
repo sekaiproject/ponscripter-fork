@@ -302,13 +302,14 @@ bool MPEGaudio::run( int frames, double *timestamp)
 	  return false;	  
         }
 
-        if (frames == totFrames  && timestamp != NULL)
+        if (frames == totFrames  && timestamp != NULL){
             if (last_timestamp != mpeg->timestamp){
 		if (mpeg->timestamp_pos <= _buffer_pos)
 		    last_timestamp = *timestamp = mpeg->timestamp;
 	    }
             else
                 *timestamp = -1;
+        }
 
         if     ( layer == 3 ) extractlayer3();
         else if( layer == 2 ) extractlayer2();
@@ -388,6 +389,11 @@ int Play_MPEGaudio(MPEGaudio *audio, Uint8 *stream, int len)
     int volume;
     long copylen;
     int mixed = 0;
+
+#if SDL_VERSION_ATLEAST(1, 3, 0)
+    /* Need to initialize the stream in SDL 1.3+ */
+    memset(stream, 0, len);
+#endif
 
 		/* Michel Darricau from eProcess <mdarricau@eprocess.fr>  conflict name in popcorn */
     /* Bail if audio isn't playing */

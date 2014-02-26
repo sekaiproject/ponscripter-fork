@@ -151,14 +151,10 @@ extern const int scan[][8];
 /* Structure with reconstructed pixel values. */
 
 typedef struct pict_image {
-#ifdef USE_ATI
-  struct vhar128_image *image;
-#else
   unsigned char *image;                  /* YV12 format image  */
   unsigned char *luminance;              /* Luminance plane.   */
   unsigned char *Cr;                     /* Cr plane.          */
   unsigned char *Cb;                     /* Cb plane.          */
-#endif
   unsigned short int *mb_qscale;         /* macroblock info    */
   int locked;                            /* Lock flag.         */
   TimeStamp show_time;                   /* Presentation time. */
@@ -233,11 +229,7 @@ typedef struct macroblock {
 /* Block structure. */
 
 typedef struct block {
-#ifdef USE_ATI
-  long int dct_recon[6][130];            /* Reconstructed dct runs & levels */
-#else
   short int dct_recon[8][8];             /* Reconstructed dct coeff matrix. */
-#endif
   short int dct_dc_y_past;               /* Past lum. dc dct coefficient.   */
   short int dct_dc_cr_past;              /* Past cr dc dct coefficient.     */
   short int dct_dc_cb_past;              /* Past cb dc dct coefficient.     */
@@ -287,7 +279,6 @@ typedef struct vid_stream {
   int right_for,down_for;                      /* From ReconPMBlock, video.c */
   int right_half_for, down_half_for;
   unsigned int curBits;                        /* current bits               */
-  int matched_depth;                           /* depth of displayed movie   */
   int ditherType;                              /* What type of dithering     */
   char *ditherFlags;                           /* flags for MB Ordered dither*/
   int totNumFrames;                            /* Total Number of Frames     */
@@ -323,10 +314,6 @@ typedef struct vid_stream {
 /* begining of added variables */
   bool need_frameadjust;
   int  current_frame;
-
-#ifdef USE_ATI
-  unsigned int ati_handle;
-#endif
 
 } VidStream;   
 
@@ -413,44 +400,17 @@ extern unsigned int cacheMiss[8][8];
 #define __SCO__ 1
 #endif
 
-#if defined(__i386__) || defined(__VAX__) || defined(__MIPSEL__) || defined(__alpha__) || defined(__SCO__)
-#undef  BIG_ENDIAN_ARCHITECTURE
+#include "SDL_endian.h"
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#ifdef LITTLE_ENDIAN_ARCHITECTURE
+#undef LITTLE_ENDIAN_ARCHITECTURE
+#endif
+#define BIG_ENDIAN_ARCHITECTURE 1
+#else
+#ifdef BIG_ENDIAN_ARCHITECTURE
+#undef BIG_ENDIAN_ARCHITECTURE
+#endif
 #define LITTLE_ENDIAN_ARCHITECTURE 1
-#endif
-
-#if defined(__RS6000__) || defined(__SPARC__) || defined(__mc68000__) || defined(__HPUX__) || defined(__MIPSEB__) || defined(convex) || defined(__convex__) || defined(__powerpc__)
-#undef  LITTLE_ENDIAN_ARCHITECTURE
-#define BIG_ENDIAN_ARCHITECTURE 1
-#endif
-
-#if defined(BSD) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
-#define ENDIAN_IN_SYS
-#endif
-
-#if !defined(LITTLE_ENDIAN_ARCHITECTURE) && !defined(BIG_ENDIAN_ARCHITECTURE)
-#ifdef WIN32
-#undef  BIG_ENDIAN_ARCHITECTURE
-#define LITTLE_ENDIAN_ARCHITECTURE
-#else
-#ifdef __BIG_ENDIAN__
-#undef  LITTLE_ENDIAN_ARCHITECTURE
-#define BIG_ENDIAN_ARCHITECTURE 1
-#else
-#ifdef ENDIAN_IN_SYS
-#include <sys/endian.h>
-#else
-#include <endian.h>
-#endif
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-#undef  BIG_ENDIAN_ARCHITECTURE
-#define LITTLE_ENDIAN_ARCHITECTURE 1
-#endif
-#if __BYTE_ORDER == __BIG_ENDIAN
-#undef  LITTLE_ENDIAN_ARCHITECTURE
-#define BIG_ENDIAN_ARCHITECTURE 1
-#endif
-#endif
-#endif
 #endif
 
 #if !defined(LITTLE_ENDIAN_ARCHITECTURE) && !defined(BIG_ENDIAN_ARCHITECTURE)

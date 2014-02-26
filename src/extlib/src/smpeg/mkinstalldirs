@@ -4,7 +4,7 @@
 # Created: 1993-05-16
 # Public domain
 
-# $Id: mkinstalldirs,v 1.1 1999/10/21 15:54:50 hercules Exp $
+# $Id: mkinstalldirs 9 1999-10-21 15:55:01Z hercules $
 
 errstatus=0
 

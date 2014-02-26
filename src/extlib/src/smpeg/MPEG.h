@@ -36,7 +36,6 @@
 #include "MPEGaudio.h"
 #include "MPEGvideo.h"
 #include "MPEGsystem.h"
-#include "MPEGfilter.h"
 
 #define LENGTH_TO_CHECK_FOR_SYSTEM 0x50000	// Added by HanishKVC
 
@@ -59,11 +58,11 @@ public:
     MPEG(const char * name, bool SDLaudio = true);
     MPEG(int Mpeg_FD, bool SDLaudio = true);
     MPEG(void *data, int size, bool SDLaudio = true);
-    MPEG(SDL_RWops *mpeg_source,bool SDLaudio = true);
+    MPEG(SDL_RWops *mpeg_source, int mpeg_freesrc, bool SDLaudio = true);
     virtual ~MPEG();
 
     /* Initialize the MPEG */
-    void Init(SDL_RWops *mpeg_source, bool SDLaudio);
+    void Init(SDL_RWops *mpeg_source, int mpeg_freesrc, bool SDLaudio);
     void InitErrorState();
 
     /* Enable/Disable audio and video */
@@ -95,14 +94,9 @@ public:
 
     /* MPEG video actions */
     bool GetVideoInfo(MPEG_VideoInfo *info);
-    bool SetDisplay(SDL_Surface *dst, SDL_mutex *lock,
-		                 MPEG_DisplayCallback callback);
-    void MoveDisplay(int x, int y);
-    void ScaleDisplayXY(int w, int h);
-    void SetDisplayRegion(int x, int y, int w, int h);
+    bool SetDisplay(MPEG_DisplayCallback callback, void *data, SDL_mutex *lock);
     void RenderFrame(int frame);
-    void RenderFinal(SDL_Surface *dst, int x, int y);
-    SMPEG_Filter * Filter(SMPEG_Filter * filter);
+    void RenderFinal();
 
 public:
     /* We need to have separate audio and video streams */
@@ -114,6 +108,7 @@ public:
 protected:
     char *mpeg_mem;       // Used to copy MPEG passed in as memory
     SDL_RWops *source;
+    int freesrc;
     MPEGaudioaction *audioaction;
     MPEGvideoaction *videoaction;
 

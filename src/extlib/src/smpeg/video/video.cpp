@@ -53,13 +53,6 @@
 /* Correct bad motion information */
 #define LOOSE_MPEG
 
-/* If hardware accelerated, prevent use of dither code */
-#ifdef USE_ATI
-#ifndef DISABLE_DITHER
-#define DISABLE_DITHER
-#endif
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -70,12 +63,7 @@
 #include "util.h"
 #include "proto.h"
 
-#ifdef USE_ATI
-#include "vhar128.h"
-#endif
-
 /* Declarations of functions. */
-#ifndef USE_ATI
 static void ReconIMBlock( VidStream*, int bnum );
 static void ReconPMBlock( VidStream*, int bnum,
         int recon_right_for, int recon_down_for, int zflag );
@@ -87,7 +75,6 @@ static void ReconBiMBlock( VidStream*, int bnum,
 static void ReconSkippedBlock( unsigned char *source, unsigned char *dest,
       int row, int col, int row_size, int right, int down,
       int right_half, int down_half, int width );
-#endif /* USE_ATI */
 static void DoPictureDisplay( VidStream* );
 static int ParseSeqHead( VidStream* );
 static int ParseGOP( VidStream* );
@@ -764,11 +751,6 @@ VidStream* NewVidStream( unsigned int buffer_len )
     /* Reset everything for start of display */
     ResetVidStream(vs);
 
-#ifdef USE_ATI
-    /* Initialize Rage128 hardware */
-    vs->ati_handle = vhar128_new();
-#endif
-
     /* Return structure. */
 
     return vs;
@@ -895,14 +877,6 @@ void DestroyVidStream( VidStream* astream )
     if( astream->ditherFlags != NULL )
         free( astream->ditherFlags );
 
-#ifdef USE_ATI
-    vhar128_close(astream->ati_handle);
-#endif
-
-#ifdef USE_ATI
-    vhar128_delete();
-#endif
-
     free( (char*) astream );
 }
 
@@ -926,7 +900,7 @@ void DestroyVidStream( VidStream* astream )
  *--------------------------------------------------------------
  */
 
-PictImage* NewPictImage( VidStream* vid_stream, int w, int h, SDL_Surface *dst )
+PictImage* NewPictImage( VidStream* vid_stream, int w, int h )
 {
     PictImage* pi;
 
@@ -935,14 +909,10 @@ PictImage* NewPictImage( VidStream* vid_stream, int w, int h, SDL_Surface *dst )
     pi = (PictImage *) malloc(sizeof(PictImage));
 
     /* Create a YV12 image (Y + V + U) */
-#ifdef USE_ATI
-    pi->image = vhar128_newimage(vid_stream->ati_handle, w, h);
-#else
     pi->image = (unsigned char *) malloc(w*h*12/8);
     pi->luminance = (unsigned char *)pi->image;
     pi->Cr = pi->luminance + (w*h);
     pi->Cb = pi->luminance + (w*h) + (w*h)/4;
-#endif
   
     /* Alloc space for filter info */
     pi->mb_qscale = (unsigned short int *) malloc(vid_stream->mb_width * vid_stream->mb_height * sizeof(unsigned int));
@@ -956,7 +926,7 @@ PictImage* NewPictImage( VidStream* vid_stream, int w, int h, SDL_Surface *dst )
     return pi;
 }
 
-bool InitPictImages( VidStream* vid_stream, int w, int h, SDL_Surface* dst )
+bool InitPictImages( VidStream* vid_stream, int w, int h )
 {
     int i;
 
@@ -965,20 +935,10 @@ bool InitPictImages( VidStream* vid_stream, int w, int h, SDL_Surface* dst )
         if ( vid_stream->ring[i] ) {
             DestroyPictImage(vid_stream, vid_stream->ring[i]);
         }
-        vid_stream->ring[i] = NewPictImage( vid_stream, w, h, dst );
+        vid_stream->ring[i] = NewPictImage( vid_stream, w, h );
         if ( ! vid_stream->ring[i] )
             return false;
     }
-
-#ifdef USE_ATI
-    struct vhar128_image * ring[RING_BUF_SIZE];
-
-    for (i = 0; i < RING_BUF_SIZE; i++) {
-      ring[i] = vid_stream->ring[i]->image;
-    }
-
-    vhar128_init(vid_stream->ati_handle, w, h, ring, RING_BUF_SIZE);
-#endif
 
     return true;
 }
@@ -1000,11 +960,7 @@ bool InitPictImages( VidStream* vid_stream, int w, int h, SDL_Surface* dst )
  */
 void DestroyPictImage( VidStream* vid_stream, PictImage* apictimage )
 {
-#ifdef USE_ATI
-  vhar128_destroyimage(vid_stream->ati_handle, apictimage->image);
-#else
   if (apictimage->image != NULL) free(apictimage->image);
-#endif
 
   free(apictimage->mb_qscale);
   free(apictimage);
@@ -1758,34 +1714,6 @@ static int ParsePicture( VidStream* vid_stream, TimeStamp time_stamp )
 
   vid_stream->mblock.past_mb_addr = -1;
 
-#ifdef USE_ATI
-  int back, forw, current;
-
-  back = forw = -1;
-  current = i;
-
-  /* Look for indexes of future and past frames */
-  for(i = 0; i < RING_BUF_SIZE; i++)
-  {
-    if(vid_stream->future == vid_stream->ring[i]) forw = i;
-    if(vid_stream->past == vid_stream->ring[i]) back = i;
-  }
-
-  /* Start decoding a new frame */
-  switch(vid_stream->picture.code_type)
-  {
-    case B_TYPE:
-      vhar128_newdecode(vid_stream->ati_handle, forw, back, current);
-    break;
-    case P_TYPE:
-      vhar128_newdecode(vid_stream->ati_handle, -1, forw, current);
-    break;
-    case I_TYPE:
-      vhar128_newdecode(vid_stream->ati_handle, -1, -1, current);
-    break;
-  }
-#endif
-
   return PARSE_OK;
 }
 
@@ -1850,15 +1778,9 @@ static int ParseSlice( VidStream* vid_stream )
 
   /* Reset past dct dc y, cr, and cb values. */
 
-#ifdef USE_ATI
-  vid_stream->block.dct_dc_y_past = 0;
-  vid_stream->block.dct_dc_cr_past = 0;
-  vid_stream->block.dct_dc_cb_past = 0;
-#else
   vid_stream->block.dct_dc_y_past = 1024 << 3;
   vid_stream->block.dct_dc_cr_past = 1024 << 3;
   vid_stream->block.dct_dc_cb_past = 1024 << 3;
-#endif
 
   return PARSE_OK;
 }
@@ -1900,16 +1822,6 @@ static int ParseMacroBlock( VidStream* vid_stream )
 
 #ifdef ANALYSIS
   mbSizeCount = bitCountRead();
-#endif
-
-#ifdef USE_ATI
-  /* Empty macroblock */
-  vid_stream->block.dct_recon[0][0] = 0xFFFFFFFF;
-  vid_stream->block.dct_recon[1][0] = 0xFFFFFFFF;
-  vid_stream->block.dct_recon[2][0] = 0xFFFFFFFF;
-  vid_stream->block.dct_recon[3][0] = 0xFFFFFFFF;
-  vid_stream->block.dct_recon[4][0] = 0xFFFFFFFF;
-  vid_stream->block.dct_recon[5][0] = 0xFFFFFFFF;
 #endif
 
   /*
@@ -2198,7 +2110,6 @@ static int ParseMacroBlock( VidStream* vid_stream )
           zero_block_flag = 1;
         }
 
-#ifndef USE_ATI
         /* If macroblock is intra coded... */
         if (vid_stream->mblock.mb_intra) {
           ReconIMBlock(vid_stream, i);
@@ -2212,19 +2123,7 @@ static int ParseMacroBlock( VidStream* vid_stream )
           ReconBMBlock(vid_stream, i, recon_right_back, recon_down_back,
                        zero_block_flag);
         }
-#endif
       }
-
-#ifdef USE_ATI
-      vhar128_macroblock(vid_stream->ati_handle,
-			 (vid_stream->mblock.mb_address % vid_stream->mb_width) << 4,
-			 (vid_stream->mblock.mb_address / vid_stream->mb_width) << 4,
-			 vid_stream->mblock.mb_intra,
-			 mb_motion_back, mb_motion_forw,
-			 recon_right_back, recon_down_back,
-			 recon_right_for, recon_down_for,
-			 vid_stream->block.dct_recon);
-#endif
 
 #ifndef DISABLE_DITHER
     }
@@ -2271,7 +2170,6 @@ static int ParseMacroBlock( VidStream* vid_stream )
 }
 
 /* software decoder follows */
-#ifndef USE_ATI
 /*
  *--------------------------------------------------------------
  *
@@ -2930,6 +2828,8 @@ static void ReconBMBlock( VidStream* vid_stream, int bnum,
   int illegalBlock = 0;
   int maxx, maxy, cc;
   int row_start, row_end, rlast, rfirst, col_start, col_end, clast, cfirst;
+
+  rlast = clast = 0;
 #endif
 
   /* Calculate macroblock row and column from address. */
@@ -3793,8 +3693,6 @@ static void ReconBiMBlock( VidStream* vid_stream, int bnum,
   }
 }
 
-#endif /* USE_ATI */
-
 /*
  *--------------------------------------------------------------
  *
@@ -3842,17 +3740,6 @@ static void ProcessSkippedPFrameMBlocks( VidStream* vid_stream )
 
     row = mb_row << 4;
     col = mb_col << 4;
-
-#ifdef USE_ATI
-    vhar128_macroblock(vid_stream->ati_handle,
-		       col,
-		       row,
-		       0,    /* skipped block are empty non-intra blocks */
-		       1, 0, /* P frames are based on past picture       */
-		       0, 0, /* backward motion is null                  */
-		       0, 0, /* forward  motion is null                  */
-		       vid_stream->block.dct_recon);
-#else
 
     /* For each row in macroblock luminance plane... */
 
@@ -3929,7 +3816,6 @@ static void ProcessSkippedPFrameMBlocks( VidStream* vid_stream )
       vid_stream->ditherFlags[addr] = 0;
     }
 #endif
-#endif /* USE_ATI */
   }
 
   vid_stream->mblock.recon_right_for_prev = 0;
@@ -4006,25 +3892,6 @@ static void ProcessSkippedBFrameMBlocks( VidStream* vid_stream )
     recon_right_back = vid_stream->mblock.recon_right_back_prev;
     recon_down_back = vid_stream->mblock.recon_down_back_prev;
   }
-
-#ifdef USE_ATI
-
-  /* For each skipped macroblock do ... */
-  for (addr = vid_stream->mblock.past_mb_addr + 1;
-       addr < vid_stream->mblock.mb_address; addr++) {
-    
-    vhar128_macroblock(vid_stream->ati_handle,
-		       (addr % vid_stream->mb_width) << 4,
-		       (addr / vid_stream->mb_width) << 4,
-		       0,                                  /* skipped blocks are empty non-intra blocks */
-		       vid_stream->mblock.bpict_past_back, 
-		       vid_stream->mblock.bpict_past_forw,
-		       recon_right_back, recon_down_back,  /* backward motion */
-		       recon_right_for, recon_down_for,    /* forward  motion */
-		       vid_stream->block.dct_recon);
-  }
-
-#else
 
   /* If only one motion vector, do display copy, else do full
      calculation. 
@@ -4441,11 +4308,8 @@ static void ProcessSkippedBFrameMBlocks( VidStream* vid_stream )
     }
 #endif
   }
-#endif /* USE_ATI */
 }
 
-
-#ifndef USE_ATI
 
 /*
  *--------------------------------------------------------------
@@ -4610,8 +4474,6 @@ static void ReconSkippedBlock( unsigned char *source, unsigned char *dest,
   }
 }
 
-#endif /* USE_ATI */
-
 /*
  *--------------------------------------------------------------
  *
@@ -4640,11 +4502,6 @@ static void DoPictureDisplay( VidStream *vid_stream )
     PrintOneStat();
 #endif
     CollectStats();
-#endif
-
-#ifdef USE_ATI
-    /* Flush the macroblocks to the hardware decoder */
-    vhar128_flush( vid_stream->ati_handle );
 #endif
 
     /* Update past and future references if needed. */

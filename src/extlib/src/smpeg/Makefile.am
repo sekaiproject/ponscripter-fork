@@ -1,20 +1,19 @@
 
 ## Makefile.am for the smpeg library
 
-bin_SCRIPTS = smpeg-config
+bin_SCRIPTS = smpeg2-config
 
 CCLD = $(CXXLD)
 
 # The smpeg library target
-lib_LTLIBRARIES = libsmpeg.la
+lib_LTLIBRARIES = libsmpeg2.la
 
-libsmpeg_la_SOURCES =		\
+libsmpeg2_la_SOURCES =		\
 	MPEG.cpp		\
 	MPEGring.cpp		\
 	MPEGlist.cpp		\
 	MPEGstream.cpp		\
 	MPEGsystem.cpp		\
-	MPEGfilter.c		\
 	smpeg.cpp		\
 	audio/MPEGaudio.cpp	\
 	audio/bitwindow.cpp	\
@@ -41,18 +40,16 @@ libsmpeg_la_SOURCES =		\
 	video/util.h		\
 	video/video.cpp		\
 	video/video.h		\
-	video/vhar128.cpp	\
-	video/vhar128.h		\
 	video/mmxflags_asm.S	\
 	video/mmxidct_asm.S
 
-libsmpegincludedir = $(includedir)/smpeg
-libsmpeginclude_HEADERS =	\
+libsmpeg2includedir = $(includedir)/smpeg2
+libsmpeg2include_HEADERS =	\
 	MPEG.h			\
 	MPEGaction.h		\
 	MPEGaudio.h		\
 	MPEGerror.h		\
-	MPEGfilter.h		\
+	MPEGframe.h		\
 	MPEGring.h		\
 	MPEGlist.h		\
 	MPEGstream.h		\
@@ -60,7 +57,7 @@ libsmpeginclude_HEADERS =	\
 	MPEGvideo.h		\
 	smpeg.h
 
-libsmpeg_la_LDFLAGS = 		\
+libsmpeg2_la_LDFLAGS = 		\
         -release $(LT_RELEASE)	\
 	-version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
 
@@ -69,8 +66,16 @@ EXTRA_DIST =			\
 	COPYING			\
 	TODO			\
 	README			\
-	smpeg.m4		\
+	README.SDL_mixer 	\
+	plaympeg.1		\
+	Android.mk		\
+	VisualC.zip		\
+	smpeg2.m4		\
+	smpeg2.spec		\
+	smpeg2.spec.in		\
 	gcc-fat.sh		\
+	g++-fat.sh		\
+	acinclude		\
 	autogen.sh		\
 	audio/AUTHORS		\
 	audio/COPYING.LIB	\
@@ -85,8 +90,22 @@ video/16bit_mmx.lo: video/16bit_mmx.cpp
 video/32bit_mmx.lo: video/32bit_mmx.cpp
 	$(CXX) -c -o $@ $^ $(CXXFLAGS)
 
+bin_PROGRAMS = plaympeg
+
+# Sources for plaympeg
+man_MANS = plaympeg.1
+plaympeg_SOURCES = plaympeg.c
+plaympeg_LDADD = libsmpeg2.la
+
 # M4 macro file for inclusion with autoconf
 m4datadir = $(datadir)/aclocal
-m4data_DATA = smpeg.m4
+m4data_DATA = smpeg2.m4
 
+# Rule to build tar-gzipped distribution package
+$(PACKAGE)-$(VERSION).tar.gz: dist
+
+# Rule to build RPM distribution package
+rpm: $(PACKAGE)-$(VERSION).tar.gz
+	cp $(PACKAGE)-$(VERSION).tar.gz /usr/src/redhat/SOURCES
+	rpm -ba smpeg2.spec
 

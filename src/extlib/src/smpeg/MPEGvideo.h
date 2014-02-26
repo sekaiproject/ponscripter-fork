@@ -63,14 +63,9 @@ public:
 
     /* MPEG video actions */
     bool GetVideoInfo(MPEG_VideoInfo *info);
-    bool SetDisplay(SDL_Surface *dst, SDL_mutex *lock,
-                                            MPEG_DisplayCallback callback);
-    void MoveDisplay(int x, int y);
-    void ScaleDisplayXY(int w, int h);
-    void SetDisplayRegion(int x, int y, int w, int h);
+    bool SetDisplay(MPEG_DisplayCallback callback, void *data, SDL_mutex *lock);
     void RenderFrame(int frame);
-    void RenderFinal(SDL_Surface *dst, int x, int y);
-    SMPEG_Filter * Filter(SMPEG_Filter * filter);
+    void RenderFinal();
 
     /* Display and sync functions */
     void DisplayFrame( VidStream* vid_stream );
@@ -86,22 +81,18 @@ protected:
     MPEGstream *mpeg;
 
     VidStream* _stream;
-    SDL_Surface* _dst;
-    SDL_mutex* _mutex;
     SDL_Thread* _thread;
 
     MPEG_DisplayCallback _callback;
+    void *_callback_data;
+    SDL_mutex *_callback_lock;
 
     int _ow;            // original width of the movie
     int _oh;            // original height of the movie
     int _w;             // mb aligned width of the movie
     int _h;             // mb aligned height of the movie
-    SDL_Rect _srcrect;	// source area
-    SDL_Rect _dstrect;	// display area
-    SDL_Overlay *_image;// source image
     float _fps;         // frames per second
-    SMPEG_Filter * _filter; // pointer to the current filter used
-    SDL_mutex* _filter_mutex; // make sure the filter is not changed while being used
+    SMPEG_Frame _frame; // processed image data for the current frame
 
     void RewindStream(void);
 };

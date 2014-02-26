@@ -3,8 +3,8 @@
 # Do not invoke this directly; these rules are used automatically when relevant.
 
 ifndef VERBOSE # use "make VERBOSE=true" to show outputs
-REDIR = >/dev/null 2>&1
-REDSO = >/dev/null
+#REDIR = >/dev/null 2>&1
+#REDSO = >/dev/null
 endif
 
 EL = extlib/lib

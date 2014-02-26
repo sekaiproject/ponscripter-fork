@@ -25,7 +25,7 @@
 #define _MPEGACTION_H_
 
 #include "SDL.h"
-#include "MPEGfilter.h"
+#include "MPEGframe.h"
 
 typedef enum {
     MPEG_ERROR = -1,
@@ -96,9 +96,7 @@ public:
     virtual void Volume(int vol) = 0;
 };
 
-/* Matches the declaration of SDL_UpdateRect() */
-typedef void(*MPEG_DisplayCallback)(SDL_Surface* dst, int x, int y,
-                                     unsigned int w, unsigned int h);
+typedef void(*MPEG_DisplayCallback)(void *data, SMPEG_Frame *frame);
 
 /* For getting info about the video portion of the stream */
 typedef struct MPEG_VideoInfo {
@@ -117,14 +115,9 @@ public:
     virtual bool GetVideoInfo(MPEG_VideoInfo *info) {
         return(false);
     }
-    virtual bool SetDisplay(SDL_Surface *dst, SDL_mutex *lock,
-                                MPEG_DisplayCallback callback) = 0;
-    virtual void MoveDisplay(int x, int y) = 0;
-    virtual void ScaleDisplayXY(int w, int h) = 0;
-    virtual void SetDisplayRegion(int x, int y, int w, int h) = 0;
+    virtual bool SetDisplay(MPEG_DisplayCallback callback, void *data, SDL_mutex *lock) = 0;
     virtual void RenderFrame(int frame) = 0;
-    virtual void RenderFinal(SDL_Surface *dst, int x, int y) = 0;
-    virtual SMPEG_Filter * Filter(SMPEG_Filter * filter) = 0;
+    virtual void RenderFinal() = 0;
 protected:
     MPEGaudioaction *time_source;
 };
