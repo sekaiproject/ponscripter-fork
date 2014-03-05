@@ -139,9 +139,9 @@ PonscripterLabel::drawChar(const char* text, Fontinfo* info, bool flush_flag,
             dirty_rect.add(dst_rect);
         }
         else if (flush_flag) {
-	    if (surface == accumulation_surface)
-		flush(refreshMode()); // hack to fix skip refresh bug
-            flushDirect(dst_rect, REFRESH_NONE_MODE);
+          if (surface == accumulation_surface)
+            flush(refreshMode()); // hack to fix skip refresh bug
+          flushDirect(dst_rect, REFRESH_NONE_MODE);
         }
 
         /* ---------------------------------------- */

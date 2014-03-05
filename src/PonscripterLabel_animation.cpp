@@ -428,11 +428,11 @@ void PonscripterLabel::drawTaggedSurface(SDL_Surface* dst_surface, AnimationInfo
     }
 
     if (anim->affine_flag)
-	anim->blendOnSurface2(dst_surface, poly_rect.x, poly_rect.y,
-			      clip, anim->trans);
+      anim->blendOnSurface2(dst_surface, poly_rect.x, poly_rect.y,
+          clip, anim->trans);
     else
-	anim->blendOnSurface(dst_surface, poly_rect.x, poly_rect.y,
-			     clip, anim->trans);
+      anim->blendOnSurface(dst_surface, poly_rect.x, poly_rect.y,
+          clip, anim->trans);
 }
 
 

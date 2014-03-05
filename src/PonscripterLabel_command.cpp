@@ -3175,6 +3175,7 @@ int PonscripterLabel::brCommand(const pstring& cmd)
 
 int PonscripterLabel::bltCommand(const pstring& cmd)
 {
+  fprintf(stderr, "bltCommand used, but not updated to SDL2 properly\n");
     int dx, dy, dw, dh;
     int sx, sy, sw, sh;
 
@@ -3196,8 +3197,11 @@ int PonscripterLabel::bltCommand(const pstring& cmd)
         SDL_Rect dst_rect = { dx, dy, dw, dh };
 
         SDL_BlitSurface(btndef_info.image_surface, &src_rect, screen_surface, &dst_rect);
-        //TODO, see if this is important
+        //TODO, fix this. haven't found it used yet
         //SDL_UpdateRect(screen_surface, dst_rect.x, dst_rect.y, dst_rect.w, dst_rect.h);
+        SDL_UpdateTexture(screen_tex, NULL, screen_surface->pixels, screen_surface->pitch);
+        SDL_RenderClear(renderer);
+        SDL_RenderCopy(renderer, screen_tex, NULL, NULL);
         SDL_RenderPresent(renderer);
         dirty_rect.clear();
     }
@@ -3253,7 +3257,7 @@ int PonscripterLabel::bltCommand(const pstring& cmd)
         SDL_UnlockSurface(accumulation_surface);
 
         SDL_Rect dst_rect = { start_x, start_y, end_x - start_x, end_y - start_y };
-        flushDirect((SDL_Rect &)dst_rect, REFRESH_NONE_MODE);
+        flushDirect(dst_rect, REFRESH_NONE_MODE);
     }
 
     return RET_CONTINUE;
@@ -3270,6 +3274,7 @@ int PonscripterLabel::bidirectCommand(const pstring& cmd)
 int PonscripterLabel::bgcopyCommand(const pstring& cmd)
 {
     SDL_BlitSurface(screen_surface, NULL, accumulation_surface, NULL);
+    fprintf(stderr, "Likely not-updated command used bgcopyCommand\n");
 
     bg_info.num_of_cells = 1;
     bg_info.trans_mode = AnimationInfo::TRANS_COPY;

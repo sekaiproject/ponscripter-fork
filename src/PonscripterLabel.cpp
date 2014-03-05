@@ -456,10 +456,11 @@ void PonscripterLabel::initSDL()
         (fullscreen_mode ? fullscreen_flags : 0));
     renderer = SDL_CreateRenderer(screen, -1, 0);
 
-    screen_surface = SDL_CreateRGBSurface(0, screen_width, screen_height, 32,
-        0xFF000000,0x00FF0000,0x0000FF00,0x000000FF);
+    //screen_surface = SDL_GetWindowSurface(screen);
+    screen_surface = SDL_CreateRGBSurface(SDL_SWSURFACE, 1, 1, 32, 0x00ff0000,
+                        0x0000ff00, 0x000000ff, 0xff000000);
 
-    screen_tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
+    screen_tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
         SDL_TEXTUREACCESS_STREAMING, screen_width, screen_height);
 
     /* ---------------------------------------- */
@@ -1165,12 +1166,11 @@ void PonscripterLabel::resetSentenceFont()
 }
 
 
-void PonscripterLabel::
-flush(int refresh_mode, SDL_Rect* rect, bool clear_dirty_flag,
+void PonscripterLabel::flush(int refresh_mode, SDL_Rect* rect, bool clear_dirty_flag,
       bool direct_flag)
 {
     if (direct_flag) {
-        flushDirect(*rect, refresh_mode);
+        flushDirect(*rect, refresh_mode, true);
     }
     else {
         if (rect) dirty_rect.add(*rect);
@@ -1178,12 +1178,15 @@ flush(int refresh_mode, SDL_Rect* rect, bool clear_dirty_flag,
         if (dirty_rect.area > 0) {
             if (dirty_rect.area >= dirty_rect.bounding_box.w *
                                    dirty_rect.bounding_box.h) {
-                flushDirect(dirty_rect.bounding_box, refresh_mode);
+                flushDirect(dirty_rect.bounding_box, refresh_mode, true);
             }
             else {
                 for (int i = 0; i < dirty_rect.num_history; i++)
                     flushDirect(dirty_rect.history[i], refresh_mode, false);
-                SDL_UpdateWindowSurfaceRects(screen, dirty_rect.history, dirty_rect.num_history);
+                SDL_BlitSurface(accumulation_surface, rect, screen_surface, rect);
+                SDL_UpdateTexture(screen_tex, NULL, accumulation_surface->pixels, accumulation_surface->pitch);
+                SDL_RenderClear(renderer);
+                SDL_RenderCopy(renderer, screen_tex, NULL, NULL);
                 SDL_RenderPresent(renderer);
             }
         }
@@ -1193,34 +1196,17 @@ flush(int refresh_mode, SDL_Rect* rect, bool clear_dirty_flag,
 }
 
 
-void PonscripterLabel::flushDirect(SDL_Rect &rect, int refresh_mode, bool updaterect)
+void PonscripterLabel::flushDirect(SDL_Rect rect, int refresh_mode, bool updaterect)
 {
     refreshSurface(accumulation_surface, &rect, refresh_mode);
-/*
-    if (refresh_mode != REFRESH_NONE_MODE &&
-        !(refresh_mode & REFRESH_CURSOR_MODE)) {
-        if (refresh_mode & REFRESH_SHADOW_MODE)
-            refreshSurface(accumulation_comp_surface, &rect,
-                           (refresh_mode & ~REFRESH_SHADOW_MODE
-                                         & ~REFRESH_TEXT_MODE)
-                                         | REFRESH_COMP_MODE);
-        else
-            refreshSurface(accumulation_comp_surface, &rect,
-                           refresh_mode | refresh_shadow_text_mode
-                                        | REFRESH_COMP_MODE);
-    }
-*/    
     SDL_BlitSurface(accumulation_surface, &rect, screen_surface, &rect);
-    //TODO see if this is important
-    //if (updaterect) SDL_UpdateRect(screen_surface, rect.x, rect.y, rect.w, rect.h);
-    SDL_UpdateTexture(screen_tex, NULL, screen_surface->pixels, screen_surface->pitch);
-    SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, screen_tex, NULL, NULL);
-    SDL_RenderPresent(renderer);
-    //if(updaterect) {
-    //  SDL_RenderClear(renderer);
-    //  SDL_RenderPresent(renderer);
-    //}
+
+    if (updaterect) {
+      SDL_UpdateTexture(screen_tex, NULL, accumulation_surface->pixels, accumulation_surface->pitch);
+      SDL_RenderClear(renderer);
+      SDL_RenderCopy(renderer, screen_tex, NULL, NULL);
+      SDL_RenderPresent(renderer);
+    }
 }
 
 
@@ -1671,7 +1657,6 @@ void PonscripterLabel::shadowTextDisplay(SDL_Surface* surface, SDL_Rect &clip)
             }
             buf += surface->w - rect.w;
         }
-
         SDL_UnlockSurface(surface);
     }
     else if (sentence_font_info.image_surface) {

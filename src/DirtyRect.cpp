@@ -112,7 +112,7 @@ void DirtyRect::add(SDL_Rect src)
     if (num_history == total_history) {
         total_history += 10;
         SDL_Rect* tmp = history;
-        history = new SDL_Rect[total_history];
+        history = new SDL_Rect[total_history]();
         for (i = 0; i < num_history; i++)
             history[i] = tmp[i];
 
