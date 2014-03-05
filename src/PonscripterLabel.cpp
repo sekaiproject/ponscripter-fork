@@ -376,12 +376,12 @@ void PonscripterLabel::initSDL()
 #if defined(MACOSX) || defined(WIN32)
 #if defined(MACOSX)
         //resize the (usually 32x32) icon to 128x128
-        SDL_Surface *tmp2 = SDL_CreateRGBSurface(SDL_SWSURFACE, 128, 128,
+        SDL_Surface *tmp2 = SDL_CreateRGBSurface(0, 128, 128,
                                                  32, 0x00ff0000, 0x0000ff00,
                                                  0x000000ff, 0xff000000);
 #elif defined(WIN32)
         //resize the icon to 32x32
-        SDL_Surface *tmp2 = SDL_CreateRGBSurface(SDL_SWSURFACE, 32, 32,
+        SDL_Surface *tmp2 = SDL_CreateRGBSurface(0, 32, 32,
                                                  32, 0x00ff0000, 0x0000ff00,
                                                  0x000000ff, 0xff000000);
 #endif //MACOSX, WIN32
@@ -458,6 +458,7 @@ void PonscripterLabel::initSDL()
 
     screen_tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
         SDL_TEXTUREACCESS_STREAMING, screen_width, screen_height);
+    SDL_SetTextureBlendMode(screen_tex, SDL_BLENDMODE_NONE);
 
     if(screen_tex == 0) {
       fprintf(stderr, "COuldn't create texture: %s\n", SDL_GetError());
@@ -962,11 +963,13 @@ int PonscripterLabel::init(const char* preferred_script)
     initSDL();
     initLocale();
 
-    image_surface = SDL_CreateRGBSurface(SDL_SWSURFACE, 1, 1, 32, 0x00ff0000,
+    image_surface = SDL_CreateRGBSurface(0, 1, 1, 32, 0x00ff0000,
                         0x0000ff00, 0x000000ff, 0xff000000);
 
-    screen_surface =
-        AnimationInfo::allocSurface(screen_width, screen_height);
+    screen_surface = SDL_CreateRGBSurface(0, screen_width, screen_height, 32, 0x00ff0000,
+                        0x0000ff00, 0x000000ff, 0xff000000);
+
+
     accumulation_surface =
         AnimationInfo::allocSurface(screen_width, screen_height);
     backup_surface =
@@ -979,6 +982,12 @@ int PonscripterLabel::init(const char* preferred_script)
     SDL_SetSurfaceAlphaMod(backup_surface, SDL_ALPHA_OPAQUE);
     SDL_SetSurfaceAlphaMod(effect_src_surface, SDL_ALPHA_OPAQUE);
     SDL_SetSurfaceAlphaMod(effect_dst_surface, SDL_ALPHA_OPAQUE);
+
+    SDL_SetSurfaceAlphaMod(screen_surface, SDL_ALPHA_OPAQUE);
+
+    SDL_SetSurfaceBlendMode(accumulation_surface, SDL_BLENDMODE_NONE);
+    SDL_SetSurfaceBlendMode(screen_surface, SDL_BLENDMODE_NONE);
+
     screenshot_surface = 0;
     text_info.num_of_cells = 1;
     text_info.allocImage(screen_width, screen_height);
@@ -1172,8 +1181,11 @@ void PonscripterLabel::resetSentenceFont()
 void PonscripterLabel::flush(int refresh_mode, SDL_Rect* rect, bool clear_dirty_flag,
       bool direct_flag)
 {
+  flushDirect(*rect, refresh_mode);
+  return;
+
     if (direct_flag) {
-        flushDirect(*rect, refresh_mode, true);
+        flushDirect(*rect, refresh_mode);
     }
     else {
         if (rect) dirty_rect.add(*rect);
@@ -1181,16 +1193,24 @@ void PonscripterLabel::flush(int refresh_mode, SDL_Rect* rect, bool clear_dirty_
         if (dirty_rect.area > 0) {
             if (dirty_rect.area >= dirty_rect.bounding_box.w *
                                    dirty_rect.bounding_box.h) {
-                flushDirect(dirty_rect.bounding_box, refresh_mode, true);
+                flushDirect(dirty_rect.bounding_box, refresh_mode);
             }
             else {
-                for (int i = 0; i < dirty_rect.num_history; i++)
+                for (int i = 0; i < dirty_rect.num_history; i++) {
                     flushDirect(dirty_rect.history[i], refresh_mode, false);
-                //SDL_BlitSurface(accumulation_surface, rect, screen_surface, rect);
+                }
+                for (int i = 0; i < dirty_rect.num_history; i++) {
+                  //SDL_BlitSurface(accumulation_surface, &dirty_rect.history[i], screen_surface, &dirty_rect.history[i]);
+                  SDL_UpdateTexture(screen_tex, &dirty_rect.history[i], screen_surface->pixels, screen_surface->pitch);
+                  SDL_RenderCopy(renderer, screen_tex, &dirty_rect.history[i], &dirty_rect.history[i]);
+                  SDL_RenderPresent(renderer);
+                }
+
+                //SDL_BlitSurface(accumulation_surface, NULL, screen_surface, NULL);
                 //SDL_UpdateTexture(screen_tex, NULL, accumulation_surface->pixels, accumulation_surface->pitch);
                 //SDL_RenderClear(renderer);
                 //SDL_RenderCopy(renderer, screen_tex, NULL, NULL);
-                //SDL_RenderPresent(renderer);
+                SDL_RenderPresent(renderer);
             }
         }
     }
@@ -1199,20 +1219,30 @@ void PonscripterLabel::flush(int refresh_mode, SDL_Rect* rect, bool clear_dirty_
 }
 
 
-void PonscripterLabel::flushDirect(SDL_Rect rect, int refresh_mode, bool updaterect)
+void PonscripterLabel::flushDirect(SDL_Rect &rect, int refresh_mode, bool updaterect)
 {
-    refreshSurface(accumulation_surface, &rect, refresh_mode);
-    SDL_BlitSurface(accumulation_surface, &rect, screen_surface, &rect);
+  SDL_SetSurfaceBlendMode(accumulation_surface, SDL_BLENDMODE_NONE);
+  SDL_SetSurfaceBlendMode(screen_surface, SDL_BLENDMODE_BLEND);
+
+  refreshSurface(accumulation_surface, NULL, refresh_mode);
+  SDL_BlitSurface(accumulation_surface, NULL, screen_surface, NULL);
+
+  if(SDL_UpdateTexture(screen_tex, NULL, screen_surface->pixels, screen_surface->pitch)) {
+    fprintf(stderr,"Error updating texture: %s\n", SDL_GetError());
+  }
+  SDL_RenderClear(renderer);
+  SDL_RenderCopy(renderer, screen_tex, NULL, NULL);
+  SDL_RenderPresent(renderer);
+  return;
 
     if (updaterect) {
-      if(SDL_UpdateTexture(screen_tex, NULL, accumulation_surface->pixels, accumulation_surface->pitch)) {
-        fprintf(stderr,"Error updating texture: %s\n", SDL_GetError());
-      }
-      //if(SDL_UpdateTexture(screen_tex, NULL, screen_surface->pixels, screen_surface->pitch)) {
+      //if(SDL_UpdateTexture(screen_tex, NULL, accumulation_surface->pixels, accumulation_surface->pitch)) {
       //  fprintf(stderr,"Error updating texture: %s\n", SDL_GetError());
       //}
-      SDL_RenderClear(renderer);
-      SDL_RenderCopy(renderer, screen_tex, NULL, NULL);
+      if(SDL_UpdateTexture(screen_tex, &rect, screen_surface->pixels, screen_surface->pitch)) {
+        fprintf(stderr,"Error updating texture: %s\n", SDL_GetError());
+      }
+      SDL_RenderCopy(renderer, screen_tex, &rect, &rect);
       SDL_RenderPresent(renderer);
     }
 }

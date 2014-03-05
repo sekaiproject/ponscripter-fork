@@ -1317,6 +1317,7 @@ int PonscripterLabel::playCommand(const pstring& cmd)
 
 int PonscripterLabel::ofscopyCommand(const pstring& cmd)
 {
+  fprintf(stderr, "Non-upgraded command, help\n");
     SDL_BlitSurface(screen_surface, NULL, accumulation_surface, NULL);
 
     return RET_CONTINUE;
@@ -2158,7 +2159,7 @@ int PonscripterLabel::getscreenshotCommand(const pstring& cmd)
 
     if (screenshot_surface == NULL)
         screenshot_surface =
-	    SDL_CreateRGBSurface(SDL_SWSURFACE, w, h, 32, 0x00ff0000,
+	    SDL_CreateRGBSurface(0, w, h, 32, 0x00ff0000,
 				 0x0000ff00, 0x000000ff, 0xff000000);
 
     SDL_Surface* surface =

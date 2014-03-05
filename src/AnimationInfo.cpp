@@ -780,7 +780,7 @@ void AnimationInfo::calcAffineMatrix()
 
 SDL_Surface* AnimationInfo::allocSurface(int w, int h)
 {
-    return SDL_CreateRGBSurface(SDL_SWSURFACE, w, h, BPP, RMASK, GMASK, BMASK, AMASK);
+    return SDL_CreateRGBSurface(0, w, h, BPP, RMASK, GMASK, BMASK, AMASK);
 }
 
 
@@ -897,7 +897,7 @@ void AnimationInfo::setupImage( SDL_Surface *surface, SDL_Surface *surface_m,
 
     // Create a 32bpp buffer for image processing
 #ifdef BPP16
-    SDL_Surface *tmp = SDL_CreateRGBSurface( SDL_SWSURFACE, w, h,
+    SDL_Surface *tmp = SDL_CreateRGBSurface( 0, w, h,
                                              fmt->BitsPerPixel, fmt->Rmask,
                                              fmt->Gmask, fmt->Bmask, fmt->Amask);
     Uint32 *dst_buffer = (Uint32 *)tmp->pixels;

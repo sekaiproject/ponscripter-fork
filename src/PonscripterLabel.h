@@ -792,7 +792,7 @@ private:
 
     void flush(int refresh_mode, SDL_Rect* rect = 0,
                bool clear_dirty_flag = true, bool direct_flag = false);
-    void flushDirect(SDL_Rect rect, int refresh_mode, bool updaterect = true);
+    void flushDirect(SDL_Rect &rect, int refresh_mode, bool updaterect = true);
     void executeLabel();
     int parseLine();
 

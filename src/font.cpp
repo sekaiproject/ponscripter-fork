@@ -270,7 +270,7 @@ Glyph Font::render_glyph(Uint16 ch, SDL_Color fg, SDL_Color bg, float x_fraction
     FT_Error err = FT_Render_Glyph(glyph, render_mode());
     if (err) return rv;
 
-    rv.bitmap = SDL_CreateRGBSurface(SDL_SWSURFACE,
+    rv.bitmap = SDL_CreateRGBSurface(0,
                           glyph->bitmap.width, glyph->bitmap.rows,
                           8, 0, 0, 0, 0);
     if (!rv.bitmap) return rv;

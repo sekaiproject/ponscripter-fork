@@ -145,7 +145,7 @@ SDL_Surface *PonscripterLabel::createRectangleSurface(const pstring& filename)
     }
 
     SDL_PixelFormat *fmt = image_surface->format;
-    SDL_Surface *tmp = SDL_CreateRGBSurface(SDL_SWSURFACE, w, h,
+    SDL_Surface *tmp = SDL_CreateRGBSurface(0, w, h,
                                             fmt->BitsPerPixel, fmt->Rmask, fmt->Gmask, fmt->Bmask, fmt->Amask);
 
     c = c2;
