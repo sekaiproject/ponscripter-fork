@@ -986,7 +986,10 @@ int PonscripterLabel::init(const char* preferred_script)
     SDL_SetSurfaceAlphaMod(screen_surface, SDL_ALPHA_OPAQUE);
 
     SDL_SetSurfaceBlendMode(accumulation_surface, SDL_BLENDMODE_NONE);
-    SDL_SetSurfaceBlendMode(screen_surface, SDL_BLENDMODE_NONE);
+    SDL_SetSurfaceBlendMode(screen_surface, SDL_BLENDMODE_BLEND);
+    SDL_SetSurfaceBlendMode(backup_surface, SDL_BLENDMODE_NONE);
+    SDL_SetSurfaceBlendMode(effect_src_surface, SDL_BLENDMODE_BLEND);
+    SDL_SetSurfaceBlendMode(effect_dst_surface, SDL_BLENDMODE_NONE);
 
     screenshot_surface = 0;
     text_info.num_of_cells = 1;
@@ -1177,13 +1180,14 @@ void PonscripterLabel::resetSentenceFont()
     sentence_font_info.pos.h = screen_height;
 }
 
+void PonscripterLabel::renderSurface(SDL_Surface *surface) {
+  //SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer, surface);
+  //SDL_RenderCopy(renderer, 
+}
 
 void PonscripterLabel::flush(int refresh_mode, SDL_Rect* rect, bool clear_dirty_flag,
       bool direct_flag)
 {
-  flushDirect(*rect, refresh_mode);
-  return;
-
     if (direct_flag) {
         flushDirect(*rect, refresh_mode);
     }
@@ -1199,17 +1203,11 @@ void PonscripterLabel::flush(int refresh_mode, SDL_Rect* rect, bool clear_dirty_
                 for (int i = 0; i < dirty_rect.num_history; i++) {
                     flushDirect(dirty_rect.history[i], refresh_mode, false);
                 }
-                for (int i = 0; i < dirty_rect.num_history; i++) {
-                  //SDL_BlitSurface(accumulation_surface, &dirty_rect.history[i], screen_surface, &dirty_rect.history[i]);
-                  SDL_UpdateTexture(screen_tex, &dirty_rect.history[i], screen_surface->pixels, screen_surface->pitch);
-                  SDL_RenderCopy(renderer, screen_tex, &dirty_rect.history[i], &dirty_rect.history[i]);
-                  SDL_RenderPresent(renderer);
-                }
 
-                //SDL_BlitSurface(accumulation_surface, NULL, screen_surface, NULL);
-                //SDL_UpdateTexture(screen_tex, NULL, accumulation_surface->pixels, accumulation_surface->pitch);
-                //SDL_RenderClear(renderer);
-                //SDL_RenderCopy(renderer, screen_tex, NULL, NULL);
+                if(SDL_UpdateTexture(screen_tex, NULL, screen_surface->pixels, screen_surface->pitch)) {
+                  fprintf(stderr,"Error updating texture: %s\n", SDL_GetError());
+                }
+                SDL_RenderCopy(renderer, screen_tex, rect, rect);
                 SDL_RenderPresent(renderer);
             }
         }
@@ -1221,17 +1219,17 @@ void PonscripterLabel::flush(int refresh_mode, SDL_Rect* rect, bool clear_dirty_
 
 void PonscripterLabel::flushDirect(SDL_Rect &rect, int refresh_mode, bool updaterect)
 {
-  SDL_SetSurfaceBlendMode(accumulation_surface, SDL_BLENDMODE_NONE);
-  SDL_SetSurfaceBlendMode(screen_surface, SDL_BLENDMODE_BLEND);
+  refreshSurface(accumulation_surface, &rect, refresh_mode);
+  SDL_BlitSurface(accumulation_surface, &rect, screen_surface, &rect);
 
-  refreshSurface(accumulation_surface, NULL, refresh_mode);
-  SDL_BlitSurface(accumulation_surface, NULL, screen_surface, NULL);
+  if(!updaterect) return;
 
   if(SDL_UpdateTexture(screen_tex, NULL, screen_surface->pixels, screen_surface->pitch)) {
     fprintf(stderr,"Error updating texture: %s\n", SDL_GetError());
   }
-  SDL_RenderClear(renderer);
-  SDL_RenderCopy(renderer, screen_tex, NULL, NULL);
+  //SDL_RenderClear(renderer);
+  //SDL_RenderCopy(renderer, screen_tex, NULL, NULL);
+  SDL_RenderCopy(renderer, screen_tex, &rect, &rect);
   SDL_RenderPresent(renderer);
   return;
 
