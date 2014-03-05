@@ -63,13 +63,13 @@ $(objects):
 .PHONY: all install install-hdrs install-lib install-bin uninstall uninstall-hdrs uninstall-lib uninstall-bin clean distclean dist
 
 $(objects)/$(TARGET): $(OBJECTS) $(VERSION_OBJECTS)
-	$(LIBTOOL) --mode=link $(CC) -o $@ $(OBJECTS) $(VERSION_OBJECTS) $(LDFLAGS) $(EXTRA_LDFLAGS) $(LT_LDFLAGS)
+	$(LIBTOOL) --mode=link $(CXX) -o $@ $(OBJECTS) $(VERSION_OBJECTS) $(LDFLAGS) $(EXTRA_LDFLAGS) $(LT_LDFLAGS)
 
 $(objects)/playwave$(EXE): $(objects)/playwave.lo $(objects)/$(TARGET)
-	$(LIBTOOL) --mode=link $(CC) -o $@ $(objects)/playwave.lo $(SDL_CFLAGS) $(SDL_LIBS) $(LDFLAGS) $(objects)/$(TARGET)
+	$(LIBTOOL) --mode=link $(CXX) -o $@ $(objects)/playwave.lo $(SDL_CFLAGS) $(SDL_LIBS) $(LDFLAGS) $(objects)/$(TARGET)
 
 $(objects)/playmus$(EXE): $(objects)/playmus.lo $(objects)/$(TARGET)
-	$(LIBTOOL) --mode=link $(CC) -o $@ $(objects)/playmus.lo $(SDL_CFLAGS) $(SDL_LIBS) $(LDFLAGS) $(objects)/$(TARGET)
+	$(LIBTOOL) --mode=link $(CXX) -o $@ $(objects)/playmus.lo $(SDL_CFLAGS) $(SDL_LIBS) $(LDFLAGS) $(objects)/$(TARGET)
 
 install: all install-hdrs install-lib #install-bin
 install-hdrs:
