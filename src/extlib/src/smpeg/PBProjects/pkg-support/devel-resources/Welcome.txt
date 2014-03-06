@@ -1,5 +1,0 @@
-This package installs the developer version of the smpeg library 
-and associated files. 
-
-The smpeg Framework is installed into ~/Library/Frameworks.
-
