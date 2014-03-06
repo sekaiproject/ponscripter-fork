@@ -340,9 +340,84 @@ void PonscripterLabel::initSDL()
     /* ---------------------------------------- */
     /* Initialize SDL */
 
-    // Apparently the window icon must be set before the display is
-    // initialised.  An ONScripter-style PNG in the current folder
-    // takes precedence.
+#ifdef BPP16
+    screen_bpp = 16;
+#else
+    screen_bpp = 32;
+#endif
+
+#if defined (PDA) && defined (PDA_WIDTH)
+    screen_ratio1 *= PDA_WIDTH;
+    screen_ratio2 *= 320;
+    screen_width  = screen_width * PDA_WIDTH / 320;
+    screen_height = screen_height * PDA_WIDTH / 320;
+#elif defined(PDA) && defined(PDA_AUTOSIZE)
+    SDL_Rect **modes;
+    modes = SDL_ListModes(NULL, 0);
+    if (modes == (SDL_Rect **)0){
+        fprintf(stderr, "No Video mode available.\n");
+        exit(-1);
+    }
+    else if (modes == (SDL_Rect **)-1){
+        // no restriction
+    }
+        else{
+        int width;
+        if (modes[0]->w * 3 > modes[0]->h * 4)
+            width = (modes[0]->h / 3) * 4;
+        else
+            width = (modes[0]->w / 4) * 4;
+        screen_ratio1 *= width;
+        screen_ratio2 *= 320;
+        screen_width   = screen_width  * width / 320;
+        screen_height  = screen_height * width / 320;
+    }
+#endif
+    
+    /*screen_surface = SDL_SetVideoMode(screen_width, screen_height, screen_bpp,
+        DEFAULT_VIDEO_SURFACE_FLAG | (fullscreen_mode ? fullscreen_flags : 0));*/
+
+
+    wm_title_string = DEFAULT_WM_TITLE;
+    wm_icon_string = DEFAULT_WM_ICON;
+
+    screen = SDL_CreateWindow(wm_title_string, 
+        SDL_WINDOWPOS_UNDEFINED,
+        SDL_WINDOWPOS_UNDEFINED,
+        screen_width, screen_height,
+        (fullscreen_mode ? fullscreen_flags : 0));
+    renderer = SDL_CreateRenderer(screen, -1, 0);
+
+    screen_tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
+        SDL_TEXTUREACCESS_STREAMING, screen_width, screen_height);
+    SDL_SetTextureBlendMode(screen_tex, SDL_BLENDMODE_NONE);
+
+    if(screen_tex == 0) {
+      fprintf(stderr, "COuldn't create texture: %s\n", SDL_GetError());
+      exit(-1);
+    }
+
+    /* ---------------------------------------- */
+    /* Check if VGA screen is available. */
+#if defined (PDA) && (PDA_WIDTH == 640)
+    if (screen_surface == 0) {
+        screen_ratio1 /= 2;
+        screen_width  /= 2;
+        screen_height /= 2;
+        //screen_surface = SDL_SetVideoMode(screen_width,screen_height,screen_bpp,
+        //    DEFAULT_VIDEO_SURFACE_FLAG | (fullscreen_mode? fullscreen_flags : 0));
+    }
+#endif
+    underline_value = screen_height - 1;
+
+    //if (screen_surface == 0) {
+    //    fprintf(stderr, "Couldn't set %dx%dx%d video mode: %s\n",
+    //            screen_width, screen_height, screen_bpp, SDL_GetError());
+    //    exit(-1);
+    //}
+
+    /* ---------------------------------------- */
+    /* Set the icon */
     SDL_Surface* icon = IMG_Load("icon.png");
     //use icon.png preferably, but try embedded resources if not found
     //(cmd-line option --use-app-icons to prefer app resources over icon.png)
@@ -402,87 +477,11 @@ void PonscripterLabel::initSDL()
         }
 #endif //MACOSX || WIN32
         SDL_SetWindowIcon(screen, icon);
-        //SDL_SetWindowIcon(window, icon);
     }
     if (icon)
         SDL_FreeSurface(icon);
 
-#ifdef BPP16
-    screen_bpp = 16;
-#else
-    screen_bpp = 32;
-#endif
 
-#if defined (PDA) && defined (PDA_WIDTH)
-    screen_ratio1 *= PDA_WIDTH;
-    screen_ratio2 *= 320;
-    screen_width  = screen_width * PDA_WIDTH / 320;
-    screen_height = screen_height * PDA_WIDTH / 320;
-#elif defined(PDA) && defined(PDA_AUTOSIZE)
-    SDL_Rect **modes;
-    modes = SDL_ListModes(NULL, 0);
-    if (modes == (SDL_Rect **)0){
-        fprintf(stderr, "No Video mode available.\n");
-        exit(-1);
-    }
-    else if (modes == (SDL_Rect **)-1){
-        // no restriction
-    }
-        else{
-        int width;
-        if (modes[0]->w * 3 > modes[0]->h * 4)
-            width = (modes[0]->h / 3) * 4;
-        else
-            width = (modes[0]->w / 4) * 4;
-        screen_ratio1 *= width;
-        screen_ratio2 *= 320;
-        screen_width   = screen_width  * width / 320;
-        screen_height  = screen_height * width / 320;
-    }
-#endif
-    
-    /*screen_surface = SDL_SetVideoMode(screen_width, screen_height, screen_bpp,
-        DEFAULT_VIDEO_SURFACE_FLAG | (fullscreen_mode ? fullscreen_flags : 0));*/
-
-
-    wm_title_string = DEFAULT_WM_TITLE;
-    wm_icon_string = DEFAULT_WM_ICON;
-    //SDL_WM_SetCaption(wm_title_string, wm_icon_string);
-
-    screen = SDL_CreateWindow(wm_title_string, 
-        SDL_WINDOWPOS_UNDEFINED,
-        SDL_WINDOWPOS_UNDEFINED,
-        screen_width, screen_height,
-        (fullscreen_mode ? fullscreen_flags : 0));
-    renderer = SDL_CreateRenderer(screen, -1, 0);
-
-    screen_tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
-        SDL_TEXTUREACCESS_STREAMING, screen_width, screen_height);
-    SDL_SetTextureBlendMode(screen_tex, SDL_BLENDMODE_NONE);
-
-    if(screen_tex == 0) {
-      fprintf(stderr, "COuldn't create texture: %s\n", SDL_GetError());
-      exit(-1);
-    }
-
-    /* ---------------------------------------- */
-    /* Check if VGA screen is available. */
-#if defined (PDA) && (PDA_WIDTH == 640)
-    if (screen_surface == 0) {
-        screen_ratio1 /= 2;
-        screen_width  /= 2;
-        screen_height /= 2;
-        //screen_surface = SDL_SetVideoMode(screen_width,screen_height,screen_bpp,
-        //    DEFAULT_VIDEO_SURFACE_FLAG | (fullscreen_mode? fullscreen_flags : 0));
-    }
-#endif
-    underline_value = screen_height - 1;
-
-    //if (screen_surface == 0) {
-    //    fprintf(stderr, "Couldn't set %dx%dx%d video mode: %s\n",
-    //            screen_width, screen_height, screen_bpp, SDL_GetError());
-    //    exit(-1);
-    //}
 
     SDL_RenderClear(renderer);
     SDL_RenderPresent(renderer);

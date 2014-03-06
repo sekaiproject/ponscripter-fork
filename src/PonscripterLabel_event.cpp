@@ -611,11 +611,8 @@ void PonscripterLabel::variableEditMode(SDL_KeyboardEvent* event)
         if (variable_edit_mode == EDIT_SELECT_MODE) {
             variable_edit_mode = NOT_EDIT_MODE;
             SDL_SetWindowTitle(screen, DEFAULT_WM_TITLE);
-            //TODO
-            //SDL_SetWindowIcon(screen, DEFAULT_WM_ICON);
             SDL_Delay(100);
             SDL_SetWindowTitle(screen, wm_title_string);
-            //SDL_SetWindowIcon(screen, wm_icon_string);
             return;
         }
 
@@ -772,8 +769,6 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
             variable_edit_num  = 0;
             wm_edit_string = EDIT_MODE_PREFIX EDIT_SELECT_STRING;
             SDL_SetWindowTitle(screen, wm_title_string);
-            //TODO
-            //SDL_SetWindowIcon(screen, wm_icon_string);
         }
     }
 
