@@ -892,8 +892,8 @@ LIBS = $OURLIBS \\
        -static -Wl,--start-group \\
        $MY_SDL_LIBS \\
        \$(shell $SMPEG_CONFIG --libs) \$(shell $FREETYPE_CONFIG --libs) \\
-       $LINKSDL_image $LINKjpeg $LINKpng $LINKz \\
-       $LINKSDL_mixer $LINKogg $LINKvorbis $LINKvorbisfile \\
+       $LINKSDL2_image $LINKjpeg $LINKpng $LINKz \\
+       $LINKSDL2_mixer $LINKogg $LINKvorbis $LINKvorbisfile \\
        $LINKbz2 -Wl,--end-group
 
 DEFS = -DWIN32 -DUSE_OGG_VORBIS
@@ -907,8 +907,8 @@ LIBS = $OURLIBS \\
        \$(shell $SDL_CONFIG --static-libs) \\
        \$(shell $SMPEG_CONFIG --libs)      \\
        \$(shell $FREETYPE_CONFIG --libs)   \\
-       $LINKSDL_image $LINKjpeg $LINKpng              \\
-       $LINKSDL_mixer $LINKogg $LINKvorbis $LINKvorbisfile \\
+       $LINKSDL2_image $LINKjpeg $LINKpng              \\
+       $LINKSDL2_mixer $LINKogg $LINKvorbis $LINKvorbisfile \\
        $LINKbz2 -lm -framework QuickTime -framework CoreFoundation
 
 DEFS = -DMACOSX -DUTF8_CAPTION -DUTF8_FILESYSTEM -DUSE_OGG_VORBIS
@@ -937,8 +937,8 @@ esac
 cat >> $MAKEFILE <<_EOF
 
 LIBS = $OURLIBS \\
-       $LINKSDL_image \$(if \$(findstring true,$INTERNAL_SDL_IMAGE),$LINKjpeg $LINKpng $LINKz) \\
-       $LINKSDL_mixer \$(if  \$(findstring true,$INTERNAL_SDL_MIXER$EXPLICIT_OGGLIBS),$LINKvorbisfile $LINKvorbis $LINKogg) \\
+       $LINKSDL2_image \$(if \$(findstring true,$INTERNAL_SDL_IMAGE),$LINKjpeg $LINKpng $LINKz) \\
+       $LINKSDL2_mixer \$(if  \$(findstring true,$INTERNAL_SDL_MIXER$EXPLICIT_OGGLIBS),$LINKvorbisfile $LINKvorbis $LINKogg) \\
        \$(shell $SDL_CONFIG --libs)      \\
        \$(shell $SMPEG_CONFIG --libs)    \\
        \$(shell $FREETYPE_CONFIG --libs) \\

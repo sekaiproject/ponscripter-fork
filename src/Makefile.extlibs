@@ -12,15 +12,15 @@ EI = extlib/include
 EB = extlib/bin
 ES = extlib/src
 
-SDLSRC  = $(ES)/SDL-1.2.13
-SDLISRC = $(ES)/SDL_image-1.2.6
+SDLSRC  = $(ES)/SDL2-2.0.1
+SDLISRC = $(ES)/SDL2_image-2.0.0
 ZSRC    = $(ES)/zlib-1.2.3
 PNGSRC  = $(ES)/libpng-1.2.24
 JPEGSRC = $(ES)/jpeg-6b
-SDLMSRC = $(ES)/SDL_mixer-1.2.8
+SDLMSRC = $(ES)/SDL2_mixer-2.0.0
 OGGSRC  = $(ES)/libogg-1.1.3
 VORBSRC = $(ES)/libvorbis-1.2.0
-SMPGSRC = $(ES)/smpeg
+SMPGSRC = $(ES)/smpeg-2.0.0
 BZSRC   = $(ES)/bzip2-1.0.4
 FTSRC   = $(ES)/freetype-2.3.5
 
@@ -32,7 +32,7 @@ DISTCLEAN_TARGETS=dclean_sdl dclean_sdl_image dclean_sdl_mixer dclean_smpeg dcle
 #-- SDL -----------------------------------------------------------------------
 
 .PHONY: clean_sdl dclean_sdl
-internal_sdl = $(EB)/sdl-config
+internal_sdl = $(EB)/sdl2-config
 clean_sdl:
 	@if [ -f $(SDLSRC)/Makefile ]; then $(MAKE) -C $(SDLSRC) uninstall; fi
 	@if [ -f $(SDLSRC)/Makefile ]; then $(MAKE) -C $(SDLSRC) clean; fi
@@ -46,7 +46,7 @@ $(SDLSRC)/Makefile: $(if $(INTERNAL_LIBPNG),$(EL)/libpng$(LIBSUFFIX))
 	    $(addprefix --disable-,shared joystick nas $(addprefix video-,fbcon directfb svga vgl wscons opengl)) \
 	    $(REDIR)
 
-$(EB)/sdl-config: $(SDLSRC)/Makefile
+$(EB)/sdl2-config: $(SDLSRC)/Makefile
 	@echo Building internal SDL...
 	@$(MAKE) -C $(SDLSRC) $(REDSO)
 	@$(MAKE) -C $(SDLSRC) install $(REDSO)
@@ -55,13 +55,13 @@ $(EB)/sdl-config: $(SDLSRC)/Makefile
 	    sed -e 's/\(-lmingw32 -lSDLmain.*\)$$/\1 -lwinmm/' $@.tmp > $@; \
 	    rm $@.tmp; \
 	fi # Fix for annoying Windows breakage
-	@chmod +x $(EB)/sdl-config # for some reason this isn't happening when
+	@chmod +x $(EB)/sdl2-config # for some reason this isn't happening when
 	@                          # cross-compiling to MinGW
 
 #-- SDL_image -----------------------------------------------------------------
 
 .PHONY: clean_sdl_image dclean_sdl_image
-internal_sdl_image = $(EL)/libSDL_image$(LIBSUFFIX)
+internal_sdl_image = $(EL)/libSDL2_image$(LIBSUFFIX)
 clean_sdl_image:
 	@-if [ -f $(SDLISRC)/Makefile ]; then $(MAKE) -C $(SDLISRC) uninstall; fi
 	@-if [ -f $(SDLISRC)/Makefile ]; then $(MAKE) -C $(SDLISRC) clean; fi
@@ -78,7 +78,7 @@ dclean_sdl_image:
 	@-if [ -f $(PNGSRC)/Makefile ]; then $(MAKE) -C $(PNGSRC) distclean; fi
 	@-if [ -f $(JPEGSRC)/Makefile ]; then $(MAKE) -C $(JPEGSRC) distclean; fi
 
-$(SDLISRC)/Makefile: $(if $(INTERNAL_SDL),$(EB)/sdl-config) \
+$(SDLISRC)/Makefile: $(if $(INTERNAL_SDL),$(EB)/sdl2-config) \
                      $(if $(INTERNAL_LIBPNG),$(EL)/libpng$(LIBSUFFIX)) \
                      $(if $(INTERNAL_LIBJPEG),$(EL)/libjpeg$(LIBSUFFIX))
 	@echo Configuring internal SDL_image...
@@ -94,7 +94,7 @@ $(SDLISRC)/Makefile: $(if $(INTERNAL_SDL),$(EB)/sdl-config) \
 	    exit 1; \
 	fi
 
-$(EL)/libSDL_image$(LIBSUFFIX): $(SDLISRC)/Makefile
+$(EL)/libSDL2_image$(LIBSUFFIX): $(SDLISRC)/Makefile
 	@echo Building internal SDL_image...
 	@$(MAKE) -C $(SDLISRC) $(REDSO)
 	@$(MAKE) -C $(SDLISRC) install $(REDSO)
@@ -132,7 +132,7 @@ $(EL)/libjpeg$(LIBSUFFIX): $(JPEGSRC)/Makefile
 OGGLIBS = $(EL)/libogg$(LIBSUFFIX) $(EL)/libvorbis$(LIBSUFFIX) $(EL)/libvorbisfile$(LIBSUFFIX)
 
 .PHONY: clean_sdl_mixer dclean_sdl_mixer
-internal_sdl_mixer = $(EL)/libSDL_mixer$(LIBSUFFIX)
+internal_sdl_mixer = $(EL)/libSDL2_mixer$(LIBSUFFIX)
 clean_sdl_mixer:
 	@if [ -f $(SDLMSRC)/Makefile ]; then $(MAKE) -C $(SDLMSRC) uninstall; fi
 	@if [ -f $(VORBSRC)/Makefile ]; then $(MAKE) -C $(VORBSRC) uninstall; fi
@@ -145,8 +145,8 @@ dclean_sdl_mixer:
 	@if [ -f $(VORBSRC)/Makefile ]; then $(MAKE) -C $(VORBSRC) distclean; fi
 	@if [ -f $(OGGSRC)/Makefile  ]; then $(MAKE) -C $(OGGSRC)  distclean; fi
 
-$(SDLMSRC)/Makefile: $(if $(INTERNAL_SDL),$(EB)/sdl-config) \
-                     $(if $(INTERNAL_SMPEG),$(EB)/smpeg-config) \
+$(SDLMSRC)/Makefile: $(if $(INTERNAL_SDL),$(EB)/sdl2-config) \
+                     $(if $(INTERNAL_SMPEG),$(EB)/smpeg2-config) \
                      $(if $(INTERNAL_OGGLIBS),$(OGGLIBS))
 	@echo Configuring internal SDL_mixer...
 	@cd $(SDLMSRC) && \
@@ -154,7 +154,7 @@ $(SDLMSRC)/Makefile: $(if $(INTERNAL_SDL),$(EB)/sdl-config) \
 	    $(addprefix --disable-,shared $(addprefix music-,cmd timidity-midi)) \
 	    $(REDIR)
 
-$(EL)/libSDL_mixer$(LIBSUFFIX): $(SDLMSRC)/Makefile
+$(EL)/libSDL2_mixer$(LIBSUFFIX): $(SDLMSRC)/Makefile
 	@echo Building internal SDL_mixer...
 	@$(MAKE) -C $(SDLMSRC) $(REDSO)
 	@$(MAKE) -C $(SDLMSRC) install $(REDSO)
@@ -187,21 +187,21 @@ $(EL)/libvorbis$(LIBSUFFIX): $(EL)/libogg$(LIBSUFFIX) $(VORBSRC)/Makefile
 #-- SMPEG ---------------------------------------------------------------------
 
 .PHONY: clean_smpeg dclean_smpeg
-internal_smpeg = $(EB)/smpeg-config
+internal_smpeg = $(EB)/smpeg2-config
 clean_smpeg:
 	@-if [ -f $(SMPGSRC)/Makefile ]; then $(MAKE) -C $(SMPGSRC) uninstall; fi
 	@-if [ -f $(SMPGSRC)/Makefile ]; then $(MAKE) -C $(SMPGSRC) clean; fi
 dclean_smpeg: clean_smpeg
 	@-if [ -f $(SMPGSRC)/Makefile ]; then $(MAKE) -C $(SMPGSRC) distclean; fi
 
-$(SMPGSRC)/Makefile: $(if $(INTERNAL_SDL),$(EB)/sdl-config)
+$(SMPGSRC)/Makefile: $(if $(INTERNAL_SDL),$(EB)/sdl2-config)
 	@echo Configuring internal smpeg...
-	@cd $(SMPGSRC) && \
+	@cd $(SMPGSRC) && ./autogen.sh && \
 	./configure --prefix="$(LPREFIX)" $(OTHERCONFIG) \
 	    $(addprefix --disable-,shared gtk-player opengl-player debug) \
 	    $(REDIR)
 
-$(EB)/smpeg-config: $(SMPGSRC)/Makefile
+$(EB)/smpeg2-config: $(SMPGSRC)/Makefile
 	@echo Building internal smpeg...
 	@$(MAKE) -C $(SMPGSRC) $(REDSO)
 	@$(MAKE) -C $(SMPGSRC) prefix="$(LPREFIX)" install $(REDSO)
