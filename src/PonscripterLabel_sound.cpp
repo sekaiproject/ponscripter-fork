@@ -53,7 +53,6 @@ typedef struct
   SMPEG_Frame *frame;
   int dirty;
   SDL_mutex *lock;
-  SDL_Renderer *renderer;
 } update_context;
 
 extern bool ext_music_play_once_flag;
@@ -496,7 +495,14 @@ int PonscripterLabel::setCurMusicVolume( int volume )
 // This bit is messy, but it seems we cannot use a method here, so we
 // simply must shift all this stuff into plain C variables.
 typedef std::vector<AnimationInfo*> olvec;
-olvec overlays;
+static olvec overlays;
+static SDL_Texture *video_texture = NULL;
+/*
+   Each of these is only needed if there are subs. 
+   Otherwise we can just pop it straight on the screen
+ */
+static SDL_Surface *video_frame = NULL;
+static SDL_Renderer *video_renderer = NULL;
 
 void UpdateMPEG(void *data, SMPEG_Frame *frame) {
   update_context *c = (update_context *)data;
@@ -541,13 +547,31 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
         update_context c;
         c.dirty = 0;
         c.lock = SDL_CreateMutex();
-        c.renderer = renderer;
 
+        /* SMPEG wants the width to be a multiple of 16 */
         int texture_width = (screen_width + 15) & ~15;
         int texture_height = (screen_height + 15) & ~15;
 
         if (subtitles) {
+            /* A frame is rendered to this surface where
+               subtitles are then blended on, before this
+               is converted back to a texture for display
+               */
+            video_frame = SDL_CreateRGBSurface(0,
+                screen_surface->w, screen_surface->h, 32,
+                0x00ff0000, 0x0000ff00,
+                0x000000ff, 0xff000000);
+            SDL_SetSurfaceAlphaMod(video_frame, 255);
+            SDL_SetSurfaceBlendMode(video_frame, SDL_BLENDMODE_NONE);
+
+            video_renderer = SDL_CreateSoftwareRenderer(video_frame);
+
+            video_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_YV12, SDL_TEXTUREACCESS_STREAMING, texture_width, texture_height);
+            SDL_SetTextureAlphaMod(video_texture, SDL_ALPHA_OPAQUE);
+
             overlays.assign(size_t(subtitles.numdefs()), NULL);
+        } else {
+            video_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_YV12, SDL_TEXTUREACCESS_STREAMING, texture_width, texture_height);
         }
 
         SMPEG_setdisplay(mpeg_sample, UpdateMPEG, &c, c.lock);
@@ -555,18 +579,9 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
         SMPEG_setvolume(mpeg_sample, music_volume);
 
         Mix_HookMusic(mp3callback, mpeg_sample);
+
+
         SMPEG_play(mpeg_sample);
-
-
-        SDL_Texture *video_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_YV12, SDL_TEXTUREACCESS_STREAMING, texture_width, texture_height);
-        SDL_SetTextureAlphaMod(video_texture, SDL_ALPHA_OPAQUE);
-
-        //SDL_Surface *sub_surface = SDL_CreateRGBSurface(0,
-        //                                     texture_width, texture_height, 32,
-        //                                     0x00ff0000, 0x0000ff00,
-        //                                     0x000000ff, 0xff000000);
-        //SDL_SetSurfaceAlphaMod(sub_surface, 255);
-
 
         bool done_flag = false;
         while (!(done_flag & click_flag) &&
@@ -613,41 +628,38 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
             }
             if(c.dirty) {
               SDL_mutexP(c.lock);
+
               SDL_Rect r;
-              r.x = 0; r.y = 0; r.w = texture_width; r.h = texture_height;
+              r.x = 0; r.y = 0; r.w = c.frame->image_width; r.h = c.frame->image_height;
 
-              SDL_RenderClear(renderer);
-              SDL_UpdateTexture(video_texture, &r, c.frame->image, c.frame->image_width);
+              if(!subtitles) {
+                /* Push it through this texture to convert it; this texture knows it's
+                   dealing with YV12 */
+                SDL_UpdateTexture(video_texture, &r, c.frame->image, c.frame->image_width);
+                SDL_RenderCopy(renderer, video_texture, NULL, NULL);
+                SDL_mutexV(c.lock);
+              } else {
+                /* Subtitles enabled */
 
-              //TODO, fix subtitles
-              /*
-                 So, what I think is wrong is that blendOnSurface handles alpha
-                 in its own way which turns out to not be compatible with
-                 sdl... so when you try and blit it onto the video by doing
-                 RenderCopy( ... sub_tex); you either don't get the subs or you
-                 get the subs + black that covers everything else (including
-                 the video).  I suspect the blendOnSurface function will have
-                 to be worked around.
+                SDL_UpdateTexture(video_texture, &r, c.frame->image, c.frame->image_width);
+                /* 'fake-render' it to the video_frame surface, so we can draw
+                   subtitles onto that surface */
+                SDL_RenderCopy(video_renderer, video_texture, NULL, NULL);
 
-                 I've already tried directly accessing (*it)->image_surface and
-                 blending that on, but it segfaults...
-               */
-              //for(olvec::iterator it = overlays.begin(); it != overlays.end(); ++it) {
-              //  if(*it) {
-              //    (*it)->blendOnSurface(video_frame, (*it)->pos.x, (*it)->pos.y, r, (*it)->trans);
-              //  }
-              //}
-              //SDL_Texture *sub_tex = SDL_CreateTextureFromSurface(renderer, sub_surface);
-              //SDL_SetTextureBlendMode(sub_tex, SDL_BLENDMODE_BLEND);
-              //SDL_SetTextureAlphaMod(sub_tex, 255);
-              //SDL_SetTextureBlendMode(offscreen, SDL_BLENDMODE_NONE);
-              //SDL_UpdateTexture(sub_tex, &r, sub_surface->pixels, sub_surface->pitch);
-              //SDL_UpdateTexture(video_texture, NULL, video_frame->pixels, video_frame->pitch);
-              c.dirty = 0;
-              SDL_mutexV(c.lock);
+                SDL_mutexV(c.lock);
+                c.dirty = 0;
 
-              SDL_RenderCopy(renderer, video_texture, NULL, NULL);
-              //SDL_RenderCopy(renderer, sub_tex, NULL, NULL);
+                for(olvec::iterator it = overlays.begin(); it != overlays.end(); ++it) {
+                  if(*it) {
+                    (*it)->blendOnSurface(video_frame, (*it)->pos.x, (*it)->pos.y, r, (*it)->trans);
+                  }
+                }
+
+                /* From texture to surface and back to texture... this isn't efficient */
+                SDL_Texture *tmp_flip = SDL_CreateTextureFromSurface(renderer, video_frame);
+                SDL_RenderCopy(renderer, tmp_flip, NULL, NULL);
+                SDL_DestroyTexture(tmp_flip);
+              }
               SDL_RenderPresent(renderer);
             }
             SDL_Delay(10);
@@ -658,8 +670,8 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
         SMPEG_stop(mpeg_sample);
         Mix_HookMusic(NULL, NULL);
         SMPEG_delete(mpeg_sample);
-
         SDL_DestroyTexture(video_texture);
+        video_texture = NULL;
 
         if (different_spec) {
             //restart mixer with the old audio spec
@@ -667,6 +679,14 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
             openAudio();
         }
 
+        if (video_frame) {
+            SDL_FreeSurface(video_frame);
+            video_frame = NULL;
+        }
+        if (video_renderer) {
+            SDL_DestroyRenderer(video_renderer);
+            video_renderer = NULL;
+        }
         for (olvec::iterator it = overlays.begin(); it != overlays.end(); ++it)
             if (*it) delete *it;
         overlays.clear();
