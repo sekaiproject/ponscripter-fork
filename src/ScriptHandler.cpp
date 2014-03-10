@@ -1265,8 +1265,8 @@ pstring ScriptHandler::parseStr(const char** buf)
             }
             else if (ch >= '0' && ch <= '9') {
                 if (first_flag)
-		    errorAndExit("parseStr: number is not allowed for the "
-				 "first letter of str alias.");
+                  errorAndExit("parseStr: number is not allowed for the "
+                      "first letter of str alias.");
 
                 first_flag = false;
                 alias_buf += ch;

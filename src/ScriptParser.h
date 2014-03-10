@@ -277,9 +277,6 @@ protected:
 
     /* ---------------------------------------- */
     /* Global definitions */
-    SDL_Window *screen;
-    SDL_Renderer *renderer;
-    SDL_Texture *screen_tex;
     int preferred_width;
     int script_width, script_height;
     uint16_t    screen_width, screen_height;

@@ -51,8 +51,9 @@ struct WAVE_HEADER {
 typedef struct
 {
   SMPEG_Frame *frame;
-  int frameCount;
+  int dirty;
   SDL_mutex *lock;
+  SDL_Renderer *renderer;
 } update_context;
 
 extern bool ext_music_play_once_flag;
@@ -495,156 +496,188 @@ int PonscripterLabel::setCurMusicVolume( int volume )
 // This bit is messy, but it seems we cannot use a method here, so we
 // simply must shift all this stuff into plain C variables.
 typedef std::vector<AnimationInfo*> olvec;
-static olvec overlays;
-//static SDL_Surface *offscreen = NULL, *screenptr = NULL;
+olvec overlays;
 
-//void UpdateMPEG(SDL_Surface* surface, int x, int y,
-//                unsigned int w, unsigned int h)
-//{
-//    SDL_Rect r;
-//    r.x = 0; r.y = 0; r.w = screenptr->w; r.h = screenptr->h;
-//    SDL_BlitSurface(offscreen, &r, screenptr, &r);
-//    for (olvec::iterator it = overlays.begin(); it != overlays.end(); ++it) {
-//        if (*it)
-//            (*it)->blendOnSurface(screenptr, (*it)->pos.x, (*it)->pos.y, r,
-//                                  (*it)->trans);
-//    }
-//    //TODO, this is probably for the surface, not screen
-//    //SDL_RenderPresent(renderer);
-//}
+void UpdateMPEG(void *data, SMPEG_Frame *frame) {
+  update_context *c = (update_context *)data;
+  c->frame = frame;
+  c->dirty = 1;
+}
 
-// TODO
-//int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
-//                               SubtitleDefs& subtitles)
-//{
-//    int ret = 0;
-//#ifndef MP3_MAD
-//    bool different_spec = false;
-//    pstring mpeg_dat = ScriptHandler::cBR->getFile(filename);
-//    SMPEG* mpeg_sample = SMPEG_new_rwops(rwops(mpeg_dat), 0, 0, 0);
-//    if (!SMPEG_error(mpeg_sample)) {
-//        SMPEG_enableaudio(mpeg_sample, 0);
-//
-//        if (audio_open_flag) {
-//            //Mion - SMPEG doesn't handle different audio spec well, so
-//            // let's redo the SDL mixer just for this video playback
-//            SDL_AudioSpec wanted;
-//            SMPEG_wantedSpec(mpeg_sample, &wanted);
-//            //printf("SMPEG wants audio: %d Hz %d bit %s\n", wanted.freq,
-//            //       (wanted.format&0xFF),
-//            //       (wanted.channels > 1) ? "stereo" : "mono");
-//            if ((wanted.format != audio_format.format) ||
-//                (wanted.freq != audio_format.freq))
-//            {
-//                different_spec = true;
-//                Mix_CloseAudio();
-//                openAudio(wanted.freq, wanted.format, wanted.channels);
-//                if (!audio_open_flag) {
-//                    // didn't work, use the old settings
-//                    openAudio();
-//                    different_spec = false;
-//                }
-//            }
-//            SMPEG_actualSpec(mpeg_sample, &audio_format);
-//            SMPEG_enableaudio(mpeg_sample, 1);
-//        }
-//
-//        SMPEG_enablevideo(mpeg_sample, 1);
-//
-//        if (subtitles) {
-//            screenptr = screen_surface;
-//            offscreen = SDL_CreateRGBSurface(0,
-//                                             screenptr->w, screenptr->h, 32,
-//                                             0x00ff0000, 0x0000ff00,
-//                                             0x000000ff, 0xff000000);
-//            //SDL_SetAlpha(offscreen, 0, 255);
-//            //TODO, make sure this is right
-//            SDL_SetSurfaceAlphaMod(offscreen, SDL_ALPHA_OPAQUE);
-//            SMPEG_setdisplay(mpeg_sample, &UpdateMPEG, NULL);
-//            overlays.assign(size_t(subtitles.numdefs()), NULL);
-//        }
-//        else
-//            SMPEG_setdisplay(mpeg_sample, screen_surface, NULL, NULL);
-//
-//        SMPEG_setvolume(mpeg_sample, music_volume);
-//
-//        Mix_HookMusic(mp3callback, mpeg_sample);
-//        SMPEG_play(mpeg_sample);
-//
-//        bool done_flag = false;
-//        while (!(done_flag & click_flag) &&
-//               SMPEG_status(mpeg_sample) == SMPEG_PLAYING)
-//        {
-//            SDL_Event event;
-//            while (SDL_PollEvent(&event)) {
-//                switch (event.type) {
-//                case SDL_KEYDOWN: {
-//                    int s = ((SDL_KeyboardEvent*) &event)->keysym.sym;
-//                    if (s == SDLK_RETURN || s == SDLK_SPACE || s == SDLK_ESCAPE)
-//                        done_flag = true;
-//                    break;
-//                }
-//                case SDL_QUIT:
-//                    ret = 1;
-//                case SDL_MOUSEBUTTONDOWN:
-//                    done_flag = true;
-//                    break;
-//                default:
-//                    break;
-//                }
-//            }
-//
-//            if (subtitles) {
-//                SMPEG_Info info;
-//                SMPEG_getinfo(mpeg_sample, &info);
-//                if (info.current_time >= subtitles.next()) {
-//                    Subtitle s = subtitles.pop();
-//                    AnimationInfo* overlay = 0;
-//                    if (s.text) {
-//                        overlay = new AnimationInfo();
-//                        overlay->setImageName(s.text);
-//                        overlay->pos.x = screen_width / 2;
-//                        overlay->pos.y = subtitles.pos(s.number);
-//                        parseTaggedString(overlay);
-//                        overlay->color_list[0] = subtitles.colour(s.number);
-//                        setupAnimationInfo(overlay);
-//                        overlay->trans = subtitles.alpha(s.number);
-//                    }
-//                    if (overlays[s.number]) delete overlays[s.number];
-//                    overlays[s.number] = overlay;
-//                }
-//            }
-//            SDL_Delay(10);
-//        }
-//
-//        ctrl_pressed_status = 0;
-//
-//        SMPEG_stop(mpeg_sample);
-//        Mix_HookMusic(NULL, NULL);
-//        SMPEG_delete(mpeg_sample);
-//
-//        if (different_spec) {
-//            //restart mixer with the old audio spec
-//            Mix_CloseAudio();
-//            openAudio();
-//        }
-//
-//        if (offscreen) {
-//            SDL_FreeSurface(offscreen);
-//            offscreen = NULL;
-//            screenptr = NULL;
-//        }
-//        for (olvec::iterator it = overlays.begin(); it != overlays.end(); ++it)
-//            if (*it) delete *it;
-//        overlays.clear();
-//    }
-//
-//#else
-//    fprintf(stderr, "mpegplay command is disabled.\n");
-//#endif
-//
-//    return ret;
-//}
+int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
+                               SubtitleDefs& subtitles)
+{
+    int ret = 0;
+#ifndef MP3_MAD
+    bool different_spec = false;
+    pstring mpeg_dat = ScriptHandler::cBR->getFile(filename);
+    SMPEG* mpeg_sample = SMPEG_new_rwops(rwops(mpeg_dat), 0, 0, 0);
+    if (!SMPEG_error(mpeg_sample)) {
+        SMPEG_enableaudio(mpeg_sample, 0);
+
+        if (audio_open_flag) {
+            //Mion - SMPEG doesn't handle different audio spec well, so
+            // let's redo the SDL mixer just for this video playback
+            SDL_AudioSpec wanted;
+            SMPEG_wantedSpec(mpeg_sample, &wanted);
+            if ((wanted.format != audio_format.format) ||
+                (wanted.freq != audio_format.freq))
+            {
+                different_spec = true;
+                Mix_CloseAudio();
+                openAudio(wanted.freq, wanted.format, wanted.channels);
+                if (!audio_open_flag) {
+                  fprintf(stderr, "New format error, using old\n");
+                    openAudio();
+                    different_spec = false;
+                }
+            }
+            SMPEG_actualSpec(mpeg_sample, &audio_format);
+            SMPEG_enableaudio(mpeg_sample, 1);
+        }
+
+        SMPEG_enablevideo(mpeg_sample, 1);
+
+        update_context c;
+        c.dirty = 0;
+        c.lock = SDL_CreateMutex();
+        c.renderer = renderer;
+
+        int texture_width = (screen_width + 15) & ~15;
+        int texture_height = (screen_height + 15) & ~15;
+
+        if (subtitles) {
+            overlays.assign(size_t(subtitles.numdefs()), NULL);
+        }
+
+        SMPEG_setdisplay(mpeg_sample, UpdateMPEG, &c, c.lock);
+
+        SMPEG_setvolume(mpeg_sample, music_volume);
+
+        Mix_HookMusic(mp3callback, mpeg_sample);
+        SMPEG_play(mpeg_sample);
+
+
+        SDL_Texture *video_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_YV12, SDL_TEXTUREACCESS_STREAMING, texture_width, texture_height);
+        SDL_SetTextureAlphaMod(video_texture, SDL_ALPHA_OPAQUE);
+
+        //SDL_Surface *sub_surface = SDL_CreateRGBSurface(0,
+        //                                     texture_width, texture_height, 32,
+        //                                     0x00ff0000, 0x0000ff00,
+        //                                     0x000000ff, 0xff000000);
+        //SDL_SetSurfaceAlphaMod(sub_surface, 255);
+
+
+        bool done_flag = false;
+        while (!(done_flag & click_flag) &&
+               SMPEG_status(mpeg_sample) == SMPEG_PLAYING)
+        {
+            SDL_Event event;
+            while (SDL_PollEvent(&event)) {
+                switch (event.type) {
+                case SDL_KEYDOWN: {
+                    int s = ((SDL_KeyboardEvent*) &event)->keysym.sym;
+                    if (s == SDLK_RETURN || s == SDLK_SPACE || s == SDLK_ESCAPE)
+                        done_flag = true;
+                    break;
+                }
+                case SDL_QUIT:
+                    ret = 1;
+                case SDL_MOUSEBUTTONDOWN:
+                    done_flag = true;
+                    break;
+                default:
+                    break;
+                }
+            }
+
+            if (subtitles) {
+                SMPEG_Info info;
+                SMPEG_getinfo(mpeg_sample, &info);
+                if (info.current_time >= subtitles.next()) {
+                    Subtitle s = subtitles.pop();
+                    AnimationInfo* overlay = 0;
+                    if (s.text) {
+                        overlay = new AnimationInfo();
+                        overlay->setImageName(s.text);
+                        overlay->pos.x = screen_width / 2;
+                        overlay->pos.y = subtitles.pos(s.number);
+                        parseTaggedString(overlay);
+                        overlay->color_list[0] = subtitles.colour(s.number);
+                        setupAnimationInfo(overlay);
+                        overlay->trans = subtitles.alpha(s.number);
+                    }
+                    if (overlays[s.number]) delete overlays[s.number];
+                    overlays[s.number] = overlay;
+                }
+            }
+            if(c.dirty) {
+              SDL_mutexP(c.lock);
+              SDL_Rect r;
+              r.x = 0; r.y = 0; r.w = texture_width; r.h = texture_height;
+
+              SDL_RenderClear(renderer);
+              SDL_UpdateTexture(video_texture, &r, c.frame->image, c.frame->image_width);
+
+              //TODO, fix subtitles
+              /*
+                 So, what I think is wrong is that blendOnSurface handles alpha
+                 in its own way which turns out to not be compatible with
+                 sdl... so when you try and blit it onto the video by doing
+                 RenderCopy( ... sub_tex); you either don't get the subs or you
+                 get the subs + black that covers everything else (including
+                 the video).  I suspect the blendOnSurface function will have
+                 to be worked around.
+
+                 I've already tried directly accessing (*it)->image_surface and
+                 blending that on, but it segfaults...
+               */
+              //for(olvec::iterator it = overlays.begin(); it != overlays.end(); ++it) {
+              //  if(*it) {
+              //    (*it)->blendOnSurface(video_frame, (*it)->pos.x, (*it)->pos.y, r, (*it)->trans);
+              //  }
+              //}
+              //SDL_Texture *sub_tex = SDL_CreateTextureFromSurface(renderer, sub_surface);
+              //SDL_SetTextureBlendMode(sub_tex, SDL_BLENDMODE_BLEND);
+              //SDL_SetTextureAlphaMod(sub_tex, 255);
+              //SDL_SetTextureBlendMode(offscreen, SDL_BLENDMODE_NONE);
+              //SDL_UpdateTexture(sub_tex, &r, sub_surface->pixels, sub_surface->pitch);
+              //SDL_UpdateTexture(video_texture, NULL, video_frame->pixels, video_frame->pitch);
+              c.dirty = 0;
+              SDL_mutexV(c.lock);
+
+              SDL_RenderCopy(renderer, video_texture, NULL, NULL);
+              //SDL_RenderCopy(renderer, sub_tex, NULL, NULL);
+              SDL_RenderPresent(renderer);
+            }
+            SDL_Delay(10);
+        }
+
+        ctrl_pressed_status = 0;
+
+        SMPEG_stop(mpeg_sample);
+        Mix_HookMusic(NULL, NULL);
+        SMPEG_delete(mpeg_sample);
+
+        SDL_DestroyTexture(video_texture);
+
+        if (different_spec) {
+            //restart mixer with the old audio spec
+            Mix_CloseAudio();
+            openAudio();
+        }
+
+        for (olvec::iterator it = overlays.begin(); it != overlays.end(); ++it)
+            if (*it) delete *it;
+        overlays.clear();
+    }
+
+#else
+    fprintf(stderr, "mpegplay command is disabled.\n");
+#endif
+
+    return ret;
+}
 
 
 void PonscripterLabel::playAVI(const pstring& filename, bool click_flag)

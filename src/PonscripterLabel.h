@@ -458,7 +458,12 @@ private:
     // Final image w/o (shadow + text_surface) used in leaveTextDisplayMode():
     SDL_Surface* backup_surface;
     // Text + Select_image + Tachi image + background:
+public:
     SDL_Surface* screen_surface;
+    SDL_Window *screen;
+    SDL_Renderer *renderer;
+    SDL_Texture *screen_tex;
+private:
     SDL_Surface* effect_dst_surface; // Intermediate source buffer for effect
     SDL_Surface* effect_src_surface; // Intermediate dest buffer for effect
     SDL_Surface *effect_tmp_surface; // Intermediate buffer for effect
@@ -766,7 +771,7 @@ private:
     int setCurMusicVolume(int volume);
 
     SubtitleDefs parseSubtitles(pstring file);
-    //int playMPEG(const pstring& filename, bool click_flag,SubtitleDefs& subtitles);
+    int playMPEG(const pstring& filename, bool click_flag,SubtitleDefs& subtitles);
     void playAVI(const pstring& filename, bool click_flag);
 
     enum { WAVE_PLAY        = 0,
