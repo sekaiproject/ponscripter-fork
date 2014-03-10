@@ -1,3 +1,16 @@
+2014-03-10
+
+  Playing a video with subtitles no longer results in a slightly
+  off-black background. Before, subtitles on/off resulted in the
+  background (possibly video as a whole) being slightly grey tinted
+
+
+2014-02-25
+
+  CD-ROM audio support removed. SDL2 does not have an easy way to
+  play it
+
+
 2011-10-08
 
   Hack to stop engine lockup at @ in text, when using textgosub [Mion]
