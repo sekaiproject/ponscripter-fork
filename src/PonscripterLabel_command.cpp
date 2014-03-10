@@ -1591,6 +1591,9 @@ int PonscripterLabel::menu_windowCommand(const pstring& cmd)
         //    SDL_Rect rect = { 0, 0, screen_width, screen_height };
         //    flushDirect(rect, refreshMode());
         //}
+      if(SDL_SetWindowFullscreen(screen, 0) < 0) {
+        fprintf(stderr, "Error setting fullscreen\n");
+      }
       SDL_Rect rect = { 0, 0, screen_width, screen_height };
       flushDirect(rect, refreshMode());
 #endif
@@ -1613,6 +1616,9 @@ int PonscripterLabel::menu_fullCommand(const pstring& cmd)
         //    SDL_Rect rect = { 0, 0, screen_width, screen_height };
         //    flushDirect(rect, refreshMode());
         //}
+        if(SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN_DESKTOP) < 0) {
+          fprintf(stderr, "Error setting fullscreen\n");
+        }
 #endif
         fullscreen_mode = true;
     }

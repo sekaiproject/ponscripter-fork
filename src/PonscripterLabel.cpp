@@ -381,12 +381,18 @@ void PonscripterLabel::initSDL()
     wm_title_string = DEFAULT_WM_TITLE;
     wm_icon_string = DEFAULT_WM_ICON;
 
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+
     screen = SDL_CreateWindow(wm_title_string, 
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
         screen_width, screen_height,
-        (fullscreen_mode ? fullscreen_flags : 0));
+        (fullscreen_mode ? fullscreen_flags : 0) | SDL_WINDOW_RESIZABLE);
     renderer = SDL_CreateRenderer(screen, -1, 0);
+
+
+    SDL_RenderSetLogicalSize(renderer, screen_width, screen_height);
+
 
     screen_tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
         SDL_TEXTUREACCESS_STREAMING, screen_width, screen_height);
