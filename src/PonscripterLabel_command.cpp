@@ -1485,7 +1485,6 @@ int PonscripterLabel::mpegplayCommand(const pstring& cmd)
     SubtitleDefs subtitles;
     if (script_h.hasMoreArgs()) {
         subtitles = parseSubtitles(script_h.readStrValue());
-        fprintf(stderr, "mpegplay command does not support subtitles yet\n");
     }
     stopBGM(false);
     if (playMPEG(name, cancel, subtitles))
