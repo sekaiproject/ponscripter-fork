@@ -448,13 +448,30 @@ void PonscripterLabel::mousePressEvent(SDL_MouseButtonEvent* event)
 
         if (event->type == SDL_MOUSEBUTTONDOWN)
             current_button_state.down_flag = true;
+    } else {
+      return;
     }
 
-#if SDL_VERSION_ATLEAST(1, 2, 5)
-    //TODO, handle the new mousewheel events
-    // https://wiki.libsdl.org/SDL_EventType
-    // https://wiki.libsdl.org/SDL_MouseWheelEvent
-    /*else if (event->button == SDL_BUTTON_WHEELUP
+    if (event_mode & (WAIT_INPUT_MODE | WAIT_BUTTON_MODE)) {
+        playClickVoice();
+        stopAnimation(clickstr_state);
+        advancePhase();
+    }
+}
+
+void PonscripterLabel::mouseWheelEvent(SDL_MouseWheelEvent* event) {
+    if (variable_edit_mode) return;
+
+
+    if (automode_flag) {
+        remaining_time = -1;
+        setAutoMode(false);
+        return;
+    }
+
+    setSkipMode(false);
+
+    if (event->y > 0 //Scroll up
              && ((event_mode & WAIT_TEXT_MODE)
                  || (usewheel_flag && (event_mode & WAIT_BUTTON_MODE))
                  || system_menu_mode == SYSTEM_LOOKBACK)) {
@@ -462,7 +479,7 @@ void PonscripterLabel::mousePressEvent(SDL_MouseButtonEvent* event)
         volatile_button_state.button = -2;
         if (event_mode & WAIT_TEXT_MODE) system_menu_mode = SYSTEM_LOOKBACK;
     }
-    else if (event->button == SDL_BUTTON_WHEELDOWN
+    else if (event->y < 0 //Scroll down
              && ((enable_wheeldown_advance_flag &&
                   (event_mode & WAIT_TEXT_MODE))
                  || (usewheel_flag && (event_mode & WAIT_BUTTON_MODE))
@@ -475,15 +492,17 @@ void PonscripterLabel::mousePressEvent(SDL_MouseButtonEvent* event)
             current_button_state.button  = -3;
             volatile_button_state.button = -3;
         }
-    }*/
-#endif
-    else return;
+    } else {
+      return;
+    }
+    /* Perhaps handle x too in case they have a trackpad sideways scroll? */
 
     if (event_mode & (WAIT_INPUT_MODE | WAIT_BUTTON_MODE)) {
-        playClickVoice();
-        stopAnimation(clickstr_state);
-        advancePhase();
+      playClickVoice();
+      stopAnimation(clickstr_state);
+      advancePhase();
     }
+
 }
 
 
@@ -1019,25 +1038,15 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
             if (fullscreen_mode) menu_windowCommand("menu_window");
             else menu_fullCommand("menu_full");
         }
-//        else if (event->keysym.sym == SDLK_w) {
-//	    // If we're using a suitably hacked SDL, this will switch
-//	    // to fullscreen mode with aspect ratio preservation for
-//	    // widescreen displays.  Otherwise it'll just switch to
-//	    // fullscreen mode.
-//	    fullscreen_flags ^= 0x00100000;
-//	    fullscreen_mode = false;
-//	    menu_fullCommand("menu_full");
-//        }
     }
 
-//#ifdef SKIP_TO_WAIT    
     if (event_mode & WAIT_SLEEP_MODE) {
-        if (event->keysym.sym == SDLK_RETURN ||
-	    event->keysym.sym == SDLK_KP_ENTER ||
-	    event->keysym.sym == SDLK_SPACE)
-	  skip_to_wait = 1;
+      if (event->keysym.sym == SDLK_RETURN ||
+          event->keysym.sym == SDLK_KP_ENTER ||
+          event->keysym.sym == SDLK_SPACE) {
+        skip_to_wait = 1;
+      }
     }
-//#endif
 }
 
 
@@ -1164,6 +1173,10 @@ int PonscripterLabel::eventLoop()
 
         case SDL_MOUSEBUTTONUP:
             mousePressEvent((SDL_MouseButtonEvent*) &event);
+            break;
+
+        case SDL_MOUSEWHEEL:
+            mouseWheelEvent(&event.wheel);
             break;
 
         case SDL_JOYBUTTONDOWN:

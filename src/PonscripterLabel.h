@@ -347,6 +347,7 @@ protected:
     void keyUpEvent(SDL_KeyboardEvent* event);
     void keyPressEvent(SDL_KeyboardEvent* event);
     void mousePressEvent(SDL_MouseButtonEvent* event);
+    void mouseWheelEvent(SDL_MouseWheelEvent* event);
     void mouseMoveEvent(SDL_MouseMotionEvent* event);
     void timerEvent();
     void flushEventSub(SDL_Event &event);
