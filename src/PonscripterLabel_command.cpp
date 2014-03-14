@@ -1615,7 +1615,7 @@ int PonscripterLabel::menu_fullCommand(const pstring& cmd)
         //    SDL_Rect rect = { 0, 0, screen_width, screen_height };
         //    flushDirect(rect, refreshMode());
         //}
-        if(SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN_DESKTOP) < 0) {
+        if(SDL_SetWindowFullscreen(screen, fullscreen_flags) < 0) {
           fprintf(stderr, "Error setting fullscreen\n");
         }
 #endif

@@ -488,10 +488,6 @@ void PonscripterLabel::initSDL()
         SDL_FreeSurface(icon);
 
 
-
-    SDL_RenderClear(renderer);
-    SDL_RenderPresent(renderer);
-
     openAudio();
 }
 
@@ -575,7 +571,7 @@ PonscripterLabel::PonscripterLabel()
     disable_rescale_flag = false;
     edit_flag            = false;
     fullscreen_mode      = false;
-    fullscreen_flags     = SDL_WINDOW_FULLSCREEN;
+    fullscreen_flags     = SDL_WINDOW_FULLSCREEN_DESKTOP;
     window_mode          = false;
 #ifdef WIN32
     current_user_appdata = false;
