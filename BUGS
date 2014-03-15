@@ -1,6 +1,33 @@
 This file is not kept up to date.  Some/all of these bugs may not
 actually exist any more.  Consider this "notes", really.
 
+BETA TESTER BUGS
+
+* No sound in the main menu, can only get music to occur after accessing 
+  the notes page.(not sure if intended or bug)
+
+* Cannot get the steam overlay to work, also when steam notifications 
+  pop up, they leave a trail of windows when it minimizes that only go away on alt-tabbing.
+  
+* In the sound options when changing volumes, the button 
+  allows for one press, sometimes two, then won't go lower. In order to keep 
+  changing the volume slider I have to take my cursur off the arrow and moving 
+  it back on again, pressing once, removing it, then putting it back etc etc. 
+  (found that as long as the mouse remains static, it cannot press more than once. 
+  As long as the mouse moves slightly, you can press again)
+  
+* For the general music volume, it allows one press to go lower, then 
+  immieditaly changes selection to the back button despite having curson 
+  on the arrow key, so if you press more than once, it resumes the game. 
+  Raising volume works the same was as the voice volume sliders do. 
+  (was able to recreate again, but it didn't do it every time like previously)
+  
+* If game is in windowed mode, and you hit the maximise window button, 
+  and then change the game to full screen in the options, if you alt-tab 
+  and return to the game the screen turns black and while the sound still 
+  runs you can't see the game unless you quit and come back in. 
+  (have tested this and it occurs each time) 
+
 MAJOR BUGS
 
 * Problems using fullscreen mode under Compiz on Nezumi.  The symptom
