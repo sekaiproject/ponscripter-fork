@@ -472,12 +472,12 @@ then
 else
     $echo_n "Checking for system SDL... ${nobr}"
     case "$SYS" in
-        MinGW)  SDL_CONFIG=`pwd`/src/extlib
-                cd src/win_dll; make prefix=$SDL_CONFIG > /dev/null 2>&1; cd ../..
-                SDL_CONFIG=$SDL_CONFIG/bin/sdl2-config
-                DISTCLEAN_OTHER=SDL2.dll $DISTCLEAN_OTHER
-                cp -p ./src/win_dll/SDL2.dll `pwd`/src;;
-        esac
+        MinGW) SDL_CONFIG=`pwd`/src/extlib
+          cd src/win_dll; make prefix=$SDL_CONFIG > /dev/null 2>&1; cd ../..
+          SDL_CONFIG=$SDL_CONFIG/bin/sdl2-config
+          DISTCLEAN_OTHER=SDL2.dll $DISTCLEAN_OTHER
+          cp -p ./src/win_dll/SDL2.dll `pwd`/src;;
+    esac
     VER=`($SDL_CONFIG --version) 2>/dev/null`
     if [ -n "$VER" ]
     then
@@ -515,7 +515,7 @@ then
 	int main(int argc, char**argv){bool j=IMG_Load_RW(SDL_RWFromConstMem(jpeg,309),1),p=IMG_Load_RW(SDL_RWFromConstMem(png,69),1);return j&&p?0:(j?1:(p?2:3));}
 	_EOF
     INTERNAL_SDL_IMAGE=true
-    $CXX `$SDL_CONFIG --cflags` `$SDL_CONFIG --libs` -lSDL2_image test.cc -o itest >/dev/null 2>&1
+    $CXX `$SDL_CONFIG --cflags` test.cc `$SDL_CONFIG --libs` -lSDL2_image -o itest >/dev/null 2>&1
     ./itest 2>/dev/null
     case $? in
     0) echo "yes"; INTERNAL_SDL_IMAGE=false ;;
@@ -605,7 +605,7 @@ then
 	Mix_Music*m;bool ogg=m=Mix_LoadMUS("o.ogg");if(m)Mix_FreeMusic(m);bool mp3=m=Mix_LoadMUS("o.mp3");if(m)Mix_FreeMusic(m);return ogg&&mp3?0:(ogg?1:(mp3?2:3));}
 	_EOF
     INTERNAL_SDL_MIXER=true
-    $CXX `$SDL_CONFIG --cflags` `$SDL_CONFIG --libs` -lSDL2_mixer test.cc -o mtest >/dev/null 2>&1
+    $CXX `$SDL_CONFIG --cflags` test.cc `$SDL_CONFIG --libs` -lSDL2_mixer -o mtest >/dev/null 2>&1
     ./mtest 2>/dev/null
     case $? in
     0) echo "yes"; INTERNAL_SDL_MIXER=false ;;

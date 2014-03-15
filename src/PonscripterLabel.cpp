@@ -431,16 +431,6 @@ void PonscripterLabel::initSDL()
     //bundle, to have it always use the bundle icns)
 #ifndef MACOSX
     if (!icon || use_app_icons) {
-#ifdef WIN32
-        //use the (first) Windows icon resource
-        HICON wicon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(ONSCRICON));
-        if (wicon) {
-            SDL_SysWMinfo info;
-            SDL_VERSION(&info.version);
-            SDL_GetWMInfo(&info);
-            SendMessage(info.window, WM_SETICON, ICON_BIG, (LPARAM)wicon);
-        }
-#else
         const InternalResource* internal_icon = getResource("icon.png");
         if (internal_icon) {
             if (icon) SDL_FreeSurface(icon);
@@ -449,7 +439,6 @@ void PonscripterLabel::initSDL()
             icon = IMG_Load_RW(rwicon, 0);
             use_app_icons = false;
         }
-#endif // WIN32
     }
 #endif //!MACOSX
     // If an icon was found (and desired), use it.
@@ -487,6 +476,10 @@ void PonscripterLabel::initSDL()
     if (icon)
         SDL_FreeSurface(icon);
 
+
+
+    SDL_RenderClear(renderer);
+    SDL_RenderPresent(renderer);
 
     openAudio();
 }

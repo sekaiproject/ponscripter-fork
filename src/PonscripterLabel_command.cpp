@@ -1615,7 +1615,7 @@ int PonscripterLabel::menu_fullCommand(const pstring& cmd)
         //    SDL_Rect rect = { 0, 0, screen_width, screen_height };
         //    flushDirect(rect, refreshMode());
         //}
-        if(SDL_SetWindowFullscreen(screen, fullscreen_flags) < 0) {
+        if(SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN_DESKTOP) < 0) {
           fprintf(stderr, "Error setting fullscreen\n");
         }
 #endif
@@ -2961,8 +2961,9 @@ int PonscripterLabel::captionCommand(const pstring& cmd)
     //set the window caption directly
     SDL_SysWMinfo info;
     SDL_VERSION(&info.version);
-    SDL_GetWMInfo(&info);
-    SendMessageA(info.window, WM_SETTEXT, 0, (LPARAM)cvt);
+    //TODO, verify SDL2 does handle unicode correctly etc
+    //SDL_GetWMInfo(&info);
+    //SendMessageA(info.window, WM_SETTEXT, 0, (LPARAM)cvt);
     delete[] cvt;
 #endif //WIN32
 
