@@ -3,6 +3,9 @@
 *.o
 /Makefile
 /src/Makefile
+/src/embed
+/src/ponscr
+/src/resources.cpp
 /src/extlib/bin
 /src/extlib/include
 /src/extlib/lib
