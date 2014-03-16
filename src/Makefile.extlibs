@@ -42,8 +42,9 @@ dclean_sdl: clean_sdl
 $(SDLSRC)/Makefile: $(if $(INTERNAL_LIBPNG),$(EL)/libpng$(LIBSUFFIX))
 	@echo Configuring internal SDL...
 	@cd $(SDLSRC) && \
-	./configure --prefix="$(LPREFIX)" $(SDLOTHERCONFIG) \
+	./configure --prefix="$(LPREFIX)" \
 	    $(addprefix --disable-,shared joystick nas $(addprefix video-,fbcon directfb svga vgl wscons opengl)) \
+	    $(SDLOTHERCONFIG) \
 	    $(REDIR)
 
 $(EB)/sdl2-config: $(SDLSRC)/Makefile

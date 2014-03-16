@@ -390,6 +390,10 @@ void PonscripterLabel::initSDL()
         screen_width, screen_height,
         (fullscreen_mode ? fullscreen_flags : 0) | SDL_WINDOW_RESIZABLE);
     renderer = SDL_CreateRenderer(screen, -1, 0);
+    if(renderer == NULL) {
+      fprintf(stderr, "Couldn't create SDL renderer: %s\n", SDL_GetError());
+      exit(-1);
+    }
 
 
     SDL_RenderSetLogicalSize(renderer, screen_width, screen_height);
@@ -397,10 +401,14 @@ void PonscripterLabel::initSDL()
 
     screen_tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
         SDL_TEXTUREACCESS_STREAMING, screen_width, screen_height);
-    SDL_SetTextureBlendMode(screen_tex, SDL_BLENDMODE_NONE);
-
     if(screen_tex == 0) {
-      fprintf(stderr, "COuldn't create texture: %s\n", SDL_GetError());
+      fprintf(stderr, "Couldn't create SDL texture: %s\n", SDL_GetError());
+      exit(-1);
+    }
+
+    SDL_SetTextureBlendMode(screen_tex, SDL_BLENDMODE_NONE);
+    if(screen_tex == 0) {
+      fprintf(stderr, "Couldn't set SDL texture blend mode: %s\n", SDL_GetError());
       exit(-1);
     }
 
