@@ -2,16 +2,27 @@
     SDL_main.c, placed in the public domain by Sam Lantinga  4/13/98
 
     The WinMain function -- calls your program's main() function
-    
+
     Customised to handle stdout/stderr redirection in a UAC-compliant
     way by Peter Jolly, 2006-11-22
 */
 
+
+#ifndef off64_t
+# ifdef _off64_t
+#    define off64_t _off64_t;
+#  else
+#    define off64_t long int;
+#  endif
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 
+
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <ctype.h>
 
 typedef HRESULT (WINAPI *GETFOLDERPATH)(HWND, int, HANDLE, DWORD, LPTSTR);
 
@@ -59,6 +70,7 @@ typedef HRESULT (WINAPI *GETFOLDERPATH)(HWND, int, HANDLE, DWORD, LPTSTR);
 /* seems to be undefined in Win CE although in online help */
 #define isspace(a) (((CHAR)a == ' ') || ((CHAR)a == '\t'))
 #endif /* _WIN32_WCE < 300 */
+
 
 /* Parse a command line buffer into arguments */
 static int ParseCommandLine(char *cmdline, char **argv)
@@ -216,13 +228,6 @@ int console_main(int argc, char *argv[])
     atexit(cleanup_output);
     atexit(cleanup);
 
-    /* Sam:
-       We still need to pass in the application handle so that
-       DirectInput will initialize properly when SDL_RegisterApp()
-       is called later in the video initialization.
-     */
-    SDL_SetModuleHandle(GetModuleHandle(NULL));
-
     /* Run the application main() code */
     status = SDL_main(argc, argv);
 
@@ -257,7 +262,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 #endif
 
     /* Start up DDHELP.EXE before opening any files, so DDHELP doesn't
-       keep them open.  This is a hack.. hopefully it will be fixed 
+       keep them open.  This is a hack.. hopefully it will be fixed
        someday.  DDHELP.EXE starts up the first time DDRAW.DLL is loaded.
      */
     handle = LoadLibrary(TEXT("DDRAW.DLL"));
@@ -288,7 +293,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
     }
     if (outputPath[0] == 0)
 	pathlen = GetModuleFileName(0, outputPath, SDL_arraysize(outputPath));
-    
+
     while ( pathlen > 0 && outputPath[pathlen] != '\\' ) {
         --pathlen;
     }
@@ -301,7 +306,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
     SDL_strlcpy( stdoutPath, outputPath, SDL_arraysize(stdoutPath) );
     SDL_strlcat( stdoutPath, DIR_SEPARATOR STDOUT_FILE, SDL_arraysize(stdoutPath) );
 #endif
-    
+
     /* Redirect standard input and standard output */
     newfp = freopen(stdoutPath, TEXT("w"), stdout);
 

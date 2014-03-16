@@ -1,6 +1,7 @@
 .svn/
 *.utf
 *.o
+<<<<<<< HEAD
 /Makefile
 /src/Makefile
 /src/embed
@@ -13,3 +14,8 @@
 /doc/*.html
 /doc/*.proc
 /doc/version-number
+*.Plo
+*.a
+*.la
+*.lai
+*.lo
