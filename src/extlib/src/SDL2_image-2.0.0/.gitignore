@@ -1,0 +1,10 @@
+/.deps
+/.libs
+/*.lo
+/Makefile
+/libtool
+/sdl2_image.pc
+/config.log
+/config.status
+/libSDL2_image.la
+/showimage
