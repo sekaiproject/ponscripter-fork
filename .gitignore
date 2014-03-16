@@ -1,3 +1,15 @@
 .svn/
 *.utf
 *.o
+/Makefile
+/src/Makefile
+/src/embed
+/src/ponscr
+/src/resources.cpp
+/src/extlib/bin
+/src/extlib/include
+/src/extlib/lib
+/src/extlib/share
+/doc/*.html
+/doc/*.proc
+/doc/version-number

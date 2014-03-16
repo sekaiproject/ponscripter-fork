@@ -28,7 +28,7 @@
 #include <ctype.h>
 
 #ifdef MACOSX
-#include <Carbon/Carbon.h>
+#include <CoreFoundation/CoreFoundation.h>
 #endif
 
 #define TMP_SCRIPT_BUF_LEN 4096
@@ -865,11 +865,12 @@ int ScriptHandler::readScript(DirPaths *path, const char* prefer_name)
     
     if (fp == NULL) {
 #ifdef MACOSX
-        // Note: \p Pascal strings require compilation with -fpascal-strings
-        StandardAlert(kAlertStopAlert, "\pMissing game data",
-		      "\pNo game data found. This application must be run "
-		      "from a directory containing NScripter, ONScripter, "
-		      "or Ponscripter game data.", NULL, NULL);
+        CFOptionFlags *alert_flags;
+        CFUserNotificationDisplayAlert(0, kCFUserNotificationStopAlertLevel, NULL, NULL, NULL,
+            CFSTR("Missing game data"),
+            CFSTR("No game data found. This application must be run "
+                "from a directory containing NScripter, ONScripter, "
+                "or Ponscripter game data."), NULL, NULL, NULL, alert_flags);
 #else
 	fprintf(stderr, "Can't find a Ponscripter game script.\n");
 #endif

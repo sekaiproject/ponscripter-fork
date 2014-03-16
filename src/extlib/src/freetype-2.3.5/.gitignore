@@ -1,0 +1,8 @@
+/builds
+/config.mk
+/objs/.libs
+/objs/apinames
+/objs/ftexport.sym
+/objs/ftmodule.h
+/objs/libfreetype.la
+*.lo

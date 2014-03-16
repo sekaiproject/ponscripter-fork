@@ -1,0 +1,16 @@
+/.deps
+/.libs
+/*.lo
+/Makefile
+/Makefile.in
+/aclocal.m4
+/autom4te.cache
+/compile
+/config.log
+/config.status
+/configure
+/libsmpeg2.la
+/libtool
+/plaympeg
+/smpeg2-config
+/smpeg2.spec

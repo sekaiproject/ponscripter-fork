@@ -1,0 +1,10 @@
+/Makefile
+/Makefile.rules
+/SDL2.spec
+/build/
+/config.log
+/config.status
+/libtool
+/sdl2-config
+/sdl2.pc
+/include/SDL_config.h

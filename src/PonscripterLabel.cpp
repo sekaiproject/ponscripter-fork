@@ -31,6 +31,7 @@
 namespace Carbon {
 #include <sys/stat.h>
 #include <Carbon/Carbon.h>
+#include <CoreFoundation/CoreFoundation.h>
 #include <CoreServices/CoreServices.h>
 }
 #endif
@@ -772,8 +773,10 @@ pstring Platform_GetSavePath(pstring gameid) // MacOS X version
     if (mkdir(rv, 0755) == 0 || errno == EEXIST) 
         return rv;
     // If that fails, die.
-    StandardAlert(kAlertStopAlert, "\pmkdir failure",
-                  "\pCould not create a directory for saved games.", NULL, NULL);
+    CFOptionFlags *alert_flags;
+    CFUserNotificationDisplayAlert(0, kCFUserNotificationStopAlertLevel, NULL, NULL, NULL,
+        CFSTR("mkdir failure"),
+        CFSTR("Could not create a directory for saved games."), NULL, NULL, NULL, alert_flags);
     exit(1);
 }
 #elif defined LINUX
