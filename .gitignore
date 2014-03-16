@@ -13,3 +13,8 @@
 /doc/*.html
 /doc/*.proc
 /doc/version-number
+*.Plo
+*.a
+*.la
+*.lai
+*.lo
