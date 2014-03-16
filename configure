@@ -54,8 +54,8 @@ EXPLICIT_OGGLIBS=false
 SDL_CONFIG=sdl2-config
 SMPEG_CONFIG=smpeg2-config
 FREETYPE_CONFIG=freetype-config
-EXTLIB=./extlib
 SRC=src
+EXTLIB=./$SRC/extlib
 MAKEFILE=$SRC/Makefile
 
 VERSION=`awk '/define VER_NUMBER/ {print $3}' $SRC/version.h`
@@ -812,7 +812,7 @@ if $INTERNAL_BZIP2  || $INTERNAL_FREETYPE || $INTERNAL_LIBJPEG || \
 then
     OURLDFLAGS="-L\$(shell pwd)/$SRC/extlib/lib"
     OURINCLUDE="-I\$(shell pwd)/$SRC/extlib/include"
-    OURINCS="-Iextlib/include \$(shell [ -d extlib/include/SDL ] && echo -Iextlib/include/SDL)"
+    OURINCS="-Iextlib/include \$(shell [ -d extlib/include/SDL2 ] && echo -Iextlib/include/SDL2) \$(shell [ -d extlib/include/smpeg2 ] && echo -Iextlib/include/smpeg2)"
     OURLIBS="-Lextlib/lib"
     OURPATH="\$(shell pwd)/$SRC/extlib/bin:"
 fi
