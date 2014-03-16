@@ -1,14 +1,14 @@
 #!/bin/sh
 
-prefix=./extlib/src/SDL-1.2.13
+prefix=/usr/local/cross-tools/i686-w64-mingw32
 exec_prefix=${prefix}
 exec_prefix_set=no
 libdir=${exec_prefix}/lib
 
 #usage="\
-#Usage: sdl-config [--prefix[=DIR]] [--exec-prefix[=DIR]] [--version] [--cflags] [--libs]"
+#Usage: $0 [--prefix[=DIR]] [--exec-prefix[=DIR]] [--version] [--cflags] [--libs]"
 usage="\
-Usage: sdl-config [--prefix[=DIR]] [--exec-prefix[=DIR]] [--version] [--cflags] [--libs] [--static-libs]"
+Usage: $0 [--prefix[=DIR]] [--exec-prefix[=DIR]] [--version] [--cflags] [--libs] [--static-libs]"
 
 if test $# -eq 0; then
       echo "${usage}" 1>&2
@@ -17,7 +17,7 @@ fi
 
 while test $# -gt 0; do
   case "$1" in
-  -*=*) optarg=`echo "$1" | LC_ALL="C" sed 's/[-_a-zA-Z0-9]*=//'` ;;
+  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
   *) optarg= ;;
   esac
 
@@ -39,17 +39,17 @@ while test $# -gt 0; do
       echo $exec_prefix
       ;;
     --version)
-      echo 1.2.13
+      echo 2.0.3
       ;;
     --cflags)
-      echo -I${prefix}/include/SDL -I${prefix}/src/SDL-1.2.13/include -D_GNU_SOURCE=1 -Dmain=SDL_main
+      echo -I${prefix}/include/SDL2  -Dmain=SDL_main
       ;;
     --libs)
-      echo -L${exec_prefix}/lib  -lmingw32 -lSDLmain -lSDL -lwinmm  -mwindows
+      echo -L${exec_prefix}/lib  -lmingw32 -lSDL2main -lSDL2  -mwindows
       ;;
     --static-libs)
 #    --libs|--static-libs)
-      echo -L${exec_prefix}/lib  -lmingw32 -lSDLmain -lSDL -lwinmm  -mwindows
+      echo -L${exec_prefix}/lib  -lmingw32 -lSDL2main -lSDL2  -mwindows  -Wl,--no-undefined -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid -static-libgcc
       ;;
     *)
       echo "${usage}" 1>&2
