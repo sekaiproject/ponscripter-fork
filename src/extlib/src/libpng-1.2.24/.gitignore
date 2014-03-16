@@ -1,0 +1,14 @@
+/Makefile
+/config.h
+/config.log
+/config.status
+*.lo
+*.la
+/.libs
+/libtool
+/stamp-h1
+/libpng-config
+/libpng.pc
+/libpng.sym
+/libpng12-config
+/libpng12.pc

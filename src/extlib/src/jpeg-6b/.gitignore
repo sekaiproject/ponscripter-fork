@@ -1,0 +1,8 @@
+/.libs
+/Makefile
+/config.log
+/config.status
+/*.lo
+/*.la
+/libtool
+/jconfig.h
