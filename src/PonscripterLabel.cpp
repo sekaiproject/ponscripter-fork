@@ -976,13 +976,12 @@ int PonscripterLabel::init(const char* preferred_script)
     SDL_SetSurfaceAlphaMod(backup_surface, SDL_ALPHA_OPAQUE);
     SDL_SetSurfaceAlphaMod(effect_src_surface, SDL_ALPHA_OPAQUE);
     SDL_SetSurfaceAlphaMod(effect_dst_surface, SDL_ALPHA_OPAQUE);
-
     SDL_SetSurfaceAlphaMod(screen_surface, SDL_ALPHA_OPAQUE);
 
     SDL_SetSurfaceBlendMode(accumulation_surface, SDL_BLENDMODE_NONE);
-    SDL_SetSurfaceBlendMode(screen_surface, SDL_BLENDMODE_BLEND);
+    SDL_SetSurfaceBlendMode(screen_surface, SDL_BLENDMODE_NONE);
     SDL_SetSurfaceBlendMode(backup_surface, SDL_BLENDMODE_NONE);
-    SDL_SetSurfaceBlendMode(effect_src_surface, SDL_BLENDMODE_BLEND);
+    SDL_SetSurfaceBlendMode(effect_src_surface, SDL_BLENDMODE_NONE);
     SDL_SetSurfaceBlendMode(effect_dst_surface, SDL_BLENDMODE_NONE);
 
     screenshot_surface = 0;
@@ -1198,11 +1197,7 @@ void PonscripterLabel::flush(int refresh_mode, SDL_Rect* rect, bool clear_dirty_
                     flushDirect(dirty_rect.history[i], refresh_mode, false);
                 }
 
-                if(SDL_UpdateTexture(screen_tex, NULL, screen_surface->pixels, screen_surface->pitch)) {
-                  fprintf(stderr,"Error updating texture: %s\n", SDL_GetError());
-                }
-                SDL_RenderCopy(renderer, screen_tex, rect, rect);
-                SDL_RenderPresent(renderer);
+                flushDirect(*rect, refresh_mode);
             }
         }
     }
@@ -1214,29 +1209,16 @@ void PonscripterLabel::flush(int refresh_mode, SDL_Rect* rect, bool clear_dirty_
 void PonscripterLabel::flushDirect(SDL_Rect &rect, int refresh_mode, bool updaterect)
 {
   refreshSurface(accumulation_surface, &rect, refresh_mode);
-  SDL_BlitSurface(accumulation_surface, &rect, screen_surface, &rect);
 
   if(!updaterect) return;
+  SDL_BlitSurface(accumulation_surface, &rect, screen_surface, &rect);
 
   if(SDL_UpdateTexture(screen_tex, NULL, screen_surface->pixels, screen_surface->pitch)) {
     fprintf(stderr,"Error updating texture: %s\n", SDL_GetError());
   }
-  //SDL_RenderClear(renderer);
-  //SDL_RenderCopy(renderer, screen_tex, NULL, NULL);
-  SDL_RenderCopy(renderer, screen_tex, &rect, &rect);
+  SDL_RenderClear(renderer);
+  SDL_RenderCopy(renderer, screen_tex, NULL, NULL);
   SDL_RenderPresent(renderer);
-  return;
-
-    if (updaterect) {
-      //if(SDL_UpdateTexture(screen_tex, NULL, accumulation_surface->pixels, accumulation_surface->pitch)) {
-      //  fprintf(stderr,"Error updating texture: %s\n", SDL_GetError());
-      //}
-      if(SDL_UpdateTexture(screen_tex, &rect, screen_surface->pixels, screen_surface->pitch)) {
-        fprintf(stderr,"Error updating texture: %s\n", SDL_GetError());
-      }
-      SDL_RenderCopy(renderer, screen_tex, &rect, &rect);
-      SDL_RenderPresent(renderer);
-    }
 }
 
 
@@ -1859,7 +1841,7 @@ void PonscripterLabel::loadEnvData()
     default_cdrom_drive = "";
     kidokumode_flag     = true;
     use_default_volume = true;
-    fullscreen_flags    = SDL_WINDOW_FULLSCREEN;
+    fullscreen_flags    = SDL_WINDOW_FULLSCREEN_DESKTOP;
     
     if (loadFileIOBuf("envdata") == 0) {
         use_default_volume = false;

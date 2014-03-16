@@ -43,8 +43,6 @@ static void optionHelp()
         PNS_VERSION, NSC_VERSION / 100, NSC_VERSION % 100);
 #endif
     printf("Usage: ponscripter [option ...] [root path]\n");
-    printf("      --cdaudio\t\tuse CD audio if available\n");
-    printf("      --cdnumber no\tchoose the CD-ROM drive number\n");
     printf("      --registry file\tset a registry file\n");
     printf("      --dll file\tset a dll file\n");
     printf("  -r, --root path\tset the root path to the archives\n");
@@ -124,14 +122,6 @@ static void parseOptions(int argc, char **argv, PonscripterLabel &ons,
             }
             else if (!strcmp(argv[0] + 1, "v") || !strcmp(argv[0] + 1, "-version")) {
                 optionVersion();
-            }
-            else if (!strcmp(argv[0] + 1, "-cdaudio")) {
-                ons.enableCDAudio();
-            }
-            else if (!strcmp(argv[0] + 1, "-cdnumber")) {
-                argc--;
-                argv++;
-                ons.setCDNumber(atoi(argv[0]));
             }
             else if (!strcmp(argv[0] + 1, "-registry")) {
                 argc--;

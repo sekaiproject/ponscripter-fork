@@ -1262,11 +1262,17 @@ int PonscripterLabel::eventLoop()
                 break;
               case SDL_WINDOWEVENT_EXPOSED:
 
-                SDL_UpdateTexture(screen_tex, NULL, accumulation_surface->pixels, accumulation_surface->pitch);
-                SDL_RenderClear(renderer);
-                SDL_RenderCopy(renderer, screen_tex, NULL, NULL);
-                SDL_RenderPresent(renderer);
-                SDL_RenderPresent(renderer);
+                //The following also trigger exposed on my linux;
+                //verify this is true for others
+#ifdef LINUX
+              case SDL_WINDOWEVENT_MAXIMIZED:
+              case SDL_WINDOWEVENT_RESTORED:
+              case SDL_WINDOWEVENT_RESIZED:
+#endif
+
+                //Direct flush the whole window
+                flush(refreshMode(), NULL, false, true);
+                break;
             }
             break;
 
