@@ -1,3 +1,8 @@
 .svn/
 *.utf
 *.o
+*.Plo
+*.a
+*.la
+*.lai
+*.lo
