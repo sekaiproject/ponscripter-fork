@@ -141,6 +141,13 @@ FILE* DirectReader::fileopen(pstring path, const char* mode)
         fp = fopen(full_path + path, mode);
         if (fp) return fp;
 
+#ifndef WIN32
+        // Linux/Mac proper paths, since [path] can also sometimes be the full filename
+//printf("DReader::fileopen: about to try '" + path + "'\n");
+        fp = fopen(path, mode);
+        if (fp) return fp;
+#endif
+
 #ifdef WIN32
         pstring file_full_path = full_path + path;
         // Windows uses UTF-16, so convert for Japanese characters

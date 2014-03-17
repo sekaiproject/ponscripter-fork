@@ -1,3 +1,7 @@
+2014-03-17
+
+  Fixed an issue where certain scripts on OSX/Linux failed to load files correctly [Dan]
+
 2014-03-10
 
   Playing a video with subtitles no longer results in a slightly
