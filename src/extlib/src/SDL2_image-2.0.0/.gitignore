@@ -6,5 +6,6 @@
 /sdl2_image.pc
 /config.log
 /config.status
+/SDL2_image.spec
 /libSDL2_image.la
 /showimage
