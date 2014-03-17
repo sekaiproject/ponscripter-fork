@@ -691,6 +691,40 @@ private:
                     SDL_Surface* surface);
     void generateMosaic(SDL_Surface* src_surface, int level);
 
+    enum {
+        //some constants for trig tables
+        TRIG_TABLE_SIZE = 256,
+        TRIG_FACTOR  = 16384
+    };
+    int *sin_table, *cos_table;
+    int *whirl_table;
+
+    int effect_tmp; //tmp variable for use by effect routines
+    void buildSinTable();
+    void buildCosTable();
+    void buildWhirlTable();
+    void doFlushout( int level );
+    void effectCascade( char *params, int duration );
+    void effectTrvswave( char *params, int duration );
+    void effectLngtwave( char *params, int duration );
+    void effectWhirl( char *params, int duration );
+
+    struct BreakupCell {
+        int cell_x, cell_y;
+        int dir;
+        int state;
+        int radius;
+        BreakupCell()
+        : cell_x(0), cell_y(0),
+          dir(0), state(0), radius(0)
+        {}
+    } *breakup_cells;
+    bool *breakup_cellforms, *breakup_mask;
+    void buildBreakupCellforms();
+    void buildBreakupMask();
+    void initBreakup( char *params );
+    void effectBreakup( char *params, int duration );
+
     /* ---------------------------------------- */
     /* Select related variables */
     enum {

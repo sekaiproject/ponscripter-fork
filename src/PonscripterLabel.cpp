@@ -983,10 +983,13 @@ int PonscripterLabel::init(const char* preferred_script)
         AnimationInfo::allocSurface(screen_width, screen_height);
     effect_dst_surface =
         AnimationInfo::allocSurface(screen_width, screen_height);
+    effect_tmp_surface =
+        AnimationInfo::allocSurface(screen_width, screen_height);
     SDL_SetSurfaceAlphaMod(accumulation_surface, SDL_ALPHA_OPAQUE);
     SDL_SetSurfaceAlphaMod(backup_surface, SDL_ALPHA_OPAQUE);
     SDL_SetSurfaceAlphaMod(effect_src_surface, SDL_ALPHA_OPAQUE);
     SDL_SetSurfaceAlphaMod(effect_dst_surface, SDL_ALPHA_OPAQUE);
+    SDL_SetSurfaceAlphaMod(effect_tmp_surface, SDL_ALPHA_OPAQUE);
     SDL_SetSurfaceAlphaMod(screen_surface, SDL_ALPHA_OPAQUE);
 
     SDL_SetSurfaceBlendMode(accumulation_surface, SDL_BLENDMODE_NONE);
@@ -994,6 +997,7 @@ int PonscripterLabel::init(const char* preferred_script)
     SDL_SetSurfaceBlendMode(backup_surface, SDL_BLENDMODE_NONE);
     SDL_SetSurfaceBlendMode(effect_src_surface, SDL_BLENDMODE_NONE);
     SDL_SetSurfaceBlendMode(effect_dst_surface, SDL_BLENDMODE_NONE);
+    SDL_SetSurfaceBlendMode(effect_tmp_surface, SDL_BLENDMODE_NONE);
 
     screenshot_surface = 0;
     text_info.num_of_cells = 1;
