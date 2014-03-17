@@ -1,11 +1,12 @@
 .svn/
 *.utf
 *.o
-<<<<<<< HEAD
+*.exe
 /Makefile
 /src/Makefile
 /src/embed
 /src/ponscr
+/src/SDL2.dll
 /src/resources.cpp
 /src/extlib/bin
 /src/extlib/include
@@ -15,7 +16,5 @@
 /doc/*.proc
 /doc/version-number
 *.Plo
-*.a
-*.la
 *.lai
 *.lo

@@ -10,9 +10,9 @@
 
 #ifndef off64_t
 # ifdef _off64_t
-#    define off64_t _off64_t;
+#    define off64_t _off64_t
 #  else
-#    define off64_t long int;
+#    define off64_t long int
 #  endif
 #endif
 
