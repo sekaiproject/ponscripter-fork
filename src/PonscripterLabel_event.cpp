@@ -710,7 +710,7 @@ void PonscripterLabel::shiftCursorOnButton(int diff)
     int y = e.select_rect.y + e.select_rect.h / 2;
     if (x < 0) x = 0; else if (x >= screen_width) x = screen_width - 1;
     if (y < 0) y = 0; else if (y >= screen_height) y = screen_height - 1;
-    SDL_WarpMouseInWindow(screen, x, y);
+    warpMouse(x, y);
 }
 
 
@@ -1264,7 +1264,7 @@ int PonscripterLabel::eventLoop()
 
                 //The following also trigger exposed on my linux;
                 //verify this is true for others
-#ifdef LINUX
+#ifdef WIN32
               case SDL_WINDOWEVENT_MAXIMIZED:
               case SDL_WINDOWEVENT_RESTORED:
               case SDL_WINDOWEVENT_RESIZED:

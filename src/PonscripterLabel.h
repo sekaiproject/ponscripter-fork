@@ -554,6 +554,7 @@ private:
 
     void resetSentenceFont();
     void refreshMouseOverButton();
+    void warpMouse(int x, int y);
     void refreshSprite(int sprite_no, bool active_flag, int cell_no,
                        SDL_Rect* check_src_rect, SDL_Rect* check_dst_rect);
 

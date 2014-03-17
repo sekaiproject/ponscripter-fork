@@ -1549,7 +1549,7 @@ int PonscripterLabel::movemousecursorCommand(const pstring& cmd)
     int x = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
     int y = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
 
-    SDL_WarpMouseInWindow(screen, x, y);
+    warpMouse(x, y);
 
     return RET_CONTINUE;
 }

@@ -64,7 +64,7 @@ void PonscripterLabel::leaveSystemCall(bool restore_flag)
         event_mode = shelter_event_mode;
         draw_cursor_flag = shelter_draw_cursor_flag;
         if (event_mode & WAIT_BUTTON_MODE) {
-            SDL_WarpMouseInWindow(screen, shelter_mouse_state.x, shelter_mouse_state.y);
+            warpMouse(shelter_mouse_state.x, shelter_mouse_state.y);
         }
     }
 

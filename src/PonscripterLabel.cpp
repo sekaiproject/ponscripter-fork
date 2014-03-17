@@ -1629,10 +1629,25 @@ int PonscripterLabel::parseLine()
 /* ---------------------------------------- */
 void PonscripterLabel::refreshMouseOverButton()
 {
-    int mx, my;
     current_over_button = 0;
-    SDL_GetMouseState(&mx, &my);
-    mouseOverCheck(mx, my);
+    mouseOverCheck(current_button_state.x, current_button_state.y);
+}
+
+void PonscripterLabel::warpMouse(int x, int y) {
+  /* Convert logical to window coordinates
+     since SDL_WarpMouse takes real coordinates,
+     but practically everything else uses logical */
+  float scale_x, scale_y;
+  SDL_Rect viewport;
+  SDL_RenderGetViewport(renderer, &viewport);
+  SDL_RenderGetScale(renderer, &scale_x, &scale_y);
+
+  x = x * scale_x;
+  y = y * scale_y;
+
+  x += viewport.x;
+  y += viewport.y;
+  SDL_WarpMouseInWindow(screen, x, y);
 }
 
 
