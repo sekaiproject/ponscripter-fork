@@ -12,7 +12,7 @@ EI = extlib/include
 EB = extlib/bin
 ES = extlib/src
 
-SDLSRC  = $(ES)/SDL2-2.0.1
+SDLSRC  = $(ES)/SDL2-2.0.3
 SDLISRC = $(ES)/SDL2_image-2.0.0
 ZSRC    = $(ES)/zlib-1.2.3
 PNGSRC  = $(ES)/libpng-1.2.24

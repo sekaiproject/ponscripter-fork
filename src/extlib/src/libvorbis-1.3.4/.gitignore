@@ -6,7 +6,8 @@ Makefile
 /doc/doxygen-build.stamp
 *.lo
 *.la
-/lib
+/lib/.libs/
+/lib/test_sharedbook
 /libtool
 /libvorbis.spec
 /stamp-h1
