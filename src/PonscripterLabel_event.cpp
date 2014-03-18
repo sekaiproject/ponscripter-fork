@@ -1262,13 +1262,10 @@ int PonscripterLabel::eventLoop()
                 break;
               case SDL_WINDOWEVENT_EXPOSED:
 
-                //The following also trigger exposed on my linux;
-                //verify this is true for others
-#ifdef WIN32
+                //Resize when window changes size
               case SDL_WINDOWEVENT_MAXIMIZED:
               case SDL_WINDOWEVENT_RESTORED:
               case SDL_WINDOWEVENT_RESIZED:
-#endif
 
                 //Direct flush the whole window
                 flush(refreshMode(), NULL, false, true);
