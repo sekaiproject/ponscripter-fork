@@ -115,7 +115,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["csp2"]             = &PonscripterLabel::cspCommand;
     dict["definereset"]      = &PonscripterLabel::defineresetCommand;
     dict["delay"]            = &PonscripterLabel::delayCommand;
-    dict["deletescreenshot"] = &PonscripterLabel::deletescreenshotCommand;    
+    dict["deletescreenshot"] = &PonscripterLabel::deletescreenshotCommand;
     dict["draw"]             = &PonscripterLabel::drawCommand;
     dict["drawbg"]           = &PonscripterLabel::drawbgCommand;
     dict["drawbg2"]          = &PonscripterLabel::drawbg2Command;
@@ -283,7 +283,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["strsp"]            = &PonscripterLabel::strspCommand;
     dict["systemcall"]       = &PonscripterLabel::systemcallCommand;
     dict["tablegoto"]        = &PonscripterLabel::tablegotoCommand;
-    dict["tablegoto1"]       = &PonscripterLabel::tablegotoCommand;    
+    dict["tablegoto1"]       = &PonscripterLabel::tablegotoCommand;
     dict["debugtablegoto"]   = &PonscripterLabel::tablegotoCommand;
     dict["tal"]              = &PonscripterLabel::talCommand;
     dict["tateyoko"]         = &PonscripterLabel::tateyokoCommand;
@@ -374,7 +374,7 @@ void PonscripterLabel::initSDL()
         screen_height  = screen_height * width / 320;
     }
 #endif
-    
+
     /*screen_surface = SDL_SetVideoMode(screen_width, screen_height, screen_bpp,
         DEFAULT_VIDEO_SURFACE_FLAG | (fullscreen_mode ? fullscreen_flags : 0));*/
 
@@ -384,12 +384,12 @@ void PonscripterLabel::initSDL()
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 
-    screen = SDL_CreateWindow(wm_title_string, 
+    screen = SDL_CreateWindow(wm_title_string,
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
         screen_width, screen_height,
         (fullscreen_mode ? fullscreen_flags : 0) | SDL_WINDOW_RESIZABLE);
-    renderer = SDL_CreateRenderer(screen, -1, 0);
+    renderer = SDL_CreateRenderer(screen, -1, SDL_RENDERER_PRESENTVSYNC);
     if(renderer == NULL) {
       fprintf(stderr, "Couldn't create SDL renderer: %s\n", SDL_GetError());
       exit(-1);
@@ -549,7 +549,7 @@ PonscripterLabel::PonscripterLabel()
     {
         unsigned int func = AnimationInfo::CPUF_NONE;
         int altivec_present = 0;
-    
+
         size_t length = sizeof(altivec_present);
         int error = sysctlbyname("hw.optional.altivec", &altivec_present, &length, NULL, 0);
         if(error) {
@@ -778,7 +778,7 @@ pstring Platform_GetSavePath(pstring gameid) // MacOS X version
     char path[32768];
     FSRefMakePath(&appsupport, (UInt8*) path, 32768);
     pstring rv = pstring(path) + DELIMITER + gameid + DELIMITER;
-    if (mkdir(rv, 0755) == 0 || errno == EEXIST) 
+    if (mkdir(rv, 0755) == 0 || errno == EEXIST)
         return rv;
     // If that fails, die.
     CFOptionFlags *alert_flags;
@@ -794,7 +794,7 @@ pstring Platform_GetSavePath(pstring gameid) // POSIX version
         fprintf(stderr, "No gameid\n");
         exit(1);
     }
-    
+
     // On Linux (and other POSIX-a-likes), place in ~/.gameid
     replace_ascii(gameid, ' ', '_');
     replace_ascii(gameid, '/', '_');
@@ -861,7 +861,7 @@ pstring getGameId(ScriptHandler& script_h)
                         ? caption
                         : versionstr);
     }
-    
+
     // The fallback position is to generate a semi-unique ID using the
     // length of the script file as a cheap hash.
     caption.format("Ponscripter-%x", script_h.getScriptBufferLength());
@@ -1186,7 +1186,7 @@ void PonscripterLabel::resetSentenceFont()
 
 void PonscripterLabel::renderSurface(SDL_Surface *surface) {
   //SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer, surface);
-  //SDL_RenderCopy(renderer, 
+  //SDL_RenderCopy(renderer,
 }
 
 void PonscripterLabel::flush(int refresh_mode, SDL_Rect* rect, bool clear_dirty_flag,
@@ -1303,7 +1303,7 @@ void PonscripterLabel::mouseOverCheck(int x, int y)
             }
 
             ButtonElt& new_btn = buttons[button];
-            
+
             check_dst_rect = new_btn.image_rect;
             if (new_btn.isSprite()) {
                 sprite_info[new_btn.sprite_no].setCell(1);
@@ -1344,7 +1344,7 @@ void PonscripterLabel::executeLabel()
     int loops = 0;
     const char* last_pointer = NULL;
     int last_offset = 0;
-    
+
     while (current_line < current_label_info.num_of_lines) {
 
         if (debug_level > 0) {
@@ -1462,9 +1462,9 @@ int PonscripterLabel::parseLine()
         cmd.remove(0, 1);
         is_orig_cmd = true;
     }
-    
+
     if (!script_h.isText()) {
-        
+
         if (cmd[0] == 0x0a)
             return RET_CONTINUE;
         else if (cmd[0] == 'v' && cmd[1] >= '0' && cmd[1] <= '9')
@@ -1531,7 +1531,7 @@ int PonscripterLabel::parseLine()
 		f.processCode(it - l);
 		continue;
 	    }
-	    
+
             // Check for token breaks.
             if (!ch || ch == '\n' || ch == '@' || ch == '\\' || is_break_char(ch))
                 break;
@@ -1868,7 +1868,7 @@ void PonscripterLabel::loadEnvData()
     kidokumode_flag     = true;
     use_default_volume = true;
     fullscreen_flags    = SDL_WINDOW_FULLSCREEN_DESKTOP;
-    
+
     if (loadFileIOBuf("envdata") == 0) {
         use_default_volume = false;
         bool do_fullscreen = false;
@@ -1899,7 +1899,7 @@ void PonscripterLabel::loadEnvData()
             // Ponscripter extras
             fullscreen_flags = readInt();
         }
-        
+
         if (do_fullscreen) menu_fullCommand("menu_full");
     }
     else {
