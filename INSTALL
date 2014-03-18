@@ -49,8 +49,8 @@ The Sun Workshop compilers are known NOT to work.
 
 Microsoft's C++ compiler will not work with the Ponscripter build
 system, but should theoretically be capable of building the program.
-  
-  
+
+
   PACKAGES
 
 Two versions of the source code are provided.
@@ -80,6 +80,33 @@ On Unix-like platforms you will then want to run
 
 with suitable privileges; this will install the binary and manpages.
 
+If you are building a specific game, such as Narcissu Side 2nd, there
+might be a game environment variable to set. For narcissu, it is:
+
+  export GAME=narci2
+
+
+  WINDOWS
+
+The following instructions should work on Windows.
+
+Install MinGW. Use it to install these packages:
+- mingw32-libz (dev/dll)
+- mingw32-autoconf
+- mingw32-automake
+- mingw32-gcc
+- mingw32-gcc-g++
+- msys-core
+
+Afterwards, run the pi.bat (postinstall) script that should be at
+C:\MinGW\msys\1.0\postinstall\pi.sh
+
+Start a msys shell (C:\MinGW\msys\1.0\msys.bat), cd to where you git
+cloned the repo,
+
+  ./configure
+  make
+
 
   OS X AND FAT BINARIES
 
@@ -90,7 +117,7 @@ instead run
 
 This will create three files (ponscr.ppc, ponscr.intel, and ponscr)
 under src.  The third is your fat binary.
-  
+
 
   BUILD OPTIONS
 
