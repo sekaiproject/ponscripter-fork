@@ -444,7 +444,7 @@ void PonscripterLabel::mousePressEvent(SDL_MouseButtonEvent* event)
         volatile_button_state.button = current_over_button;
 //#ifdef SKIP_TO_WAIT
         if (event_mode & WAIT_SLEEP_MODE) skip_to_wait = 1;
-//#endif	
+//#endif
 
         if (event->type == SDL_MOUSEBUTTONDOWN)
             current_button_state.down_flag = true;
@@ -651,7 +651,7 @@ void PonscripterLabel::variableEditMode(SDL_KeyboardEvent* event)
     else if (variable_edit_mode >= EDIT_VARIABLE_NUM_MODE) {
         int p = 0;
 	pstring var_name;
-	
+
         switch (variable_edit_mode) {
         case EDIT_VARIABLE_NUM_MODE:
 	    var_name.format("%%%d", variable_edit_index);
@@ -705,7 +705,7 @@ void PonscripterLabel::shiftCursorOnButton(int diff)
 	}
     }
     ButtonElt& e = shortcut_mouse_line->second;
-    
+
     int x = e.select_rect.x + e.select_rect.w / 2;
     int y = e.select_rect.y + e.select_rect.h / 2;
     if (x < 0) x = 0; else if (x >= screen_width) x = screen_width - 1;
@@ -829,7 +829,7 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
 	    event->keysym.sym == SDLK_KP_ENTER ||
 	    (spclclk_flag && event->keysym.sym == SDLK_SPACE))
 	{
-	    current_button_state.button = 
+	    current_button_state.button =
 	    volatile_button_state.button = current_over_button;
 	    if (event->type == SDL_KEYDOWN)
 		current_button_state.down_flag = true;
@@ -867,7 +867,7 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
                   event->keysym.sym == SDLK_h) &&
                  (event_mode & WAIT_TEXT_MODE ||
                   (usewheel_flag && !getcursor_flag &&
-                   event_mode & WAIT_BUTTON_MODE) || 
+                   event_mode & WAIT_BUTTON_MODE) ||
                   system_menu_mode == SYSTEM_LOOKBACK))
 	{
 	    current_button_state.button  = -2;
@@ -1261,14 +1261,11 @@ int PonscripterLabel::eventLoop()
               case SDL_WINDOWEVENT_FOCUS_LOST:
                 break;
               case SDL_WINDOWEVENT_EXPOSED:
-
-                //Resize when window changes size
               case SDL_WINDOWEVENT_MAXIMIZED:
               case SDL_WINDOWEVENT_RESTORED:
               case SDL_WINDOWEVENT_RESIZED:
-
-                //Direct flush the whole window
-                flush(refreshMode(), NULL, false, true);
+                //Make sure the texture gets stretched or whatever else need be done
+                rerender();
                 break;
             }
             break;

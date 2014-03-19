@@ -1184,9 +1184,10 @@ void PonscripterLabel::resetSentenceFont()
     sentence_font_info.pos.h = screen_height;
 }
 
-void PonscripterLabel::renderSurface(SDL_Surface *surface) {
-  //SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer, surface);
-  //SDL_RenderCopy(renderer,
+void PonscripterLabel::rerender() {
+  SDL_RenderClear(renderer);
+  SDL_RenderCopy(renderer, screen_tex, NULL, NULL);
+  SDL_RenderPresent(renderer);
 }
 
 void PonscripterLabel::flush(int refresh_mode, SDL_Rect* rect, bool clear_dirty_flag,
@@ -1227,9 +1228,8 @@ void PonscripterLabel::flushDirect(SDL_Rect &rect, int refresh_mode, bool update
   if(SDL_UpdateTexture(screen_tex, NULL, screen_surface->pixels, screen_surface->pitch)) {
     fprintf(stderr,"Error updating texture: %s\n", SDL_GetError());
   }
-  SDL_RenderClear(renderer);
-  SDL_RenderCopy(renderer, screen_tex, NULL, NULL);
-  SDL_RenderPresent(renderer);
+
+  rerender();
 }
 
 

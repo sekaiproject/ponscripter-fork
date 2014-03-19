@@ -98,7 +98,7 @@ public:
 
     PonscripterLabel();
     ~PonscripterLabel();
-   
+
     // ----------------------------------------
     // start-up options
     void enableCDAudio();
@@ -125,7 +125,7 @@ public:
     void setKeyEXE(const char* path);
     void setGameIdentifier(const char *gameid);
     void setMaskType(int mask_type) { png_mask_type = mask_type; }
-    
+
     int  init(const char* preferred_script);
     int  eventLoop();
 
@@ -156,7 +156,7 @@ public:
     int haeleth_sayCommand(const pstring& cmd);
     int gettextspeedCommand(const pstring& cmd);
     int vsp_whenCommand(const pstring& cmd);
-    
+
     //Mion: locale support
     int localestringCommand(const pstring& cmd);
     void initLocale();
@@ -290,7 +290,7 @@ public:
     int drawbgCommand(const pstring& cmd);
     int drawCommand(const pstring& cmd);
     int delayCommand(const pstring& cmd);
-    int deletescreenshotCommand(const pstring& cmd);    
+    int deletescreenshotCommand(const pstring& cmd);
     int defineresetCommand(const pstring& cmd);
     int cspCommand(const pstring& cmd);
     int cselgotoCommand(const pstring& cmd);
@@ -486,7 +486,7 @@ private:
         typedef std::map<int, ButtonElt> collection;
         typedef collection::iterator iterator;
 	typedef collection::reverse_iterator reverse_iterator;
-        
+
         enum BUTTON_TYPE {
             NORMAL_BUTTON     = 0,
             SPRITE_BUTTON     = 1,
@@ -505,7 +505,7 @@ private:
         bool isSprite() { return button_type == SPRITE_BUTTON
                               || button_type == EX_SPRITE_BUTTON; }
         bool isTmpSprite() { return button_type == TMP_SPRITE_BUTTON; }
-        
+
         ButtonElt() {
             button_type = NORMAL_BUTTON;
             anim[0] = anim[1] = 0;
@@ -531,7 +531,7 @@ private:
             else
                 ++it;
     }
-    
+
     void deleteButtons() {
         for (ButtonElt::iterator it = buttons.begin(); it != buttons.end();
              ++it)
@@ -539,7 +539,7 @@ private:
         buttons.clear();
         exbtn_d_button.exbtn_ctl.trunc(0);
     }
-    
+
     int current_over_button;
 
     bool getzxc_flag;
@@ -589,7 +589,7 @@ private:
     AnimationInfo* sprite2_info;
     bool all_sprite_hide_flag;
     bool all_sprite2_hide_flag;
-    
+
     /* ---------------------------------------- */
     /* Parameter related variables */
     AnimationInfo* bar_info[MAX_PARAM_NUM];
@@ -621,7 +621,7 @@ private:
 	int w_left, w_top, w_right, w_bottom;
     };
     WindowDef::dic stored_windows;
-    
+
     /* ---------------------------------------- */
     /* Text related variables */
     AnimationInfo text_info;
@@ -658,7 +658,7 @@ private:
                     AnimationInfo* cache_info = 0)
         { /- for now -/ drawString(str, color, info, flush_flag,
 				   surface, rect, cache_info); }*/
-    
+
     void restoreTextBuffer();
     int  enterTextDisplayMode(bool text_flag = true);
     int  leaveTextDisplayMode(bool force_leave_flag = false);
@@ -760,7 +760,7 @@ private:
 
     int playSound(const pstring& filename, int format, bool loop_flag,
                   int channel = 0);
-    
+
     void playCDAudio();
     int playWave(Mix_Chunk* chunk, int format, bool loop_flag, int channel);
     int playMP3();
@@ -797,10 +797,11 @@ private:
     void clearCurrentTextBuffer();
     void newPage(bool next_flag);
 
+    void rerender();
     void flush(int refresh_mode, SDL_Rect* rect = 0,
                bool clear_dirty_flag = true, bool direct_flag = false);
     void flushDirect(SDL_Rect &rect, int refresh_mode, bool updaterect = true);
-    void renderSurface(SDL_Surface*);
+
     void executeLabel();
     int parseLine();
 
@@ -820,7 +821,7 @@ private:
     /* ---------------------------------------- */
     /* File I/O */
     enum SaveFileType { NScripter, ONScripter, Ponscripter };
-    
+
     void searchSaveFile(SaveFileInfo &info, int no);
     int  loadSaveFile(int no);
     void saveMagicNumber(bool output_flag);
