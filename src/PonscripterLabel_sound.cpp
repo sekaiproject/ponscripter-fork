@@ -116,7 +116,7 @@ extern long decodeOggVorbis(PonscripterLabel::MusicStruct *music_struct, Uint8 *
 #endif
         if (src_len <= 0) break;
 
-        int vol = music_struct->volume;
+        int vol = music_struct->is_mute ? 0 : music_struct->volume;
         long dst_len = src_len;
         if (do_rate_conversion && ovi->cvt.needed){
             ovi->cvt.len = src_len;
@@ -298,9 +298,12 @@ int PonscripterLabel::playWave(Mix_Chunk* chunk, int format, bool loop_flag,
 
     wave_sample[channel] = chunk;
 
-    if (channel == 0) Mix_Volume(channel, voice_volume * 128 / 100);
-    else if (channel == MIX_BGM_CHANNEL) Mix_Volume(channel, music_volume * 128 / 100);
-    else Mix_Volume(channel, se_volume * 128 / 100);
+    if (channel == 0)
+        Mix_Volume(channel, !volume_on_flag? 0 : voice_volume * 128 / 100);
+    else if (channel == MIX_BGM_CHANNEL)
+        Mix_Volume(channel, !volume_on_flag? 0 : music_volume * 128 / 100);
+    else
+        Mix_Volume(channel, !volume_on_flag? 0 : se_volume * 128 / 100);
 
     if (!(format & SOUND_PRELOAD))
         Mix_PlayChannel(channel, wave_sample[channel], loop_flag ? -1 : 0);
@@ -337,7 +340,7 @@ int PonscripterLabel::playMP3()
     SMPEG_actualSpec( mp3_sample, &audio_format );
     SMPEG_enableaudio( mp3_sample, 1 );
 #endif
-    SMPEG_setvolume( mp3_sample, music_volume );
+    SMPEG_setvolume( mp3_sample, !volume_on_flag? 0 : music_volume );
     Mix_HookMusic( mp3callback, mp3_sample );
     SMPEG_play( mp3_sample );
 
@@ -389,7 +392,7 @@ int PonscripterLabel::playOGG(int format, unsigned char* buffer, long length, bo
 
     music_struct.ovi = ovi;
     music_struct.volume = music_volume;
-    //music_struct.is_mute = !volume_on_flag;
+    music_struct.is_mute = !volume_on_flag;
     Mix_HookMusic(oggcallback, &music_struct);
 
     music_buffer = buffer;
@@ -454,7 +457,7 @@ int PonscripterLabel::playMIDI(bool loop_flag)
 
 #endif
 
-    Mix_VolumeMusic(music_volume);
+    Mix_VolumeMusic(!volume_on_flag? 0 : music_volume);
 #ifdef MACOSX
     // Emulate looping on MacOS ourselves to work around bug in SDL_Mixer
     Mix_PlayMusic(midi_info, false);
@@ -480,13 +483,35 @@ int PonscripterLabel::playingMusic()
 int PonscripterLabel::setCurMusicVolume( int volume )
 {
     if (Mix_GetMusicHookData() != NULL) { // for streamed MP3 & OGG
-        if ( mp3_sample ) SMPEG_setvolume( mp3_sample, volume ); // mp3
+        if ( mp3_sample ) SMPEG_setvolume( mp3_sample, !volume_on_flag? 0 : volume ); // mp3
         else music_struct.volume = volume; // ogg
     } else if (Mix_Playing(MIX_BGM_CHANNEL) == 1) { // wave
-        Mix_Volume( MIX_BGM_CHANNEL, volume * 128 / 100 );
+        Mix_Volume( MIX_BGM_CHANNEL, !volume_on_flag? 0 : volume * 128 / 100 );
     } else if (Mix_PlayingMusic() == 1) { // midi
-        Mix_VolumeMusic( volume * 128 / 100 );
+        Mix_VolumeMusic( !volume_on_flag? 0 : volume * 128 / 100 );
     }
+
+    return 0;
+}
+
+int PonscripterLabel::setVolumeMute( bool do_mute )
+{
+    if (Mix_GetMusicHookData() != NULL) { // for streamed MP3 & OGG
+        if ( mp3_sample ) SMPEG_setvolume( mp3_sample, do_mute? 0 : music_volume ); // mp3
+        else music_struct.is_mute = do_mute; // ogg
+    } else if (Mix_Playing(MIX_BGM_CHANNEL) == 1) { // wave
+        Mix_Volume( MIX_BGM_CHANNEL, do_mute? 0 : music_volume * 128 / 100 );
+    } else if (Mix_PlayingMusic() == 1) { // midi
+        Mix_VolumeMusic( do_mute? 0 : music_volume * 128 / 100 );
+    }
+    for ( int i=1 ; i<ONS_MIX_CHANNELS ; i++ ) {
+        if ( wave_sample[i] )
+            Mix_Volume( i, do_mute? 0 : channelvolumes[i] * 128 / 100 );
+     }
+    if ( wave_sample[MIX_LOOPBGM_CHANNEL0] )
+        Mix_Volume( MIX_LOOPBGM_CHANNEL0, do_mute? 0 : se_volume * 128 / 100 );
+    if ( wave_sample[MIX_LOOPBGM_CHANNEL1] )
+        Mix_Volume( MIX_LOOPBGM_CHANNEL1, do_mute? 0 : se_volume * 128 / 100 );
 
     return 0;
 }
@@ -569,7 +594,7 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
 
         SMPEG_setdisplay(mpeg_sample, UpdateMPEG, &c, c.lock);
 
-        SMPEG_setvolume(mpeg_sample, music_volume);
+        SMPEG_setvolume(mpeg_sample, !volume_on_flag? 0 : music_volume);
 
         Mix_HookMusic(mp3callback, mpeg_sample);
 
@@ -583,10 +608,15 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
             SDL_Event event;
             while (SDL_PollEvent(&event)) {
                 switch (event.type) {
-                case SDL_KEYDOWN: {
+                case SDL_KEYUP: {
                     int s = ((SDL_KeyboardEvent*) &event)->keysym.sym;
                     if (s == SDLK_RETURN || s == SDLK_SPACE || s == SDLK_ESCAPE)
                         done_flag = true;
+                    if (s == SDLK_m) {
+                        volume_on_flag = !volume_on_flag;
+                        SMPEG_setvolume(mpeg_sample, !volume_on_flag? 0 : music_volume);
+                        printf("turned %s volume mute\n", !volume_on_flag?"on":"off");
+                    }
                     break;
                 }
                 case SDL_QUIT:

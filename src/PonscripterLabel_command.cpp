@@ -704,15 +704,15 @@ int PonscripterLabel::sevolCommand(const pstring& cmd)
 
     for (int i = 1; i < ONS_MIX_CHANNELS; i++) {
         if ( wave_sample[i] )
-            Mix_Volume( i, se_volume * 128 / 100 );
+            Mix_Volume( i, !volume_on_flag? 0 : se_volume * 128 / 100 );
         channelvolumes[i] = se_volume;
     }
 
     if ( wave_sample[MIX_LOOPBGM_CHANNEL0] )
-        Mix_Volume( MIX_LOOPBGM_CHANNEL0, se_volume * 128 / 100 );
+        Mix_Volume( MIX_LOOPBGM_CHANNEL0, !volume_on_flag? 0 : se_volume * 128 / 100 );
 
     if ( wave_sample[MIX_LOOPBGM_CHANNEL1] )
-        Mix_Volume( MIX_LOOPBGM_CHANNEL1, se_volume * 128 / 100 );
+        Mix_Volume( MIX_LOOPBGM_CHANNEL1, !volume_on_flag? 0 : se_volume * 128 / 100 );
 
     return RET_CONTINUE;
 }
@@ -2885,7 +2885,7 @@ int PonscripterLabel::chvolCommand(const pstring& cmd)
     else if (ch >= ONS_MIX_CHANNELS) ch = ONS_MIX_CHANNELS - 1;
 
     if (wave_sample[ch]){
-        Mix_Volume(ch, vol * 128 / 100);
+        Mix_Volume(ch, !volume_on_flag? 0 : vol * 128 / 100);
     }
 
     channelvolumes[ch] = vol;

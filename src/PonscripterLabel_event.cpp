@@ -594,26 +594,28 @@ void PonscripterLabel::variableEditMode(SDL_KeyboardEvent* event)
 
         case EDIT_MP3_VOLUME_MODE:
             music_volume = variable_edit_num;
-            if (mp3_sample) SMPEG_setvolume(mp3_sample, music_volume);
-
+            if (mp3_sample)
+                SMPEG_setvolume(mp3_sample, !volume_on_flag? 0 : music_volume);
             break;
 
         case EDIT_SE_VOLUME_MODE:
             se_volume = variable_edit_num;
             for (int i = 1; i < ONS_MIX_CHANNELS; i++)
-                if (wave_sample[i]) Mix_Volume(i, se_volume * 128 / 100);
+                if (wave_sample[i])
+                    Mix_Volume(i, !volume_on_flag? 0 : se_volume * 128 / 100);
 
             if (wave_sample[MIX_LOOPBGM_CHANNEL0])
-		Mix_Volume(MIX_LOOPBGM_CHANNEL0, se_volume * 128 / 100);
+                Mix_Volume(MIX_LOOPBGM_CHANNEL0, !volume_on_flag? 0 : se_volume * 128 / 100);
 
             if (wave_sample[MIX_LOOPBGM_CHANNEL1])
-		Mix_Volume(MIX_LOOPBGM_CHANNEL1, se_volume * 128 / 100);
+                Mix_Volume(MIX_LOOPBGM_CHANNEL1, !volume_on_flag? 0 : se_volume * 128 / 100);
 
             break;
 
         case EDIT_VOICE_VOLUME_MODE:
             voice_volume = variable_edit_num;
-            if (wave_sample[0]) Mix_Volume(0, se_volume * 128 / 100);
+            if (wave_sample[0])
+                Mix_Volume(0, !volume_on_flag? 0 : se_volume * 128 / 100);
 
         default:
             break;
@@ -780,6 +782,12 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
         if (variable_edit_mode) {
             variableEditMode(event);
             return;
+        }
+
+        if (event->keysym.sym == SDLK_m) {
+        	volume_on_flag = !volume_on_flag;
+        	setVolumeMute(!volume_on_flag);
+        	printf("turned %s volume mute\n", !volume_on_flag?"on":"off");
         }
 
         if (edit_flag && event->keysym.sym == SDLK_z) {

@@ -771,6 +771,7 @@ private:
     // Mion: for music status and fades
     int playingMusic();
     int setCurMusicVolume(int volume);
+    int setVolumeMute(bool do_mute);
 
     SubtitleDefs parseSubtitles(pstring file);
     int playMPEG(const pstring& filename, bool click_flag,SubtitleDefs& subtitles);
