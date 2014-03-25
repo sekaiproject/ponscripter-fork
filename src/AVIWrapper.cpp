@@ -31,6 +31,7 @@
 #include <avm_output.h>
 #include <stdlib.h>
 #include <string.h>
+#include "PonscripterUserEvents.h"
 
 #define DEFAULT_AUDIOBUF 4096
 #define AVI_FINISH_EVENT 12345
@@ -319,6 +320,8 @@ int AVIWrapper::play(bool click_flag)
         Mix_HookMusic(::audioCallback, this);
 
     bool done_flag = false;
+    bool interrupted_redraw = false;
+
     while (!(done_flag & click_flag) && status == AVI_PLAYING) {
         SDL_Event event;
 
@@ -337,6 +340,9 @@ int AVIWrapper::play(bool click_flag)
             case SDL_MOUSEBUTTONDOWN:
                 done_flag = true;
                 break;
+            case INTERNAL_REDRAW_EVENT:
+                interrupted_redraw = true;
+                break;
             default:
                 break;
             }
@@ -350,6 +356,13 @@ int AVIWrapper::play(bool click_flag)
 
     if (a_stream)
         Mix_HookMusic(NULL, NULL);
+
+
+    if(interrupted_redraw) {
+        SDL_Event redraw_event;
+        redraw_event.type = INTERNAL_REDRAW_EVENT;
+        SDL_PushEvent(&redraw_event);
+    }
 
     return ret;
 }

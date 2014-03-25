@@ -24,6 +24,7 @@
  */
 
 #include "PonscripterLabel.h"
+#include "PonscripterUserEvents.h"
 #ifdef LINUX
 #include <signal.h>
 #endif
@@ -577,6 +578,8 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
         SMPEG_play(mpeg_sample);
 
         bool done_flag = false;
+        bool interrupted_redraw = false;
+
         while (!(done_flag & click_flag) &&
                SMPEG_status(mpeg_sample) == SMPEG_PLAYING)
         {
@@ -593,6 +596,9 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
                     ret = 1;
                 case SDL_MOUSEBUTTONDOWN:
                     done_flag = true;
+                    break;
+                case INTERNAL_REDRAW_EVENT:
+                    interrupted_redraw = true;
                     break;
                 default:
                     break;
@@ -695,11 +701,18 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
           }
         }
         overlays.clear();
+
+        if(interrupted_redraw) {
+            SDL_Event redraw_event;
+            redraw_event.type = INTERNAL_REDRAW_EVENT;
+            SDL_PushEvent(&redraw_event);
+        }
     }
 
 #else
     fprintf(stderr, "mpegplay command is disabled.\n");
 #endif
+
 
     return ret;
 }
