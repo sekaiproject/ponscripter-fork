@@ -703,9 +703,7 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
         overlays.clear();
 
         if(interrupted_redraw) {
-            SDL_Event redraw_event;
-            redraw_event.type = INTERNAL_REDRAW_EVENT;
-            SDL_PushEvent(&redraw_event);
+            queueRerender();
         }
     }
 

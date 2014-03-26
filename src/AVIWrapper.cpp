@@ -359,9 +359,7 @@ int AVIWrapper::play(bool click_flag)
 
 
     if(interrupted_redraw) {
-        SDL_Event redraw_event;
-        redraw_event.type = INTERNAL_REDRAW_EVENT;
-        SDL_PushEvent(&redraw_event);
+        queueRedraw();
     }
 
     return ret;

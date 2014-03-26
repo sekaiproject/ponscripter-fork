@@ -313,6 +313,12 @@ void PonscripterLabel::advancePhase(int count)
     SDL_PushEvent(&event);
 }
 
+void PonscripterLabel::queueRerender() {
+    SDL_Event redraw_event;
+    redraw_event.type = INTERNAL_REDRAW_EVENT;
+    SDL_PushEvent(&redraw_event);
+}
+
 
 void midiCallback(int sig)
 {
@@ -1141,11 +1147,8 @@ int PonscripterLabel::eventLoop()
 {
     SDL_Event event, tmp_event;
 
-    SDL_Event redraw_event;
-    redraw_event.type = INTERNAL_REDRAW_EVENT;
-    SDL_PushEvent(&redraw_event);
-
     advancePhase();
+    queueRerender();
 
     while (SDL_WaitEvent(&event)) {
         // ignore continous SDL_MOUSEMOTION
@@ -1231,10 +1234,15 @@ int PonscripterLabel::eventLoop()
             break;
 
         case INTERNAL_REDRAW_EVENT:
+            if(minimized_flag) {
+                break;
+            }
+            /* We trust that the RESTORE event will
+             * re-enable us.
+             */
+
             rerender();
-            SDL_Event event;
-            event.type = INTERNAL_REDRAW_EVENT;
-            SDL_PushEvent(&event);
+            queueRerender();
             break;
 
         case ONS_WAVE_EVENT:
@@ -1262,12 +1270,18 @@ int PonscripterLabel::eventLoop()
             switch(event.window.event) {
               case SDL_WINDOWEVENT_FOCUS_LOST:
                 break;
-              case SDL_WINDOWEVENT_EXPOSED:
               case SDL_WINDOWEVENT_MAXIMIZED:
               case SDL_WINDOWEVENT_RESTORED:
+                minimized_flag = false;
+                queueRerender();
+                /* fall through */
+              case SDL_WINDOWEVENT_EXPOSED:
               case SDL_WINDOWEVENT_RESIZED:
                 //Make sure the texture gets stretched or whatever else need be done
                 rerender();
+                break;
+              case SDL_WINDOWEVENT_MINIMIZED:
+                minimized_flag = true;
                 break;
             }
             break;
