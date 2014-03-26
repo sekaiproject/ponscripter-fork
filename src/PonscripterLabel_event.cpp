@@ -1274,11 +1274,6 @@ int PonscripterLabel::eventLoop()
               case SDL_WINDOWEVENT_RESTORED:
                 minimized_flag = false;
                 queueRerender();
-                /* fall through */
-              case SDL_WINDOWEVENT_EXPOSED:
-              case SDL_WINDOWEVENT_RESIZED:
-                //Make sure the texture gets stretched or whatever else need be done
-                rerender();
                 break;
               case SDL_WINDOWEVENT_MINIMIZED:
                 minimized_flag = true;
