@@ -426,6 +426,7 @@ private:
     pstring wm_edit_string;
     bool   fullscreen_mode;
     bool   minimized_flag;
+    bool   rerendering_flag;
     Uint32 fullscreen_flags;
     bool   window_mode;
 #ifdef WIN32

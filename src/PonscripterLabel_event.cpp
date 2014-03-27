@@ -313,10 +313,28 @@ void PonscripterLabel::advancePhase(int count)
     SDL_PushEvent(&event);
 }
 
+/*
+ * Put a rerender event on the queue
+ *
+ * We need to constantly redraw the screen
+ * so that steam can draw its overlay. Unfortunately,
+ * due to how the vsync in SDL2 works, we also need to
+ * avoid drawing while minimized/hidden, but we also
+ * shouldn't have two redraw events on the loop at once
+ * or else it lags... in retrospect, the event loop
+ * was the wrong place to put this, but I think we can
+ * make it work.
+ */
 void PonscripterLabel::queueRerender() {
+    /* Get out if we've already probably got an event queued */
+    if(rerendering_flag) return;
+
     SDL_Event redraw_event;
     redraw_event.type = INTERNAL_REDRAW_EVENT;
     SDL_PushEvent(&redraw_event);
+    /* Set rerendering flag so we don't have
+       multiple rerender events on the queue */
+    rerendering_flag = true;
 }
 
 
@@ -1242,6 +1260,9 @@ int PonscripterLabel::eventLoop()
              */
 
             rerender();
+            /* Indicate we're okay with another
+               rerender being put on the queue */
+            rerendering_flag = false;
             queueRerender();
             break;
 
@@ -1274,8 +1295,11 @@ int PonscripterLabel::eventLoop()
               case SDL_WINDOWEVENT_RESTORED:
               case SDL_WINDOWEVENT_SHOWN:
               case SDL_WINDOWEVENT_EXPOSED:
-                minimized_flag = false;
-                queueRerender();
+                /* If we weren't minimized, a rerender is already queued */
+                if(minimized_flag) {
+                    minimized_flag = false;
+                    queueRerender();
+                }
                 break;
               case SDL_WINDOWEVENT_MINIMIZED:
               case SDL_WINDOWEVENT_HIDDEN:
