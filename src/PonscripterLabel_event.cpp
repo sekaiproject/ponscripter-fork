@@ -1272,10 +1272,13 @@ int PonscripterLabel::eventLoop()
                 break;
               case SDL_WINDOWEVENT_MAXIMIZED:
               case SDL_WINDOWEVENT_RESTORED:
+              case SDL_WINDOWEVENT_SHOWN:
+              case SDL_WINDOWEVENT_EXPOSED:
                 minimized_flag = false;
                 queueRerender();
                 break;
               case SDL_WINDOWEVENT_MINIMIZED:
+              case SDL_WINDOWEVENT_HIDDEN:
                 minimized_flag = true;
                 break;
             }
