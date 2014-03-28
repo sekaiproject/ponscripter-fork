@@ -126,6 +126,8 @@ public:
     void setGameIdentifier(const char *gameid);
     void setMaskType(int mask_type) { png_mask_type = mask_type; }
 
+    Uint32 getRefreshRateDelay();
+
     int  init(const char* preferred_script);
     int  eventLoop();
 
@@ -404,6 +406,8 @@ private:
     long autoclick_time;
     long remaining_time;
 
+    SDL_mutex *rerender_event_lock;
+
     bool saveon_flag;
     bool internal_saveon_flag; // to saveoff at the head of text
     int  yesno_caller;
@@ -426,7 +430,6 @@ private:
     pstring wm_edit_string;
     bool   fullscreen_mode;
     bool   minimized_flag;
-    bool   rerendering_flag;
     Uint32 fullscreen_flags;
     bool   window_mode;
 #ifdef WIN32

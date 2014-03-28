@@ -96,6 +96,22 @@ extern "C" Uint32 cdaudioCallback(Uint32 interval, void* param)
     return interval;
 }
 
+extern "C" Uint32 rerenderCallback(Uint32 interval, void *lock) {
+    /* Lock ensures we never are in this callback delaying multiple times at once */
+    SDL_mutex *rerender_lock = (SDL_mutex *)lock;
+    if(SDL_LockMutex(rerender_lock) == 0) {
+        SDL_Delay(interval);
+
+        SDL_Event event;
+        event.type = INTERNAL_REDRAW_EVENT;
+        SDL_PushEvent(&event);
+
+        SDL_UnlockMutex(rerender_lock);
+    }
+    /* Return 0 to essentially remove the timer */
+    return 0;
+}
+
 
 // Pushes the mp3 fadeout event onto the stack.  Part of our mp3
 // fadeout enabling patch.  Recommend for integration.
@@ -313,28 +329,8 @@ void PonscripterLabel::advancePhase(int count)
     SDL_PushEvent(&event);
 }
 
-/*
- * Put a rerender event on the queue
- *
- * We need to constantly redraw the screen
- * so that steam can draw its overlay. Unfortunately,
- * due to how the vsync in SDL2 works, we also need to
- * avoid drawing while minimized/hidden, but we also
- * shouldn't have two redraw events on the loop at once
- * or else it lags... in retrospect, the event loop
- * was the wrong place to put this, but I think we can
- * make it work.
- */
 void PonscripterLabel::queueRerender() {
-    /* Get out if we've already probably got an event queued */
-    if(rerendering_flag) return;
-
-    SDL_Event redraw_event;
-    redraw_event.type = INTERNAL_REDRAW_EVENT;
-    SDL_PushEvent(&redraw_event);
-    /* Set rerendering flag so we don't have
-       multiple rerender events on the queue */
-    rerendering_flag = true;
+    SDL_AddTimer(0, rerenderCallback, rerender_event_lock);
 }
 
 
@@ -1157,6 +1153,15 @@ void PonscripterLabel::timerEvent(void)
     volatile_button_state.button = 0;
 }
 
+Uint32 PonscripterLabel::getRefreshRateDelay() {
+    SDL_DisplayMode mode;
+    SDL_GetWindowDisplayMode(screen, &mode);
+    if(mode.refresh_rate == 0) return 16; //~60 hz
+
+    return 1000 / mode.refresh_rate;
+}
+
+
 
 /* **************************************** *
 * Event loop
@@ -1165,8 +1170,16 @@ int PonscripterLabel::eventLoop()
 {
     SDL_Event event, tmp_event;
 
-    advancePhase();
+    /* Note, this rate can change if the window is dragged to a new
+       screen or the monitor settings are changed while running.
+       We do not handle either of these cases */
+    Uint32 refresh_delay = getRefreshRateDelay();
+    Uint32 last_refresh = 0, current_time;
+
+    rerender_event_lock = SDL_CreateMutex();
     queueRerender();
+
+    advancePhase();
 
     while (SDL_WaitEvent(&event)) {
         // ignore continous SDL_MOUSEMOTION
@@ -1252,18 +1265,30 @@ int PonscripterLabel::eventLoop()
             break;
 
         case INTERNAL_REDRAW_EVENT:
+
+            /* Stop rerendering while minimized; wait for the restore event + queueRerender */
             if(minimized_flag) {
                 break;
             }
-            /* We trust that the RESTORE event will
-             * re-enable us.
-             */
 
-            rerender();
-            /* Indicate we're okay with another
-               rerender being put on the queue */
-            rerendering_flag = false;
-            queueRerender();
+            current_time = SDL_GetTicks();
+            if((current_time - last_refresh) >= refresh_delay || last_refresh == 0) {
+                /* It has been longer than the refresh delay since we last started a refresh. Start another */
+
+                last_refresh = SDL_GetTicks();
+                rerender();
+
+                /* Refresh time since rerender does take some odd ms */
+                current_time = SDL_GetTicks();
+                /* An alternate strategy would be to addtimer for refresh_delay at the top of this every time; however,
+                   I think that will degrade more badly; this one should never have two rerender calls from this event
+                   at once, and the other could degrade into that */
+            }
+            if(last_refresh > current_time || (current_time - last_refresh) > refresh_delay) {
+                SDL_AddTimer(0, rerenderCallback, rerender_event_lock);
+            } else {
+                SDL_AddTimer(refresh_delay - (current_time - last_refresh), rerenderCallback, rerender_event_lock);
+            }
             break;
 
         case ONS_WAVE_EVENT:
