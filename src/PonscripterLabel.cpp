@@ -1642,11 +1642,12 @@ void PonscripterLabel::warpMouse(int x, int y) {
   SDL_RenderGetViewport(renderer, &viewport);
   SDL_RenderGetScale(renderer, &scale_x, &scale_y);
 
+  x += viewport.x;
+  y += viewport.y;
+
   x = x * scale_x;
   y = y * scale_y;
 
-  x += viewport.x;
-  y += viewport.y;
   SDL_WarpMouseInWindow(screen, x, y);
 }
 
