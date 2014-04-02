@@ -24,6 +24,7 @@
  */
 
 #include "PonscripterLabel.h"
+#include "PonscripterUserEvents.h"
 #ifdef LINUX
 #include <signal.h>
 #endif
@@ -602,6 +603,8 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
         SMPEG_play(mpeg_sample);
 
         bool done_flag = false;
+        bool interrupted_redraw = false;
+
         while (!(done_flag & click_flag) &&
                SMPEG_status(mpeg_sample) == SMPEG_PLAYING)
         {
@@ -623,6 +626,9 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
                     ret = 1;
                 case SDL_MOUSEBUTTONDOWN:
                     done_flag = true;
+                    break;
+                case INTERNAL_REDRAW_EVENT:
+                    interrupted_redraw = true;
                     break;
                 default:
                     break;
@@ -679,6 +685,8 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
               SDL_mutexP(c.lock);
               c.dirty = 0; //Flag that we're handling this; if a new frame appears we should deal with it too.
 
+              SDL_RenderClear(renderer); // stops flickering garbage
+
               SDL_Rect r;
               r.x = 0; r.y = 0; r.w = c.frame->image_width; r.h = c.frame->image_height;
               SDL_UpdateTexture(video_texture, &r, c.frame->image, c.frame->image_width);
@@ -725,11 +733,16 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
           }
         }
         overlays.clear();
+
+        if(interrupted_redraw) {
+            queueRerender();
+        }
     }
 
 #else
     fprintf(stderr, "mpegplay command is disabled.\n");
 #endif
+
 
     return ret;
 }

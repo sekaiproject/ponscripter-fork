@@ -29,15 +29,7 @@
 #include <sys/wait.h>
 #endif
 
-#define ONS_TIMER_EVENT (SDL_USEREVENT)
-#define ONS_SOUND_EVENT (SDL_USEREVENT + 1)
-#define ONS_CDAUDIO_EVENT (SDL_USEREVENT + 2)
-#define ONS_MIDI_EVENT (SDL_USEREVENT + 3)
-#define ONS_WAVE_EVENT (SDL_USEREVENT + 4)
-#define ONS_MUSIC_EVENT (SDL_USEREVENT + 5)
-
-// This sets up the fadeout event flag for use in mp3 fadeout.  Recommend for integration.  [Seung Park, 20060621]
-#define ONS_FADE_EVENT (SDL_USEREVENT + 6)
+#include "PonscripterUserEvents.h"
 
 #define EDIT_MODE_PREFIX "[EDIT MODE]  "
 #define EDIT_SELECT_STRING "MP3 vol (m)  SE vol (s)  Voice vol (v)  Numeric variable (n)"
@@ -92,7 +84,6 @@ extern "C" Uint32 SDLCALL timerCallback(Uint32 interval, void* param)
     return interval;
 }
 
-
 extern "C" Uint32 cdaudioCallback(Uint32 interval, void* param)
 {
     SDL_RemoveTimer(timer_cdaudio_id);
@@ -103,6 +94,22 @@ extern "C" Uint32 cdaudioCallback(Uint32 interval, void* param)
     SDL_PushEvent(&event);
 
     return interval;
+}
+
+extern "C" Uint32 rerenderCallback(Uint32 interval, void *lock) {
+    /* Lock ensures we never are in this callback delaying multiple times at once */
+    SDL_mutex *rerender_lock = (SDL_mutex *)lock;
+    if(SDL_LockMutex(rerender_lock) == 0) {
+        SDL_Delay(interval);
+
+        SDL_Event event;
+        event.type = INTERNAL_REDRAW_EVENT;
+        SDL_PushEvent(&event);
+
+        SDL_UnlockMutex(rerender_lock);
+    }
+    /* Return 0 to essentially remove the timer */
+    return 0;
 }
 
 
@@ -320,6 +327,10 @@ void PonscripterLabel::advancePhase(int count)
     SDL_Event event;
     event.type = ONS_TIMER_EVENT;
     SDL_PushEvent(&event);
+}
+
+void PonscripterLabel::queueRerender() {
+    SDL_AddTimer(0, rerenderCallback, rerender_event_lock);
 }
 
 
@@ -1150,6 +1161,15 @@ void PonscripterLabel::timerEvent(void)
     volatile_button_state.button = 0;
 }
 
+Uint32 PonscripterLabel::getRefreshRateDelay() {
+    SDL_DisplayMode mode;
+    SDL_GetWindowDisplayMode(screen, &mode);
+    if(mode.refresh_rate == 0) return 16; //~60 hz
+
+    return 1000 / mode.refresh_rate;
+}
+
+
 
 /* **************************************** *
 * Event loop
@@ -1157,6 +1177,15 @@ void PonscripterLabel::timerEvent(void)
 int PonscripterLabel::eventLoop()
 {
     SDL_Event event, tmp_event;
+
+    /* Note, this rate can change if the window is dragged to a new
+       screen or the monitor settings are changed while running.
+       We do not handle either of these cases */
+    Uint32 refresh_delay = getRefreshRateDelay();
+    Uint32 last_refresh = 0, current_time;
+
+    rerender_event_lock = SDL_CreateMutex();
+    queueRerender();
 
     advancePhase();
 
@@ -1243,6 +1272,33 @@ int PonscripterLabel::eventLoop()
             flushEventSub(event);
             break;
 
+        case INTERNAL_REDRAW_EVENT:
+
+            /* Stop rerendering while minimized; wait for the restore event + queueRerender */
+            if(minimized_flag) {
+                break;
+            }
+
+            current_time = SDL_GetTicks();
+            if((current_time - last_refresh) >= refresh_delay || last_refresh == 0) {
+                /* It has been longer than the refresh delay since we last started a refresh. Start another */
+
+                last_refresh = SDL_GetTicks();
+                rerender();
+
+                /* Refresh time since rerender does take some odd ms */
+                current_time = SDL_GetTicks();
+                /* An alternate strategy would be to addtimer for refresh_delay at the top of this every time; however,
+                   I think that will degrade more badly; this one should never have two rerender calls from this event
+                   at once, and the other could degrade into that */
+            }
+            if(last_refresh > current_time || (current_time - last_refresh) > refresh_delay) {
+                SDL_AddTimer(0, rerenderCallback, rerender_event_lock);
+            } else {
+                SDL_AddTimer(refresh_delay - (current_time - last_refresh), rerenderCallback, rerender_event_lock);
+            }
+            break;
+
         case ONS_WAVE_EVENT:
             flushEventSub(event);
             //printf("ONS_WAVE_EVENT %d: %x %d %x\n", event.user.code, wave_sample[0], automode_flag, event_mode);
@@ -1268,12 +1324,19 @@ int PonscripterLabel::eventLoop()
             switch(event.window.event) {
               case SDL_WINDOWEVENT_FOCUS_LOST:
                 break;
-              case SDL_WINDOWEVENT_EXPOSED:
               case SDL_WINDOWEVENT_MAXIMIZED:
               case SDL_WINDOWEVENT_RESTORED:
-              case SDL_WINDOWEVENT_RESIZED:
-                //Make sure the texture gets stretched or whatever else need be done
-                rerender();
+              case SDL_WINDOWEVENT_SHOWN:
+              case SDL_WINDOWEVENT_EXPOSED:
+                /* If we weren't minimized, a rerender is already queued */
+                if(minimized_flag) {
+                    minimized_flag = false;
+                    queueRerender();
+                }
+                break;
+              case SDL_WINDOWEVENT_MINIMIZED:
+              case SDL_WINDOWEVENT_HIDDEN:
+                minimized_flag = true;
                 break;
             }
             break;

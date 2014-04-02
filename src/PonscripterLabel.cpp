@@ -573,6 +573,7 @@ PonscripterLabel::PonscripterLabel()
     disable_rescale_flag = false;
     edit_flag            = false;
     fullscreen_mode      = false;
+    minimized_flag       = false;
     fullscreen_flags     = SDL_WINDOW_FULLSCREEN_DESKTOP;
     window_mode          = false;
 #ifdef WIN32
