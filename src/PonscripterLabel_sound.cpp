@@ -655,6 +655,8 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
               SDL_mutexP(c.lock);
               c.dirty = 0; //Flag that we're handling this; if a new frame appears we should deal with it too.
 
+              SDL_RenderClear(renderer); // stops flickering garbage
+
               SDL_Rect r;
               r.x = 0; r.y = 0; r.w = c.frame->image_width; r.h = c.frame->image_height;
               SDL_UpdateTexture(video_texture, &r, c.frame->image, c.frame->image_width);
