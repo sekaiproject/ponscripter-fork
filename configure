@@ -46,6 +46,8 @@ INTERNAL_BZIP2=false
 INTERNAL_SMPEG=false
 INTERNAL_FREETYPE=false
 
+EXTERNAL_SDL_MIXER=false
+
 INTERNAL_LIBPNG=false
 INTERNAL_LIBJPEG=false
 INTERNAL_OGGLIBS=false
@@ -179,6 +181,9 @@ do
       --internal-freetype | -internal-freetype)
         prev=INTERNAL_FREETYPE
       ;;
+      --force-external-sdl-mixer | -force-external-sdl-mixer | -with-external-sdl-mixer | --with-external-sdl-mixer)
+        EXTERNAL_SDL_MIXER=true;;
+
 
     -\? | -h | -help | --help)
       cat <<-__ENDHELP
@@ -200,12 +205,13 @@ do
 	
 	Library options (force compilation of included dependencies):
 	  --with-internal-libs        don't check for any system libraries
-	  --with-internal-sdl         skip check for system libSDL
-	  --with-internal-sdl-image   skip check for system libSDL_image
-	  --with-internal-sdl-mixer   skip check for system libSDL_mixer
+	  --with-internal-sdl         skip check for system libSDL2
+	  --with-internal-sdl-image   skip check for system libSDL2_image
+	  --with-internal-sdl-mixer   skip check for system libSDL2_mixer
 	  --with-internal-bzip2       skip check for system libbz2
 	  --with-internal-smpeg       skip check for system libsmpeg
 	  --with-internal-freetype    skip check for system libfreetype
+	  --with-external-sdl-mixer   force usage of system libSDL2_mixer
 	__ENDHELP
       exit 0
       ;;
@@ -324,7 +330,7 @@ else
     $echo_n "Checking C compiler... ${nobr}"
     CC_TMP=`($CC --version) 2>/dev/null | head -1`
     case "$CC_TMP" in
-    gcc* | *apple*gcc* | *-gcc??GCC*) CC_VER=`expr "x$CC_TMP" : 'x.* \(.*\)$'`; echo "gcc $CC_VER" ;;
+    gcc* | *apple*gcc* | *-*-gcc\ * | *-gcc??GCC*) CC_VER=`expr "x$CC_TMP" : 'x.* \(.*\)$'`; echo "gcc $CC_VER" ;;
     icc*) echo icc ;;
     *)  echo "error"
         cat <<-_ERR
@@ -350,7 +356,7 @@ if not $UNSUPPORTED_COMPILER
 then
     $echo_n "Checking C++ compiler... ${nobr}"
     case "$CXX_TMP" in
-    g++* | *apple*g++* | *-g++??GCC*) CXX_VER=`expr "x$CXX_TMP" : 'x.* \(.*\)$'`; echo "g++ $CXX_VER" ;;
+    g++* | *apple*g++* | *-*-g++\ * | *-g++??GCC*) CXX_VER=`expr "x$CXX_TMP" : 'x.* \(.*\)$'`; echo "g++ $CXX_VER" ;;
     icpc*) echo icpc ;;
     *)  echo "error"
         cat <<-_ERR
@@ -590,7 +596,10 @@ write_ogg() {
 	_EOF
 }
 
-if not $INTERNAL_SDL_MIXER
+if $EXTERNAL_SDL_MIXER
+then
+    echo "Checking for system SDL2_mixer... forced"
+elif not $INTERNAL_SDL_MIXER
 then
     $echo_n "Checking for system SDL_mixer... ${nobr}"
     write_ogg
