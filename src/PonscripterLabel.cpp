@@ -718,8 +718,23 @@ void PonscripterLabel::setGameIdentifier(const char *gameid)
     cmdline_game_id = gameid;
 }
 
-
-#ifdef WIN32
+#if defined(WIN32) && defined(STEAM)
+pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windows + Steam local path
+{
+    /* Assume the working-dir is where we want our save path
+       . We could use GetModuleFileNameW if this is an issue */
+    char *local_save_path = "saves/";
+    pstring rv;
+    if(CreateDirectory(rv, NULL) == 0) {
+        DWORD err GetLastError();
+        if(err != ERROR_ALREADY_EXISTS) {
+            fprintf(stderr, "Error creating save directory.\n");
+            return "";
+        }
+    }
+    return rv;
+}
+#elif defined WIN32
 pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windows version
 {
     //Convert gameid from UTF-8 to Wide (Unicode) and thence to system ANSI
@@ -767,6 +782,21 @@ pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windo
     }
     return rv;
 }
+#elif defined(MACOSX) && defined(STEAM)
+pstring Platform_GetSavePath(pstring gameid) // MacOS X version
+{
+    pstring rv = "saves/";
+    if (mkdir(rv, 0755) == 0 || errno == EEXIST)
+        return rv;
+
+    // If that fails, die.
+    using namespace Carbon;
+    CFOptionFlags *alert_flags;
+    CFUserNotificationDisplayAlert(0, kCFUserNotificationStopAlertLevel, NULL, NULL, NULL,
+        CFSTR("mkdir failure"),
+        CFSTR("Could not create a directory for saved games."), NULL, NULL, NULL, alert_flags);
+    exit(1);
+}
 #elif defined MACOSX
 pstring Platform_GetSavePath(pstring gameid) // MacOS X version
 {
@@ -787,6 +817,16 @@ pstring Platform_GetSavePath(pstring gameid) // MacOS X version
         CFSTR("mkdir failure"),
         CFSTR("Could not create a directory for saved games."), NULL, NULL, NULL, alert_flags);
     exit(1);
+}
+#elif defined(LINUX) && defined(STEAM)
+pstring Platform_GetSavePath(pstring gameid) // POSIX version
+{
+    pstring rv = "saves/";
+    if (mkdir(rv, 0755) == 0 || errno == EEXIST)
+        return rv;
+
+    fprintf(stderr, "Warning: could not create save directory 'saves'.\n");
+    return "";
 }
 #elif defined LINUX
 pstring Platform_GetSavePath(pstring gameid) // POSIX version
