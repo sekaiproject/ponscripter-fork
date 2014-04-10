@@ -744,10 +744,27 @@ void PonscripterLabel::setGameIdentifier(const char *gameid)
 #if defined(WIN32) && defined(STEAM)
 pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windows + Steam local path
 {
-    /* Assume the working-dir is where we want our save path
-       . We could use GetModuleFileNameW if this is an issue */
-    char *local_save_path = "saves/";
-    pstring rv;
+    char saveDir[MAX_PATH];
+    uint32 install_folder_len = GetAppInstallDir(SteamUtils()->GetAppID(), saveDir, MAX_PATH);
+    if(saveDir[install_folder_len-1] == '\\' || saveDir[install_folder_len-1] == '/') {
+      saveDir[install_folder_len-1] = '\0';
+      install_folder_len--;
+    }
+
+    if(install_folder_len + 7 >= MAX_PATH) { //7 is the length of '/saves/'
+        fpritnf(stderr, "Save directory too long: %s\n", saveDir);
+        return;
+    }
+
+    char *append_saves = "/saves/";
+
+    for(int i=0;i<7;i++) { //Length of '/saves/'
+        saveDir[install_folder_len + i] = append_saves[i];
+    }
+    saveDir[install_folder_len + 7] = '\0';
+
+    pstring rv(saveDir);
+
     if(CreateDirectory(rv, NULL) == 0) {
         DWORD err GetLastError();
         if(err != ERROR_ALREADY_EXISTS) {
