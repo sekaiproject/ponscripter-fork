@@ -746,7 +746,7 @@ pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windo
 {
     /* Assume the working-dir is where we want our save path
        . We could use GetModuleFileNameW if this is an issue */
-    char *local_save_path = "saves";
+    char *local_save_path = "saves/";
     pstring rv;
     if(CreateDirectory(rv, NULL) == 0) {
         DWORD err GetLastError();
@@ -808,7 +808,7 @@ pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windo
 #elif defined(MACOSX) && defined(STEAM)
 pstring Platform_GetSavePath(pstring gameid) // MacOS X version
 {
-    pstring rv = "saves";
+    pstring rv = "saves/";
     if (mkdir(rv, 0755) == 0 || errno == EEXIST)
         return rv;
 
@@ -844,7 +844,7 @@ pstring Platform_GetSavePath(pstring gameid) // MacOS X version
 #elif defined(LINUX) && defined(STEAM)
 pstring Platform_GetSavePath(pstring gameid) // POSIX version
 {
-    pstring rv = "saves";
+    pstring rv = "saves/";
     if (mkdir(rv, 0755) == 0 || errno == EEXIST)
         return rv;
 
