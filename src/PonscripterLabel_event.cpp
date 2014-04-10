@@ -404,6 +404,7 @@ void PonscripterLabel::mouseMoveEvent(SDL_MouseMotionEvent* event)
 {
     current_button_state.x = event->x;
     current_button_state.y = event->y;
+    current_button_state.has_moved = true;
 
     if (event_mode & WAIT_BUTTON_MODE)
         mouseOverCheck(current_button_state.x, current_button_state.y);
@@ -438,6 +439,7 @@ void PonscripterLabel::mousePressEvent(SDL_MouseButtonEvent* event)
 
     if (event->button == SDL_BUTTON_RIGHT
         && event->type == SDL_MOUSEBUTTONUP
+        && !current_button_state.has_moved
         && ((rmode_flag && (event_mode & WAIT_TEXT_MODE))
             || (event_mode & WAIT_BUTTON_MODE))) {
         current_button_state.button  = -1;
@@ -450,15 +452,16 @@ void PonscripterLabel::mousePressEvent(SDL_MouseButtonEvent* event)
         }
     }
     else if (event->button == SDL_BUTTON_LEFT
-             && (event->type == SDL_MOUSEBUTTONUP || btndown_flag)) {
+             && ((!current_button_state.has_moved && event->type == SDL_MOUSEBUTTONUP) || btndown_flag)) {
         current_button_state.button  = current_over_button;
         volatile_button_state.button = current_over_button;
 //#ifdef SKIP_TO_WAIT
         if (event_mode & WAIT_SLEEP_MODE) skip_to_wait = 1;
 //#endif
 
-        if (event->type == SDL_MOUSEBUTTONDOWN)
+        if (event->type == SDL_MOUSEBUTTONDOWN) {
             current_button_state.down_flag = true;
+        }
     } else {
       return;
     }
@@ -848,12 +851,13 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
 	    event->keysym.sym == SDLK_KP_ENTER ||
 	    (spclclk_flag && event->keysym.sym == SDLK_SPACE))
 	{
-	    current_button_state.button =
-	    volatile_button_state.button = current_over_button;
-	    if (event->type == SDL_KEYDOWN)
-		current_button_state.down_flag = true;
-	}
-	else {
+      current_button_state.button =
+        volatile_button_state.button = current_over_button;
+      if (event->type == SDL_KEYDOWN) {
+          current_button_state.down_flag = true;
+      }
+  }
+  else {
 	    current_button_state.button =
 	    volatile_button_state.button = 0;
 	}
@@ -1206,6 +1210,7 @@ int PonscripterLabel::eventLoop()
             break;
 
         case SDL_MOUSEBUTTONDOWN:
+            current_button_state.has_moved = false;
             if (!btndown_flag) break;
 
         case SDL_MOUSEBUTTONUP:
