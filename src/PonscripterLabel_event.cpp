@@ -432,6 +432,18 @@ void PonscripterLabel::mousePressEvent(SDL_MouseButtonEvent* event)
         return;
     }
 
+    if(event->x != current_button_state.down_x || event->y != current_button_state.down_y) {
+        current_button_state.has_moved = true;
+    } else if(current_button_state.down_x == -1 && current_button_state.down_y == -1) {
+        current_button_state.has_moved = true;
+    }
+
+    /* Use both = -1 to indicate we haven't received a mousedown yet */
+    if(event->type == SDL_MOUSEBUTTONUP){
+        current_button_state.down_x = -1;
+        current_button_state.down_y = -1;
+    }
+
     current_button_state.x = event->x;
     current_button_state.y = event->y;
     current_button_state.down_flag = false;
@@ -1210,6 +1222,8 @@ int PonscripterLabel::eventLoop()
             break;
 
         case SDL_MOUSEBUTTONDOWN:
+            current_button_state.down_x = ( (SDL_MouseButtonEvent *) &event)->x;
+            current_button_state.down_y = ( (SDL_MouseButtonEvent *) &event)->y;
             current_button_state.has_moved = false;
             if (!btndown_flag) break;
 
@@ -1330,6 +1344,20 @@ int PonscripterLabel::eventLoop()
               case SDL_WINDOWEVENT_FOCUS_LOST:
                 break;
               case SDL_WINDOWEVENT_MAXIMIZED:
+              case SDL_WINDOWEVENT_RESIZED:
+                /* Due to what I suspect is an SDL bug, you get a mosuedown +
+                 * mouseup event when you maximize the window by double
+                 * clicking the titlebar in windows. These events both have
+                 * coordinates inside of the screen, and I can't see any way
+                 * to tell them apart from legitimate clicks. (it even triggers
+                 * a mouse move event).
+                 * To fix this bug, we kill any mousedown events when we maximize.
+                 * Note, we do this under RESIZED too because if you do a
+                 * "vertical maximize" (double click with the upper resize arrow)
+                 * that doesn't trigger a maximized event
+                 */
+                SDL_PumpEvents();
+                SDL_PeepEvents(&tmp_event, 1, SDL_GETEVENT, SDL_MOUSEBUTTONDOWN, SDL_MOUSEBUTTONDOWN);
               case SDL_WINDOWEVENT_RESTORED:
               case SDL_WINDOWEVENT_SHOWN:
               case SDL_WINDOWEVENT_EXPOSED:

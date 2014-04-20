@@ -483,6 +483,7 @@ private:
 
     struct ButtonState {
         int x, y, button;
+        int down_x, down_y;
         bool down_flag;
         bool has_moved;
         ButtonState() { button = 0; down_flag = false; has_moved=false; }
