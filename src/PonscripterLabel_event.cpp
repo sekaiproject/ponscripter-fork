@@ -96,23 +96,6 @@ extern "C" Uint32 cdaudioCallback(Uint32 interval, void* param)
     return interval;
 }
 
-extern "C" Uint32 rerenderCallback(Uint32 interval, void *lock) {
-    /* Lock ensures we never are in this callback delaying multiple times at once */
-    SDL_mutex *rerender_lock = (SDL_mutex *)lock;
-    if(SDL_LockMutex(rerender_lock) == 0) {
-        SDL_Delay(interval);
-
-        SDL_Event event;
-        event.type = INTERNAL_REDRAW_EVENT;
-        SDL_PushEvent(&event);
-
-        SDL_UnlockMutex(rerender_lock);
-    }
-    /* Return 0 to essentially remove the timer */
-    return 0;
-}
-
-
 // Pushes the mp3 fadeout event onto the stack.  Part of our mp3
 // fadeout enabling patch.  Recommend for integration.
 // [Seung Park, 20060621]
@@ -330,7 +313,9 @@ void PonscripterLabel::advancePhase(int count)
 }
 
 void PonscripterLabel::queueRerender() {
-    SDL_AddTimer(0, rerenderCallback, rerender_event_lock);
+    SDL_Event rerender_event;
+    rerender_event.type = INTERNAL_REDRAW_EVENT;
+    SDL_PushEvent(&rerender_event);
 }
 
 
@@ -1200,7 +1185,6 @@ int PonscripterLabel::eventLoop()
     Uint32 refresh_delay = getRefreshRateDelay();
     Uint32 last_refresh = 0, current_time;
 
-    rerender_event_lock = SDL_CreateMutex();
     queueRerender();
 
     advancePhase();
@@ -1302,20 +1286,31 @@ int PonscripterLabel::eventLoop()
             if((current_time - last_refresh) >= refresh_delay || last_refresh == 0) {
                 /* It has been longer than the refresh delay since we last started a refresh. Start another */
 
-                last_refresh = SDL_GetTicks();
+                last_refresh = current_time;
                 rerender();
 
                 /* Refresh time since rerender does take some odd ms */
                 current_time = SDL_GetTicks();
-                /* An alternate strategy would be to addtimer for refresh_delay at the top of this every time; however,
-                   I think that will degrade more badly; this one should never have two rerender calls from this event
-                   at once, and the other could degrade into that */
             }
-            if(last_refresh > current_time || (current_time - last_refresh) > refresh_delay) {
-                SDL_AddTimer(0, rerenderCallback, rerender_event_lock);
-            } else {
-                SDL_AddTimer(refresh_delay - (current_time - last_refresh), rerenderCallback, rerender_event_lock);
+
+            SDL_PumpEvents();
+            /* Remove all pending redraw events on the queue */
+            while(SDL_PeepEvents(&tmp_event, 1, SDL_GETEVENT, INTERNAL_REDRAW_EVENT, INTERNAL_REDRAW_EVENT) == 1)
+                ;
+
+            /* If there are any events on the queue, re-add us and let it get those events asap.
+             * It'll then come back to us with no events and we'll just sleep until it's time to redraw again.
+             * If there are no events, sleep right away
+             */
+            if(SDL_PeepEvents(&tmp_event, 1, SDL_PEEKEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT) == 0) {
+                /* Safety if for rare special cases, like the first time through */
+                if(last_refresh <= current_time && refresh_delay >= (current_time - last_refresh)) {
+                    SDL_Delay(refresh_delay - (current_time - last_refresh));
+                }
             }
+            tmp_event.type = INTERNAL_REDRAW_EVENT;
+            SDL_PushEvent(&tmp_event);
+
             break;
 
         case ONS_WAVE_EVENT:
