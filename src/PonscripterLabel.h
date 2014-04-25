@@ -406,8 +406,6 @@ private:
     long autoclick_time;
     long remaining_time;
 
-    SDL_mutex *rerender_event_lock;
-
     bool saveon_flag;
     bool internal_saveon_flag; // to saveoff at the head of text
     int  yesno_caller;
