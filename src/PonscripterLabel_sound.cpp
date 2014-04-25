@@ -136,7 +136,7 @@ extern long decodeOggVorbis(PonscripterLabel::MusicStruct *music_struct, Uint8 *
             buf_dst += ovi->cvt.len_cvt;
         }
         else{
-            if (do_rate_conversion && vol != DEFAULT_VOLUME){ 
+            if (do_rate_conversion && vol != DEFAULT_VOLUME){
                 // volume change under SOUND_OGG_STREAMING
                 for (int i=0 ; i<dst_len ; i+=2){
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
@@ -188,7 +188,7 @@ int PonscripterLabel::playSound(const pstring& filename, int format,
 
     unsigned char* buffer;
 
-    if ((format & (SOUND_MP3 | SOUND_OGG_STREAMING)) && 
+    if ((format & (SOUND_MP3 | SOUND_OGG_STREAMING)) &&
         (length == music_buffer_length) &&
         music_buffer ){
         buffer = music_buffer;
@@ -528,7 +528,7 @@ typedef std::vector<SubAndTexture*> olvec;
 static olvec overlays;
 static SDL_Texture *video_texture = NULL;
 /*
-   Each of these is only needed if there are subs. 
+   Each of these is only needed if there are subs.
    Otherwise we can just pop it straight on the screen
  */
 static SDL_Renderer *video_renderer = NULL;
@@ -604,11 +604,12 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
 
         bool done_flag = false;
         bool interrupted_redraw = false;
+        bool done_click_down = false;
 
         while (!(done_flag & click_flag) &&
                SMPEG_status(mpeg_sample) == SMPEG_PLAYING)
         {
-            SDL_Event event;
+            SDL_Event event, tmp_event;
             while (SDL_PollEvent(&event)) {
                 switch (event.type) {
                 case SDL_KEYUP: {
@@ -620,16 +621,36 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
                         SMPEG_setvolume(mpeg_sample, !volume_on_flag? 0 : music_volume);
                         printf("turned %s volume mute\n", !volume_on_flag?"on":"off");
                     }
+                    if (s == SDLK_f) {
+                        if (fullscreen_mode) menu_windowCommand("menu_window");
+                        else menu_fullCommand("menu_full");
+                    }
                     break;
                 }
                 case SDL_QUIT:
                     ret = 1;
                 case SDL_MOUSEBUTTONDOWN:
-                    done_flag = true;
+                    done_click_down = true;
+                    break;
+                case SDL_MOUSEMOTION:
+                    done_click_down = false;
+                    break;
+                case SDL_MOUSEBUTTONUP:
+                    if(done_click_down)
+                        done_flag = true;
                     break;
                 case INTERNAL_REDRAW_EVENT:
                     interrupted_redraw = true;
                     break;
+                case SDL_WINDOWEVENT:
+                    switch(event.window.event) {
+                        case SDL_WINDOWEVENT_MAXIMIZED:
+                        case SDL_WINDOWEVENT_RESIZED:
+                            SDL_PumpEvents();
+                            SDL_PeepEvents(&tmp_event, 1, SDL_GETEVENT, SDL_MOUSEBUTTONDOWN, SDL_MOUSEBUTTONDOWN);
+                            done_click_down = false;
+                            break;
+                    }
                 default:
                     break;
                 }

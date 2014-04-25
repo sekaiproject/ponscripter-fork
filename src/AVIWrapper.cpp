@@ -321,28 +321,49 @@ int AVIWrapper::play(bool click_flag)
 
     bool done_flag = false;
     bool interrupted_redraw = false;
+    bool done_click_down = false;
 
     while (!(done_flag & click_flag) && status == AVI_PLAYING) {
-        SDL_Event event;
+        SDL_Event event,tmp_event;
 
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
-            case SDL_KEYDOWN:
+            case SDL_KEYUP:
                 if (((SDL_KeyboardEvent*) &event)->keysym.sym == SDLK_RETURN
                     || ((SDL_KeyboardEvent*) &event)->keysym.sym == SDLK_KP_ENTER
                     || ((SDL_KeyboardEvent*) &event)->keysym.sym == SDLK_SPACE
                     || ((SDL_KeyboardEvent*) &event)->keysym.sym == SDLK_ESCAPE)
                     done_flag = true;
 
+                if (s == SDLK_f) {
+                    if (fullscreen_mode) menu_windowCommand("menu_window");
+                    else menu_fullCommand("menu_full");
+                }
                 break;
             case SDL_QUIT:
                 ret = 1;
             case SDL_MOUSEBUTTONDOWN:
-                done_flag = true;
+                done_click_down = true;
+                break;
+            case SDL_MOUSEMOTION:
+                done_click_down = false;
+                break;
+            case SDL_MOUSEBUTTONUP:
+                if(done_click_down)
+                    done_flag = true;
                 break;
             case INTERNAL_REDRAW_EVENT:
                 interrupted_redraw = true;
                 break;
+            case SDL_WINDOWEVENT:
+                switch(event.window.event) {
+                    case SDL_WINDOWEVENT_MAXIMIZED:
+                    case SDL_WINDOWEVENT_RESIZED:
+                        SDL_PumpEvents();
+                        SDL_PeepEvents(&tmp_event, 1, SDL_GETEVENT, SDL_MOUSEBUTTONDOWN, SDL_MOUSEBUTTONDOWN);
+                        done_click_down = false;
+                        break;
+                }
             default:
                 break;
             }
