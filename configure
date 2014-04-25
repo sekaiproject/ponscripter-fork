@@ -53,6 +53,8 @@ INTERNAL_LIBJPEG=false
 INTERNAL_OGGLIBS=false
 EXPLICIT_OGGLIBS=false
 
+STEAM=false
+
 SDL_CONFIG=sdl2-config
 SMPEG_CONFIG=smpeg2-config
 FREETYPE_CONFIG=freetype-config
@@ -183,6 +185,10 @@ do
       ;;
       --force-external-sdl-mixer | -force-external-sdl-mixer | -with-external-sdl-mixer | --with-external-sdl-mixer)
         EXTERNAL_SDL_MIXER=true;;
+      --steam | -steam | --enable-steam | --with-steam | --extra-gaben)
+        STEAM=true ;;
+      --no-steam | --disable-steam | --without-steam)
+        STEAM=false ;;
 
 
     -\? | -h | -help | --help)
@@ -194,6 +200,7 @@ do
 	  --prefix=DIR             install in prefix DIR (default is /usr/local)
 	  --make=NAME              use GNU make executable with the given name
 	  --game=NAME              build game NAME by default
+	  --steam                  Build for steam including steam-specific features
 	  --std=STD                c++ compiles with -std=STD (unused by default)
 	  --strict                 compile with -Wall -Wextra -Wvla
 	                           (note: g++ already uses -Wall)
@@ -981,6 +988,13 @@ all: target
 
 RESOURCES =
 _EOF
+
+if $STEAM
+then
+cat >> $MAKEFILE <<_EOF
+PSCFLAGS += -DSTEAM
+_EOF
+fi
 
 if [ "$SYS" != "MinGW" ] && [ "$SYS" != "MacOSX" ]; then
 cat >> $MAKEFILE <<_EOF
