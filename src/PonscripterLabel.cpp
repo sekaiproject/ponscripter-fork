@@ -745,12 +745,14 @@ void PonscripterLabel::setGameIdentifier(const char *gameid)
 #if defined(WIN32) && defined(STEAM)
 pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windows + Steam local path
 {
+    /* These defines are used elsewhere. They are normally created in the non-steam GetSavePath fn */
+#define CSIDL_COMMON_APPDATA 0x0023 // for [Profiles]\All Users\Application Data
+#define CSIDL_APPDATA        0x001a // for [Profiles]\[User]\Application Data
     /* Assume the working-dir is where we want our save path
        . We could use GetModuleFileNameW if this is an issue */
-    char *local_save_path = "saves/";
-    pstring rv;
+    pstring rv = "saves/";
     if(CreateDirectory(rv, NULL) == 0) {
-        DWORD err GetLastError();
+        DWORD err = GetLastError();
         if(err != ERROR_ALREADY_EXISTS) {
             fprintf(stderr, "Error creating save directory.\n");
             return "";
