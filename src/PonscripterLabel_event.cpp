@@ -1184,6 +1184,9 @@ int PonscripterLabel::eventLoop()
        We do not handle either of these cases */
     Uint32 refresh_delay = getRefreshRateDelay();
     Uint32 last_refresh = 0, current_time;
+#ifdef WIN32
+    Uint32 win_flags;
+#endif
 
     queueRerender();
 
@@ -1338,6 +1341,26 @@ int PonscripterLabel::eventLoop()
             switch(event.window.event) {
               case SDL_WINDOWEVENT_FOCUS_LOST:
                 break;
+#ifdef WIN32
+              case SDL_WINDOWEVENT_FOCUS_GAINED:
+                win_flags = SDL_GetWindowFlags(screen);
+                /* Work around: https://bugzilla.libsdl.org/show_bug.cgi?id=2510
+                 *
+                 * On windows, the RESTORED event does not occur when you restore a
+                 * maximized event. The only events you get are a ton of exposes and
+                 * this one. The screen also remains black if it was maximized until
+                 * the window is "restored".
+                 */
+                SDL_RestoreWindow(screen);
+                if(win_flags & SDL_WINDOW_FULLSCREEN_DESKTOP) {
+                    SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN_DESKTOP);
+                } else if(win_flags & SDL_WINDOW_FULLSCREEN) {
+                    SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN);
+                } else if(win_flags & SDL_WINDOW_MAXIMIZED) {
+                    SDL_MaximizeWindow(screen);
+                }
+                break;
+#endif
               case SDL_WINDOWEVENT_MAXIMIZED:
               case SDL_WINDOWEVENT_RESIZED:
                 /* Due to what I suspect is an SDL bug, you get a mosuedown +
