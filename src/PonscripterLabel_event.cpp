@@ -389,7 +389,6 @@ void PonscripterLabel::mouseMoveEvent(SDL_MouseMotionEvent* event)
 {
     current_button_state.x = event->x;
     current_button_state.y = event->y;
-    current_button_state.has_moved = true;
 
     if (event_mode & WAIT_BUTTON_MODE)
         mouseOverCheck(current_button_state.x, current_button_state.y);
@@ -417,10 +416,9 @@ void PonscripterLabel::mousePressEvent(SDL_MouseButtonEvent* event)
         return;
     }
 
-    if(event->x != current_button_state.down_x || event->y != current_button_state.down_y) {
-        current_button_state.has_moved = true;
-    } else if(current_button_state.down_x == -1 && current_button_state.down_y == -1) {
-        current_button_state.has_moved = true;
+    //Mouse didn't have a mouse-down event
+    if(current_button_state.down_x == -1 && current_button_state.down_y == -1) {
+        current_button_state.ignore_mouseup = true;
     }
 
     /* Use both = -1 to indicate we haven't received a mousedown yet */
@@ -436,7 +434,7 @@ void PonscripterLabel::mousePressEvent(SDL_MouseButtonEvent* event)
 
     if (event->button == SDL_BUTTON_RIGHT
         && event->type == SDL_MOUSEBUTTONUP
-        && !current_button_state.has_moved
+        && !current_button_state.ignore_mouseup
         && ((rmode_flag && (event_mode & WAIT_TEXT_MODE))
             || (event_mode & WAIT_BUTTON_MODE))) {
         current_button_state.button  = -1;
@@ -449,7 +447,7 @@ void PonscripterLabel::mousePressEvent(SDL_MouseButtonEvent* event)
         }
     }
     else if (event->button == SDL_BUTTON_LEFT
-             && ((!current_button_state.has_moved && event->type == SDL_MOUSEBUTTONUP) || btndown_flag)) {
+             && ((!current_button_state.ignore_mouseup && event->type == SDL_MOUSEBUTTONUP) || btndown_flag)) {
         current_button_state.button  = current_over_button;
         volatile_button_state.button = current_over_button;
 //#ifdef SKIP_TO_WAIT
@@ -1211,7 +1209,7 @@ int PonscripterLabel::eventLoop()
         case SDL_MOUSEBUTTONDOWN:
             current_button_state.down_x = ( (SDL_MouseButtonEvent *) &event)->x;
             current_button_state.down_y = ( (SDL_MouseButtonEvent *) &event)->y;
-            current_button_state.has_moved = false;
+            current_button_state.ignore_mouseup = false;
             if (!btndown_flag) break;
 
         case SDL_MOUSEBUTTONUP:
@@ -1341,8 +1339,12 @@ int PonscripterLabel::eventLoop()
             switch(event.window.event) {
               case SDL_WINDOWEVENT_FOCUS_LOST:
                 break;
-#ifdef WIN32
               case SDL_WINDOWEVENT_FOCUS_GAINED:
+                /* See comment below under RESIZED */
+                SDL_PumpEvents();
+                SDL_PeepEvents(&tmp_event, 1, SDL_GETEVENT, SDL_MOUSEBUTTONDOWN, SDL_MOUSEBUTTONDOWN);
+                current_button_state.ignore_mouseup = true;
+#ifdef WIN32
                 win_flags = SDL_GetWindowFlags(screen);
                 /* Work around: https://bugzilla.libsdl.org/show_bug.cgi?id=2510
                  *
@@ -1359,8 +1361,8 @@ int PonscripterLabel::eventLoop()
                 } else if(win_flags & SDL_WINDOW_MAXIMIZED) {
                     SDL_MaximizeWindow(screen);
                 }
-                break;
 #endif
+                break;
               case SDL_WINDOWEVENT_MAXIMIZED:
               case SDL_WINDOWEVENT_RESIZED:
                 /* Due to what I suspect is an SDL bug, you get a mosuedown +
@@ -1376,6 +1378,7 @@ int PonscripterLabel::eventLoop()
                  */
                 SDL_PumpEvents();
                 SDL_PeepEvents(&tmp_event, 1, SDL_GETEVENT, SDL_MOUSEBUTTONDOWN, SDL_MOUSEBUTTONDOWN);
+                current_button_state.ignore_mouseup = true;
               case SDL_WINDOWEVENT_RESTORED:
               case SDL_WINDOWEVENT_SHOWN:
               case SDL_WINDOWEVENT_EXPOSED:
