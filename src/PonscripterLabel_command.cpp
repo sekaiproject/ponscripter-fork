@@ -2070,7 +2070,7 @@ int PonscripterLabel::gettagCommand(const pstring& cmd)
     const char* buf = nest_infos.back().next_script;
     while (*buf == ' ' || *buf == '\t') buf++;
     int bytes;
-    if (zenkakko_flag && file_encoding->DecodeChar(buf, bytes) == 0x3010 /*y */)
+    if (zenkakko_flag && file_encoding->DecodeChar(buf, bytes) == 0x3010 /*ï¿½y */)
         buf += bytes;
     else if (*buf == '[')
         buf++;
@@ -2091,9 +2091,9 @@ int PonscripterLabel::gettagCommand(const pstring& cmd)
 	    int bytes = 1;
 	    while (*buf != '/' &&
 		   ((zenkakko_flag &&
-		     (file_encoding->DecodeChar(buf, bytes) != 0x3011 /* z*/)) ||
+		     (file_encoding->DecodeChar(buf, bytes) != 0x3011 /* ï¿½z*/)) ||
 		    (!zenkakko_flag &&
-             (file_encoding->DecodeChar(buf, bytes) != ']' /* z*/))))
+             (file_encoding->DecodeChar(buf, bytes) != ']' /* ï¿½z*/))))
 		buf += bytes;
 	    e.mutate(pstring(buf_start, buf - buf_start));
 	}
@@ -2104,7 +2104,7 @@ int PonscripterLabel::gettagCommand(const pstring& cmd)
     }
     while (more_args);
 
-    if (zenkakko_flag && file_encoding->DecodeChar(buf, bytes) == 0x3010 /*y */)
+    if (zenkakko_flag && file_encoding->DecodeChar(buf, bytes) == 0x3010 /*ï¿½y */)
 	buf += bytes;
     else if (*buf == ']') buf++;
 
@@ -2826,6 +2826,10 @@ int PonscripterLabel::cselbtnCommand(const pstring& cmd)
     buttons[button_no] = getSelectableSentence(text, &csel_info);
     buttons[button_no].sprite_no = csel_no;
 
+    if(current_over_button - 1 >= 0){
+    	SDL_SetClipboardText((const char *)select_links[current_over_button-1].text);
+    }
+    
     return RET_CONTINUE;
 }
 
