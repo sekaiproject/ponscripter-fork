@@ -456,7 +456,10 @@ int ScriptParser::parseLine()
         fflush(stdout);
     }
 
-    if (script_h.isText()) return RET_NOMATCH;
+    if (script_h.isText()){
+    	SDL_SetClipboardText((const char *)cmd);
+    	return RET_NOMATCH;	
+    }
 
     if (cmd[0] == ';' || cmd[0] == '*' || cmd[0] == ':' || cmd[0] == 0x0a)
 	return RET_CONTINUE;
