@@ -14,7 +14,13 @@
 /src/extlib/share
 /doc/*.html
 /doc/*.proc
+/doc/*.6
+/doc/*.7
 /doc/version-number
 *.Plo
 *.lai
 *.lo
+.agignore
+/src/extlib/src/steam-sdk
+!/src/extlib/src/steam-sdk/configure
+!/src/extlib/src/steam-sdk/Makefile
