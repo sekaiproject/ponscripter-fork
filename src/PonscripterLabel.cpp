@@ -518,10 +518,10 @@ void PonscripterLabel::openAudio(int freq, Uint16 format, int channels)
 PonscripterLabel::PonscripterLabel()
     : registry_file(REGISTRY_FILE),
       dll_file(DLL_FILE),
-      music_cmd(getenv("PLAYER_CMD")),
-      midi_cmd(getenv("MUSIC_CMD")),
       sin_table(NULL), cos_table(NULL), whirl_table(NULL),
-      breakup_cells(NULL), breakup_cellforms(NULL), breakup_mask(NULL)
+      breakup_cells(NULL), breakup_cellforms(NULL), breakup_mask(NULL),
+      music_cmd(getenv("PLAYER_CMD")),
+      midi_cmd(getenv("MUSIC_CMD"))
 {
 #if defined (USE_X86_GFX) && !defined(MACOSX)
     // determine what functions the cpu supports (Mion)
