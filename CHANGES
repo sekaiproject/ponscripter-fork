@@ -1,5 +1,7 @@
 2014-03-17
 
+  Import effect dll work from Onscripter-EN [Dan]
+
   Fixed an issue where certain scripts on OSX/Linux failed to load files correctly [Dan]
 
 2014-03-10

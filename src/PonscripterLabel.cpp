@@ -519,7 +519,9 @@ PonscripterLabel::PonscripterLabel()
     : registry_file(REGISTRY_FILE),
       dll_file(DLL_FILE),
       music_cmd(getenv("PLAYER_CMD")),
-      midi_cmd(getenv("MUSIC_CMD"))
+      midi_cmd(getenv("MUSIC_CMD")),
+      sin_table(NULL), cos_table(NULL), whirl_table(NULL),
+      breakup_cells(NULL), breakup_cellforms(NULL), breakup_mask(NULL)
 {
 #if defined (USE_X86_GFX) && !defined(MACOSX)
     // determine what functions the cpu supports (Mion)
@@ -984,10 +986,13 @@ int PonscripterLabel::init(const char* preferred_script)
         AnimationInfo::allocSurface(screen_width, screen_height);
     effect_dst_surface =
         AnimationInfo::allocSurface(screen_width, screen_height);
+    effect_tmp_surface =
+        AnimationInfo::allocSurface(screen_width, screen_height);
     SDL_SetSurfaceAlphaMod(accumulation_surface, SDL_ALPHA_OPAQUE);
     SDL_SetSurfaceAlphaMod(backup_surface, SDL_ALPHA_OPAQUE);
     SDL_SetSurfaceAlphaMod(effect_src_surface, SDL_ALPHA_OPAQUE);
     SDL_SetSurfaceAlphaMod(effect_dst_surface, SDL_ALPHA_OPAQUE);
+    SDL_SetSurfaceAlphaMod(effect_tmp_surface, SDL_ALPHA_OPAQUE);
     SDL_SetSurfaceAlphaMod(screen_surface, SDL_ALPHA_OPAQUE);
 
     SDL_SetSurfaceBlendMode(accumulation_surface, SDL_BLENDMODE_NONE);
@@ -995,6 +1000,7 @@ int PonscripterLabel::init(const char* preferred_script)
     SDL_SetSurfaceBlendMode(backup_surface, SDL_BLENDMODE_NONE);
     SDL_SetSurfaceBlendMode(effect_src_surface, SDL_BLENDMODE_NONE);
     SDL_SetSurfaceBlendMode(effect_dst_surface, SDL_BLENDMODE_NONE);
+    SDL_SetSurfaceBlendMode(effect_tmp_surface, SDL_BLENDMODE_NONE);
 
     screenshot_surface = 0;
     text_info.num_of_cells = 1;
@@ -1059,6 +1065,16 @@ void PonscripterLabel::reset()
     btntime2_flag  = false;
     btntime_value  = 0;
     btnwait_time = 0;
+
+    if (sin_table) delete[] sin_table;
+    if (cos_table) delete[] cos_table;
+    sin_table = cos_table = NULL;
+    if (whirl_table) delete[] whirl_table;
+    whirl_table = NULL;
+
+    if (breakup_cells) delete[] breakup_cells;
+    if (breakup_mask) delete[] breakup_mask;
+    if (breakup_cellforms) delete[] breakup_cellforms;
 
     disableGetButtonFlag();
 

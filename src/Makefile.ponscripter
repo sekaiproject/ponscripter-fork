@@ -17,6 +17,9 @@ GUI_OBJS = PonscripterLabel$(OBJSUFFIX)					\
 	PonscripterLabel_command$(OBJSUFFIX)				\
 	PonscripterLabel_text$(OBJSUFFIX)				\
 	PonscripterLabel_effect$(OBJSUFFIX)				\
+	PonscripterLabel_effect_breakup$(OBJSUFFIX)			\
+	PonscripterLabel_effect_cascade$(OBJSUFFIX)			\
+	PonscripterLabel_effect_trig$(OBJSUFFIX)			\
 	PonscripterLabel_event$(OBJSUFFIX)				\
 	PonscripterLabel_rmenu$(OBJSUFFIX)				\
 	PonscripterLabel_animation$(OBJSUFFIX)				\
@@ -77,6 +80,9 @@ PonscripterLabel_animation$(OBJSUFFIX): $(SCRIPTER_H)
 PonscripterLabel_command$(OBJSUFFIX): $(SCRIPTER_H) version.h
 PonscripterLabel$(OBJSUFFIX): $(SCRIPTER_H)
 PonscripterLabel_effect$(OBJSUFFIX): $(SCRIPTER_H)
+PonscripterLabel_effect_breakup$(OBJSUFFIX): $(SCRIPTER_H)
+PonscripterLabel_effect_cascade$(OBJSUFFIX): $(SCRIPTER_H)
+PonscripterLabel_effect_trig$(OBJSUFFIX): $(SCRIPTER_H)
 PonscripterLabel_event$(OBJSUFFIX): $(SCRIPTER_H)
 PonscripterLabel_ext$(OBJSUFFIX): $(SCRIPTER_H)
 PonscripterLabel_file2$(OBJSUFFIX): $(SCRIPTER_H)

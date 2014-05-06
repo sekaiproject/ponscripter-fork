@@ -29,6 +29,8 @@
 #define EFFECT_STRIPE_CURTAIN_WIDTH (24 * screen_ratio1 / screen_ratio2)
 #define EFFECT_QUAKE_AMP (12 * screen_ratio1 / screen_ratio2)
 
+static char *dll=NULL, *params=NULL; //for dll-based effects
+
 int PonscripterLabel::setEffect(Effect& effect, bool generate_effect_dst, bool update_backup_surface)
 {
     if (effect.effect == 0) return RET_CONTINUE;
@@ -68,6 +70,37 @@ int PonscripterLabel::setEffect(Effect& effect, bool generate_effect_dst, bool u
         effect_no == 14 || effect_no == 16 || effect_no == 17)
         dirty_rect.fill( screen_width, screen_height );
 
+    dll = params = NULL;
+    if (effect_no == 99) { // dll-based
+        dll = bstr2cstr(&effect.anim.image_name, '0'); // TODO: Make dll a bstring natively
+        if (dll != NULL) { //just in case no dll is given
+            if (debug_level > 0)
+                printf("dll effect: Got dll/params '%s'\n", dll);
+
+            params = dll;
+            while (*params != 0 && *params != '/') params++;
+            if (*params == '/') params++;
+
+            if (!strncmp(dll, "whirl.dll", 9)) {
+                buildSinTable();
+                buildCosTable();
+                buildWhirlTable();
+                dirty_rect.fill( screen_width, screen_height );
+            }
+            else if (!strncmp(dll, "trvswave.dll", 12)) {
+                buildSinTable();
+                dirty_rect.fill( screen_width, screen_height );
+            }
+            else if (!strncmp(dll, "breakup.dll", 11)) {
+                initBreakup(params);
+                dirty_rect.fill( screen_width, screen_height );
+            }
+            else {
+                dirty_rect.fill( screen_width, screen_height );
+            }
+        }
+    }
+
     effect_counter = 0;
     effect_start_time_old = SDL_GetTicks();
     event_mode = EFFECT_EVENT_MODE;
@@ -79,6 +112,8 @@ int PonscripterLabel::setEffect(Effect& effect, bool generate_effect_dst, bool u
 
 int PonscripterLabel::doEffect(Effect& effect, bool clear_dirty_region)
 {
+    bool first_time = (effect_counter == 0);
+
     int prevduration = effect.duration;
     if (ctrl_pressed_status || skip_to_wait) {
         effect.duration = effect_counter = 1;
@@ -218,8 +253,37 @@ int PonscripterLabel::doEffect(Effect& effect, bool clear_dirty_region)
 
         break;
 
+    case 99: // dll-based
+        if (dll != NULL) {
+            if (!strncmp(dll, "cascade.dll", 11)) {
+                effectCascade(params, effect.duration);
+                break;
+            } else if (!strncmp(dll, "whirl.dll", 9)) {
+                effectWhirl(params, effect.duration);
+                break;
+            } else if (!strncmp(dll, "trvswave.dll", 12)) {
+                effectTrvswave(params, effect.duration);
+                break;
+            } else if (!strncmp(dll, "breakup.dll", 11)) {
+                effectBreakup(params, effect.duration);
+                break;
+            } else {
+                if (first_time) {
+                    printf("Effect %d, DLL emulation not found: %s\n", effect_no, dll);
+                }
+            }
+        } else { //just in case no dll is given
+            if (first_time) {
+                printf("effect No. %d, but no DLL name supplied.\n", effect_no);
+            }
+        }
+
+        // fall through to default case
+
     default:
-        printf("effect No. %d is not implemented. Crossfade is substituted for that.\n", effect_no);
+        if (first_time) {
+            printf("effect No. %d is not implemented. Crossfade is substituted for that.\n", effect_no);
+        }
 
     case 10: // Cross fade
         height = 256 * effect_counter / effect.duration;
