@@ -12,21 +12,26 @@ EI = extlib/include
 EB = extlib/bin
 ES = extlib/src
 
-SDLSRC  = $(ES)/SDL2-2.0.3
-SDLISRC = $(ES)/SDL2_image-2.0.0
-ZSRC    = $(ES)/zlib-1.2.3
-PNGSRC  = $(ES)/libpng-1.2.24
-JPEGSRC = $(ES)/jpeg-6b
-SDLMSRC = $(ES)/SDL2_mixer-2.0.0
-OGGSRC  = $(ES)/libogg-1.1.3
-VORBSRC = $(ES)/libvorbis-1.3.4
-SMPGSRC = $(ES)/smpeg-2.0.0
-BZSRC   = $(ES)/bzip2-1.0.4
-FTSRC   = $(ES)/freetype-2.3.5
+SDLSRC   = $(ES)/SDL2-2.0.3
+SDLISRC  = $(ES)/SDL2_image-2.0.0
+ZSRC     = $(ES)/zlib-1.2.3
+PNGSRC   = $(ES)/libpng-1.2.24
+JPEGSRC  = $(ES)/jpeg-6b
+SDLMSRC  = $(ES)/SDL2_mixer-2.0.0
+OGGSRC   = $(ES)/libogg-1.1.3
+VORBSRC  = $(ES)/libvorbis-1.3.4
+SMPGSRC  = $(ES)/smpeg-2.0.0
+BZSRC    = $(ES)/bzip2-1.0.4
+FTSRC    = $(ES)/freetype-2.3.5
+STEAMSDK = $(ES)/steam-sdk
 
 LPREFIX = $(shell pwd)/extlib
 
 CLEAN_TARGETS=clean_sdl clean_sdl_image clean_sdl_mixer clean_bzip2 clean_smpeg clean_freetype
+ifdef STEAM
+	CLEAN_TARGETS += clean_steamsdk
+endif
+
 DISTCLEAN_TARGETS=dclean_sdl dclean_sdl_image dclean_sdl_mixer dclean_smpeg dclean_freetype
 
 #-- SDL -----------------------------------------------------------------------
@@ -248,3 +253,17 @@ $(EL)/libbz2$(LIBSUFFIX): $(foreach fn,$(BZOBJS),$(BZSRC)/$(fn)$(OBJSUFFIX))
 
 $(EI)/bzlib.h: $(BZSRC)/bzlib.h
 	cp $< $@
+
+#-- steam-sdk
+.PHONY: clean_steamsdk
+clean_steamsdk:
+	@-if [ -f $(STEAMSDK)/Makefile ]; then $(MAKE) -C $(STEAMSDK) clean; fi
+
+
+$(STEAMSDK)/Makefile:
+	@cd $(STEAMSDK) && ./configure
+
+
+steam_api=$(ES)/steam/steam_api.h
+$(ES)/steam/steam_api.h: $(STEAMSDK)/Makefile
+	@$(MAKE) -C $(STEAMSDK)

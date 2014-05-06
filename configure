@@ -53,6 +53,8 @@ INTERNAL_LIBJPEG=false
 INTERNAL_OGGLIBS=false
 EXPLICIT_OGGLIBS=false
 
+STEAM_API=false
+
 SDL_CONFIG=sdl2-config
 SMPEG_CONFIG=smpeg2-config
 FREETYPE_CONFIG=freetype-config
@@ -183,6 +185,8 @@ do
       ;;
       --force-external-sdl-mixer | -force-external-sdl-mixer | -with-external-sdl-mixer | --with-external-sdl-mixer)
         EXTERNAL_SDL_MIXER=true;;
+      --steam | -steam | --with-steam | -with-steam | --gabe-newell)
+        STEAM_API=true ;;
 
 
     -\? | -h | -help | --help)
@@ -212,6 +216,7 @@ do
 	  --with-internal-smpeg       skip check for system libsmpeg
 	  --with-internal-freetype    skip check for system libfreetype
 	  --with-external-sdl-mixer   force usage of system libSDL2_mixer
+	  --with-steam                link against steam and include steam features
 	__ENDHELP
       exit 0
       ;;
@@ -981,6 +986,18 @@ all: target
 
 RESOURCES =
 _EOF
+
+if $STEAM_API
+then
+cat >> $MAKEFILE <<_EOF
+
+STEAM=true
+EXTRADEPS += \$(steam_api)
+DEFS += -DSTEAM
+LIBS += -lsteam_api
+INCS += -Iextlib/include/steam
+_EOF
+fi
 
 if [ "$SYS" != "MinGW" ] && [ "$SYS" != "MacOSX" ]; then
 cat >> $MAKEFILE <<_EOF
