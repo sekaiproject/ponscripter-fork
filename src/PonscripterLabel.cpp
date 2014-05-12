@@ -42,6 +42,7 @@ namespace Carbon {
 typedef HRESULT (WINAPI * GETFOLDERPATH)(HWND, int, HANDLE, DWORD, LPTSTR);
 #endif
 #ifdef LINUX
+#include <libgen.h>
 #include <errno.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -742,8 +743,13 @@ void PonscripterLabel::setGameIdentifier(const char *gameid)
     cmdline_game_id = gameid;
 }
 
-#if defined(WIN32) && defined(STEAM)
-pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windows + Steam local path
+#ifdef STEAM
+
+
+/* Local_GetSavePath() is the fallback for if steam is defined,
+   but SteamAPI_Init failed */
+#ifdef WIN32 // and STEAM
+pstring Local_GetSavePath()
 {
     /* These defines are used elsewhere. They are normally created in the non-steam GetSavePath fn */
 #define CSIDL_COMMON_APPDATA 0x0023 // for [Profiles]\All Users\Application Data
@@ -760,7 +766,90 @@ pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windo
     }
     return rv;
 }
-#elif defined WIN32
+#elif defined(MACOSX) // and STEAM
+pstring Local_GetSavePath()
+{
+    char *programPath = (char *)malloc(PATH_MAX);
+    uint32_t pathLen = PATH_MAX;
+    bool saveDirErr = false;
+
+    if(_NSGetExecutablePath(programPath, &pathLen) != 0) {
+        /* The fn sets the size to the correct needed size if it was too short */
+        programPath = (char *)realloc((void *)programPath, pathLen);
+        if(_NSGetExecutablePath(programPath, &pathLen) != 0) {
+            /* Well, we were big enough... Guess this is an error */
+            free(programPath);
+            saveDirErr = true;
+        }
+    }
+
+    if(!saveDirErr) {
+      char *programDir = dirname(programPath);
+      free(programPath);
+
+      char *saveFolder = "/saves/";
+
+      int dirLen = strlen(programDir);
+      programDir = (char *)realloc((void *)programDir, dirLen + strlen(saveFolder));
+
+
+      pstring rv = pstring(programDir) + "/saves/";
+      free(programDir);
+
+      if (mkdir(rv, 0755) == 0 || errno == EEXIST)
+          return rv;
+    }
+
+    // If that fails, die.
+    using namespace Carbon;
+    CFOptionFlags *alert_flags;
+    CFUserNotificationDisplayAlert(0, kCFUserNotificationStopAlertLevel, NULL, NULL, NULL,
+        CFSTR("mkdir failure"),
+        CFSTR("Could not create a directory for saved games."), NULL, NULL, NULL, alert_flags);
+    exit(1);
+}
+#else // LINUX and hope everything else is linux-like
+pstring Local_GetSavePath() // POSIX-ish version
+{
+    char *programPath = (char *)malloc(PATH_MAX);
+    size_t pathLen = PATH_MAX;
+    ssize_t readLen = 0;
+    bool wholeLinkRead = true;
+
+    /* Because PATH_MAX is not really the max, this bit
+       tries to make sure to allocate enough anyways */
+    readLen = readlink("/proc/self/exe", programPath, pathLen);
+    if(readLen > pathLen) {
+        pathLen = readLen + 1;
+        programPath = (char *)realloc(programPath, pathLen);
+        readLen = readlink("/proc/self/exe", programPath, pathLen);
+    }
+    if(readLen == -1) {
+        fprintf(stderr, "Error getting current program path. Saves might not work\n");
+        return "";
+    }
+
+    char *programDir = strdup(dirname(programPath));
+    free(programPath);
+
+    pstring rv = pstring(programDir) + "/saves/";
+    free(programDir);
+
+    if (mkdir(rv, 0755) == 0 || errno == EEXIST)
+        return rv;
+
+    fprintf(stderr, "Warning: could not create save directory 'saves'.\n");
+    return "";
+}
+#endif //WIN32 / OSX / LINUX
+
+pstring Steam_GetSavePath() {
+  return Local_GetSavePath();
+}
+
+#endif //STEAM
+
+#ifdef WIN32
 pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windows version
 {
     //Convert gameid from UTF-8 to Wide (Unicode) and thence to system ANSI
@@ -808,21 +897,6 @@ pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windo
     }
     return rv;
 }
-#elif defined(MACOSX) && defined(STEAM)
-pstring Platform_GetSavePath(pstring gameid) // MacOS X version
-{
-    pstring rv = "saves/";
-    if (mkdir(rv, 0755) == 0 || errno == EEXIST)
-        return rv;
-
-    // If that fails, die.
-    using namespace Carbon;
-    CFOptionFlags *alert_flags;
-    CFUserNotificationDisplayAlert(0, kCFUserNotificationStopAlertLevel, NULL, NULL, NULL,
-        CFSTR("mkdir failure"),
-        CFSTR("Could not create a directory for saved games."), NULL, NULL, NULL, alert_flags);
-    exit(1);
-}
 #elif defined MACOSX
 pstring Platform_GetSavePath(pstring gameid) // MacOS X version
 {
@@ -843,16 +917,6 @@ pstring Platform_GetSavePath(pstring gameid) // MacOS X version
         CFSTR("mkdir failure"),
         CFSTR("Could not create a directory for saved games."), NULL, NULL, NULL, alert_flags);
     exit(1);
-}
-#elif defined(LINUX) && defined(STEAM)
-pstring Platform_GetSavePath(pstring gameid) // POSIX version
-{
-    pstring rv = "saves/";
-    if (mkdir(rv, 0755) == 0 || errno == EEXIST)
-        return rv;
-
-    fprintf(stderr, "Warning: could not create save directory 'saves'.\n");
-    return "";
 }
 #elif defined LINUX
 pstring Platform_GetSavePath(pstring gameid) // POSIX version
@@ -888,6 +952,18 @@ pstring Platform_GetSavePath(const pstring& gameid)
     return "";
 }
 #endif
+
+pstring PonscripterLabel::getSavePath(const pstring gameid) {
+#ifdef STEAM
+  return Steam_GetSavePath();
+#else
+  #ifdef WIN32
+  return Platform_GetSavePath(gameid, current_user_appdata);
+  #else
+  return Platform_GetSavePath(gameid);
+  #endif
+#endif // STEAM
+}
 
 // Retrieve a game identifier.
 pstring getGameId(ScriptHandler& script_h)
@@ -990,12 +1066,7 @@ int PonscripterLabel::init(const char* preferred_script)
 
     // Try to determine an appropriate location for saved games.
     if (!script_h.save_path)
-#ifdef WIN32
-        script_h.save_path = Platform_GetSavePath(getGameId(script_h),
-                                                  current_user_appdata);
-#else
-        script_h.save_path = Platform_GetSavePath(getGameId(script_h));
-#endif
+        script_h.save_path = getSavePath(getGameId(script_h));
 
     // If we couldn't find anything obvious, fall back on ONScripter
     // behaviour of putting saved games in the archive path.
