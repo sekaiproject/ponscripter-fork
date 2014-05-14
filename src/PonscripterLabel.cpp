@@ -40,6 +40,7 @@ namespace Carbon {
 #include "SDL_syswm.h"
 #include "winres.h"
 typedef HRESULT (WINAPI * GETFOLDERPATH)(HWND, int, HANDLE, DWORD, LPTSTR);
+#define PATH_MAX MAX_PATH
 #endif
 #ifdef LINUX
 #include <libgen.h>
@@ -743,6 +744,26 @@ void PonscripterLabel::setGameIdentifier(const char *gameid)
     cmdline_game_id = gameid;
 }
 
+#ifdef WIN32
+int makeFolder(pstring *path) {
+    if(CreateDirectory(*path, NULL) == 0) {
+        DWORD err = GetLastError();
+        if(err != ERROR_ALREADY_EXISTS) {
+          fprintf(stderr, "Warning, unable to create directory: %s\n", path->data);
+          return 1;
+        }
+    }
+    return 0;
+}
+#else //Mac and Linux
+int makeFolder(pstring *path) {
+    if (mkdir(*path, 0755) == 0 || errno == EEXIST)
+        return 0;
+    fprintf(stderr, "Warning, unable to create directory: %s\n", path->data);
+    return 1;
+}
+#endif
+
 #ifdef STEAM
 
 
@@ -757,14 +778,10 @@ pstring Local_GetSavePath()
     /* Assume the working-dir is where we want our save path
        . We could use GetModuleFileNameW if this is an issue */
     pstring rv = "saves/";
-    if(CreateDirectory(rv, NULL) == 0) {
-        DWORD err = GetLastError();
-        if(err != ERROR_ALREADY_EXISTS) {
-            fprintf(stderr, "Error creating save directory.\n");
-            return "";
-        }
+    if(makeFolder(&rv) == 0) {
+      return rv;
     }
-    return rv;
+    return "";
 }
 #elif defined(MACOSX) // and STEAM
 pstring Local_GetSavePath()
@@ -796,7 +813,7 @@ pstring Local_GetSavePath()
       pstring rv = pstring(programDir) + "/saves/";
       free(programDir);
 
-      if (mkdir(rv, 0755) == 0 || errno == EEXIST)
+      if (makeFolder(&rv) == 0)
           return rv;
     }
 
@@ -835,15 +852,31 @@ pstring Local_GetSavePath() // POSIX-ish version
     pstring rv = pstring(programDir) + "/saves/";
     free(programDir);
 
-    if (mkdir(rv, 0755) == 0 || errno == EEXIST)
+    if(makeFolder(&rv) == 0)
         return rv;
 
-    fprintf(stderr, "Warning: could not create save directory 'saves'.\n");
     return "";
 }
 #endif //WIN32 / OSX / LINUX
 
 pstring Steam_GetSavePath() {
+  if(SteamApps()) {
+      uint32 folderLen = PATH_MAX;
+      char *installFolder = (char *)malloc(folderLen + 1);
+      folderLen = SteamApps()->GetAppInstallDir(SteamUtils()->GetAppID(),
+                installFolder, folderLen);
+      if(folderLen > PATH_MAX) {
+          installFolder = (char *)realloc((void *)installFolder, folderLen);
+          folderLen = SteamApps()->GetAppInstallDir(SteamUtils()->GetAppID(),
+                    installFolder, folderLen);
+      }
+      pstring rv = pstring(installFolder) + "/saves/";
+
+      if(makeFolder(&rv) == 0) {
+        return rv;
+      }
+  }
+  fprintf(stderr, "Unable to get steam's save path; falling back to relative save path.\n");
   return Local_GetSavePath();
 }
 
@@ -890,7 +923,7 @@ pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windo
                 res = gfp(0, CSIDL_COMMON_APPDATA, 0, 0, hpath);
             if (res != S_FALSE && res != E_FAIL && res != E_INVALIDARG) {
                 rv = pstring(hpath) + DELIMITER + ansi_gameid + DELIMITER;
-                CreateDirectory(rv, 0);
+                makeFolder(&rv);
             }
         }
         FreeLibrary(shdll);
@@ -909,7 +942,7 @@ pstring Platform_GetSavePath(pstring gameid) // MacOS X version
     char path[32768];
     FSRefMakePath(&appsupport, (UInt8*) path, 32768);
     pstring rv = pstring(path) + DELIMITER + gameid + DELIMITER;
-    if (mkdir(rv, 0755) == 0 || errno == EEXIST)
+    if (makeFolder(&rv) == 0)
         return rv;
     // If that fails, die.
     CFOptionFlags *alert_flags;
@@ -936,7 +969,7 @@ pstring Platform_GetSavePath(pstring gameid) // POSIX version
     passwd* pwd = getpwuid(getuid());
     if (pwd) {
         pstring rv = pstring(pwd->pw_dir) + "/." + gameid + '/';
-        if (mkdir(rv, 0755) == 0 || errno == EEXIST)
+        if (makeFolder(&rv) == 0)
             return rv;
     }
     // Error; either getpwuid failed, or we couldn't create a save
