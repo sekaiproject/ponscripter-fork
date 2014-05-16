@@ -1,0 +1,246 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>ponscr</title><meta name="generator" content="DocBook XSL Stylesheets V1.78.0"><link rel="home" href="index.html" title=""><link rel="up" href="rn01.html" title="Ponscripter manual"><link rel="prev" href="rn01re01.html" title="ponscripter"><link rel="next" href="rn01re03.html" title="ponscr-syntax"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">ponscr</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="rn01re01.html">Prev</a> </td><th width="60%" align="center">Ponscripter manual</th><td width="20%" align="right"> <a accesskey="n" href="rn01re03.html">Next</a></td></tr></table><hr></div><div class="refentry"><a name="ponscr.6"></a><div class="titlepage"></div>
+  
+  
+  
+  <div class="refnamediv"><h2>Name</h2><p>
+    ponscr — the Ponscripter novel-game interpreter
+  </p></div>
+  
+  <div class="refsynopsisdiv"><h2>Synopsis</h2>
+    <div class="cmdsynopsis"><p>
+      <code class="command">ponscr</code> 
+       [
+        <em class="replaceable"><code>options</code></em>
+      ]
+       [
+        <em class="replaceable"><code>script-path</code></em>
+      ]
+       [
+        <em class="replaceable"><code>script-file</code></em>
+      ]
+    </p></div>
+  </div>
+
+  <div class="refsect1"><a name="idm139832484548128"></a><h2>Description</h2>
+    
+    <p>
+      This manpage documents the <span class="command"><strong>ponscr</strong></span> command
+      itself.  See <a class="link" href="rn01re01.html" title="ponscripter">Overview</a> for an overview of other
+      documentation.
+    </p><p><span class="command"><strong>ponscr</strong></span> should be invoked in one of two ways:
+      either from within a game directory, or from an arbitrary
+      location with a game directory specified as an option.
+    </p><p>
+      On Unix-like operating systems other than Mac OS X, it is
+      recommended that you use the second option.  Game packagers
+      will ideally provide wrapper scripts that launch
+      <span class="command"><strong>ponscr</strong></span> indirectly, so users will not have
+      to know anything about the underlying interpreter.
+    </p><p>
+      On Mac OS X, the recommended approach is to create an
+      application bundle containing a Ponscripter binary and the
+      game data in the bundle's Resources directory; things will
+      then <span class="quote">“<span class="quote">just work</span>”</span>.
+    </p><p>
+      On Microsoft Windows, the simplest approach is to store a
+      Ponscripter binary in the game directory.
+    </p></div>
+
+  <div class="refsect1"><a name="idm139832484543184"></a><h2>Options</h2>
+    
+    <p>
+      Up to two positional options may be provided, to give the root
+      path and script filename, like <code class="option">-r</code> and
+      <code class="option">-s</code>.  If a parameter names a directory, it is
+      given an implicit <code class="option">-r</code>; otherwise it is given
+      an implicit <code class="option">-s</code>.  If a filename is encountered
+      that includes a path, and no root path has been provided at
+      this point, then <span class="command"><strong>ponscr</strong></span> assumes that the
+      path part of the filename should be the root path.
+    </p><p>
+      If that doesn't do what you expected, use explicit options.
+    </p><p>
+      The following named options are recognised by
+      <span class="command"><strong>ponscr</strong></span>, in addition to the standard
+      <code class="option">--help</code> and <code class="option">--version</code> flags
+      (which should need no explanation):
+    </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="option">-r</code> <em class="replaceable"><code>path</code></em>, </span><span class="term"><code class="option">--root</code> <em class="replaceable"><code>path</code></em></span></dt><dd>
+          <p class="simpara">
+            Execute the game located at <em class="replaceable"><code>path</code></em>.
+          </p><p class="simpara">
+            If this option is not specified, any positional
+            parameter will be used; otherwise the default behaviour
+            on most platforms is to look for a game in the current
+            working directory.  The exception is OS X, where the
+            Resources directory of the current application bundle is
+            checked first if appropriate.
+          </p></dd><dt><span class="term"><code class="option">-s</code> <em class="replaceable"><code>file</code></em>, </span><span class="term"><code class="option">--script</code> <em class="replaceable"><code>file</code></em></span></dt><dd>
+          <p class="simpara">
+            Use the script named <em class="replaceable"><code>file</code></em>.  If
+            a path is given, it is interpreted relative to the current
+            working directory; if no path is given, the file is sought
+            in the root path (determined as described above).
+          </p><p class="simpara">
+            If this option is not provided at all, a script file is
+            sought automatically in the root path.  The filenames
+            searched for, and their corresponding formats, are
+            described in <a class="link" href="rn01re01.html" title="ponscripter">Overview</a>.  The same naming conventions
+            are observed if this option is used, except that multipart
+            scripts cannot currently be loaded this way, and
+            unobfuscated scripts may have non-numeric names.
+          </p></dd><dt><a name="option-save"></a><span class="term"><code class="option">--save</code> <em class="replaceable"><code>path</code></em></span></dt><dd>
+          <p class="simpara">
+            Set the path to use for saved data.
+          </p><p class="simpara">
+            This option should not normally be used; a sensible
+            default will be generated.
+          </p><p class="simpara">
+            On most Unix-like platforms, saved games will be stored in
+            <code class="filename">~/.<em class="replaceable"><code>GAME</code></em></code> (where
+            <code class="varname">GAME</code> is the name of the game being
+            played, or a semi-unique default if no name was provided.
+            See <a class="link" href="rn01re01.html#directives" title="The Directives section">directives</a> in <a class="link" href="rn01re01.html" title="ponscripter">Overview</a>.)
+          </p><p class="simpara">
+            On Mac OS X,
+           <code class="filename">~/Library/Preferences/<em class="replaceable"><code>GAME</code></em></code>
+            is used instead.
+          </p><p class="simpara">
+            Under Microsoft Windows, data is stored in
+            <code class="filename"><em class="replaceable"><code>%COMMON_APPDATA%</code></em>\<em class="replaceable"><code>GAME</code></em></code>.
+          </p></dd><dt><span class="term"><code class="option">-d</code>, </span><span class="term"><code class="option">--debug</code></span></dt><dd>
+          
+            Enable debugging output.  Repeating this option may
+            increase the verbosity even further.
+          </dd><dt><span class="term"><code class="option">--cdaudio</code></span></dt><dd>
+          
+            Use CD audio, if available.
+            </dd><dt><span class="term">
+          <code class="option">--cdnumber</code> <em class="replaceable"><code>number</code></em>
+        </span></dt><dd>
+          
+            Choose the CD-ROM drive number.
+            </dd><dt><span class="term"><code class="option">--registry</code> <em class="replaceable"><code>file</code></em></span></dt><dd>
+          <p class="simpara">
+            Ponscripter simulates NScripter's Windows registry access
+            commands by reading from a fixed text file.  This option
+            is used to specify that file.
+          </p><p class="simpara">
+            (This applies even on Microsoft Windows; real registry
+            access is not supported, period.)
+          </p></dd><dt><span class="term"><code class="option">--dll</code> <em class="replaceable"><code>file</code></em></span></dt><dd>
+          <p class="simpara">
+            Ponscripter simulates access to arbitrary NScripter DLL
+            extensions by reading predefined function results from a
+            fixed text file.  This is enough to make games work,
+            though often not enough to make them work
+            <span class="emphasis"><em>properly</em></span>.
+          </p><p class="simpara">
+            Proper support for some extensions may be built into
+            Ponscripter itself.
+          </p><p class="simpara">
+            (This applies even on Microsoft Windows; real DLL
+            extensions are not supported, period.)
+          </p></dd><dt><span class="term"><code class="option">--fullscreen</code></span></dt><dd>
+          
+            Force Ponscripter to start in fullscreen mode.
+          </dd><dt><span class="term"><code class="option">--window</code></span></dt><dd>
+          
+            Force Ponscripter to start in windowed mode.
+          </dd><dt><span class="term"><code class="option">--force-png-alpha</code></span></dt><dd>
+          
+            Always use alpha channels for PNG transparency, even if an
+            image looks as though it might contain an NScripter-style
+            mask.  See <a class="link" href="rn01re02.html#png-notes" title="PNG transparency">notes</a> below.
+          </dd><dt><span class="term"><code class="option">--force-png-nscmask</code></span></dt><dd>
+          
+            Always use NScripter-style masks for PNG transparency,
+            even if an image contains an alpha channel.  See
+            <a class="link" href="rn01re02.html#png-notes" title="PNG transparency">notes</a> below.
+          </dd><dt><span class="term"><code class="option">--force-button-shortcut</code></span></dt><dd>
+          <p class="simpara">
+            Disables four NScripter commands: <code class="function">spclclk</code>,
+            <code class="function">getenter</code>, <code class="function">getcursor</code>,
+            and <code class="function">useescspc</code>.
+          </p><p class="simpara">
+            (This option was inherited from ONScripter; the reason for
+            it is lost in the mists of time.)
+          </p></dd><dt><span class="term"><code class="option">--enable-wheeldown-advance</code></span></dt><dd>
+          
+            Allow mouse-wheel-down events to advance text.
+          </dd><dt><span class="term"><code class="option">--key-file</code> <em class="replaceable"><code>file</code></em></span></dt><dd>
+          
+            Specify key file to use to read obfuscated
+            <code class="filename">nscript.___</code> files and their
+            accompanying archives.  This option is provided only for
+            use with legacy games; native Ponscripter games cannot be
+            obfuscated with this method.  (What would the point be?
+            Anyone could adapt Ponscripter to extract the files.)
+          </dd><dt><span class="term"><code class="option">--disable-rescale</code></span></dt><dd>
+          
+            This is an ONScripter option that I've never used.
+            </dd><dt><span class="term"><code class="option">--edit</code></span></dt><dd>
+          
+            This is an ONScripter option that I've never used.
+            </dd></dl></div>
+
+  </div>
+
+  <div class="refsect1"><a name="idm139832484491056"></a><h2>Bugs</h2>
+    
+    
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: bullet; "><li class="listitem" style="list-style-type: disc">
+        <p>
+          On Microsoft Windows, all output to
+          <code class="filename">stdout</code> and <code class="filename">stderr</code>
+          is stored in files in the
+          <code class="filename"><em class="replaceable"><code>%COMMON_APPDATA%</code></em>\Ponscripter
+          </code>
+          directory.  These are clobbered each time the program is
+          launched and deleted upon termination if empty.  Output is
+          never printed to the console, even if the interpreter was
+          launched from the command line, and the behaviour if
+          multiple instances are launched at the same time is
+          undefined.
+        </p></li><li class="listitem" style="list-style-type: disc">
+        <p>
+          Most fatal error messages are printed to stderr, which for
+          99% of users means the interpreter dies silently with no
+          hint as to the cause.  They should be displayed with some
+          kind of popup dialog; preferably a platform-native one,
+          where feasible.
+        </p></li><li class="listitem" style="list-style-type: disc">
+        <p>
+          The entire design of this interpreter is arguably a bug.
+        </p></li></ul></div>
+  </div>
+
+  <div class="refsect1"><a name="idm139832484485552"></a><h2>Notes</h2>
+    
+
+    <div class="refsect2"><a name="png-notes"></a><h3>PNG transparency</h3>
+      
+      <p>
+        The behaviour of PNG images is not well-defined, since
+        NScripter does not support them directly.  Historically, some
+        interpreters/plugins have expected them to use alpha channels
+        for transparency, while others have expected them to use
+        NScripter-style masks like BMP files do (i.e. the bitmap is
+        double width, with the left-hand side being the full-colour
+        image, and the right-hand side being a greyscale mask).
+      </p><p>
+        By default, Ponscripter uses a heuristic approach: if a PNG
+        has an alpha channel that is not completely opaque, that is
+        used, otherwise an NScripter-style mask is used if present.
+        If this fails to work for some images, and you cannot fix the
+        images in question directly, then you can use the
+        <code class="option">--force-png-alpha</code> or
+        <code class="option">--force-png-nscmask</code> options to overrule the
+        automatic detection.
+      </p></div>
+  </div>
+
+  <div class="refsect1"><a name="idm139832484481488"></a><h2>See Also</h2>
+    
+    <p><a class="link" href="rn01re01.html" title="ponscripter">Overview</a></p></div>
+  
+</div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="rn01re01.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="rn01.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="rn01re03.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">ponscripter </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> ponscr-syntax</td></tr></table></div></body></html>

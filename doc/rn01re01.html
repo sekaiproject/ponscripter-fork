@@ -1,0 +1,283 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>ponscripter</title><meta name="generator" content="DocBook XSL Stylesheets V1.78.0"><link rel="home" href="index.html" title=""><link rel="up" href="rn01.html" title="Ponscripter manual"><link rel="prev" href="rn01.html" title="Ponscripter manual"><link rel="next" href="rn01re02.html" title="ponscr"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">ponscripter</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="rn01.html">Prev</a> </td><th width="60%" align="center">Ponscripter manual</th><td width="20%" align="right"> <a accesskey="n" href="rn01re02.html">Next</a></td></tr></table><hr></div><div class="refentry"><a name="ponscripter.7"></a><div class="titlepage"></div>
+  
+  
+  
+  <div class="refnamediv"><h2>Name</h2><p>
+    ponscripter — Ponscripter overview
+  </p></div>
+
+  <div class="refsect1"><a name="idm139832484629344"></a><h2>Description</h2>
+    
+    <p><em class="firstterm">Ponscripter</em> is an interpreter for
+      visual-novel-type games, derived from the NScripter design but
+      modified significantly to improve support for Western languages
+      (at the cost of diminished support for Japanese).
+    </p><div class="refsect2"><a name="idm139832484628032"></a><h3>Documentation contents</h3>
+      
+      <p>
+        Ponscripter documentation is split into a number of sections.
+      </p><p>
+        This page provides an overview of Ponscripter itself and the
+        overall structure of a game.
+      </p><p>
+        The other sections are:
+        </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><a class="link" href="rn01re02.html" title="ponscr">Invocation</a></span></dt><dd>
+              
+                The <span class="command"><strong>ponscr</strong></span> binary: invocation,
+                usage, and implementation notes.
+              </dd><dt><span class="term"><a class="link" href="rn01re03.html" title="ponscr-syntax">Syntax</a></span></dt><dd>
+              
+                Syntax of a Ponscripter script.
+              </dd><dt><span class="term"><a class="link" href="rn01re04.html" title="ponscr-ext">Extensions</a></span></dt><dd>
+              
+                Commands that don't exist, or behave differently, in
+                other NScripter-type interpreters.
+              </dd></dl></div></div>
+
+    <div class="refsect2"><a name="idm139832484620960"></a><h3>NScripter implementations</h3>
+      
+      <p><em class="firstterm">NScripter</em> is a popular novel-game
+        engine written by <span class="personname"><span class="firstname">Naoki</span> <span class="surname">Takahashi</span></span>.  It's available at
+        no cost even for commercial use, but its source code is not
+        free, and it's only supported on <span class="productname">Microsoft
+        Windows</span>.  Since it has been used to drive a
+        large number of popular commercial and amateur games, this has
+        inspired a number of open-source cloning efforts.  As the
+        original implementation, it serves as the definition of the
+        NScripter standard; sadly its documentation leaves something
+        to be desired.
+      </p><p><span class="personname"><span class="othername">Ogapee</span></span>'s
+        <em class="firstterm">ONScripter</em> is the most significant of
+        the clones.  It supports a wide range of platforms, including
+        handheld devices.  When the attention of the English-speaking
+        fan translation community turned to NScripter games,
+        ONScripter was the interpreter we chose to adapt to better
+        support the English language.  The official ONScripter source
+        code can be compiled with basic English support; since
+        ONScripter development is aimed more at supporting new
+        Japanese games and new platforms than at supporting
+        localisation, the English-speaking community also maintains a
+        branch called <em class="firstterm">ONScripter-En</em> which has a
+        number of improvements of interest to us, including better
+        English support as standard.
+      </p><p><em class="firstterm">Ponscripter</em> is a fork of ONScripter-En
+        that drops any attempt to remain in synch with the upstream
+        source code, and instead concentrates on providing the best
+        possible support for Western languages.  It is no longer fully
+        NScripter-compatible, but remains an easy target to port
+        NScripter games to when localising them.
+      </p><p>
+        The main enhancements are support for Unicode and for
+        formatted text, including multiple fonts and styles, with
+        proportional spacing, kerning, ligatures, arbitrary text size
+        and position, etc.
+      </p></div>
+
+    <div class="refsect2"><a name="idm139832484614032"></a><h3>Basic game structure</h3>
+      
+      <p>
+        Ponscripter games consist of a directory containing scripts,
+        either in NScripter format or an extended derived format, plus
+        other files (graphics, sound, fonts, etc) on which the script
+        depends; these may be packed into archives in the NScripter
+        <code class="filename">NSA</code> or <code class="filename">SAR</code> formats.
+      </p><p>
+        Unlike other NScripter-derived interpreters, which attempt to
+        a greater or lesser degree to support Japanese filenames,
+        Ponscripter requires that all files have plain ASCII names.
+        It's the only way to be portable.
+      </p></div>
+
+    <div class="refsect2"><a name="idm139832484611408"></a><h3>Script files</h3>
+      
+      <p>
+        Ponscripter is able to read two styles of script: native and
+        legacy.  Native scripts are encoded in UTF-8, and provide
+        all the features documented below.  Legacy scripts are an
+        attempt to provide a modicum of backwards-compatibility:
+        they are NScripter-format scripts, in CP932 (Microsoft's
+        version of Shift_JIS) with some of the same extensions as
+        provided by ONScripter-En.  Many Ponscripter features are
+        disabled when processing a legacy script.  There is little
+        reason to use them, unless you want to try to play an
+        unported NScripter game using proportional fonts.  It's
+        better to port where possible.
+      </p><p>
+        Script formats are distinguished by filename.  The following
+        filenames are sought, in this order:
+        </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="filename">0.utf</code></span></dt><dd>
+              <p class="simpara">
+                Native script in human-readable form.
+              </p><p class="simpara">
+                Human-readable scripts can be multipart: the engine
+                checks all numbers from 1 to 99 (both with and
+                without leading zeroes, for numbers below 10), and
+                appends them to script 0.
+              </p></dd><dt><span class="term"><code class="filename">0.txt</code></span></dt><dd>
+              
+                Legacy script in human-readable form.  Can be
+                multipart, as for native scripts.
+              </dd><dt><span class="term"><code class="filename">nscr_sec.dat</code></span></dt><dd>
+              
+                Legacy script, trivially obfuscated by xoring against
+                a fixed cyclic key with hexadecimal representation
+                <code class="literal">79 57 0D 80 04</code>.
+              </dd><dt><span class="term"><code class="filename">nscript.___</code></span></dt><dd>
+              <p class="simpara">
+                Legacy script, trivially obfuscated using a key
+                file.
+              </p><p class="simpara">
+                The key must be supplied using the
+                <code class="option">--key-exe</code> parameter to <a class="link" href="rn01re02.html" title="ponscr">Invocation</a>.
+                This file is used to construct a simple permutation
+                table holding the plaintext equivalents to each byte
+                of the obfuscated file.
+              </p></dd><dt><span class="term"><code class="filename">pscript.dat</code></span></dt><dd>
+              <p class="simpara">
+                Native script, trivially obfuscated by xoring against
+                the constant byte <code class="literal">0x84</code>.
+              </p><p class="simpara">
+                This is the only form of obfuscation supported for
+                native scripts.  It does not pretend to provide any
+                security, but protects careless tinkerers from
+                accidental spoilers.
+              </p></dd><dt><span class="term"><code class="filename">nscript.dat</code></span></dt><dd>
+              
+                Legacy script, trivially obfuscated as for
+                <code class="filename">pscript.dat</code>.
+              </dd></dl></div></div>
+
+    <div class="refsect2"><a name="idm139832484595408"></a><h3>Script structure</h3>
+      
+      <p>
+        Scripts are conventionally divided into three sections:
+        <em class="firstterm">directives</em>,
+        <em class="firstterm">define</em>, and
+        <em class="firstterm">game</em>.
+      </p><p>
+        In reality these are parsing modes, rather than lexical
+        sections, and control flow can be mixed up with unscrupulous
+        use of <code class="function">goto</code> and <code class="function">skip</code>
+        commands, but best practice is to keep concerns strictly
+        separate.
+      </p><p>
+        A skeleton script has the following form:
+        </p><pre class="programlisting">; directives
+<code class="literal">*define</code>
+; define section
+<code class="function">game</code>
+<code class="literal">*start</code>
+; game section
+<code class="function">end</code></pre></div>
+
+    <div class="refsect2"><a name="directives"></a><h3>The Directives section</h3>
+      
+      <p>
+        The directives section is optional.  It consists of one or two
+        directive lines at the very top of the first script file;
+        these are processed during interpreter initialisation.
+      </p><p>
+        The first directive line begins with a semicolon and contains
+        one or more comma-separated tags:
+        </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">mode</code> <em class="replaceable"><code>NUM</code></em></span></dt><dd>
+              
+                Sets the screen mode to the 4:3 resolution with
+                horizontal dimension <em class="replaceable"><code>NUM</code></em>.
+                Values recognised are <code class="literal">800</code> (by 600),
+                <code class="literal">640</code> (by 480),
+                <code class="literal">400</code> (by 300), and
+                <code class="literal">320</code> (by 240).  The default is
+                <code class="literal">640</code>.
+              </dd><dt><span class="term"><code class="literal">value</code> <em class="replaceable"><code>NUM</code></em></span></dt><dd>
+              
+                Sets the global variable border; variables with
+                indices greater than or equal to
+                <em class="replaceable"><code>NUM</code></em> will become globals if
+                the <code class="function">globalon</code> command is used.
+                The default is <code class="literal">200</code>.
+              </dd><dt><span class="term">
+              <code class="literal">-*-</code>
+              <em class="replaceable"><code>anything</code></em>
+              <code class="literal">-*-</code>
+            </span></dt><dd>
+              <p class="simpara">
+                Tags of this format are used by popular text editors
+                such as <a class="link" href="http://www.gnu.org/software/emacs" target="_top">Emacs</a> to identify the format of a file.
+              </p><p class="simpara">
+                Ponscripter ignores everything between the
+                <code class="literal">-*-</code> delimiters, so users of such
+                editors can use this feature as expected.
+              </p></dd></dl></div><p>
+        The second directive line, if present, has the form
+        </p><pre class="programlisting">;gameid <em class="replaceable"><code>text</code></em></pre><p>
+        This is used to specify the name of the game.  The
+        <em class="firstterm">gameid</em> thus defined is used when
+        automatically selecting a path for saved games and other
+        variable data (see <a class="link" href="rn01re02.html#option-save"><code class="option">--save</code></a> in
+        <a class="link" href="rn01re02.html" title="ponscr">Invocation</a>).
+      </p><p>
+        Ideally you should always specify a gameid with this
+        directive.  If you don't, Ponscripter tries to determine the
+        name of the game by looking for a <code class="function">caption</code>
+        or <code class="function">versionstr</code> command; if that also
+        fails, a semi-unique identifier is generated based on the
+        length of the script.
+      </p><p>
+        A complete directives section might thus have the form
+        </p><pre class="programlisting">;mode800,value500,-*- ponscripter -*-
+;gameid My Ponscripter game</pre><p>
+        which would specify a game called <span class="quote">“<span class="quote">My Ponscripter
+        game</span>”</span> that used an 800x600 display, treated all
+        variables indexed 500 and above as globals, and would be
+        easily identified as a Ponscripter script.
+      </p></div>
+
+    <div class="refsect2"><a name="idm139832484570128"></a><h3>The Define section</h3>
+      
+      <p>
+        The define section is mandatory, and is typically placed at
+        the start of the first script file, after any directives
+        section and before the game section.
+      </p><p>
+        It is introduced with the label <code class="code">*define</code>, and
+        continues until a <code class="function">game</code> command is
+        encountered.
+      </p><p>
+        Code in this section is evaluated non-interactively at
+        startup, and then only touched again if the
+        <code class="function">definereset</code> command is used.  It contains
+        definitions of things like aliases, arrays, windows,
+        subroutines, and fonts.  Most of the commands valid in this
+        section are invalid in game code, and vice versa.
+      </p></div>
+
+    <div class="refsect2"><a name="idm139832484566848"></a><h3>The Game section</h3>
+      
+      <p>
+        The game section is mandatory, and makes up the bulk of the
+        script.  It typically follows the define section.
+      </p><p>
+        It is introduced with the <code class="function">game</code> command,
+        which transfers control immediately to the
+        <code class="literal">*start</code> label (which must exist, and is
+        normally the next thing in the script).
+      </p><p>
+        Processing then remains in game mode until an
+        <code class="function">end</code> command, which terminates the
+        program, or a <code class="function">definereset</code> command, which
+        returns processing to define mode at the
+        <code class="literal">*define</code> label.
+      </p></div>
+  </div>
+
+  <div class="refsect1"><a name="idm139832484563168"></a><h2>See also</h2>
+    
+    <p><span class="simplelist"><a class="link" href="rn01re02.html" title="ponscr">Invocation</a>, <a class="link" href="rn01re03.html" title="ponscr-syntax">Syntax</a>, <a class="link" href="rn01re04.html" title="ponscr-ext">Extensions</a></span></p><p>
+      Existing NScripter documentation, for a description of the basic
+      operation of NScripter-style games and documentation of most of
+      the functionality supported.  Most NScripter references are only
+      available in Japanese, but there is some English-language
+      documentation at <a class="ulink" href="http://nscripter.insani.org" target="_top">http://nscripter.insani.org</a>.
+    </p></div>
+  
+</div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="rn01.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="rn01.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="rn01re02.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Ponscripter manual </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> ponscr</td></tr></table></div></body></html>
