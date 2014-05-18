@@ -81,9 +81,6 @@ bash setup.sh # always failed once and then worked for me.
 ./shell-i386.sh
 cd ~/ponscripter-fork
 
-export CC=gcc
-export CXX=g++
-
 run.sh ./configure --with-external-sdl-mixer --steam
 run.sh make
 ```
@@ -121,6 +118,12 @@ Reasons for using the latter include building a binary that will work
 on multiple Linux distros, or working round library incompatibilities.
 
 # Common Problems
+
+## aclocal-1.13: command not found
+
+You don't actually need aclocal, but because of the timestamps it thinks it
+needs to run it. To fix this error, run
+`src/extlib/src/SDL2_image-2.0.0/fix-timestamps.sh`
 
 ## Linking Errors
 
