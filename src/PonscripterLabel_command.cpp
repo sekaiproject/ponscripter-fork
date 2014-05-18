@@ -3463,10 +3463,18 @@ int PonscripterLabel::allsp2hideCommand(const pstring& cmd)
 
 int PonscripterLabel::steamsetachieveCommand(const pstring& cmd) {
     pstring name = script_h.readStrValue();
-    /* Noop if steam isn't defined so scripts with this command work okay */
+    /* Noop if steam isn't defined so scripts with this command work anyways */
 #ifdef STEAM
     if(SteamUserStats()) {
-      SteamUserStats()->SetAchievement(name);
+      int numAchieves = SteamUserStats()->GetNumAchievements();
+      if(!SteamUserStats()->SetAchievement(name)) {
+        fprintf(stderr, "Error setting achievement %s\n", name.data);
+      } else {
+        // Trigger the little "Achievement Get" dialog
+        SteamUserStats()->StoreStats();
+      }
+    } else {
+      fprintf(stderr, "Not setting achivement, no steam\n");
     }
 #endif
     return RET_CONTINUE;
