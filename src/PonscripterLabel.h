@@ -326,6 +326,10 @@ public:
     int allsp2hideCommand(const pstring& cmd);
     int amspCommand(const pstring& cmd);
 
+
+    /* Steam commands */
+    int steamsetachieveCommand(const pstring& cmd);
+
 protected:
     /* ---------------------------------------- */
     /* Event related variables */

@@ -290,6 +290,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["splitstring"]      = &PonscripterLabel::splitCommand;
     dict["spreload"]         = &PonscripterLabel::spreloadCommand;
     dict["spstr"]            = &PonscripterLabel::spstrCommand;
+    dict["steamsetachieve"]  = &PonscripterLabel::steamsetachieveCommand;
     dict["stop"]             = &PonscripterLabel::stopCommand;
     dict["strsp"]            = &PonscripterLabel::strspCommand;
     dict["systemcall"]       = &PonscripterLabel::systemcallCommand;
