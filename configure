@@ -185,8 +185,10 @@ do
       ;;
       --force-external-sdl-mixer | -force-external-sdl-mixer | -with-external-sdl-mixer | --with-external-sdl-mixer)
         EXTERNAL_SDL_MIXER=true;;
-      --steam | -steam | --with-steam | -with-steam | --gabe-newell)
+      --steam | -steam | --enable-steam | --with-steam | -with-steam | --extra-gaben)
         STEAM_API=true ;;
+      --no-steam | --disable-steam | --without-steam)
+        STEAM_API=false ;;
 
 
     -\? | -h | -help | --help)

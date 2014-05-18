@@ -359,6 +359,9 @@ protected:
     void queueRerender();
     void trapHandler();
     void initSDL();
+#ifdef STEAM
+    void initSteam();
+#endif
 #if defined(PDA) && !defined(PSP)
     void openAudio(int freq=22050, Uint16 format=MIX_DEFAULT_FORMAT, int channels=MIX_DEFAULT_CHANNELS);
 #else
