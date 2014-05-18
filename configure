@@ -495,7 +495,7 @@ else
     if [ -n "$VER" ]
     then
 	eval `echo $VER | awk -F. '{ print "MAJ=" $1 "; MIN=" $2 "; REL=" $3; }'`
-	if [ $MAJ -gt 1 -o $MAJ -eq 1 -a $MIN -gt 2 -o $MAJ -eq 1 -a $MIN -eq 2 -a $REL -ge 8 ]
+	if [ $MAJ -gt 2 -o $MAJ -eq 2 ]
 	then echo "yes"
 	else echo "too old"
 	    internalise_SDL
