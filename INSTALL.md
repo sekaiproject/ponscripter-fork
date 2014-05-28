@@ -32,7 +32,7 @@ included versions will be statically linked against.
   - bzip2
   - Freetype
 
-If you would like steam support, than you should download the [Steamworks SDK](https://partner.steamgames.com) (last tested with v1.29) and move it into `src/extlib/steam-api` such that the folder `src/extlib/steam-api/public` exists. 
+If you would like Steam support, than you should download the [Steamworks SDK](https://partner.steamgames.com) (last tested with v1.29) and move it into `src/extlib/src/steam-sdk` such that the folder `src/extlib/src/steam-sdk/public` exists. 
 
 ## Compiler
 
@@ -90,15 +90,31 @@ The resulting binary can be tested with `run.sh ./src/ponscr /path/to/0.utf`. Yo
 
 On windows, just running `./configure --steam` in addition to the otherwise normal build is sufficient.
 
-## OS X Fat Binaries
+## Building on OS X
 
-To build a fat binary on Mac OS X, ignore the above instructions, and
-instead run
+Compiling with OS X is a bit more difficult than most else, but it is confirmed to build with [Clang](http://clang.llvm.org/), the new OS X default compiler.
 
-  `util/osx_build.sh`
+This fork only builds with OS X 10.5+ support, right now (SDL2 support). Building SDL also requires you to enable OpenGL and/or OpenGL ES for it. It does not yet see Clang as a legitimate compiler unfortunately, though we will work with this in the future.
 
-This will create three files (ponscr.ppc, ponscr.intel, and ponscr)
-under src.  The third is your fat binary.
+OS X is best built with internal libs. Otherwise, you may run into issues with varying versions of operating systems and libraries.
+
+Here are my standard `./configure` and `make` lines, successfully building on OS X 10.9:
+
+```
+CC="clang -mmacosx-version-min=10.5" CXX="clang++ -mmacosx-version-min=10.5" SDLOTHERCONFIG="--enable-video-opengl --enable-video-opengles" ./configure --unsupported-compiler --with-internal-libs
+```
+```
+CC="clang -mmacosx-version-min=10.5" CXX="clang++ -mmacosx-version-min=10.5" SDLOTHERCONFIG="--enable-video-opengl --enable-video-opengles" make
+```
+
+## Building with Steam on OS X
+
+As per above instructions, make sure the [Steamworks SDK](https://partner.steamgames.com) is in `src/extlib/src/steam-sdk`. Once this is done, simply adding the `--steam` flag to your `./configure` line should be enough, as shown:
+```
+CC="clang -mmacosx-version-min=10.5" CXX="clang++ -mmacosx-version-min=10.5" SDLOTHERCONFIG="--enable-video-opengl --enable-video-opengles" ./configure --unsupported-compiler --with-internal-libs --steam
+```
+
+As with Linux builds, you should ensure the `steam_api.so` file is alongside the binary and `steam_appid.txt` is present. Otherwise, it will crash when launching.
 
 
 ## Build Options
