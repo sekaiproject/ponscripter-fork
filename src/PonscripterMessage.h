@@ -30,7 +30,8 @@
 
 enum MessageType {
     Error,
-    Warning
+    Warning,
+    Note,
 };
 
 int PonscripterMessage(MessageType message_type, const char* title, const char* message);

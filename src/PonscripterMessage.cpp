@@ -39,7 +39,7 @@ int PonscripterMessage(MessageType message_type, const char* title, const char* 
 
     // OS X
     // Pops up an OS X Cocoa message box
-    #ifdef MACOSX
+    #ifdef MACOSXX
         CFOptionFlags alert_level;
 
         switch(message_type) {
@@ -55,16 +55,14 @@ int PonscripterMessage(MessageType message_type, const char* title, const char* 
         }
 
         CFOptionFlags *alert_flags = NULL;
-        CFStringRef *cf_title = NULL;
-        CFStringRef *cf_message = NULL;
 
         // convert C strings to CoreFoundation strings for OSX
-        *cf_title = CFStringCreateWithCString(NULL, title, kCFStringEncodingUTF8);
-        *cf_message = CFStringCreateWithCString(NULL, message, kCFStringEncodingUTF8);
+        CFStringRef cf_title = CFStringCreateWithCString(NULL, title, kCFStringEncodingUTF8);
+        CFStringRef cf_message = CFStringCreateWithCString(NULL, message, kCFStringEncodingUTF8);
 
         CFUserNotificationDisplayAlert(0, alert_level, NULL, NULL, NULL,
-            *cf_title,
-            *cf_message, NULL, NULL, NULL, alert_flags);
+            cf_title,
+            cf_message, NULL, NULL, NULL, alert_flags);
 
         if(cf_title) CFRelease(cf_title);
         if(cf_message) CFRelease(cf_message);
@@ -88,7 +86,7 @@ int PonscripterMessage(MessageType message_type, const char* title, const char* 
         }
 
         fprintf(stderr, "** %s ** %s\n", title, severity);
-        fprintf(stderr, "%s\n", message);
+        fprintf(stderr, "%s\n\n", message);
         delete[] severity;
 
     #endif

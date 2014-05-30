@@ -1239,8 +1239,6 @@ int PonscripterLabel::eventLoop()
             keyDownEvent((SDL_KeyboardEvent*) &event);
             if (btndown_flag)
                 keyPressEvent((SDL_KeyboardEvent*) &event);
-            // PonscripterMessage(Error, "What", "Has gone wrong?");
-            // PonscripterMessage(Warning, "What", "Has gone wrong?");
 
             break;
 
