@@ -1180,6 +1180,7 @@ Uint32 PonscripterLabel::getRefreshRateDelay() {
 /* **************************************** *
 * Event loop
 * **************************************** */
+#include "PonscripterMessage.h"
 int PonscripterLabel::eventLoop()
 {
     SDL_Event event, tmp_event;
@@ -1238,6 +1239,8 @@ int PonscripterLabel::eventLoop()
             keyDownEvent((SDL_KeyboardEvent*) &event);
             if (btndown_flag)
                 keyPressEvent((SDL_KeyboardEvent*) &event);
+            // PonscripterMessage(Error, "What", "Has gone wrong?");
+            // PonscripterMessage(Warning, "What", "Has gone wrong?");
 
             break;
 

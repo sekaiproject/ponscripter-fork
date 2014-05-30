@@ -14,6 +14,7 @@ RESOURCES += $(PNG_ICON) =icon.png
 endif
 
 GUI_OBJS = PonscripterLabel$(OBJSUFFIX)					\
+	PonscripterMessage$(OBJSUFFIX)				\
 	PonscripterLabel_command$(OBJSUFFIX)				\
 	PonscripterLabel_text$(OBJSUFFIX)				\
 	PonscripterLabel_effect$(OBJSUFFIX)				\
@@ -43,7 +44,7 @@ BSTRING_H = $(EXTRADEPS) bstrwrap.h bstrlib.h
 ENCODING_H = defs.h pstring.h $(BSTRING_H) encoding.h
 HANDLER_H = ScriptHandler.h $(ENCODING_H) BaseReader.h expression.h Fontinfo.h font.h $(RC_HDRS)
 PARSER_H = ScriptParser.h $(HANDLER_H) NsaReader.h SarReader.h DirectReader.h AnimationInfo.h DirPaths.h
-SCRIPTER_H = PonscripterLabel.h $(PARSER_H) DirtyRect.h
+SCRIPTER_H = PonscripterLabel.h PonscripterMessage.h $(PARSER_H) DirtyRect.h
 
 TARGET ?= ponscr$(EXESUFFIX)
 $(TARGET): $(PONSCR_OBJS)
@@ -76,6 +77,7 @@ Fontinfo$(OBJSUFFIX): $(HANDLER_H)
 MadWrapper$(OBJSUFFIX): $(EXTRADEPS) MadWrapper.h
 NsaReader$(OBJSUFFIX): NsaReader.h SarReader.h DirectReader.h BaseReader.h $(ENCODING_H)
 Ponscripter$(OBJSUFFIX): $(SCRIPTER_H) version.h
+PonscripterMessage$(OBJSUFFIX): $(SCRIPTER_H)
 PonscripterLabel_animation$(OBJSUFFIX): $(SCRIPTER_H)
 PonscripterLabel_command$(OBJSUFFIX): $(SCRIPTER_H) version.h
 PonscripterLabel$(OBJSUFFIX): $(SCRIPTER_H)
