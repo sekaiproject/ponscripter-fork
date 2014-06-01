@@ -39,7 +39,7 @@ int PonscripterMessage(MessageType message_type, const char* title, const char* 
 
     // OS X
     // Pops up an OS X Cocoa message box
-    #ifdef MACOSXX
+    #ifdef MACOSX
         CFOptionFlags alert_level;
 
         switch(message_type) {

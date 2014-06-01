@@ -24,6 +24,7 @@
  */
 
 #include "PonscripterLabel.h"
+#include "PonscripterMessage.h"
 #include "resources.h"
 #include <ctype.h>
 
@@ -785,9 +786,7 @@ pstring Platform_GetSavePath(pstring gameid) // MacOS X version
         return rv;
     // If that fails, die.
     CFOptionFlags *alert_flags;
-    CFUserNotificationDisplayAlert(0, kCFUserNotificationStopAlertLevel, NULL, NULL, NULL,
-        CFSTR("mkdir failure"),
-        CFSTR("Could not create a directory for saved games."), NULL, NULL, NULL, alert_flags);
+    PonscripterMessage(Error, "Save Directory Failure", "Could not create save directory.");
     exit(1);
 }
 #elif defined LINUX

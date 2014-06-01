@@ -1180,7 +1180,6 @@ Uint32 PonscripterLabel::getRefreshRateDelay() {
 /* **************************************** *
 * Event loop
 * **************************************** */
-#include "PonscripterMessage.h"
 int PonscripterLabel::eventLoop()
 {
     SDL_Event event, tmp_event;

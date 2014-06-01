@@ -24,6 +24,7 @@
  */
 
 #include "ScriptHandler.h"
+#include "PonscripterMessage.h"
 #include "Fontinfo.h"
 #include <ctype.h>
 
@@ -864,16 +865,10 @@ int ScriptHandler::readScript(DirPaths *path, const char* prefer_name)
     }
     
     if (fp == NULL) {
-#ifdef MACOSX
-        CFOptionFlags *alert_flags;
-        CFUserNotificationDisplayAlert(0, kCFUserNotificationStopAlertLevel, NULL, NULL, NULL,
-            CFSTR("Missing game data"),
-            CFSTR("No game data found. This application must be run "
-                "from a directory containing NScripter, ONScripter, "
-                "or Ponscripter game data."), NULL, NULL, NULL, alert_flags);
-#else
-	fprintf(stderr, "Can't find a Ponscripter game script.\n");
-#endif
+        PonscripterMessage(Error, "Missing Game Data",
+            "No game script found. This application must be run "
+            "from a directory containing NScripter, ONScripter, "
+            "or Ponscripter game data.");
         return -1;
     }
 
