@@ -53,6 +53,10 @@ int PonscripterMessage(MessageType message_type, const char* title, const char* 
 {
     // TODO: Windows
 
+    // General
+    // Print it to stderr regardless; good to have handy terminal output
+    PonscripterFallbackMessage(message_type, title, message);
+
     // OS X
     // Pops up an OS X Cocoa message box
     #ifdef MACOSX
@@ -90,7 +94,7 @@ int PonscripterMessage(MessageType message_type, const char* title, const char* 
         NotifyNotification *notification;
         if(!notify_is_initted()) {
             if(!notify_init(DEFAULT_WM_TITLE)) {
-                return PonscripterFallbackMessage(message_type, title, message);
+                return 1;
             }
         }
         notification = PON_NOTIFY_NEW(title, message, NULL, NULL); //TODO, icon
@@ -113,10 +117,6 @@ int PonscripterMessage(MessageType message_type, const char* title, const char* 
         notify_notification_show(notification, NULL);
 
         g_object_unref(notification);
-    // General
-    // Prints it to stderr, as best we can
-    #else
-        return PonscripterFallbackMessage(message_type, title, message);
     #endif
 
     // finished OK
