@@ -35,5 +35,7 @@ enum MessageType {
 };
 
 int PonscripterMessage(MessageType message_type, const char* title, const char* message);
+//private:
+int PonscripterFallbackMessage(MessageType message_type, const char* title, const char* message);
 
 #endif // __PONSCRIPTER_MESSAGE_H__

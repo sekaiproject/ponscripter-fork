@@ -53,6 +53,8 @@ INTERNAL_LIBJPEG=false
 INTERNAL_OGGLIBS=false
 EXPLICIT_OGGLIBS=false
 
+WITH_LIBNOTIFY=false
+
 SDL_CONFIG=sdl2-config
 SMPEG_CONFIG=smpeg2-config
 FREETYPE_CONFIG=freetype-config
@@ -183,6 +185,8 @@ do
       ;;
       --force-external-sdl-mixer | -force-external-sdl-mixer | -with-external-sdl-mixer | --with-external-sdl-mixer)
         EXTERNAL_SDL_MIXER=true;;
+      --with-libnotify | -with-libnotify)
+        WITH_LIBNOTIFY=true;;
 
 
     -\? | -h | -help | --help)
@@ -212,6 +216,7 @@ do
 	  --with-internal-smpeg       skip check for system libsmpeg
 	  --with-internal-freetype    skip check for system libfreetype
 	  --with-external-sdl-mixer   force usage of system libSDL2_mixer
+	  --with-libnotify            use system libnotify for messages
 	__ENDHELP
       exit 0
       ;;
@@ -756,6 +761,17 @@ if test -n "$MAKEDOC"; then
     esac
 fi
 
+if $WITH_LIBNOTIFY; then
+  $echo_n "Checking for system libnotify... ${nobr}"
+  if `pkg-config --exists libnotify` && `pkg-config --exists gtk+-2.0`; then
+    echo "yes"
+    WITH_LIBNOTIFY=true
+  else
+    echo "no: libnotify will not be used"
+    WITH_LIBNOTIFY=false
+  fi
+fi
+
 DEPS=
 MLIB=
 require() {
@@ -815,6 +831,7 @@ OURINCLUDE=
 OURINCS=
 OURLIBS=
 OURPATH=
+OURDEFS=
 if $INTERNAL_BZIP2  || $INTERNAL_FREETYPE || $INTERNAL_LIBJPEG || \
    $INTERNAL_LIBPNG || $INTERNAL_OGGLIBS  || $INTERNAL_SDL     || \
    $INTERNAL_SDL_IMAGE || $INTERNAL_SDL_MIXER || $INTERNAL_SMPEG
@@ -826,6 +843,16 @@ then
     OURPATH="\$(shell pwd)/$SRC/extlib/bin:"
 fi
 
+
+NOTIFYLIBS=
+GTKLIBS=
+if $WITH_LIBNOTIFY
+then
+  OURLIBS="$OURLIBS -lnotify"
+  OURLIBS="$OURLIBS `pkg-config --libs gtk+-2.0`"
+  OURINCS="$OURINCS `pkg-config --cflags gtk+-2.0`"
+  OURDEFS="$OURDEFS -DLIBNOTIFY"
+fi
 
 $echo_n "Writing Makefile... ${nobr}"
 
@@ -898,6 +925,7 @@ cat >> $MAKEFILE <<_EOF
 export WINDRES := $WINDRES
 
 LIBS = $OURLIBS \\
+       $NOTIFYLIBS $GTKLIBS\\
        -static -Wl,--start-group \\
        $MY_SDL_LIBS \\
        \$(shell $SMPEG_CONFIG --libs) \$(shell $FREETYPE_CONFIG --libs) \\
@@ -905,7 +933,7 @@ LIBS = $OURLIBS \\
        $LINKSDL2_mixer $LINKogg $LINKvorbis $LINKvorbisfile \\
        $LINKbz2 -Wl,--end-group
 
-DEFS = -DWIN32 -DUSE_OGG_VORBIS
+DEFS = -DWIN32 -DUSE_OGG_VORBIS $OURDEFS
 EXT_OBJS = SDL_win32_main.o win32rc.o $GFX_EXT_OBJS
 _EOF
 ;;
@@ -920,7 +948,7 @@ LIBS = $OURLIBS \\
        $LINKSDL2_mixer $LINKogg $LINKvorbis $LINKvorbisfile \\
        $LINKbz2 -lm -framework QuickTime -framework CoreFoundation
 
-DEFS = -DMACOSX -DUTF8_CAPTION -DUTF8_FILESYSTEM -DUSE_OGG_VORBIS
+DEFS = -DMACOSX -DUTF8_CAPTION -DUTF8_FILESYSTEM -DUSE_OGG_VORBIS $OURDEFS
 NO_DEFAULT_ICON = true
 EXT_OBJS = $GFX_EXT_OBJS
 
@@ -953,7 +981,7 @@ LIBS = $OURLIBS \\
        \$(shell $FREETYPE_CONFIG --libs) \\
        $LINKbz2 \$(if \$(findstring true,$INTERNAL_SDL),$INTERNAL_LDFLAGS)
 
-DEFS = -DLINUX -DUSE_OGG_VORBIS $EXTRA_DEPS
+DEFS = -DLINUX -DUSE_OGG_VORBIS $EXTRA_DEPS $OURDEFS
 EXT_OBJS = $GFX_EXT_OBJS
 _EOF
 ;; esac
