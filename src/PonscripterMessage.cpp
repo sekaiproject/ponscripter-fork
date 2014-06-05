@@ -44,14 +44,19 @@
   #endif
 #endif
 
+#ifdef WIN32
+#include <windows.h>
+#include <SDL.h>
+#include <SDL_syswm.h>
+#endif
+
 #include <string.h>
 #include <stdio.h>
 
 // Displays a message to the user
 // If possible, interrupts game (as it means something REALLY BAD happened)
-int PonscripterMessage(MessageType message_type, const char* title, const char* message)
+int PonscripterMessage(MessageType message_type, const char* title, const char* message, SDL_Window *screen)
 {
-    // TODO: Windows
 
     // General
     // Print it to stderr regardless; good to have handy terminal output
@@ -117,6 +122,31 @@ int PonscripterMessage(MessageType message_type, const char* title, const char* 
         notify_notification_show(notification, NULL);
 
         g_object_unref(notification);
+    #elif defined(WIN32)
+
+       HWND windowHandle = NULL;
+
+      if(screen != NULL) {
+          SDL_SysWMinfo sysInfo;
+          if(SDL_GetWindowWMInfo(screen, &sysInfo)) {
+              SDL_VERSION(&sysInfo.version);
+              windowHandle = sysInfo.info.win.window;
+          }
+      }
+
+        UINT uType;
+        switch(message_type) {
+            case Error:
+                uType = MB_ICONERROR;
+                break;
+            case Note:
+                uType = MB_ICONINFORMATION;
+                break;
+            default:
+                uType = MB_ICONWARNING;
+        }
+
+        MessageBox(windowHandle, message, title, uType);
     #endif
 
     // finished OK

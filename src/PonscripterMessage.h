@@ -27,6 +27,7 @@
 #define __PONSCRIPTER_MESSAGE_H__
 
 #define SEVERITY_BUFFER_LENGTH (20)
+#include <SDL.h>
 
 enum MessageType {
     Error,
@@ -34,7 +35,7 @@ enum MessageType {
     Note,
 };
 
-int PonscripterMessage(MessageType message_type, const char* title, const char* message);
+int PonscripterMessage(MessageType message_type, const char* title, const char* message, SDL_Window *screen = NULL);
 //private:
 int PonscripterFallbackMessage(MessageType message_type, const char* title, const char* message);
 
