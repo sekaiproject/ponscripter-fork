@@ -3466,7 +3466,6 @@ int PonscripterLabel::steamsetachieveCommand(const pstring& cmd) {
     /* Noop if steam isn't defined so scripts with this command work anyways */
 #ifdef STEAM
     if(SteamUserStats()) {
-      int numAchieves = SteamUserStats()->GetNumAchievements();
       if(!SteamUserStats()->SetAchievement(name)) {
         fprintf(stderr, "Error setting achievement %s\n", name.data);
       } else {
