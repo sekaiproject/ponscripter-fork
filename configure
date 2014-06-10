@@ -996,7 +996,7 @@ cat >> $MAKEFILE <<_EOF
 STEAM=true
 EXTRADEPS += \$(steam_api)
 DEFS += -DSTEAM
-LIBS += -lsteam_api
+LIBS += -Lextlib/lib -lsteam_api
 INCS += -Iextlib/include/steam
 _EOF
 fi
