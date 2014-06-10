@@ -126,6 +126,11 @@ public:
     void setGameIdentifier(const char *gameid);
     void setMaskType(int mask_type) { png_mask_type = mask_type; }
 
+    // Private savepath helpers
+private:
+    pstring Platform_GetSavePath(pstring gameid);
+    void Steam_MigratePlatformSave(pstring gameid);
+public:
     pstring getSavePath(pstring gameid);
 
     Uint32 getRefreshRateDelay();

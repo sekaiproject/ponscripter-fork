@@ -27,6 +27,10 @@
 #include "resources.h"
 #include <ctype.h>
 
+#include <iostream>
+#include <fstream>
+
+
 #ifdef MACOSX
 namespace Carbon {
 #include <sys/stat.h>
@@ -50,6 +54,7 @@ typedef HRESULT (WINAPI * GETFOLDERPATH)(HWND, int, HANDLE, DWORD, LPTSTR);
 #include <sys/types.h>
 #include <linux/limits.h>
 #include <pwd.h>
+#include <ftw.h>
 #endif
 
 #ifdef STEAM
@@ -859,7 +864,13 @@ pstring Local_GetSavePath() // POSIX-ish version
 }
 #endif //WIN32 / OSX / LINUX
 
-pstring Steam_GetSavePath() {
+/**
+ * Returns, but does not create or otherwise alter, the path
+ * the steam save directory should be located at.
+ *
+ * @return The full path to the steam save directory, or "" on failure.
+ */
+pstring Steam_SavePath() {
   if(SteamApps()) {
       uint32 folderLen = PATH_MAX;
       char *installFolder = (char *)malloc(folderLen + 1);
@@ -871,7 +882,76 @@ pstring Steam_GetSavePath() {
                     installFolder, folderLen);
       }
       pstring rv = pstring(installFolder) + "/saves/";
+      return rv;
+  }
+  return "";
+}
 
+int copyFileToSteamdir(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf) {
+  pstring filename(&(fpath[ftwbuf->base]));
+  pstring dest = Steam_SavePath() + filename;
+
+  //We don't want to deal with us/parent directories..
+  if(filename == "." || filename == "..") return 0;
+
+  if(S_ISDIR(sb->st_mode)) {
+    makeFolder(&dest);
+    return 0;
+  }
+
+  std::ifstream from(fpath, std::ios::binary);
+  std::ofstream to(dest, std::ios::binary);
+  to << from.rdbuf();
+
+  return 0;
+}
+
+void copyDirToSteamdir(const char *path) {
+  nftw(path, copyFileToSteamdir, 1, 0);
+}
+
+/**
+ * Check if the steam save path, steamapps/common/GAME/save, exists.
+ *
+ * This function is meant to allow migrating old format saves into steam
+ * if they are saved in the old location.
+ * @return True if the directory exists and false if it does not.
+ */
+bool Steam_SavePathExists() {
+  pstring path = Steam_SavePath();
+
+  std::ifstream steam_path(path);
+
+  return steam_path.good();
+}
+
+/**
+ * Attempts to move any existing save files to the steam save directory
+ */
+void PonscripterLabel::Steam_MigratePlatformSave(pstring gameid) {
+  pstring old_save_dir = Platform_GetSavePath(gameid);
+  pstring steam_dir = Steam_SavePath();
+
+  makeFolder(&steam_dir);
+
+  if(old_save_dir != "") {
+    //exists, copy its contents over
+    copyDirToSteamdir(old_save_dir);
+  }
+}
+
+/**
+ * Returns, and if necessary creates, the steam save directory.
+ *
+ * This directory is the 'saves' directory relative to the game install folder
+ * of common/GAME.
+ * On failure it will return a save directory relative to the executable.
+ * On failure at that, it will return an empty string.
+ * @return A string containing the full path to the steam directory
+ */
+pstring Steam_GetSavePath() {
+  pstring rv = Steam_SavePath();
+  if(rv != "") {
       if(makeFolder(&rv) == 0) {
         return rv;
       }
@@ -883,7 +963,7 @@ pstring Steam_GetSavePath() {
 #endif //STEAM
 
 #ifdef WIN32
-pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windows version
+pstring PonscripterLabel::Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windows version
 {
     //Convert gameid from UTF-8 to Wide (Unicode) and thence to system ANSI
     // (since SDL 1.2 doesn't support Unicode app compilation)
@@ -931,7 +1011,7 @@ pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windo
     return rv;
 }
 #elif defined MACOSX
-pstring Platform_GetSavePath(pstring gameid) // MacOS X version
+pstring PonscripterLabel::Platform_GetSavePath(pstring gameid) // MacOS X version
 {
     // On Mac OS X, place in ~/Library/Application Support/<gameid>/
     replace_ascii(gameid, '/', '_');
@@ -952,7 +1032,7 @@ pstring Platform_GetSavePath(pstring gameid) // MacOS X version
     exit(1);
 }
 #elif defined LINUX
-pstring Platform_GetSavePath(pstring gameid) // POSIX version
+pstring PonscripterLabel::Platform_GetSavePath(pstring gameid) // POSIX version
 {
     if (!gameid) {
         fprintf(stderr, "No gameid\n");
@@ -980,7 +1060,7 @@ pstring Platform_GetSavePath(pstring gameid) // POSIX version
 }
 #else
 // Stub for unknown platforms
-pstring Platform_GetSavePath(const pstring& gameid)
+pstring PonscripterLabel::Platform_GetSavePath(const pstring gameid)
 {
     return "";
 }
@@ -988,6 +1068,9 @@ pstring Platform_GetSavePath(const pstring& gameid)
 
 pstring PonscripterLabel::getSavePath(const pstring gameid) {
 #ifdef STEAM
+  if(!Steam_SavePathExists()) {
+    Steam_MigratePlatformSave(gameid);
+  }
   return Steam_GetSavePath();
 #else
   #ifdef WIN32
