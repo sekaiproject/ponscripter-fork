@@ -12,6 +12,3 @@ touch configure
 touch config.h.in
 # and all the automake-generated Makefile.in files
 touch `find . -name Makefile.in -print`
-# finally, the makeinfo-generated '.info' files depend on the
-# corresponding '.texi' files
-touch doc/*.info

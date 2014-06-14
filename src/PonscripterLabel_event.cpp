@@ -781,11 +781,11 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
 {
     current_button_state.button = 0;
     current_button_state.down_flag = false;
-    if (automode_flag) {
-        remaining_time = -1;
-        setAutoMode(false);
-        return;
-    }
+
+    // This flag is set by anything before autmode that would like to not interrupt automode.
+    // At present, this is volume mute and fullscreen. The commands don't simply return in case
+    // the keypresses are handled below (e.g. telling the script the key 'a' was pressed)
+    bool automode_ignore = false;
 
     if (event->type == SDL_KEYUP) {
         if (variable_edit_mode) {
@@ -794,9 +794,17 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
         }
 
         if (event->keysym.sym == SDLK_m) {
-        	volume_on_flag = !volume_on_flag;
-        	setVolumeMute(!volume_on_flag);
-        	printf("turned %s volume mute\n", !volume_on_flag?"on":"off");
+            volume_on_flag = !volume_on_flag;
+            setVolumeMute(!volume_on_flag);
+            printf("turned %s volume mute\n", !volume_on_flag?"on":"off");
+            automode_ignore = true;
+        }
+
+        if (event->keysym.sym == SDLK_f) {
+            if (fullscreen_mode) menu_windowCommand("menu_window");
+            else menu_fullCommand("menu_full");
+            return;
+            automode_ignore = true;
         }
 
         if (edit_flag && event->keysym.sym == SDLK_z) {
@@ -806,6 +814,12 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
             wm_edit_string = EDIT_MODE_PREFIX EDIT_SELECT_STRING;
             SDL_SetWindowTitle(screen, wm_title_string);
         }
+    }
+
+    if (automode_flag && !automode_ignore) {
+        remaining_time = -1;
+        setAutoMode(false);
+        return;
     }
 
     if (event->type == SDL_KEYUP
@@ -1048,13 +1062,6 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
         else if (event->keysym.sym == SDLK_3) {
             text_speed_no = 2;
             sentence_font.wait_time = -1;
-        }
-    }
-
-    if (event_mode & (WAIT_INPUT_MODE | WAIT_BUTTON_MODE)) {
-        if (event->keysym.sym == SDLK_f) {
-            if (fullscreen_mode) menu_windowCommand("menu_window");
-            else menu_fullCommand("menu_full");
         }
     }
 
