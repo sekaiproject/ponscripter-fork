@@ -49,6 +49,17 @@ typedef HRESULT (WINAPI * GETFOLDERPATH)(HWND, int, HANDLE, DWORD, LPTSTR);
 #include <pwd.h>
 #endif
 
+#ifdef STEAM
+  #ifdef _WIN32
+    /* I assume it's a bug; steam_api doesn't preprocess without errors on mingw/win32 with this defined */
+    #undef _WIN32
+    #include <steam_api.h>
+    #define _WIN32
+  #else
+    #include <steam_api.h>
+  #endif
+#endif
+
 extern "C" void waveCallback(int channel);
 
 #define DEFAULT_AUDIOBUF 4096
@@ -279,6 +290,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["splitstring"]      = &PonscripterLabel::splitCommand;
     dict["spreload"]         = &PonscripterLabel::spreloadCommand;
     dict["spstr"]            = &PonscripterLabel::spstrCommand;
+    dict["steamsetachieve"]  = &PonscripterLabel::steamsetachieveCommand;
     dict["stop"]             = &PonscripterLabel::stopCommand;
     dict["strsp"]            = &PonscripterLabel::strspCommand;
     dict["systemcall"]       = &PonscripterLabel::systemcallCommand;
@@ -310,9 +322,19 @@ sfunc_lut_t::sfunc_lut_t() {
 
 static void SDL_Quit_Wrapper()
 {
+#ifdef STEAM
+  SteamAPI_Shutdown();
+#endif
     SDL_Quit();
 }
 
+#ifdef STEAM
+void PonscripterLabel::initSteam() {
+    if(!SteamAPI_Init()) {
+      fprintf(stderr, "Unable to initialize steam; cloud and achievements won't work\n");
+    }
+}
+#endif
 
 void PonscripterLabel::initSDL()
 {
@@ -873,6 +895,9 @@ pstring getGameId(ScriptHandler& script_h)
 
 int PonscripterLabel::init(const char* preferred_script)
 {
+#ifdef STEAM
+    initSteam();
+#endif
     // On Mac OS X, archives may be stored in the application bundle.
     // On other platforms the location will either be in the EXE
     // directory, the current directory, or somewhere unpredictable
@@ -1983,6 +2008,9 @@ void PonscripterLabel::quit()
         Mix_HaltMusic();
         Mix_FreeMusic(music_info);
     }
+#ifdef STEAM
+    SteamAPI_Shutdown();
+#endif
 }
 
 
