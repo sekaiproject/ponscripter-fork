@@ -24,6 +24,7 @@
  */
 
 #include "PonscripterLabel.h"
+#include "PonscripterMessage.h"
 #include "resources.h"
 #include <ctype.h>
 
