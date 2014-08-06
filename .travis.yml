@@ -11,6 +11,7 @@ before_script:
   - sudo apt-get install -y libfreetype6-dev
   - sudo apt-get install -y libnotify-dev
 
+  # we do this here because I can't get the SDL2 packages to just install as above
   - mkdir travis_build_deps
   - cd travis_build_deps
 

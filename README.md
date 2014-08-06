@@ -1,5 +1,7 @@
 # Ponscripter-fork (steam)
 
+![Travis-CI Build Status](https://travis-ci.org/sekaiproject/ponscripter-fork.svg)
+
 ## Introduction
 
 Ponscripter was created as an NScripter-style visual novel game interpreter with an emphasis
