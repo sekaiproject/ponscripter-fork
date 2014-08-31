@@ -353,6 +353,11 @@ void PonscripterLabel::initSDL()
     }
 
 #ifdef ENABLE_JOYSTICK
+    if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) == 0 && SDL_GameControllerOpen(0) != 0)
+        printf("Initialize GAMECONTROLLER\n");
+    else
+        fprintf(stderr, "Couldn't initialize SDL gamecontroller: %s\n", SDL_GetError());
+
     if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == 0 && SDL_JoystickOpen(0) != 0)
         printf("Initialize JOYSTICK\n");
 #endif

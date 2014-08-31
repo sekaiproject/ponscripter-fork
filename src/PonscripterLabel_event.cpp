@@ -128,6 +128,29 @@ SDL_Keycode transKey(SDL_Keycode key)
     return key;
 }
 
+SDL_Keycode transControllerButton(Uint8 button)
+{
+    SDL_Keycode button_map[] = {
+        SDLK_SPACE,
+        SDLK_RETURN,
+        SDLK_RCTRL,
+        SDLK_ESCAPE,
+        SDLK_0,
+        SDLK_UNKNOWN,
+        SDLK_a,
+        SDLK_UNKNOWN,
+        SDLK_UNKNOWN,
+        SDLK_o,
+        SDLK_s,
+        SDLK_UP,
+        SDLK_DOWN,
+        SDLK_LEFT,
+        SDLK_RIGHT,
+        SDLK_UNKNOWN };
+
+    return button_map[button];
+}
+
 
 SDL_Keycode transJoystickButton(Uint8 button)
 {
@@ -1176,7 +1199,6 @@ Uint32 PonscripterLabel::getRefreshRateDelay() {
 }
 
 
-
 /* **************************************** *
 * Event loop
 * **************************************** */
@@ -1225,6 +1247,37 @@ int PonscripterLabel::eventLoop()
 
         case SDL_MOUSEWHEEL:
             mouseWheelEvent(&event.wheel);
+            break;
+
+        // NOTE: we reverse KEYUP and KEYDOWN for controller presses, because otherwise it feels really slow and junky
+        // We should probably make keyPressEvent properly interpret stuff for controller button presses instead, later
+        case SDL_CONTROLLERBUTTONDOWN:
+            event.key.type = SDL_KEYUP;
+            // printf("Controller button press: %s\n", SDL_GameControllerGetStringForButton((SDL_GameControllerButton)event.cbutton.button));
+            event.key.keysym.sym = transControllerButton(event.cbutton.button);
+            if (event.key.keysym.sym == SDLK_UNKNOWN)
+                break;
+
+            event.key.keysym.sym = transKey(event.key.keysym.sym);
+
+            keyDownEvent((SDL_KeyboardEvent*) &event);
+            keyPressEvent((SDL_KeyboardEvent*) &event);
+
+            break;
+
+        case SDL_CONTROLLERBUTTONUP:
+            event.key.type = SDL_KEYDOWN;
+            // printf("Controller button release: %s\n", SDL_GameControllerGetStringForButton((SDL_GameControllerButton)event.cbutton.button));
+            event.key.keysym.sym = transControllerButton(event.cbutton.button);
+            if (event.key.keysym.sym == SDLK_UNKNOWN)
+                break;
+
+            event.key.keysym.sym = transKey(event.key.keysym.sym);
+
+            keyUpEvent((SDL_KeyboardEvent*) &event);
+            if (btndown_flag)
+                keyPressEvent((SDL_KeyboardEvent*) &event);
+
             break;
 
         case SDL_JOYBUTTONDOWN:

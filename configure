@@ -54,6 +54,7 @@ INTERNAL_OGGLIBS=false
 EXPLICIT_OGGLIBS=false
 
 WITH_LIBNOTIFY=false
+ENABLE_GAME_CONTROLLERS=false
 STEAM_API=false
 
 SDL_CONFIG=sdl2-config
@@ -188,6 +189,8 @@ do
         EXTERNAL_SDL_MIXER=true;;
       --with-libnotify | -with-libnotify)
         WITH_LIBNOTIFY=true;;
+      --game-controllers | --enable-game-controllers | --with-game-controllers | --joysticks | --enable-joysticks | --with-joysticks)
+        ENABLE_GAME_CONTROLLERS=true ;;
       --steam | -steam | --enable-steam | --with-steam | -with-steam | --extra-gaben)
         STEAM_API=true ;;
       --no-steam | --disable-steam | --without-steam)
@@ -221,6 +224,7 @@ do
 	  --with-internal-smpeg       skip check for system libsmpeg
 	  --with-internal-freetype    skip check for system libfreetype
 	  --with-external-sdl-mixer   force usage of system libSDL2_mixer
+	  --with-game-controllers     enable game controllers and joysticks
 	  --with-libnotify            use system libnotify for messages
 	  --with-steam                link against steam and include steam features
 	__ENDHELP
@@ -1015,6 +1019,16 @@ all: target
 
 RESOURCES =
 _EOF
+
+if test -n "$ENABLE_GAME_CONTROLLERS"
+then
+cat >> $MAKEFILE <<_EOF
+
+SDLOTHERCONFIG += --enable-joystick
+DEFS += -DENABLE_JOYSTICK
+
+_EOF
+fi
 
 if $STEAM_API
 then
