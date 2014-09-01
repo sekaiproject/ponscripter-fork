@@ -1222,7 +1222,7 @@ int PonscripterLabel::eventLoop()
     // when we're on the first of a button-waiting frame (menu, etc), we snap mouse cursor to button when
     //   using keyboard/gamecontroller to vastly improve the experience when using not using a mouse directly
     bool using_buttonbased_movement = true;  // true to snap to main menu when it loads
-    wait_button_mode_count = 0;
+    first_buttonwait_mode_frame = false;  // if it's the first frame of a buttonwait (menu/choice), snap to default button
     SDL_GetMouseState(&last_mouse_x, &last_mouse_y);
 
     while (SDL_WaitEvent(&event)) {
@@ -1359,15 +1359,15 @@ int PonscripterLabel::eventLoop()
 
         case INTERNAL_REDRAW_EVENT:
             // debug printing if necessary
-            // printf("%d, %d\n", using_buttonbased_movement, wait_button_mode_count);
-            if (wait_button_mode_count == 0 && using_buttonbased_movement && buttons.size() > 1) {
+            // printf("%d, %d\n", using_buttonbased_movement, first_buttonwait_mode_frame);
+            if (first_buttonwait_mode_frame && using_buttonbased_movement && buttons.size() > 1) {
                 shiftCursorOnButton(0);
             }
 
             if (event_mode & WAIT_BUTTON_MODE)
-                wait_button_mode_count++;
-            else
-                wait_button_mode_count = 0;
+                first_buttonwait_mode_frame = true;
+            else if (first_buttonwait_mode_frame)
+                first_buttonwait_mode_frame = false;
 
             /* Stop rerendering while minimized; wait for the restore event + queueRerender */
             if(minimized_flag) {

@@ -485,7 +485,7 @@ private:
     /* ---------------------------------------- */
     /* Button related variables */
     AnimationInfo btndef_info;
-    unsigned int wait_button_mode_count;
+    bool first_buttonwait_mode_frame;
     int last_mouse_x, last_mouse_y;
 
     struct ButtonState {
