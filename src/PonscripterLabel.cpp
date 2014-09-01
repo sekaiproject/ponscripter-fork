@@ -1695,6 +1695,9 @@ void PonscripterLabel::warpMouse(int x, int y) {
   y = y * scale_y;
 
   SDL_WarpMouseInWindow(screen, x, y);
+
+  last_mouse_x = x;
+  last_mouse_y = y;
 }
 
 

@@ -1219,10 +1219,24 @@ int PonscripterLabel::eventLoop()
 
     advancePhase();
 
+    // when we're on the first of a button-waiting frame (menu, etc), we snap mouse cursor to button when
+    //   using keyboard/gamecontroller to vastly improve the experience when using not using a mouse directly
+    bool using_buttonbased_movement = true;  // true to snap to main menu when it loads
+    wait_button_mode_count = 0;
+    SDL_GetMouseState(&last_mouse_x, &last_mouse_y);
+
     while (SDL_WaitEvent(&event)) {
         // ignore continous SDL_MOUSEMOTION
         while (event.type == SDL_MOUSEMOTION) {
             if (SDL_PeepEvents(&tmp_event, 1, SDL_PEEKEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT) == 0) break;
+
+            // improve using keyboard/gamecontroller controls
+            if ((last_mouse_x != ( (SDL_MouseButtonEvent *) &event)->x) || (last_mouse_y != ( (SDL_MouseButtonEvent *) &event)->y)) {
+                using_buttonbased_movement = false;
+
+                last_mouse_x = ( (SDL_MouseButtonEvent *) &event)->x;
+                last_mouse_y = ( (SDL_MouseButtonEvent *) &event)->y;
+            }
 
             if (tmp_event.type != SDL_MOUSEMOTION) break;
 
@@ -1252,6 +1266,7 @@ int PonscripterLabel::eventLoop()
         // NOTE: we reverse KEYUP and KEYDOWN for controller presses, because otherwise it feels really slow and junky
         // We should probably make keyPressEvent properly interpret stuff for controller button presses instead, later
         case SDL_CONTROLLERBUTTONDOWN:
+            using_buttonbased_movement = true;
             event.key.type = SDL_KEYUP;
             // printf("Controller button press: %s\n", SDL_GameControllerGetStringForButton((SDL_GameControllerButton)event.cbutton.button));
             event.key.keysym.sym = transControllerButton(event.cbutton.button);
@@ -1266,6 +1281,7 @@ int PonscripterLabel::eventLoop()
             break;
 
         case SDL_CONTROLLERBUTTONUP:
+            using_buttonbased_movement = true;
             event.key.type = SDL_KEYDOWN;
             // printf("Controller button release: %s\n", SDL_GameControllerGetStringForButton((SDL_GameControllerButton)event.cbutton.button));
             event.key.keysym.sym = transControllerButton(event.cbutton.button);
@@ -1281,12 +1297,16 @@ int PonscripterLabel::eventLoop()
             break;
 
         case SDL_JOYBUTTONDOWN:
+            using_buttonbased_movement = true;
             event.key.type = SDL_KEYDOWN;
             event.key.keysym.sym = transJoystickButton(event.jbutton.button);
             if (event.key.keysym.sym == SDLK_UNKNOWN)
                 break;
 
         case SDL_KEYDOWN:
+            if ((event.key.keysym.sym == SDLK_UP) || (event.key.keysym.sym == SDLK_DOWN) ||
+                (event.key.keysym.sym == SDLK_LEFT) || (event.key.keysym.sym == SDLK_RIGHT))
+                using_buttonbased_movement = true;
             event.key.keysym.sym = transKey(event.key.keysym.sym);
             keyDownEvent((SDL_KeyboardEvent*) &event);
             if (btndown_flag)
@@ -1295,6 +1315,7 @@ int PonscripterLabel::eventLoop()
             break;
 
         case SDL_JOYBUTTONUP:
+            using_buttonbased_movement = true;
             event.key.type = SDL_KEYUP;
             event.key.keysym.sym = transJoystickButton(event.jbutton.button);
             if (event.key.keysym.sym == SDLK_UNKNOWN)
@@ -1337,6 +1358,16 @@ int PonscripterLabel::eventLoop()
             break;
 
         case INTERNAL_REDRAW_EVENT:
+            // debug printing if necessary
+            // printf("%d, %d\n", using_buttonbased_movement, wait_button_mode_count);
+            if (wait_button_mode_count == 0 && using_buttonbased_movement && buttons.size() > 1) {
+                shiftCursorOnButton(0);
+            }
+
+            if (event_mode & WAIT_BUTTON_MODE)
+                wait_button_mode_count++;
+            else
+                wait_button_mode_count = 0;
 
             /* Stop rerendering while minimized; wait for the restore event + queueRerender */
             if(minimized_flag) {
