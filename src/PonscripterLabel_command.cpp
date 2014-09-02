@@ -50,6 +50,17 @@ namespace Carbon {
 #include <errno.h>
 #endif
 
+#ifdef STEAM
+  #ifdef _WIN32
+    /* I assume it's a bug; steam_api doesn't preprocess without errors on mingw/win32 with this defined */
+    #undef _WIN32
+    #include <steam_api.h>
+    #define _WIN32
+  #else
+    #include <steam_api.h>
+  #endif
+#endif
+
 #define CONTINUOUS_PLAY
 
 extern SDL_TimerID timer_mp3fadeout_id;
@@ -3449,3 +3460,22 @@ int PonscripterLabel::allsp2hideCommand(const pstring& cmd)
 
     return RET_CONTINUE;
 }
+
+int PonscripterLabel::steamsetachieveCommand(const pstring& cmd) {
+    pstring name = script_h.readStrValue();
+    /* Noop if steam isn't defined so scripts with this command work anyways */
+#ifdef STEAM
+    if(SteamUserStats()) {
+      if(!SteamUserStats()->SetAchievement(name)) {
+        fprintf(stderr, "Error setting achievement %s\n", name.data);
+      } else {
+        // Trigger the little "Achievement Get" dialog
+        SteamUserStats()->StoreStats();
+      }
+    } else {
+      fprintf(stderr, "Not setting achivement, no steam\n");
+    }
+#endif
+    return RET_CONTINUE;
+}
+

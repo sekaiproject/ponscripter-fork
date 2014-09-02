@@ -6,6 +6,8 @@
 /sdl2_image.pc
 /config.log
 /config.status
+/compile
+/autom4te.cache
 /SDL2_image.spec
 /libSDL2_image.la
 /showimage

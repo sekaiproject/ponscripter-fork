@@ -326,6 +326,10 @@ public:
     int allsp2hideCommand(const pstring& cmd);
     int amspCommand(const pstring& cmd);
 
+
+    /* Steam commands */
+    int steamsetachieveCommand(const pstring& cmd);
+
 protected:
     /* ---------------------------------------- */
     /* Event related variables */
@@ -359,6 +363,9 @@ protected:
     void queueRerender();
     void trapHandler();
     void initSDL();
+#ifdef STEAM
+    void initSteam();
+#endif
 #if defined(PDA) && !defined(PSP)
     void openAudio(int freq=22050, Uint16 format=MIX_DEFAULT_FORMAT, int channels=MIX_DEFAULT_CHANNELS);
 #else
@@ -405,8 +412,6 @@ private:
     long automode_time;
     long autoclick_time;
     long remaining_time;
-
-    SDL_mutex *rerender_event_lock;
 
     bool saveon_flag;
     bool internal_saveon_flag; // to saveoff at the head of text
@@ -484,9 +489,9 @@ private:
     struct ButtonState {
         int x, y, button;
         int down_x, down_y;
+        bool ignore_mouseup;
         bool down_flag;
-        bool has_moved;
-        ButtonState() { button = 0; down_flag = false; has_moved=false; }
+        ButtonState() { button = 0; down_flag = false; ignore_mouseup=false; }
     } current_button_state, volatile_button_state,
       last_mouse_state, shelter_mouse_state;
 
@@ -698,6 +703,40 @@ private:
     void drawEffect(SDL_Rect* dst_rect, SDL_Rect* src_rect,
                     SDL_Surface* surface);
     void generateMosaic(SDL_Surface* src_surface, int level);
+
+    enum {
+        //some constants for trig tables
+        TRIG_TABLE_SIZE = 256,
+        TRIG_FACTOR  = 16384
+    };
+    int *sin_table, *cos_table;
+    int *whirl_table;
+
+    int effect_tmp; //tmp variable for use by effect routines
+    void buildSinTable();
+    void buildCosTable();
+    void buildWhirlTable();
+    void doFlushout( int level );
+    void effectCascade( char *params, int duration );
+    void effectTrvswave( char *params, int duration );
+    void effectLngtwave( char *params, int duration );
+    void effectWhirl( char *params, int duration );
+
+    struct BreakupCell {
+        int cell_x, cell_y;
+        int dir;
+        int state;
+        int radius;
+        BreakupCell()
+        : cell_x(0), cell_y(0),
+          dir(0), state(0), radius(0)
+        {}
+    } *breakup_cells;
+    bool *breakup_cellforms, *breakup_mask;
+    void buildBreakupCellforms();
+    void buildBreakupMask();
+    void initBreakup( char *params );
+    void effectBreakup( char *params, int duration );
 
     /* ---------------------------------------- */
     /* Select related variables */

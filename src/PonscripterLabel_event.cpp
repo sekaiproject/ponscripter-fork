@@ -96,23 +96,6 @@ extern "C" Uint32 cdaudioCallback(Uint32 interval, void* param)
     return interval;
 }
 
-extern "C" Uint32 rerenderCallback(Uint32 interval, void *lock) {
-    /* Lock ensures we never are in this callback delaying multiple times at once */
-    SDL_mutex *rerender_lock = (SDL_mutex *)lock;
-    if(SDL_LockMutex(rerender_lock) == 0) {
-        SDL_Delay(interval);
-
-        SDL_Event event;
-        event.type = INTERNAL_REDRAW_EVENT;
-        SDL_PushEvent(&event);
-
-        SDL_UnlockMutex(rerender_lock);
-    }
-    /* Return 0 to essentially remove the timer */
-    return 0;
-}
-
-
 // Pushes the mp3 fadeout event onto the stack.  Part of our mp3
 // fadeout enabling patch.  Recommend for integration.
 // [Seung Park, 20060621]
@@ -330,7 +313,9 @@ void PonscripterLabel::advancePhase(int count)
 }
 
 void PonscripterLabel::queueRerender() {
-    SDL_AddTimer(0, rerenderCallback, rerender_event_lock);
+    SDL_Event rerender_event;
+    rerender_event.type = INTERNAL_REDRAW_EVENT;
+    SDL_PushEvent(&rerender_event);
 }
 
 
@@ -404,7 +389,6 @@ void PonscripterLabel::mouseMoveEvent(SDL_MouseMotionEvent* event)
 {
     current_button_state.x = event->x;
     current_button_state.y = event->y;
-    current_button_state.has_moved = true;
 
     if (event_mode & WAIT_BUTTON_MODE)
         mouseOverCheck(current_button_state.x, current_button_state.y);
@@ -432,10 +416,9 @@ void PonscripterLabel::mousePressEvent(SDL_MouseButtonEvent* event)
         return;
     }
 
-    if(event->x != current_button_state.down_x || event->y != current_button_state.down_y) {
-        current_button_state.has_moved = true;
-    } else if(current_button_state.down_x == -1 && current_button_state.down_y == -1) {
-        current_button_state.has_moved = true;
+    //Mouse didn't have a mouse-down event
+    if(current_button_state.down_x == -1 && current_button_state.down_y == -1) {
+        current_button_state.ignore_mouseup = true;
     }
 
     /* Use both = -1 to indicate we haven't received a mousedown yet */
@@ -451,7 +434,7 @@ void PonscripterLabel::mousePressEvent(SDL_MouseButtonEvent* event)
 
     if (event->button == SDL_BUTTON_RIGHT
         && event->type == SDL_MOUSEBUTTONUP
-        && !current_button_state.has_moved
+        && !current_button_state.ignore_mouseup
         && ((rmode_flag && (event_mode & WAIT_TEXT_MODE))
             || (event_mode & WAIT_BUTTON_MODE))) {
         current_button_state.button  = -1;
@@ -464,7 +447,7 @@ void PonscripterLabel::mousePressEvent(SDL_MouseButtonEvent* event)
         }
     }
     else if (event->button == SDL_BUTTON_LEFT
-             && ((!current_button_state.has_moved && event->type == SDL_MOUSEBUTTONUP) || btndown_flag)) {
+             && ((!current_button_state.ignore_mouseup && event->type == SDL_MOUSEBUTTONUP) || btndown_flag)) {
         current_button_state.button  = current_over_button;
         volatile_button_state.button = current_over_button;
 //#ifdef SKIP_TO_WAIT
@@ -798,11 +781,11 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
 {
     current_button_state.button = 0;
     current_button_state.down_flag = false;
-    if (automode_flag) {
-        remaining_time = -1;
-        setAutoMode(false);
-        return;
-    }
+
+    // This flag is set by anything before autmode that would like to not interrupt automode.
+    // At present, this is volume mute and fullscreen. The commands don't simply return in case
+    // the keypresses are handled below (e.g. telling the script the key 'a' was pressed)
+    bool automode_ignore = false;
 
     if (event->type == SDL_KEYUP) {
         if (variable_edit_mode) {
@@ -811,9 +794,17 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
         }
 
         if (event->keysym.sym == SDLK_m) {
-        	volume_on_flag = !volume_on_flag;
-        	setVolumeMute(!volume_on_flag);
-        	printf("turned %s volume mute\n", !volume_on_flag?"on":"off");
+            volume_on_flag = !volume_on_flag;
+            setVolumeMute(!volume_on_flag);
+            printf("turned %s volume mute\n", !volume_on_flag?"on":"off");
+            automode_ignore = true;
+        }
+
+        if (event->keysym.sym == SDLK_f) {
+            if (fullscreen_mode) menu_windowCommand("menu_window");
+            else menu_fullCommand("menu_full");
+            return;
+            automode_ignore = true;
         }
 
         if (edit_flag && event->keysym.sym == SDLK_z) {
@@ -823,6 +814,12 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
             wm_edit_string = EDIT_MODE_PREFIX EDIT_SELECT_STRING;
             SDL_SetWindowTitle(screen, wm_title_string);
         }
+    }
+
+    if (automode_flag && !automode_ignore) {
+        remaining_time = -1;
+        setAutoMode(false);
+        return;
     }
 
     if (event->type == SDL_KEYUP
@@ -1068,13 +1065,6 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
         }
     }
 
-    if (event_mode & (WAIT_INPUT_MODE | WAIT_BUTTON_MODE)) {
-        if (event->keysym.sym == SDLK_f) {
-            if (fullscreen_mode) menu_windowCommand("menu_window");
-            else menu_fullCommand("menu_full");
-        }
-    }
-
     if (event_mode & WAIT_SLEEP_MODE) {
       if (event->keysym.sym == SDLK_RETURN ||
           event->keysym.sym == SDLK_KP_ENTER ||
@@ -1199,8 +1189,10 @@ int PonscripterLabel::eventLoop()
        We do not handle either of these cases */
     Uint32 refresh_delay = getRefreshRateDelay();
     Uint32 last_refresh = 0, current_time;
+#ifdef WIN32
+    Uint32 win_flags;
+#endif
 
-    rerender_event_lock = SDL_CreateMutex();
     queueRerender();
 
     advancePhase();
@@ -1224,7 +1216,7 @@ int PonscripterLabel::eventLoop()
         case SDL_MOUSEBUTTONDOWN:
             current_button_state.down_x = ( (SDL_MouseButtonEvent *) &event)->x;
             current_button_state.down_y = ( (SDL_MouseButtonEvent *) &event)->y;
-            current_button_state.has_moved = false;
+            current_button_state.ignore_mouseup = false;
             if (!btndown_flag) break;
 
         case SDL_MOUSEBUTTONUP:
@@ -1302,20 +1294,31 @@ int PonscripterLabel::eventLoop()
             if((current_time - last_refresh) >= refresh_delay || last_refresh == 0) {
                 /* It has been longer than the refresh delay since we last started a refresh. Start another */
 
-                last_refresh = SDL_GetTicks();
+                last_refresh = current_time;
                 rerender();
 
                 /* Refresh time since rerender does take some odd ms */
                 current_time = SDL_GetTicks();
-                /* An alternate strategy would be to addtimer for refresh_delay at the top of this every time; however,
-                   I think that will degrade more badly; this one should never have two rerender calls from this event
-                   at once, and the other could degrade into that */
             }
-            if(last_refresh > current_time || (current_time - last_refresh) > refresh_delay) {
-                SDL_AddTimer(0, rerenderCallback, rerender_event_lock);
-            } else {
-                SDL_AddTimer(refresh_delay - (current_time - last_refresh), rerenderCallback, rerender_event_lock);
+
+            SDL_PumpEvents();
+            /* Remove all pending redraw events on the queue */
+            while(SDL_PeepEvents(&tmp_event, 1, SDL_GETEVENT, INTERNAL_REDRAW_EVENT, INTERNAL_REDRAW_EVENT) == 1)
+                ;
+
+            /* If there are any events on the queue, re-add us and let it get those events asap.
+             * It'll then come back to us with no events and we'll just sleep until it's time to redraw again.
+             * If there are no events, sleep right away
+             */
+            if(SDL_PeepEvents(&tmp_event, 1, SDL_PEEKEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT) == 0) {
+                /* Safety if for rare special cases, like the first time through */
+                if(last_refresh <= current_time && refresh_delay >= (current_time - last_refresh)) {
+                    SDL_Delay(refresh_delay - (current_time - last_refresh));
+                }
             }
+            tmp_event.type = INTERNAL_REDRAW_EVENT;
+            SDL_PushEvent(&tmp_event);
+
             break;
 
         case ONS_WAVE_EVENT:
@@ -1343,6 +1346,30 @@ int PonscripterLabel::eventLoop()
             switch(event.window.event) {
               case SDL_WINDOWEVENT_FOCUS_LOST:
                 break;
+              case SDL_WINDOWEVENT_FOCUS_GAINED:
+                /* See comment below under RESIZED */
+                SDL_PumpEvents();
+                SDL_PeepEvents(&tmp_event, 1, SDL_GETEVENT, SDL_MOUSEBUTTONDOWN, SDL_MOUSEBUTTONDOWN);
+                current_button_state.ignore_mouseup = true;
+#ifdef WIN32
+                win_flags = SDL_GetWindowFlags(screen);
+                /* Work around: https://bugzilla.libsdl.org/show_bug.cgi?id=2510
+                 *
+                 * On windows, the RESTORED event does not occur when you restore a
+                 * maximized event. The only events you get are a ton of exposes and
+                 * this one. The screen also remains black if it was maximized until
+                 * the window is "restored".
+                 */
+                SDL_RestoreWindow(screen);
+                if(win_flags & SDL_WINDOW_FULLSCREEN_DESKTOP) {
+                    SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN_DESKTOP);
+                } else if(win_flags & SDL_WINDOW_FULLSCREEN) {
+                    SDL_SetWindowFullscreen(screen, SDL_WINDOW_FULLSCREEN);
+                } else if(win_flags & SDL_WINDOW_MAXIMIZED) {
+                    SDL_MaximizeWindow(screen);
+                }
+#endif
+                break;
               case SDL_WINDOWEVENT_MAXIMIZED:
               case SDL_WINDOWEVENT_RESIZED:
                 /* Due to what I suspect is an SDL bug, you get a mosuedown +
@@ -1358,6 +1385,7 @@ int PonscripterLabel::eventLoop()
                  */
                 SDL_PumpEvents();
                 SDL_PeepEvents(&tmp_event, 1, SDL_GETEVENT, SDL_MOUSEBUTTONDOWN, SDL_MOUSEBUTTONDOWN);
+                current_button_state.ignore_mouseup = true;
               case SDL_WINDOWEVENT_RESTORED:
               case SDL_WINDOWEVENT_SHOWN:
               case SDL_WINDOWEVENT_EXPOSED:

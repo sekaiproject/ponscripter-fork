@@ -24,6 +24,7 @@
  */
 
 #include "PonscripterLabel.h"
+#include "PonscripterMessage.h"
 #include "resources.h"
 #include <ctype.h>
 
@@ -47,6 +48,17 @@ typedef HRESULT (WINAPI * GETFOLDERPATH)(HWND, int, HANDLE, DWORD, LPTSTR);
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <pwd.h>
+#endif
+
+#ifdef STEAM
+  #ifdef _WIN32
+    /* I assume it's a bug; steam_api doesn't preprocess without errors on mingw/win32 with this defined */
+    #undef _WIN32
+    #include <steam_api.h>
+    #define _WIN32
+  #else
+    #include <steam_api.h>
+  #endif
 #endif
 
 extern "C" void waveCallback(int channel);
@@ -279,6 +291,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["splitstring"]      = &PonscripterLabel::splitCommand;
     dict["spreload"]         = &PonscripterLabel::spreloadCommand;
     dict["spstr"]            = &PonscripterLabel::spstrCommand;
+    dict["steamsetachieve"]  = &PonscripterLabel::steamsetachieveCommand;
     dict["stop"]             = &PonscripterLabel::stopCommand;
     dict["strsp"]            = &PonscripterLabel::strspCommand;
     dict["systemcall"]       = &PonscripterLabel::systemcallCommand;
@@ -310,9 +323,19 @@ sfunc_lut_t::sfunc_lut_t() {
 
 static void SDL_Quit_Wrapper()
 {
+#ifdef STEAM
+  SteamAPI_Shutdown();
+#endif
     SDL_Quit();
 }
 
+#ifdef STEAM
+void PonscripterLabel::initSteam() {
+    if(!SteamAPI_Init()) {
+      fprintf(stderr, "Unable to initialize steam; cloud and achievements won't work\n");
+    }
+}
+#endif
 
 void PonscripterLabel::initSDL()
 {
@@ -518,6 +541,8 @@ void PonscripterLabel::openAudio(int freq, Uint16 format, int channels)
 PonscripterLabel::PonscripterLabel()
     : registry_file(REGISTRY_FILE),
       dll_file(DLL_FILE),
+      sin_table(NULL), cos_table(NULL), whirl_table(NULL),
+      breakup_cells(NULL), breakup_cellforms(NULL), breakup_mask(NULL),
       music_cmd(getenv("PLAYER_CMD")),
       midi_cmd(getenv("MUSIC_CMD"))
 {
@@ -815,9 +840,7 @@ pstring Platform_GetSavePath(pstring gameid) // MacOS X version
         return rv;
     // If that fails, die.
     CFOptionFlags *alert_flags;
-    CFUserNotificationDisplayAlert(0, kCFUserNotificationStopAlertLevel, NULL, NULL, NULL,
-        CFSTR("mkdir failure"),
-        CFSTR("Could not create a directory for saved games."), NULL, NULL, NULL, alert_flags);
+    PonscripterMessage(Error, "Save Directory Failure", "Could not create save directory.");
     exit(1);
 }
 #elif defined(LINUX) && defined(STEAM)
@@ -913,6 +936,9 @@ pstring getGameId(ScriptHandler& script_h)
 
 int PonscripterLabel::init(const char* preferred_script)
 {
+#ifdef STEAM
+    initSteam();
+#endif
     // On Mac OS X, archives may be stored in the application bundle.
     // On other platforms the location will either be in the EXE
     // directory, the current directory, or somewhere unpredictable
@@ -1026,10 +1052,13 @@ int PonscripterLabel::init(const char* preferred_script)
         AnimationInfo::allocSurface(screen_width, screen_height);
     effect_dst_surface =
         AnimationInfo::allocSurface(screen_width, screen_height);
+    effect_tmp_surface =
+        AnimationInfo::allocSurface(screen_width, screen_height);
     SDL_SetSurfaceAlphaMod(accumulation_surface, SDL_ALPHA_OPAQUE);
     SDL_SetSurfaceAlphaMod(backup_surface, SDL_ALPHA_OPAQUE);
     SDL_SetSurfaceAlphaMod(effect_src_surface, SDL_ALPHA_OPAQUE);
     SDL_SetSurfaceAlphaMod(effect_dst_surface, SDL_ALPHA_OPAQUE);
+    SDL_SetSurfaceAlphaMod(effect_tmp_surface, SDL_ALPHA_OPAQUE);
     SDL_SetSurfaceAlphaMod(screen_surface, SDL_ALPHA_OPAQUE);
 
     SDL_SetSurfaceBlendMode(accumulation_surface, SDL_BLENDMODE_NONE);
@@ -1037,6 +1066,7 @@ int PonscripterLabel::init(const char* preferred_script)
     SDL_SetSurfaceBlendMode(backup_surface, SDL_BLENDMODE_NONE);
     SDL_SetSurfaceBlendMode(effect_src_surface, SDL_BLENDMODE_NONE);
     SDL_SetSurfaceBlendMode(effect_dst_surface, SDL_BLENDMODE_NONE);
+    SDL_SetSurfaceBlendMode(effect_tmp_surface, SDL_BLENDMODE_NONE);
 
     screenshot_surface = 0;
     text_info.num_of_cells = 1;
@@ -1101,6 +1131,16 @@ void PonscripterLabel::reset()
     btntime2_flag  = false;
     btntime_value  = 0;
     btnwait_time = 0;
+
+    if (sin_table) delete[] sin_table;
+    if (cos_table) delete[] cos_table;
+    sin_table = cos_table = NULL;
+    if (whirl_table) delete[] whirl_table;
+    whirl_table = NULL;
+
+    if (breakup_cells) delete[] breakup_cells;
+    if (breakup_mask) delete[] breakup_mask;
+    if (breakup_cellforms) delete[] breakup_cellforms;
 
     disableGetButtonFlag();
 
@@ -2009,6 +2049,9 @@ void PonscripterLabel::quit()
         Mix_HaltMusic();
         Mix_FreeMusic(music_info);
     }
+#ifdef STEAM
+    SteamAPI_Shutdown();
+#endif
 }
 
 

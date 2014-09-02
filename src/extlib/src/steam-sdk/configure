@@ -1,0 +1,100 @@
+#! /bin/sh
+
+case `echo 'x\c'` in
+'x\c') echo_n="echo -n"; nobr= ;;
+*)     echo_n="echo";    nobr="\c" ;;
+esac
+
+if [ -z "$MAKE" ]; then MAKE=make; fi
+
+# Platform
+echo -n "Checking platform type... "
+BUILDPLATFORM=`../../../../util/config.guess`
+if [ -n "$PLATFORM" ]
+then 
+    PLATFORM=`$echo_n "$PLATFORM${nobr}" | tr '[:upper:]' '[:lower:]'`
+    if util/config.sub $PLATFORM >/dev/null 2>&1
+    then PLATFORM=`util/config.sub $PLATFORM`
+    fi
+else
+    PLATFORM=$BUILDPLATFORM
+fi
+SYS=Posix
+POSIX=Vanilla
+case $PLATFORM in
+*mingw*)   echo "MinGW";    SYS=MinGW; WINDRES=windres ;;
+*darwin*)  echo "Mac OS X"; SYS=MacOSX ;;
+*linux*)   echo "Linux";    POSIX=Linux ;;
+*solaris*) echo "Solaris";  POSIX=Solaris ;;
+*freebsd*) echo "FreeBSD";  POSIX=FreeBSD ;;
+*netbsd*)  echo "NetBSD";   POSIX=NetBSD ;;
+*openbsd*) echo "OpenBSD";  POSIX=OpenBSD ;;
+*cygwin*)  echo "Cygwin (building for MinGW)"
+           WINDRES=windres
+           SYS=MinGW ;;
+*)         echo "$PLATFORM (unsupported; using vanilla Posix build instructions)" ;;
+esac
+
+# Make (must be GNU)
+$echo_n "Checking for GNU make... ${nobr}"
+case `($MAKE -v) 2>/dev/null | head -1` in
+GNU?Make*)
+    echo "$MAKE" ;;
+*)
+    case `(gmake -v) 2>/dev/null | head -1` in
+    GNU?Make*)
+	MAKE=gmake
+	echo "gmake" ;;
+    *)  echo "no"
+	cat <<-_ERR
+
+	Unable to locate GNU make.
+	Please install GNU make. If it's installed, try setting the environment variable MAKE appropriately, or use the --make option to configure.
+	_ERR
+	exit 1 ;;
+    esac ;;
+esac
+
+$echo_n "Writing Makefile... ${nobr}"
+
+case "$SYS" in
+Posix)  LIB=linux32/libsteam_api.so ;;
+MacOSX) LIB=osx32/libsteam_api.dylib ;;
+MinGW)  LIB=steam_api.dll ;;
+*) echo "error: unsupported system";
+   exit 1 ;;
+esac
+
+
+cat > Makefile <<_EOF
+# -*- makefile-gmake -*-
+#
+# THIS IS A GENERATED FILE - changes will not be kept if configure is
+# run again.  If you wish to customise it, please be sure to give your
+# version a different filename.
+#
+# Makefile to place the steam-sdk for ponscripter
+
+LIBFILE=$LIB
+
+steam_headers = \$(wildcard public/steam/*.h)
+target_headers = \$(addprefix ../../include/steam/,\$(notdir \$(steam_headers)))
+
+steam_lib = ./redistributable_bin/\$(LIBFILE)
+target_lib = ../../lib/\$(notdir \$(LIBFILE))
+
+.PHONY: all
+all: \$(target_headers) \$(target_lib)
+
+\$(target_headers): ../../include/steam/%.h : public/steam/%.h
+	@mkdir -p ../../include/steam
+	cp \$< \$@
+
+\$(target_lib): % : \$(steam_lib)
+	cp \$< \$@
+clean:
+	rm -f \$(target_headers) \$(target_lib)
+_EOF
+
+echo "done"
+echo "Now run \"$MAKE\" to install steam for ponscripter."
