@@ -456,7 +456,54 @@ int ScriptParser::parseLine()
         fflush(stdout);
     }
 
-    if (script_h.isText()) return RET_NOMATCH;
+    if (script_h.isText()) {
+        // accessibility clipboard hook
+        // need to keep last_str because otherwise we call this every time a new char gets painted
+        if (cmd != last_str) {
+            char start_char = (unsigned char)cmd.data[0];
+
+            // ! seems to be a command marker? ignore those lines, they're useless to readers
+            if (start_char != '!') {
+                unsigned int proper_i = cmd.length(); // index of the last proper character (not whitespace)
+                unsigned char proper_char = ' ';
+
+                while (proper_i > 0) {
+                    proper_char = (unsigned char)cmd.data[proper_i];
+
+                    if ((proper_char == 0) || (proper_char == ' ') || (proper_char == '\n') || (proper_char == '\t')) {
+                        proper_i--;
+                    } else {
+                        break;
+                    }
+                }
+
+                if ((proper_char == '\\') || (proper_char == '@')) {
+                    last_str_buffer += cmd.midstr(0, proper_i);
+
+                    // TODO: replace this with the sdl setclipboard command, once testing is finished
+                    printf("sr: %s\n", (const char*)last_str_buffer);
+                    last_str_buffer = "";
+                } else if (proper_i == 0) {
+                    if (last_str_buffer.length() > 0){
+                        // TODO: replace this with the sdl setclipboard command, once testing is finished
+                        printf("sr: %s\n", (const char*)last_str_buffer);
+                        last_str_buffer = "";
+                    }
+                } else {
+                    proper_i++;
+
+                    last_str_buffer += cmd.midstr(0, proper_i);
+                    last_str_buffer += ' ';
+                }
+
+                // printf("plech: %c:%d, [%s]\n", proper_char, proper_char, (const char*)cmd.midstr(0, proper_i));
+
+                last_str = cmd;
+            }
+        }
+
+        return RET_NOMATCH;
+    }
 
     if (cmd[0] == ';' || cmd[0] == '*' || cmd[0] == ':' || cmd[0] == 0x0a)
 	return RET_CONTINUE;

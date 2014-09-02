@@ -286,6 +286,8 @@ protected:
     int    underline_value;
     int humanpos[3]; // l,c,r
     pstring savedir;
+    pstring last_str; // accessibility
+    pstring last_str_buffer; // accessibility
 
     void gosubReal(const pstring& label, const char* next_script);
     void gosubDoTextgosub();
