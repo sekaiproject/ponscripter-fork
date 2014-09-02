@@ -812,16 +812,40 @@ pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windo
 #elif defined(MACOSX) && defined(STEAM)
 pstring Platform_GetSavePath(pstring gameid) // MacOS X version
 {
-    pstring rv = "saves/";
-    if (mkdir(rv, 0755) == 0 || errno == EEXIST)
-        return rv;
+    pstring save_path = "";
+
+    // if we're bundled, return the dir just outside the bundle
+    // parent dir will contain:   Ponscripter.app   and   saves/
+
+    // we should use ScriptParser::bundleAppPath() but it doesn't seem to work,
+    //   so we just do it manually
+    using namespace Carbon;
+    CFURLRef url;
+    const CFIndex max_path = 32768;
+    Uint8 path[max_path];
+    CFBundleRef bundle = CFBundleGetMainBundle();
+    if (bundle) {
+        CFURLRef bundleurl = CFBundleCopyBundleURL(bundle);
+        if (bundleurl) {
+            Boolean validpath =
+                CFURLGetFileSystemRepresentation(bundleurl, true,
+                                                 path, max_path);
+            if (validpath) {
+                save_path = pstring((char*) path);
+                save_path += "/../";
+            }
+            CFRelease(bundleurl);
+        }
+    }
+
+    save_path += "saves/";
+
+    if (mkdir(save_path, 0755) == 0 || errno == EEXIST)
+        return save_path;
 
     // If that fails, die.
-    using namespace Carbon;
     CFOptionFlags *alert_flags;
-    CFUserNotificationDisplayAlert(0, kCFUserNotificationStopAlertLevel, NULL, NULL, NULL,
-        CFSTR("mkdir failure"),
-        CFSTR("Could not create a directory for saved games."), NULL, NULL, NULL, alert_flags);
+    PonscripterMessage(Error, "Save Directory Failure", "Could not create save directory.");
     exit(1);
 }
 #elif defined MACOSX
