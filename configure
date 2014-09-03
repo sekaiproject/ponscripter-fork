@@ -54,6 +54,7 @@ INTERNAL_OGGLIBS=false
 EXPLICIT_OGGLIBS=false
 
 STEAM_API=false
+LOCAL_SAVEDIR=false
 
 SDL_CONFIG=sdl2-config
 SMPEG_CONFIG=smpeg2-config
@@ -189,6 +190,8 @@ do
         STEAM_API=true ;;
       --no-steam | --disable-steam | --without-steam)
         STEAM_API=false ;;
+      --local-savedir | -local-savedir | --enable-local-savedir | --with-local-savedir)
+        LOCAL_SAVEDIR=true ;;
 
 
     -\? | -h | -help | --help)
@@ -219,6 +222,7 @@ do
 	  --with-internal-freetype    skip check for system libfreetype
 	  --with-external-sdl-mixer   force usage of system libSDL2_mixer
 	  --with-steam                link against steam and include steam features
+	  --with-local-savedir        create saves folder in game directory instead of appdata
 	__ENDHELP
       exit 0
       ;;
@@ -988,6 +992,14 @@ all: target
 
 RESOURCES =
 _EOF
+
+if $LOCAL_SAVEDIR
+then
+cat >>$MAKEFILE <<_EOF
+
+DEFS += -DLOCAL_SAVEDIR
+_EOF
+fi
 
 if $STEAM_API
 then

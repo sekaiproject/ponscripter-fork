@@ -610,6 +610,7 @@ PonscripterLabel::PonscripterLabel()
     sprite_info          = new AnimationInfo[MAX_SPRITE_NUM];
     sprite2_info         = new AnimationInfo[MAX_SPRITE2_NUM];
     enable_wheeldown_advance_flag = false;
+
     for (int i = 0; i < MAX_SPRITE2_NUM; ++i)
         sprite2_info[i].affine_flag = true;
     global_speed_modifier = 100;
@@ -755,7 +756,15 @@ int makeFolder(pstring *path) {
     }
     return 0;
 }
-#else //Mac and Linux
+#elif defined(MACOSX)
+int makeFolder(pstring *path) {
+    using namespace Carbon;
+    if (mkdir(*path, 0755) == 0 || errno == EEXIST)
+        return 0;
+    fprintf(stderr, "Warning, unable to create directory: %s\n", path->data);
+    return 1;
+}
+#else // Linux
 int makeFolder(pstring *path) {
     if (mkdir(*path, 0755) == 0 || errno == EEXIST)
         return 0;
@@ -764,12 +773,9 @@ int makeFolder(pstring *path) {
 }
 #endif
 
-#ifdef STEAM
-
-
 /* Local_GetSavePath() is the fallback for if steam is defined,
-   but SteamAPI_Init failed */
-#ifdef WIN32 // and STEAM
+   but SteamAPI_Init failed, or if the user requests a local save dir */
+#ifdef WIN32
 pstring Local_GetSavePath()
 {
     /* These defines are used elsewhere. They are normally created in the non-steam GetSavePath fn */
@@ -783,46 +789,54 @@ pstring Local_GetSavePath()
     }
     return "";
 }
-#elif defined(MACOSX) // and STEAM
+#elif defined(MACOSX)
 pstring Local_GetSavePath()
 {
-    char *programPath = (char *)malloc(PATH_MAX);
-    uint32_t pathLen = PATH_MAX;
-    bool saveDirErr = false;
+    pstring rv = "";
 
-    if(_NSGetExecutablePath(programPath, &pathLen) != 0) {
-        /* The fn sets the size to the correct needed size if it was too short */
-        programPath = (char *)realloc((void *)programPath, pathLen);
-        if(_NSGetExecutablePath(programPath, &pathLen) != 0) {
-            /* Well, we were big enough... Guess this is an error */
-            free(programPath);
-            saveDirErr = true;
+    // if we're bundled, return the dir just outside the bundle
+    // eg: parent dir will contain:   Ponscripter.app   and   saves/
+    using namespace Carbon;
+    CFURLRef url;
+    const CFIndex max_path = 32768;
+    Uint8 path[max_path];
+    CFBundleRef bundle = CFBundleGetMainBundle();
+    bool is_bundled = false;
+
+    if (bundle) {
+        CFURLRef bundleurl = CFBundleCopyBundleURL(bundle);
+        if (bundleurl) {
+            Boolean validpath =
+                CFURLGetFileSystemRepresentation(bundleurl, true,
+                                                 path, max_path);
+            if (validpath) {
+                pstring p_path = pstring((char*) path);
+                // this is a really stupid hack
+                // unfortunately, I don't think OSX has an isBundled() call, or anything like it,
+                // and CFBundleGetMainBundle returns a bundle even if unbundled... super duper smart
+
+                // check if contains ".app/" or ends with ".app" to see if we're inside an app bundle
+                is_bundled = (p_path.caselessfind(".app/") > -1) || (p_path.caselessfind(".app") == p_path.length() - 4);
+
+                if (is_bundled) {
+                    rv = p_path;
+                    rv += "/../";  // create outside bundle, so saves folder appears alongside .app
+                }
+            }
+            CFRelease(bundleurl);
         }
     }
 
-    if(!saveDirErr) {
-      char *programDir = dirname(programPath);
-      free(programPath);
+    rv += "saves/";
 
-      char *saveFolder = "/saves/";
-
-      int dirLen = strlen(programDir);
-      programDir = (char *)realloc((void *)programDir, dirLen + strlen(saveFolder));
-
-
-      pstring rv = pstring(programDir) + "/saves/";
-      free(programDir);
-
-      if (makeFolder(&rv) == 0)
-          return rv;
-    }
+    if (makeFolder(&rv) == 0)
+        return rv;
 
     // If that fails, die.
-    using namespace Carbon;
     CFOptionFlags *alert_flags;
     CFUserNotificationDisplayAlert(0, kCFUserNotificationStopAlertLevel, NULL, NULL, NULL,
-        CFSTR("mkdir failure"),
-        CFSTR("Could not create a directory for saved games."), NULL, NULL, NULL, alert_flags);
+        CFSTR("Save Directory Failure"),
+        CFSTR("Could not create save directory."), NULL, NULL, NULL, alert_flags);
     exit(1);
 }
 #else // LINUX and hope everything else is linux-like
@@ -858,6 +872,8 @@ pstring Local_GetSavePath() // POSIX-ish version
     return "";
 }
 #endif //WIN32 / OSX / LINUX
+
+#ifdef STEAM
 
 pstring Steam_GetSavePath() {
   if(SteamApps()) {
@@ -988,13 +1004,17 @@ pstring Platform_GetSavePath(const pstring& gameid)
 
 pstring PonscripterLabel::getSavePath(const pstring gameid) {
 #ifdef STEAM
-  return Steam_GetSavePath();
+    return Steam_GetSavePath();
 #else
-  #ifdef WIN32
-  return Platform_GetSavePath(gameid, current_user_appdata);
-  #else
-  return Platform_GetSavePath(gameid);
-  #endif
+    #ifdef LOCAL_SAVEDIR
+        return Local_GetSavePath();
+    #else
+        #ifdef WIN32
+        return Platform_GetSavePath(gameid, current_user_appdata);
+        #else
+        return Platform_GetSavePath(gameid);
+        #endif
+    #endif
 #endif // STEAM
 }
 
