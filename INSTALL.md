@@ -45,7 +45,7 @@ The Sun Workshop compilers are known NOT to work.
 Microsoft's C++ compiler will not work with the Ponscripter build
 system, but should theoretically be capable of building the program.
 
-On OSX, clang has worked.
+On OS X, clang has worked.
 
 
 # Building
@@ -94,24 +94,24 @@ On windows, just running `./configure --steam` in addition to the otherwise norm
 
 Compiling with OS X is a bit more difficult than most else, but it is confirmed to build with [Clang](http://clang.llvm.org/), the new OS X default compiler.
 
-This fork only builds with OS X 10.5+ support, right now (SDL2 support). Building SDL also requires you to enable OpenGL and/or OpenGL ES for it. It does not yet see Clang as a legitimate compiler unfortunately, though we will work with this in the future.
+This fork only builds with OS X 10.5+ support because of SDL2 and a few other things. Ponscripter does not yet see Clang as a legitimate compiler unfortunately, but with `--unsupported-compiler` it works fine.
 
 OS X is best built with internal libs. Otherwise, you may run into issues with varying versions of operating systems and libraries.
 
 Here are my standard `./configure` and `make` lines, successfully building on OS X 10.9:
 
 ```
-CC="clang -mmacosx-version-min=10.5" CXX="clang++ -mmacosx-version-min=10.5" SDLOTHERCONFIG="--enable-video-opengl --enable-video-opengles" ./configure --unsupported-compiler --with-internal-libs
+./configure --unsupported-compiler --with-internal-libs
 ```
 ```
-CC="clang -mmacosx-version-min=10.5" CXX="clang++ -mmacosx-version-min=10.5" SDLOTHERCONFIG="--enable-video-opengl --enable-video-opengles" make
+make
 ```
 
 ## Building with Steam on OS X
 
 As per above instructions, make sure the [Steamworks SDK](https://partner.steamgames.com) is in `src/extlib/src/steam-sdk`. Once this is done, simply adding the `--steam` flag to your `./configure` line should be enough, as shown:
 ```
-CC="clang -mmacosx-version-min=10.5" CXX="clang++ -mmacosx-version-min=10.5" SDLOTHERCONFIG="--enable-video-opengl --enable-video-opengles" ./configure --unsupported-compiler --with-internal-libs --steam
+./configure --unsupported-compiler --with-internal-libs --steam
 ```
 
 As with Linux builds, you should ensure the `steam_api.so` file is alongside the binary and `steam_appid.txt` is present. Otherwise, it will crash when launching.

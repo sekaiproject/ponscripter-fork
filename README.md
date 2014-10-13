@@ -35,7 +35,7 @@ The following platforms are supported:
 
 * Any modern Linux
 * Windows 7/8
-* OSX 10.6+
+* OSX 10.5+
 
 Any issues on these platforms should be reported.
 

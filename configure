@@ -875,8 +875,7 @@ $echo_n "Writing Makefile... ${nobr}"
 
 case "$SYS" in
 Posix)  EXE=     ; OBJ=.o ; LIB=.a ; W32=     ;;
-MacOSX) EXE=     ; OBJ=.o ; LIB=.a ; W32=
-        CFLAGSEXTRA="-fpascal-strings $CFLAGSEXTRA" ;;
+MacOSX) EXE=     ; OBJ=.o ; LIB=.a ; W32=     ;;
 MinGW)  EXE=.exe ; OBJ=.o ; LIB=.a ; W32=true ;;
 *) echo "error: unsupported system";
    exit 1 ;;
@@ -965,6 +964,10 @@ LIBS = $OURLIBS \\
        $LINKSDL2_mixer $LINKogg $LINKvorbis $LINKvorbisfile \\
        $LINKbz2 -lm -framework QuickTime -framework CoreFoundation
 
+CFLAGS = -mmacosx-version-min=10.5 $CFLAGS
+CXXFLAGS = -mmacosx-version-min=10.5 $CXXFLAGS
+
+SDLOTHERCONFIG = --enable-video-opengl --enable-video-opengles $SDLOTHERCONFIG
 DEFS = -DMACOSX -DUTF8_CAPTION -DUTF8_FILESYSTEM -DUSE_OGG_VORBIS $OURDEFS
 NO_DEFAULT_ICON = true
 EXT_OBJS = $GFX_EXT_OBJS
