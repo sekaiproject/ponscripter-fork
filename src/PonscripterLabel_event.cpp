@@ -128,6 +128,29 @@ SDL_Keycode transKey(SDL_Keycode key)
     return key;
 }
 
+SDL_Keycode transControllerButton(Uint8 button)
+{
+    SDL_Keycode button_map[] = {
+        SDLK_SPACE,
+        SDLK_RETURN,
+        SDLK_RCTRL,
+        SDLK_ESCAPE,
+        SDLK_0,
+        SDLK_UNKNOWN,
+        SDLK_a,
+        SDLK_UNKNOWN,
+        SDLK_UNKNOWN,
+        SDLK_o,
+        SDLK_s,
+        SDLK_UP,
+        SDLK_DOWN,
+        SDLK_LEFT,
+        SDLK_RIGHT,
+        SDLK_UNKNOWN };
+
+    return button_map[button];
+}
+
 
 SDL_Keycode transJoystickButton(Uint8 button)
 {
@@ -781,11 +804,11 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
 {
     current_button_state.button = 0;
     current_button_state.down_flag = false;
-    if (automode_flag) {
-        remaining_time = -1;
-        setAutoMode(false);
-        return;
-    }
+
+    // This flag is set by anything before autmode that would like to not interrupt automode.
+    // At present, this is volume mute and fullscreen. The commands don't simply return in case
+    // the keypresses are handled below (e.g. telling the script the key 'a' was pressed)
+    bool automode_ignore = false;
 
     if (event->type == SDL_KEYUP) {
         if (variable_edit_mode) {
@@ -794,9 +817,17 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
         }
 
         if (event->keysym.sym == SDLK_m) {
-        	volume_on_flag = !volume_on_flag;
-        	setVolumeMute(!volume_on_flag);
-        	printf("turned %s volume mute\n", !volume_on_flag?"on":"off");
+            volume_on_flag = !volume_on_flag;
+            setVolumeMute(!volume_on_flag);
+            printf("turned %s volume mute\n", !volume_on_flag?"on":"off");
+            automode_ignore = true;
+        }
+
+        if (event->keysym.sym == SDLK_f) {
+            if (fullscreen_mode) menu_windowCommand("menu_window");
+            else menu_fullCommand("menu_full");
+            return;
+            automode_ignore = true;
         }
 
         if (edit_flag && event->keysym.sym == SDLK_z) {
@@ -806,6 +837,12 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
             wm_edit_string = EDIT_MODE_PREFIX EDIT_SELECT_STRING;
             SDL_SetWindowTitle(screen, wm_title_string);
         }
+    }
+
+    if (automode_flag && !automode_ignore) {
+        remaining_time = -1;
+        setAutoMode(false);
+        return;
     }
 
     if (event->type == SDL_KEYUP
@@ -1051,13 +1088,6 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
         }
     }
 
-    if (event_mode & (WAIT_INPUT_MODE | WAIT_BUTTON_MODE)) {
-        if (event->keysym.sym == SDLK_f) {
-            if (fullscreen_mode) menu_windowCommand("menu_window");
-            else menu_fullCommand("menu_full");
-        }
-    }
-
     if (event_mode & WAIT_SLEEP_MODE) {
       if (event->keysym.sym == SDLK_RETURN ||
           event->keysym.sym == SDLK_KP_ENTER ||
@@ -1169,7 +1199,6 @@ Uint32 PonscripterLabel::getRefreshRateDelay() {
 }
 
 
-
 /* **************************************** *
 * Event loop
 * **************************************** */
@@ -1190,10 +1219,24 @@ int PonscripterLabel::eventLoop()
 
     advancePhase();
 
+    // when we're on the first of a button-waiting frame (menu, etc), we snap mouse cursor to button when
+    //   using keyboard/gamecontroller to vastly improve the experience when using not using a mouse directly
+    bool using_buttonbased_movement = true;  // true to snap to main menu when it loads
+    first_buttonwait_mode_frame = false;  // if it's the first frame of a buttonwait (menu/choice), snap to default button
+    SDL_GetMouseState(&last_mouse_x, &last_mouse_y);
+
     while (SDL_WaitEvent(&event)) {
         // ignore continous SDL_MOUSEMOTION
         while (event.type == SDL_MOUSEMOTION) {
             if (SDL_PeepEvents(&tmp_event, 1, SDL_PEEKEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT) == 0) break;
+
+            // improve using keyboard/gamecontroller controls
+            if ((last_mouse_x != ( (SDL_MouseButtonEvent *) &event)->x) || (last_mouse_y != ( (SDL_MouseButtonEvent *) &event)->y)) {
+                using_buttonbased_movement = false;
+
+                last_mouse_x = ( (SDL_MouseButtonEvent *) &event)->x;
+                last_mouse_y = ( (SDL_MouseButtonEvent *) &event)->y;
+            }
 
             if (tmp_event.type != SDL_MOUSEMOTION) break;
 
@@ -1220,13 +1263,50 @@ int PonscripterLabel::eventLoop()
             mouseWheelEvent(&event.wheel);
             break;
 
+        // NOTE: we reverse KEYUP and KEYDOWN for controller presses, because otherwise it feels really slow and junky
+        // If necessary, we can make keyPressEvent actually interpret controller keys but this works fine for now
+        case SDL_CONTROLLERBUTTONDOWN:
+            using_buttonbased_movement = true;
+            event.key.type = SDL_KEYUP;
+            // printf("Controller button press: %s\n", SDL_GameControllerGetStringForButton((SDL_GameControllerButton)event.cbutton.button));
+            event.key.keysym.sym = transControllerButton(event.cbutton.button);
+            if (event.key.keysym.sym == SDLK_UNKNOWN)
+                break;
+
+            event.key.keysym.sym = transKey(event.key.keysym.sym);
+
+            keyDownEvent((SDL_KeyboardEvent*) &event);
+            keyPressEvent((SDL_KeyboardEvent*) &event);
+
+            break;
+
+        case SDL_CONTROLLERBUTTONUP:
+            using_buttonbased_movement = true;
+            event.key.type = SDL_KEYDOWN;
+            // printf("Controller button release: %s\n", SDL_GameControllerGetStringForButton((SDL_GameControllerButton)event.cbutton.button));
+            event.key.keysym.sym = transControllerButton(event.cbutton.button);
+            if (event.key.keysym.sym == SDLK_UNKNOWN)
+                break;
+
+            event.key.keysym.sym = transKey(event.key.keysym.sym);
+
+            keyUpEvent((SDL_KeyboardEvent*) &event);
+            if (btndown_flag)
+                keyPressEvent((SDL_KeyboardEvent*) &event);
+
+            break;
+
         case SDL_JOYBUTTONDOWN:
+            using_buttonbased_movement = true;
             event.key.type = SDL_KEYDOWN;
             event.key.keysym.sym = transJoystickButton(event.jbutton.button);
             if (event.key.keysym.sym == SDLK_UNKNOWN)
                 break;
 
         case SDL_KEYDOWN:
+            if ((event.key.keysym.sym == SDLK_UP) || (event.key.keysym.sym == SDLK_DOWN) ||
+                (event.key.keysym.sym == SDLK_LEFT) || (event.key.keysym.sym == SDLK_RIGHT))
+                using_buttonbased_movement = true;
             event.key.keysym.sym = transKey(event.key.keysym.sym);
             keyDownEvent((SDL_KeyboardEvent*) &event);
             if (btndown_flag)
@@ -1235,6 +1315,7 @@ int PonscripterLabel::eventLoop()
             break;
 
         case SDL_JOYBUTTONUP:
+            using_buttonbased_movement = true;
             event.key.type = SDL_KEYUP;
             event.key.keysym.sym = transJoystickButton(event.jbutton.button);
             if (event.key.keysym.sym == SDLK_UNKNOWN)
@@ -1277,6 +1358,15 @@ int PonscripterLabel::eventLoop()
             break;
 
         case INTERNAL_REDRAW_EVENT:
+            /* Handle cursor shifting for controller/keyboard button-based movement */
+            if (first_buttonwait_mode_frame && using_buttonbased_movement && buttons.size() > 1) {
+                shiftCursorOnButton(0);
+            }
+
+            if (event_mode & WAIT_BUTTON_MODE)
+                first_buttonwait_mode_frame = true;
+            else if (first_buttonwait_mode_frame)
+                first_buttonwait_mode_frame = false;
 
             /* Stop rerendering while minimized; wait for the restore event + queueRerender */
             if(minimized_flag) {

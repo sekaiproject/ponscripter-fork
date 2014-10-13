@@ -264,6 +264,6 @@ $(STEAMSDK)/Makefile:
 	@cd $(STEAMSDK) && ./configure
 
 
-steam_api=$(ES)/steam/steam_api.h
-$(ES)/steam/steam_api.h: $(STEAMSDK)/Makefile
+steam_api=$(EI)/steam/steam_api.h
+$(EI)/steam/steam_api.h: $(STEAMSDK)/Makefile
 	@$(MAKE) -C $(STEAMSDK)

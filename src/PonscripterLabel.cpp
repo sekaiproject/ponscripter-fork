@@ -24,6 +24,7 @@
  */
 
 #include "PonscripterLabel.h"
+#include "PonscripterMessage.h"
 #include "resources.h"
 #include <ctype.h>
 
@@ -293,6 +294,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["splitstring"]      = &PonscripterLabel::splitCommand;
     dict["spreload"]         = &PonscripterLabel::spreloadCommand;
     dict["spstr"]            = &PonscripterLabel::spstrCommand;
+    dict["steamsetachieve"]  = &PonscripterLabel::steamsetachieveCommand;
     dict["stop"]             = &PonscripterLabel::stopCommand;
     dict["strsp"]            = &PonscripterLabel::strspCommand;
     dict["systemcall"]       = &PonscripterLabel::systemcallCommand;
@@ -354,6 +356,11 @@ void PonscripterLabel::initSDL()
     }
 
 #ifdef ENABLE_JOYSTICK
+    if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) == 0 && SDL_GameControllerOpen(0) != 0)
+        printf("Initialize GAMECONTROLLER\n");
+    else
+        fprintf(stderr, "Couldn't initialize SDL gamecontroller: %s\n", SDL_GetError());
+
     if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == 0 && SDL_JoystickOpen(0) != 0)
         printf("Initialize JOYSTICK\n");
 #endif
@@ -962,9 +969,7 @@ pstring Platform_GetSavePath(pstring gameid) // MacOS X version
         return rv;
     // If that fails, die.
     CFOptionFlags *alert_flags;
-    CFUserNotificationDisplayAlert(0, kCFUserNotificationStopAlertLevel, NULL, NULL, NULL,
-        CFSTR("mkdir failure"),
-        CFSTR("Could not create a directory for saved games."), NULL, NULL, NULL, alert_flags);
+    PonscripterMessage(Error, "Save Directory Failure", "Could not create save directory.");
     exit(1);
 }
 #elif defined LINUX
@@ -1858,6 +1863,9 @@ void PonscripterLabel::warpMouse(int x, int y) {
   y = y * scale_y;
 
   SDL_WarpMouseInWindow(screen, x, y);
+
+  last_mouse_x = x;
+  last_mouse_y = y;
 }
 
 

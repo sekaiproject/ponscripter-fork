@@ -53,6 +53,8 @@ INTERNAL_LIBJPEG=false
 INTERNAL_OGGLIBS=false
 EXPLICIT_OGGLIBS=false
 
+WITH_LIBNOTIFY=false
+ENABLE_GAME_CONTROLLERS=true
 STEAM_API=false
 LOCAL_SAVEDIR=false
 
@@ -186,6 +188,12 @@ do
       ;;
       --force-external-sdl-mixer | -force-external-sdl-mixer | -with-external-sdl-mixer | --with-external-sdl-mixer)
         EXTERNAL_SDL_MIXER=true;;
+      --with-libnotify | -with-libnotify)
+        WITH_LIBNOTIFY=true;;
+      --game-controllers | --enable-game-controllers | --with-game-controllers | --joysticks | --enable-joysticks | --with-joysticks)
+        ENABLE_GAME_CONTROLLERS=true ;;
+      --no-game-controllers | --disable-game-controllers | --without-game-controllers | --no-joysticks | --disable-joysticks | --without-joysticks)
+        ENABLE_GAME_CONTROLLERS=true ;;
       --steam | -steam | --enable-steam | --with-steam | -with-steam | --extra-gaben)
         STEAM_API=true ;;
       --no-steam | --disable-steam | --without-steam)
@@ -221,8 +229,11 @@ do
 	  --with-internal-smpeg       skip check for system libsmpeg
 	  --with-internal-freetype    skip check for system libfreetype
 	  --with-external-sdl-mixer   force usage of system libSDL2_mixer
+	  --with-libnotify            use system libnotify for messages
 	  --with-steam                link against steam and include steam features
 	  --with-local-savedir        create saves folder in game directory instead of appdata
+
+	  --without-game-controllers  disable game controller and joystick support
 	__ENDHELP
       exit 0
       ;;
@@ -767,6 +778,17 @@ if test -n "$MAKEDOC"; then
     esac
 fi
 
+if $WITH_LIBNOTIFY; then
+  $echo_n "Checking for system libnotify... ${nobr}"
+  if `pkg-config --exists libnotify` && `pkg-config --exists gtk+-2.0`; then
+    echo "yes"
+    WITH_LIBNOTIFY=true
+  else
+    echo "no: libnotify will not be used"
+    WITH_LIBNOTIFY=false
+  fi
+fi
+
 DEPS=
 MLIB=
 require() {
@@ -826,6 +848,7 @@ OURINCLUDE=
 OURINCS=
 OURLIBS=
 OURPATH=
+OURDEFS=
 if $INTERNAL_BZIP2  || $INTERNAL_FREETYPE || $INTERNAL_LIBJPEG || \
    $INTERNAL_LIBPNG || $INTERNAL_OGGLIBS  || $INTERNAL_SDL     || \
    $INTERNAL_SDL_IMAGE || $INTERNAL_SDL_MIXER || $INTERNAL_SMPEG
@@ -837,6 +860,16 @@ then
     OURPATH="\$(shell pwd)/$SRC/extlib/bin:"
 fi
 
+
+NOTIFYLIBS=
+GTKLIBS=
+if $WITH_LIBNOTIFY
+then
+  OURLIBS="$OURLIBS -lnotify"
+  OURLIBS="$OURLIBS `pkg-config --libs gtk+-2.0`"
+  OURINCS="$OURINCS `pkg-config --cflags gtk+-2.0`"
+  OURDEFS="$OURDEFS -DLIBNOTIFY"
+fi
 
 $echo_n "Writing Makefile... ${nobr}"
 
@@ -909,6 +942,7 @@ cat >> $MAKEFILE <<_EOF
 export WINDRES := $WINDRES
 
 LIBS = $OURLIBS \\
+       $NOTIFYLIBS $GTKLIBS\\
        -static -Wl,--start-group \\
        $MY_SDL_LIBS \\
        \$(shell $SMPEG_CONFIG --libs) \$(shell $FREETYPE_CONFIG --libs) \\
@@ -916,7 +950,7 @@ LIBS = $OURLIBS \\
        $LINKSDL2_mixer $LINKogg $LINKvorbis $LINKvorbisfile \\
        $LINKbz2 -Wl,--end-group
 
-DEFS = -DWIN32 -DUSE_OGG_VORBIS
+DEFS = -DWIN32 -DUSE_OGG_VORBIS $OURDEFS
 EXT_OBJS = SDL_win32_main.o win32rc.o $GFX_EXT_OBJS
 _EOF
 ;;
@@ -931,7 +965,7 @@ LIBS = $OURLIBS \\
        $LINKSDL2_mixer $LINKogg $LINKvorbis $LINKvorbisfile \\
        $LINKbz2 -lm -framework QuickTime -framework CoreFoundation
 
-DEFS = -DMACOSX -DUTF8_CAPTION -DUTF8_FILESYSTEM -DUSE_OGG_VORBIS
+DEFS = -DMACOSX -DUTF8_CAPTION -DUTF8_FILESYSTEM -DUSE_OGG_VORBIS $OURDEFS
 NO_DEFAULT_ICON = true
 EXT_OBJS = $GFX_EXT_OBJS
 
@@ -964,7 +998,7 @@ LIBS = $OURLIBS \\
        \$(shell $FREETYPE_CONFIG --libs) \\
        $LINKbz2 \$(if \$(findstring true,$INTERNAL_SDL),$INTERNAL_LDFLAGS)
 
-DEFS = -DLINUX -DUSE_OGG_VORBIS $EXTRA_DEPS
+DEFS = -DLINUX -DUSE_OGG_VORBIS $EXTRA_DEPS $OURDEFS
 EXT_OBJS = $GFX_EXT_OBJS
 _EOF
 ;; esac
@@ -998,6 +1032,17 @@ then
 cat >>$MAKEFILE <<_EOF
 
 DEFS += -DLOCAL_SAVEDIR
+
+_EOF
+fi
+
+if test -n "$ENABLE_GAME_CONTROLLERS"
+then
+cat >> $MAKEFILE <<_EOF
+
+SDLOTHERCONFIG += --enable-joystick
+DEFS += -DENABLE_JOYSTICK
+
 _EOF
 fi
 
@@ -1008,9 +1053,17 @@ cat >> $MAKEFILE <<_EOF
 STEAM=true
 EXTRADEPS += \$(steam_api)
 DEFS += -DSTEAM
-LIBS += -lsteam_api
 INCS += -Iextlib/include/steam
 _EOF
+if [ "$SYS" == "MinGW" ]; then
+cat >> $MAKEFILE << _EOF
+LIBS += extlib/lib/steam_api.dll # reference it like this for mingw's poor sake
+_EOF
+else # STEAM, not MinGW
+cat >> $MAKEFILE << _EOF
+LIBS += -Lextlib/lib -lsteam_api
+_EOF
+fi
 fi
 
 if [ "$SYS" != "MinGW" ] && [ "$SYS" != "MacOSX" ]; then

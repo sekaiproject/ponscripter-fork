@@ -328,6 +328,10 @@ public:
     int allsp2hideCommand(const pstring& cmd);
     int amspCommand(const pstring& cmd);
 
+
+    /* Steam commands */
+    int steamsetachieveCommand(const pstring& cmd);
+
 protected:
     /* ---------------------------------------- */
     /* Event related variables */
@@ -483,6 +487,8 @@ private:
     /* ---------------------------------------- */
     /* Button related variables */
     AnimationInfo btndef_info;
+    bool first_buttonwait_mode_frame;
+    int last_mouse_x, last_mouse_y;
 
     struct ButtonState {
         int x, y, button;
