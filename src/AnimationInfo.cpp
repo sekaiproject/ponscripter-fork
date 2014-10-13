@@ -61,6 +61,7 @@ AnimationInfo::AnimationInfo()
     trans_mode    = TRANS_TOPLEFT;
     affine_flag   = false;
     locked        = 0;
+    image_name    = "";
     reset();
 }
 

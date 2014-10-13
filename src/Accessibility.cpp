@@ -8,12 +8,7 @@ Accessibility::Accessibility() : file_output(false)
 Accessibility::Accessibility(const pstring l_prefix, bool f_output) : file_output(f_output)
 {
     lang_prefix = l_prefix;
-    
-    if(file_output){
-            fs.open ("text_v.txt", std::fstream::out | std::fstream::app);
-            fs << "\nFile opened\n";
-    }
-    
+
     doc.load_file("translations/trans.xml");
 
     // grab the default translation for menus/etc.
@@ -27,19 +22,20 @@ Accessibility::Accessibility(const pstring l_prefix, bool f_output) : file_outpu
     if(!default_translations.empty()){
         d_translation = default_translations[0].node();
     }
+
+    // initializing
+    last_str = "";
+    last_str_buffer = "";
 }
 
 Accessibility::~Accessibility()
 {
     // pugixml destroys itself while it's not in the buffer?
-    if(fs){
-        fs << "\nFile closed\n";
-        fs.close();
-    }
 }
 
 const pstring Accessibility::get_accessible(pstring t, const int sprite_id, const int button_id, const pstring cmd)
 {
+//    printf("get_accessible called: %d %d [%s] [%s]\n", sprite_id, button_id, (const char*)cmd, (const char*)t);
     if(cmd == ""){
         if(is_ok(t, sprite_id, button_id)){
             pugi::xml_node menu = find_menu(t);
@@ -83,24 +79,24 @@ const pstring Accessibility::get_accessible(pstring t, const int sprite_id, cons
             }
             return temp;
         }
-    }else if(cmd == "text"){
-        if(last_input == t){
+    } else if(cmd == "text") {
+        if (last_input == t) {
             return "";
         }
         last_input = t;
-        if(!sentence){
+        if (!sentence) {
             //fs << "ingoing!!! ->" << t << '\n';
-            pstring temp = process_text(t);
+            pstring temp = process_text_n(t);
             //fs << "outgoing!!! <-" << temp << '\n';
-            if(temp){
+            if (temp) {
                 history.push_back(temp);
                 ++current_historyline;
             }
             return temp;
         }
-        pstring temp = process_text(t);
+        pstring temp = process_text_n(t);
         //fs << "ingoing ->" << t << '\n';
-        if(temp){
+        if (temp) {
             sentence = "";
             //fs << "outgoing_inside <-" << temp << '\n';
             history.push_back(temp);
@@ -110,7 +106,7 @@ const pstring Accessibility::get_accessible(pstring t, const int sprite_id, cons
         //fs << "outgoing_outside <-" << temp << '\n';
         return "";
     }
-    
+
     return "";
 }
 
@@ -120,7 +116,7 @@ const pstring Accessibility::get_bg_text(const pugi::xml_node& background) const
     if(!background_texts.empty()){
         return background_texts[0].node().text().get();
     }
-    
+
     return "";
 }
 
@@ -130,7 +126,7 @@ const bool Accessibility::is_bg_inline(const pugi::xml_node& background) const
     if(!inline_bg.empty()){
         return true;
     }
-    
+
     return false;
 }
 
@@ -147,7 +143,7 @@ const pugi::xml_node Accessibility::find_bg(const pstring& c) const
             }
         }
     }
-    
+
     return pugi::xml_node();
 }
 
@@ -157,7 +153,7 @@ const pstring Accessibility::get_subtitle_text(const pugi::xml_node& subtitle) c
     if(!subtitle_text.empty()){
         return subtitle_text[0].node().text().get();
     }
-    
+
     return "";
 }
 
@@ -174,7 +170,7 @@ const pugi::xml_node Accessibility::find_subtitles(const pstring& c) const
             }
         }
     }
-    
+
     return pugi::xml_node();
 }
 
@@ -236,7 +232,7 @@ pugi::xml_node Accessibility::find_menu(const pstring& c)
             }
         }
     }
-    
+
     return parent;
 }
 
@@ -380,7 +376,7 @@ pstring Accessibility::process_saveload(pstring t) const
             }
         }
     }
-    
+
     return "";
 }
 
@@ -396,7 +392,7 @@ bool Accessibility::is_ok(const pstring& t, const int l, const int w) const
         }
         return true;
     }
-    
+
     return false;
 }
 
@@ -409,6 +405,54 @@ void Accessibility::reset_footnote()
 {
     footnote_flag = false;
     footnote = false;
+}
+
+// given the input line, output a decently screen-readable string
+const pstring Accessibility::process_text_n(pstring t)
+{
+    char start_char = (unsigned char)t.data[0];
+
+    // standard lines of text
+    if (start_char != '!') {
+        unsigned int proper_i = t.length(); // index of the last proper character (not whitespace)
+        unsigned char proper_char = ' ';
+
+        while (proper_i > 0) {
+            proper_char = (unsigned char)t.data[proper_i];
+
+            if ((proper_char == 0) || (proper_char == ' ') || (proper_char == '\n') || (proper_char == '\t')) {
+                proper_i--;
+            } else {
+                break;
+            }
+        }
+
+        if ((proper_char == '\\') || (proper_char == '@')) {
+            last_str_buffer += t.midstr(0, proper_i);
+
+            pstring output_text = last_str_buffer;
+            last_str_buffer = "";
+            return (const char*)output_text;
+        } else if (proper_i == 0) {
+            if (last_str_buffer.length() > 0) {
+                pstring output_text = last_str_buffer;
+                last_str_buffer = "";
+                return (const char*)output_text;
+            }
+        } else {
+            proper_i++;
+
+            last_str_buffer += t.midstr(0, proper_i);
+            last_str_buffer += ' ';
+        }
+    }
+
+    // commands!
+    else {
+        printf("cmd: %s\n", (const char*)t);
+    }
+
+    return "";
 }
 
 const pstring Accessibility::process_text(pstring t)
@@ -630,13 +674,13 @@ const pstring Accessibility::process_text(pstring t)
             sentence += accessible_text;
             return "";
         }
-        
+
         if(t[i] == 0xE2 && t[i+1] == 0x96 && t[i+2] == 0xA0){                       // black square ? vertical line ? gp32
             i += 1;
             accessible_text += ". ";
             continue;
         }
-        
+
         if(t[i] == ',' && t[i+1] == '\n'){                              // ,\n  gp32
             if(!sentence){
                 sentence = accessible_text + ". \n";
@@ -645,7 +689,7 @@ const pstring Accessibility::process_text(pstring t)
             sentence += accessible_text;
             return "";
         }
-        
+
         if(t[i] == ':' && t[i+1] == '\n'){                              // :\n  gp32
             if(!sentence){
                 sentence = accessible_text + ". \n";
@@ -654,7 +698,7 @@ const pstring Accessibility::process_text(pstring t)
             sentence += accessible_text;
             return "";
         }
-        
+
         if(t[i] == 'f' && t[i+1] == '\n'){                          // f\n      going down///////// gp32
             if(!sentence){
                 sentence = accessible_text + " \n";
@@ -689,7 +733,7 @@ const pstring Accessibility::process_text(pstring t)
         }
 
         //TO_DO: add consistent double quotes check??????//
-        
+
         switch(t[i]){
             case '\\':                                                                                  // new page and output for background_text
                 if(sentence){
@@ -722,21 +766,21 @@ const pstring Accessibility::process_text(pstring t)
         }
     }
 
-    if(!sentence)
+    if (!sentence)
         return accessible_text;
-    sentence +=accessible_text;
+    sentence += accessible_text;
     return "";
 }
 
 const pstring Accessibility::process_csel(const pstring& csel_text) const
 {
     pstring accessible_text = "";
-    for(int i = 0; i < csel_text.length(); ++i){
-        if(csel_text[i] == '^' && csel_text[i+1] == '*'){               // ^**%.
+    for (int i = 0; i < csel_text.length(); ++i) {
+        if (csel_text[i] == '^' && csel_text[i+1] == '*') {               // ^**%.
             i += 4;
             continue;
         }
-        if(csel_text[i] >= 0x10 && csel_text[i] < 0x20)             // ~i~ etc.
+        if (csel_text[i] >= 0x10 && csel_text[i] < 0x20)             // ~i~ etc.
             continue;
         accessible_text += csel_text[i];
     }
@@ -749,12 +793,9 @@ void Accessibility::output(const pstring& text, const int num)
     if (text != last_output) {
         last_output = text;
 
-        // output to accessibility drivers once we add those properly
-        printf("acc: %s\n", (const char *)last_output);
-
-        if (file_output) {
-            //fs << last_output << " " << num << '\n';
-            fs << last_output << '\n';
-        }
+         if (last_output) {
+             // output to accessibility drivers once we add those properly
+             printf("acc: [%s]\n", (const char *)last_output);
+         }
     }
 }

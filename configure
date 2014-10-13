@@ -57,6 +57,7 @@ WITH_LIBNOTIFY=false
 ENABLE_GAME_CONTROLLERS=true
 STEAM_API=false
 LOCAL_SAVEDIR=false
+WITH_SCREENREADER=false
 
 SDL_CONFIG=sdl2-config
 SMPEG_CONFIG=smpeg2-config
@@ -200,6 +201,10 @@ do
         STEAM_API=false ;;
       --local-savedir | -local-savedir | --enable-local-savedir | --with-local-savedir)
         LOCAL_SAVEDIR=true ;;
+      --screenreader | -screenreader | --enable-screenreader | --with-screenreader)
+        WITH_SCREENREADER=true ;;
+      --no-screenreader | -no-screenreader | --disable-screenreader | --without-screenreader)
+        WITH_SCREENREADER=false ;;
 
 
     -\? | -h | -help | --help)
@@ -232,6 +237,7 @@ do
 	  --with-libnotify            use system libnotify for messages
 	  --with-steam                link against steam and include steam features
 	  --with-local-savedir        create saves folder in game directory instead of appdata
+	  --with-screenreader         enables screenreader accessibility
 
 	  --without-game-controllers  disable game controller and joystick support
 	__ENDHELP
@@ -1035,6 +1041,15 @@ then
 cat >>$MAKEFILE <<_EOF
 
 DEFS += -DLOCAL_SAVEDIR
+
+_EOF
+fi
+
+if $WITH_SCREENREADER
+then
+cat >>$MAKEFILE <<_EOF
+
+DEFS += -DSCREENREADER
 
 _EOF
 fi

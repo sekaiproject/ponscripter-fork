@@ -459,9 +459,9 @@ int ScriptParser::parseLine()
     }
 
     if (script_h.isText()) {
-        // accessibility
-        pstring accessible_text = a_text.get_accessible(cmd, 255, 25, "text");  // 255 - random int > 215
-        //a_text.output(cmd, 0);
+#if SCREENREADER
+        pstring accessible_text = a_text.get_accessible(cmd, 255, 25, "text"); // 255 - random int > 215
+
         if (accessible_text) {
             a_text.output(accessible_text, 888);
             if (a_text.is_footnote()) {
@@ -469,6 +469,7 @@ int ScriptParser::parseLine()
                 a_text.reset_footnote();
             }
         }
+#endif // SCREENREADER
 
         return RET_NOMATCH;
     }

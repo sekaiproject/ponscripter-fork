@@ -28,6 +28,8 @@ class Accessibility
         pstring last_t;
         int last_what;
         int last_linenum;
+        pstring last_str;
+        pstring last_str_buffer;
         pstring last_output;
         pstring sentence;
         pstring last_input;
@@ -49,6 +51,7 @@ class Accessibility
         const pugi::xml_node find_sprite(const pugi::xml_node& menu, const int sprite_id) const;
         const pstring get_button_text(const pugi::xml_node& menu, const int button_id) const;
         bool is_ok(const pstring& t, const int l, const int w) const;
+        const pstring process_text_n(pstring t);
         const pstring process_text(pstring t);
         const pstring process_csel(const pstring& csel_text) const;
         pstring process_saveload(pstring t) const;

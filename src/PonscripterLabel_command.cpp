@@ -3086,7 +3086,7 @@ int PonscripterLabel::btnwaitCommand(const pstring& cmd)
 
         // accessibility
         if(current_over_button > 0 && current_over_button  < 42){
-            if(buttons[current_over_button].sprite_no < MAX_SPRITE2_NUM){
+            if((0 <= buttons[current_over_button].sprite_no) && (buttons[current_over_button].sprite_no < MAX_SPRITE2_NUM)){
                 extern Accessibility a_text;
                 //a_text.output(sprite_info[buttons[current_over_button].sprite_no].image_name, current_over_button);
                 //a_text.output(sprite_info[buttons[current_over_button].sprite_no].image_name, buttons[current_over_button].sprite_no);
