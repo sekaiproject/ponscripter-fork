@@ -1264,7 +1264,7 @@ int PonscripterLabel::eventLoop()
             break;
 
         // NOTE: we reverse KEYUP and KEYDOWN for controller presses, because otherwise it feels really slow and junky
-        // We should probably make keyPressEvent properly interpret stuff for controller button presses instead, later
+        // If necessary, we can make keyPressEvent actually interpret controller keys but this works fine for now
         case SDL_CONTROLLERBUTTONDOWN:
             using_buttonbased_movement = true;
             event.key.type = SDL_KEYUP;
@@ -1358,8 +1358,7 @@ int PonscripterLabel::eventLoop()
             break;
 
         case INTERNAL_REDRAW_EVENT:
-            // debug printing if necessary
-            // printf("%d, %d\n", using_buttonbased_movement, first_buttonwait_mode_frame);
+            /* Handle cursor shifting for controller/keyboard button-based movement */
             if (first_buttonwait_mode_frame && using_buttonbased_movement && buttons.size() > 1) {
                 shiftCursorOnButton(0);
             }

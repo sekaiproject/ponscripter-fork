@@ -54,7 +54,7 @@ INTERNAL_OGGLIBS=false
 EXPLICIT_OGGLIBS=false
 
 WITH_LIBNOTIFY=false
-ENABLE_GAME_CONTROLLERS=false
+ENABLE_GAME_CONTROLLERS=true
 STEAM_API=false
 
 SDL_CONFIG=sdl2-config
@@ -191,6 +191,8 @@ do
         WITH_LIBNOTIFY=true;;
       --game-controllers | --enable-game-controllers | --with-game-controllers | --joysticks | --enable-joysticks | --with-joysticks)
         ENABLE_GAME_CONTROLLERS=true ;;
+      --no-game-controllers | --disable-game-controllers | --without-game-controllers | --no-joysticks | --disable-joysticks | --without-joysticks)
+        ENABLE_GAME_CONTROLLERS=true ;;
       --steam | -steam | --enable-steam | --with-steam | -with-steam | --extra-gaben)
         STEAM_API=true ;;
       --no-steam | --disable-steam | --without-steam)
@@ -224,9 +226,10 @@ do
 	  --with-internal-smpeg       skip check for system libsmpeg
 	  --with-internal-freetype    skip check for system libfreetype
 	  --with-external-sdl-mixer   force usage of system libSDL2_mixer
-	  --with-game-controllers     enable game controllers and joysticks
 	  --with-libnotify            use system libnotify for messages
 	  --with-steam                link against steam and include steam features
+
+	  --without-game-controllers  disable game controller and joystick support
 	__ENDHELP
       exit 0
       ;;
