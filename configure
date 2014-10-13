@@ -54,7 +54,9 @@ INTERNAL_OGGLIBS=false
 EXPLICIT_OGGLIBS=false
 
 WITH_LIBNOTIFY=false
+ENABLE_GAME_CONTROLLERS=true
 STEAM_API=false
+LOCAL_SAVEDIR=false
 
 SDL_CONFIG=sdl2-config
 SMPEG_CONFIG=smpeg2-config
@@ -188,10 +190,16 @@ do
         EXTERNAL_SDL_MIXER=true;;
       --with-libnotify | -with-libnotify)
         WITH_LIBNOTIFY=true;;
+      --game-controllers | --enable-game-controllers | --with-game-controllers | --joysticks | --enable-joysticks | --with-joysticks)
+        ENABLE_GAME_CONTROLLERS=true ;;
+      --no-game-controllers | --disable-game-controllers | --without-game-controllers | --no-joysticks | --disable-joysticks | --without-joysticks)
+        ENABLE_GAME_CONTROLLERS=true ;;
       --steam | -steam | --enable-steam | --with-steam | -with-steam | --extra-gaben)
         STEAM_API=true ;;
       --no-steam | --disable-steam | --without-steam)
         STEAM_API=false ;;
+      --local-savedir | -local-savedir | --enable-local-savedir | --with-local-savedir)
+        LOCAL_SAVEDIR=true ;;
 
 
     -\? | -h | -help | --help)
@@ -223,6 +231,9 @@ do
 	  --with-external-sdl-mixer   force usage of system libSDL2_mixer
 	  --with-libnotify            use system libnotify for messages
 	  --with-steam                link against steam and include steam features
+	  --with-local-savedir        create saves folder in game directory instead of appdata
+
+	  --without-game-controllers  disable game controller and joystick support
 	__ENDHELP
       exit 0
       ;;
@@ -1015,6 +1026,25 @@ all: target
 
 RESOURCES =
 _EOF
+
+if $LOCAL_SAVEDIR
+then
+cat >>$MAKEFILE <<_EOF
+
+DEFS += -DLOCAL_SAVEDIR
+
+_EOF
+fi
+
+if test -n "$ENABLE_GAME_CONTROLLERS"
+then
+cat >> $MAKEFILE <<_EOF
+
+SDLOTHERCONFIG += --enable-joystick
+DEFS += -DENABLE_JOYSTICK
+
+_EOF
+fi
 
 if $STEAM_API
 then

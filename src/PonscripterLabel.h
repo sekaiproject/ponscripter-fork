@@ -126,6 +126,8 @@ public:
     void setGameIdentifier(const char *gameid);
     void setMaskType(int mask_type) { png_mask_type = mask_type; }
 
+    pstring getSavePath(pstring gameid);
+
     Uint32 getRefreshRateDelay();
 
     int  init(const char* preferred_script);
@@ -485,6 +487,8 @@ private:
     /* ---------------------------------------- */
     /* Button related variables */
     AnimationInfo btndef_info;
+    bool first_buttonwait_mode_frame;
+    int last_mouse_x, last_mouse_y;
 
     struct ButtonState {
         int x, y, button;

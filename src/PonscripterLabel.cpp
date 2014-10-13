@@ -41,12 +41,15 @@ namespace Carbon {
 #include "SDL_syswm.h"
 #include "winres.h"
 typedef HRESULT (WINAPI * GETFOLDERPATH)(HWND, int, HANDLE, DWORD, LPTSTR);
+#define PATH_MAX MAX_PATH
 #endif
 #ifdef LINUX
+#include <libgen.h>
 #include <errno.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <linux/limits.h>
 #include <pwd.h>
 #endif
 
@@ -353,6 +356,11 @@ void PonscripterLabel::initSDL()
     }
 
 #ifdef ENABLE_JOYSTICK
+    if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) == 0 && SDL_GameControllerOpen(0) != 0)
+        printf("Initialize GAMECONTROLLER\n");
+    else
+        fprintf(stderr, "Couldn't initialize SDL gamecontroller: %s\n", SDL_GetError());
+
     if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == 0 && SDL_JoystickOpen(0) != 0)
         printf("Initialize JOYSTICK\n");
 #endif
@@ -609,6 +617,7 @@ PonscripterLabel::PonscripterLabel()
     sprite_info          = new AnimationInfo[MAX_SPRITE_NUM];
     sprite2_info         = new AnimationInfo[MAX_SPRITE2_NUM];
     enable_wheeldown_advance_flag = false;
+
     for (int i = 0; i < MAX_SPRITE2_NUM; ++i)
         sprite2_info[i].affine_flag = true;
     global_speed_modifier = 100;
@@ -743,6 +752,158 @@ void PonscripterLabel::setGameIdentifier(const char *gameid)
     cmdline_game_id = gameid;
 }
 
+#ifdef WIN32
+int makeFolder(pstring *path) {
+    if(CreateDirectory(*path, NULL) == 0) {
+        DWORD err = GetLastError();
+        if(err != ERROR_ALREADY_EXISTS) {
+          fprintf(stderr, "Warning, unable to create directory: %s\n", path->data);
+          return 1;
+        }
+    }
+    return 0;
+}
+#elif defined(MACOSX)
+int makeFolder(pstring *path) {
+    using namespace Carbon;
+    if (mkdir(*path, 0755) == 0 || errno == EEXIST)
+        return 0;
+    fprintf(stderr, "Warning, unable to create directory: %s\n", path->data);
+    return 1;
+}
+#else // Linux
+int makeFolder(pstring *path) {
+    if (mkdir(*path, 0755) == 0 || errno == EEXIST)
+        return 0;
+    fprintf(stderr, "Warning, unable to create directory: %s\n", path->data);
+    return 1;
+}
+#endif
+
+/* Local_GetSavePath() is the fallback for if steam is defined,
+   but SteamAPI_Init failed, or if the user requests a local save dir */
+#ifdef WIN32
+pstring Local_GetSavePath()
+{
+    /* These defines are used elsewhere. They are normally created in the non-steam GetSavePath fn */
+#define CSIDL_COMMON_APPDATA 0x0023 // for [Profiles]\All Users\Application Data
+#define CSIDL_APPDATA        0x001a // for [Profiles]\[User]\Application Data
+    /* Assume the working-dir is where we want our save path
+       . We could use GetModuleFileNameW if this is an issue */
+    pstring rv = "saves/";
+    if(makeFolder(&rv) == 0) {
+      return rv;
+    }
+    return "";
+}
+#elif defined(MACOSX)
+pstring Local_GetSavePath()
+{
+    pstring rv = "";
+
+    // if we're bundled, return the dir just outside the bundle
+    // eg: parent dir will contain:   Ponscripter.app   and   saves/
+    using namespace Carbon;
+    CFURLRef url;
+    const CFIndex max_path = 32768;
+    Uint8 path[max_path];
+    CFBundleRef bundle = CFBundleGetMainBundle();
+    bool is_bundled = false;
+
+    if (bundle) {
+        CFURLRef bundleurl = CFBundleCopyBundleURL(bundle);
+        if (bundleurl) {
+            Boolean validpath =
+                CFURLGetFileSystemRepresentation(bundleurl, true,
+                                                 path, max_path);
+            if (validpath) {
+                pstring p_path = pstring((char*) path);
+                // this is a really stupid hack
+                // unfortunately, I don't think OSX has an isBundled() call, or anything like it,
+                // and CFBundleGetMainBundle returns a bundle even if unbundled... super duper smart
+
+                // check if contains ".app/" or ends with ".app" to see if we're inside an app bundle
+                is_bundled = (p_path.caselessfind(".app/") > -1) || (p_path.caselessfind(".app") == p_path.length() - 4);
+
+                if (is_bundled) {
+                    rv = p_path;
+                    rv += "/../";  // create outside bundle, so saves folder appears alongside .app
+                }
+            }
+            CFRelease(bundleurl);
+        }
+    }
+
+    rv += "saves/";
+
+    if (makeFolder(&rv) == 0)
+        return rv;
+
+    // If that fails, die.
+    CFOptionFlags *alert_flags;
+    CFUserNotificationDisplayAlert(0, kCFUserNotificationStopAlertLevel, NULL, NULL, NULL,
+        CFSTR("Save Directory Failure"),
+        CFSTR("Could not create save directory."), NULL, NULL, NULL, alert_flags);
+    exit(1);
+}
+#else // LINUX and hope everything else is linux-like
+pstring Local_GetSavePath() // POSIX-ish version
+{
+    char *programPath = (char *)malloc(PATH_MAX);
+    size_t pathLen = PATH_MAX;
+    ssize_t readLen = 0;
+    bool wholeLinkRead = true;
+
+    /* Because PATH_MAX is not really the max, this bit
+       tries to make sure to allocate enough anyways */
+    readLen = readlink("/proc/self/exe", programPath, pathLen);
+    if(readLen > pathLen) {
+        pathLen = readLen + 1;
+        programPath = (char *)realloc(programPath, pathLen);
+        readLen = readlink("/proc/self/exe", programPath, pathLen);
+    }
+    if(readLen == -1) {
+        fprintf(stderr, "Error getting current program path. Saves might not work\n");
+        return "";
+    }
+
+    char *programDir = strdup(dirname(programPath));
+    free(programPath);
+
+    pstring rv = pstring(programDir) + "/saves/";
+    free(programDir);
+
+    if(makeFolder(&rv) == 0)
+        return rv;
+
+    return "";
+}
+#endif //WIN32 / OSX / LINUX
+
+#ifdef STEAM
+
+pstring Steam_GetSavePath() {
+  if(SteamApps()) {
+      uint32 folderLen = PATH_MAX;
+      char *installFolder = (char *)malloc(folderLen + 1);
+      folderLen = SteamApps()->GetAppInstallDir(SteamUtils()->GetAppID(),
+                installFolder, folderLen);
+      if(folderLen > PATH_MAX) {
+          installFolder = (char *)realloc((void *)installFolder, folderLen);
+          folderLen = SteamApps()->GetAppInstallDir(SteamUtils()->GetAppID(),
+                    installFolder, folderLen);
+      }
+      pstring rv = pstring(installFolder) + "/saves/";
+
+      if(makeFolder(&rv) == 0) {
+        return rv;
+      }
+  }
+  fprintf(stderr, "Unable to get steam's save path; falling back to relative save path.\n");
+  return Local_GetSavePath();
+}
+
+#endif //STEAM
 
 #ifdef WIN32
 pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windows version
@@ -785,7 +946,7 @@ pstring Platform_GetSavePath(pstring gameid, bool current_user_appdata) // Windo
                 res = gfp(0, CSIDL_COMMON_APPDATA, 0, 0, hpath);
             if (res != S_FALSE && res != E_FAIL && res != E_INVALIDARG) {
                 rv = pstring(hpath) + DELIMITER + ansi_gameid + DELIMITER;
-                CreateDirectory(rv, 0);
+                makeFolder(&rv);
             }
         }
         FreeLibrary(shdll);
@@ -804,7 +965,7 @@ pstring Platform_GetSavePath(pstring gameid) // MacOS X version
     char path[32768];
     FSRefMakePath(&appsupport, (UInt8*) path, 32768);
     pstring rv = pstring(path) + DELIMITER + gameid + DELIMITER;
-    if (mkdir(rv, 0755) == 0 || errno == EEXIST)
+    if (makeFolder(&rv) == 0)
         return rv;
     // If that fails, die.
     CFOptionFlags *alert_flags;
@@ -829,7 +990,7 @@ pstring Platform_GetSavePath(pstring gameid) // POSIX version
     passwd* pwd = getpwuid(getuid());
     if (pwd) {
         pstring rv = pstring(pwd->pw_dir) + "/." + gameid + '/';
-        if (mkdir(rv, 0755) == 0 || errno == EEXIST)
+        if (makeFolder(&rv) == 0)
             return rv;
     }
     // Error; either getpwuid failed, or we couldn't create a save
@@ -845,6 +1006,22 @@ pstring Platform_GetSavePath(const pstring& gameid)
     return "";
 }
 #endif
+
+pstring PonscripterLabel::getSavePath(const pstring gameid) {
+#ifdef STEAM
+    return Steam_GetSavePath();
+#else
+    #ifdef LOCAL_SAVEDIR
+        return Local_GetSavePath();
+    #else
+        #ifdef WIN32
+        return Platform_GetSavePath(gameid, current_user_appdata);
+        #else
+        return Platform_GetSavePath(gameid);
+        #endif
+    #endif
+#endif // STEAM
+}
 
 // Retrieve a game identifier.
 pstring getGameId(ScriptHandler& script_h)
@@ -897,6 +1074,7 @@ int PonscripterLabel::init(const char* preferred_script)
 #ifdef STEAM
     initSteam();
 #endif
+
     // On Mac OS X, archives may be stored in the application bundle.
     // On other platforms the location will either be in the EXE
     // directory, the current directory, or somewhere unpredictable
@@ -946,12 +1124,7 @@ int PonscripterLabel::init(const char* preferred_script)
 
     // Try to determine an appropriate location for saved games.
     if (!script_h.save_path)
-#ifdef WIN32
-        script_h.save_path = Platform_GetSavePath(getGameId(script_h),
-                                                  current_user_appdata);
-#else
-        script_h.save_path = Platform_GetSavePath(getGameId(script_h));
-#endif
+        script_h.save_path = getSavePath(getGameId(script_h));
 
     // If we couldn't find anything obvious, fall back on ONScripter
     // behaviour of putting saved games in the archive path.
@@ -990,7 +1163,7 @@ int PonscripterLabel::init(const char* preferred_script)
             FreeLibrary(shdll);
         }
     }
-#endif
+#endif //WIN32
 
     initSDL();
     initLocale();
@@ -1690,6 +1863,9 @@ void PonscripterLabel::warpMouse(int x, int y) {
   y = y * scale_y;
 
   SDL_WarpMouseInWindow(screen, x, y);
+
+  last_mouse_x = x;
+  last_mouse_y = y;
 }
 
 
