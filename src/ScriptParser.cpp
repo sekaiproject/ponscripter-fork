@@ -457,7 +457,7 @@ int ScriptParser::parseLine()
     }
 
     if (script_h.isText()) {
-        // accessibility clipboard hook
+#if SCREENREADER
         // need to keep last_str because otherwise we call this every time a new char gets painted
         if (cmd != last_str) {
             char start_char = (unsigned char)cmd.data[0];
@@ -480,12 +480,10 @@ int ScriptParser::parseLine()
                 if ((proper_char == '\\') || (proper_char == '@')) {
                     last_str_buffer += cmd.midstr(0, proper_i);
 
-                    // TODO: replace this with the sdl setclipboard command, once testing is finished
                     printf("sr: %s\n", (const char*)last_str_buffer);
                     last_str_buffer = "";
                 } else if (proper_i == 0) {
                     if (last_str_buffer.length() > 0){
-                        // TODO: replace this with the sdl setclipboard command, once testing is finished
                         printf("sr: %s\n", (const char*)last_str_buffer);
                         last_str_buffer = "";
                     }
@@ -501,6 +499,7 @@ int ScriptParser::parseLine()
                 last_str = cmd;
             }
         }
+#endif // SCREENREADER
 
         return RET_NOMATCH;
     }
