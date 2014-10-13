@@ -1286,7 +1286,7 @@ void PonscripterLabel::reset()
     all_sprite_hide_flag = false;
     all_sprite2_hide_flag = false;
 
-    current_over_button = 0;
+    current_over_button = 1;
     variable_edit_mode  = NOT_EDIT_MODE;
 
     new_line_skip_flag = false;

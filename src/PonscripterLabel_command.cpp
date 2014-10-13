@@ -3089,7 +3089,7 @@ int PonscripterLabel::btnwaitCommand(const pstring& cmd)
         refreshMouseOverButton();
 
 #if SCREENREADER
-        if(current_over_button > 0 && current_over_button  < 42){
+        if(current_over_button > 0 && current_over_button < 42){
             if((0 <= buttons[current_over_button].sprite_no) && (buttons[current_over_button].sprite_no < MAX_SPRITE2_NUM)){
                 extern Accessibility a_text;
                 //a_text.output(sprite_info[buttons[current_over_button].sprite_no].image_name, current_over_button);
@@ -3221,7 +3221,7 @@ int PonscripterLabel::btnCommand(const pstring& cmd)
     button->anim[0]->copySurface(btndef_info.image_surface, &src_rect);
 
 #if SCREENREADER
-    if(btndef_info.file_name && (current_over_button > 0 && current_over_button == no)){
+    if (btndef_info.file_name && (current_over_button > 0 && current_over_button == no)) {
         extern Accessibility a_text;
         pstring accessible_text = a_text.get_accessible(btndef_info.file_name, 255, no, "");    // 255 - random int > 215
         if(accessible_text){

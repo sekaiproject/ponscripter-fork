@@ -35,7 +35,7 @@ Accessibility::~Accessibility()
 
 const pstring Accessibility::get_accessible(pstring t, const int sprite_id, const int button_id, const pstring cmd)
 {
-//    printf("get_accessible called: %d %d [%s] [%s]\n", sprite_id, button_id, (const char*)cmd, (const char*)t);
+    // printf("get_accessible called: %d %d [%s] [%s]\n", sprite_id, button_id, (const char*)cmd, (const char*)t);
     if(cmd == ""){
         if(is_ok(t, sprite_id, button_id)){
             pugi::xml_node menu = find_menu(t);

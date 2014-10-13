@@ -888,6 +888,8 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
         volatile_button_state.button = current_over_button;
       if (event->type == SDL_KEYDOWN) {
           current_button_state.down_flag = true;
+      } else {
+          current_over_button = 1; // reset to first button of menu
       }
   }
   else {
