@@ -24,6 +24,7 @@
  */
 
 #include "ScriptParser.h"
+#include "Accessibility.h"
 
 #ifdef MACOSX
 namespace Carbon {
@@ -45,6 +46,7 @@ namespace Carbon {
 #define DEFAULT_TEXT_SPEED_HIGHT 10
 
 #define MAX_TEXT_BUFFER 17
+Accessibility a_text("En", true);
 
 typedef int (ScriptParser::*ParserFun)(const pstring&);
 static class func_lut_t {
@@ -456,7 +458,20 @@ int ScriptParser::parseLine()
         fflush(stdout);
     }
 
-    if (script_h.isText()) return RET_NOMATCH;
+    if (script_h.isText()) {
+        // accessibility
+        pstring accessible_text = a_text.get_accessible(cmd, 255, 25, "text");  // 255 - random int > 215
+        //a_text.output(cmd, 0);
+        if (accessible_text) {
+            a_text.output(accessible_text, 888);
+            if (a_text.is_footnote()) {
+                SDL_Delay(2000); // weird stuff
+                a_text.reset_footnote();
+            }
+        }
+
+        return RET_NOMATCH;
+    }
 
     if (cmd[0] == ';' || cmd[0] == '*' || cmd[0] == ':' || cmd[0] == 0x0a)
 	return RET_CONTINUE;

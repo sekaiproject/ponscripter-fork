@@ -25,6 +25,7 @@
 
 #include "PonscripterLabel.h"
 #include "version.h"
+ #include "Accessibility.h"
 
 #ifdef WIN32
 #include <direct.h>
@@ -1664,6 +1665,12 @@ int PonscripterLabel::lspCommand(const pstring& cmd)
 
     si.visible(!hidden);
     si.setImageName(script_h.readStrValue());
+
+    extern Accessibility a_text;
+    pstring accessible_text = a_text.get_accessible(si.image_name, 255, 25, "lsp"); // 255 - random int > 215
+    if(accessible_text)
+        a_text.output(accessible_text, 666);
+
     si.pos.x = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
     si.pos.y = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
     if (sprite2) {
@@ -2837,6 +2844,33 @@ int PonscripterLabel::cselbtnCommand(const pstring& cmd)
     buttons[button_no] = getSelectableSentence(text, &csel_info);
     buttons[button_no].sprite_no = csel_no;
 
+    /*
+        There are three, I think, types of csel-lists, which differents from each other by their size:
+        8, 9 and 10 items.
+    */
+    refreshMouseOverButton();
+    if (text) {
+        if ((current_over_button - 1 >= 0 && current_over_button < 9) && select_links.size() == 8) {
+            if (select_links[current_over_button - 1].text == text) {
+                extern Accessibility a_text;
+                pstring accessible_text = a_text.get_accessible(text, 255, 25, "csel"); // 255 - random int > 215
+                a_text.output(accessible_text, current_over_button);
+            }
+        } else if ((current_over_button - 1 >= 0 && current_over_button < 10) && select_links.size() == 9) {
+            if (select_links[current_over_button - 1].text == text) {
+                extern Accessibility a_text;
+                pstring accessible_text = a_text.get_accessible(text, 255, 25, "csel"); // 1 < 25 <=25
+                a_text.output(accessible_text, current_over_button);
+            }
+        } else if ((current_over_button - 1 >= 0 && current_over_button < 11) && select_links.size() == 10) {
+            if (select_links[current_over_button - 1].text == text) {
+                extern Accessibility a_text;
+                pstring accessible_text = a_text.get_accessible(text, 255, 25, "csel");
+                a_text.output(accessible_text, current_over_button);
+            }
+        }
+    }
+
     return RET_CONTINUE;
 }
 
@@ -3050,6 +3084,22 @@ int PonscripterLabel::btnwaitCommand(const pstring& cmd)
         event_mode = WAIT_BUTTON_MODE;
         refreshMouseOverButton();
 
+        // accessibility
+        if(current_over_button > 0 && current_over_button  < 42){
+            if(buttons[current_over_button].sprite_no < MAX_SPRITE2_NUM){
+                extern Accessibility a_text;
+                //a_text.output(sprite_info[buttons[current_over_button].sprite_no].image_name, current_over_button);
+                //a_text.output(sprite_info[buttons[current_over_button].sprite_no].image_name, buttons[current_over_button].sprite_no);
+                pstring accessible_text = a_text.get_accessible(
+                        sprite_info[buttons[current_over_button].sprite_no].image_name,
+                        buttons[current_over_button].sprite_no,
+                        current_over_button,
+                        ""
+                    );
+                a_text.output(accessible_text, current_over_button);
+            }
+        }
+
         if (btntime_value > 0) {
             if (btntime2_flag) event_mode |= WAIT_VOICE_MODE;
             startTimer(btntime_value);
@@ -3164,6 +3214,15 @@ int PonscripterLabel::btnCommand(const pstring& cmd)
     button->anim[0]->pos.y = button->image_rect.y;
     button->anim[0]->allocImage(button->image_rect.w, button->image_rect.h);
     button->anim[0]->copySurface(btndef_info.image_surface, &src_rect);
+
+    // accessibility
+    if(btndef_info.file_name && (current_over_button > 0 && current_over_button == no)){
+        extern Accessibility a_text;
+        pstring accessible_text = a_text.get_accessible(btndef_info.file_name, 255, no, "");    // 255 - random int > 215
+        if(accessible_text){
+            a_text.output(accessible_text, current_over_button);
+        }
+    }
 
     return RET_CONTINUE;
 }
@@ -3328,6 +3387,15 @@ int PonscripterLabel::bgCommand(const pstring& cmd)
 
         bg_info.remove();
         bg_info.file_name = e.as_string();
+
+        // accessibility
+        extern Accessibility a_text;
+        //a_text.output(bg_info.file_name, 666);
+        if(bg_info.file_name){
+            pstring accessible_text = a_text.get_accessible(bg_info.file_name, 255, 25, "bg");  // 255 - random int > 215
+            if(accessible_text)
+                a_text.output(accessible_text, 666);
+        }
 
         createBackground();
         dirty_rect.fill(screen_width, screen_height);

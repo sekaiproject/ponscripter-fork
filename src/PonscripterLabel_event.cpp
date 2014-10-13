@@ -30,6 +30,7 @@
 #endif
 
 #include "PonscripterUserEvents.h"
+ #include "Accessibility.h"
 
 #define EDIT_MODE_PREFIX "[EDIT MODE]  "
 #define EDIT_SELECT_STRING "MP3 vol (m)  SE vol (s)  Voice vol (v)  Numeric variable (n)"
@@ -905,6 +906,11 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
         && (autoclick_time == 0 || (event_mode & WAIT_BUTTON_MODE))) {
         if (!useescspc_flag && event->keysym.sym == SDLK_ESCAPE) {
             current_button_state.button = -1;
+
+            // accessibility
+            extern Accessibility a_text;
+            a_text.reset_currenthistoryline();
+
             if (rmode_flag && event_mode & WAIT_TEXT_MODE) {
                 if (!rmenu.empty())
                     system_menu_mode = SYSTEM_MENU;
@@ -927,6 +933,11 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
 	{
 	    current_button_state.button  = -2;
             volatile_button_state.button = -2;
+
+            // accessibility
+            extern Accessibility a_text;
+            a_text.history_output(true);
+
             if (event_mode & WAIT_TEXT_MODE) system_menu_mode = SYSTEM_LOOKBACK;
         }
         else if (((!getcursor_flag && event->keysym.sym == SDLK_RIGHT) ||
@@ -943,6 +954,10 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
             else {
                 current_button_state.button  = -3;
                 volatile_button_state.button = -3;
+
+                // accessibility
+                extern Accessibility a_text;
+                a_text.history_output(false);
             }
         }
 	else if (((!getcursor_flag && event->keysym.sym == SDLK_UP) ||
@@ -950,6 +965,24 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
                   event->keysym.sym == SDLK_p) &&
                  event_mode & WAIT_BUTTON_MODE){
             shiftCursorOnButton(1);
+
+            // accessibility... what are these supposed to do?
+            SDL_Event a_eventdw;
+            a_eventdw.type = SDL_KEYDOWN;
+            a_eventdw.key.state = SDL_PRESSED;
+            a_eventdw.key.keysym.scancode = SDL_SCANCODE_SPACE;
+            a_eventdw.key.keysym.sym = SDLK_SPACE;
+            a_eventdw.key.keysym.mod = KMOD_NONE;
+            SDL_PushEvent(&a_eventdw);
+
+            SDL_Event a_eventup;
+            a_eventup.type = SDL_KEYUP;
+            a_eventdw.key.state = SDL_RELEASED;
+            a_eventup.key.keysym.scancode = SDL_SCANCODE_SPACE;
+            a_eventup.key.keysym.sym = SDLK_SPACE;
+            a_eventup.key.keysym.mod = KMOD_NONE;
+            SDL_PushEvent(&a_eventup);
+
             return;
         }
         else if (((!getcursor_flag && event->keysym.sym == SDLK_DOWN) ||
@@ -957,6 +990,24 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
                   event->keysym.sym == SDLK_n) &&
                  event_mode & WAIT_BUTTON_MODE){
             shiftCursorOnButton(-1);
+
+            // accessibility... what are these supposed to do?
+            SDL_Event a_eventdw;
+            a_eventdw.type = SDL_KEYDOWN;
+            a_eventdw.key.state = SDL_PRESSED;
+            a_eventdw.key.keysym.scancode = SDL_SCANCODE_SPACE;
+            a_eventdw.key.keysym.sym = SDLK_SPACE;
+            a_eventdw.key.keysym.mod = KMOD_NONE;
+            SDL_PushEvent(&a_eventdw);
+
+            SDL_Event a_eventup;
+            a_eventup.type = SDL_KEYUP;
+            a_eventdw.key.state = SDL_RELEASED;
+            a_eventup.key.keysym.scancode = SDL_SCANCODE_SPACE;
+            a_eventup.key.keysym.sym = SDLK_SPACE;
+            a_eventup.key.keysym.mod = KMOD_NONE;
+            SDL_PushEvent(&a_eventup);
+
             return;
         }
 	else if (getpageup_flag && event->keysym.sym == SDLK_PAGEUP) {
