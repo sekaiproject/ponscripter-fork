@@ -30,7 +30,7 @@
 #endif
 
 #include "PonscripterUserEvents.h"
- #include "Accessibility.h"
+#include "Accessibility.h"
 
 #define EDIT_MODE_PREFIX "[EDIT MODE]  "
 #define EDIT_SELECT_STRING "MP3 vol (m)  SE vol (s)  Voice vol (v)  Numeric variable (n)"
@@ -907,9 +907,10 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
         if (!useescspc_flag && event->keysym.sym == SDLK_ESCAPE) {
             current_button_state.button = -1;
 
-            // accessibility
+#if SCREENREADER
             extern Accessibility a_text;
             a_text.reset_currenthistoryline();
+#endif
 
             if (rmode_flag && event_mode & WAIT_TEXT_MODE) {
                 if (!rmenu.empty())
@@ -934,9 +935,10 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
 	    current_button_state.button  = -2;
             volatile_button_state.button = -2;
 
-            // accessibility
+#if SCREENREADER
             extern Accessibility a_text;
             a_text.history_output(true);
+#endif
 
             if (event_mode & WAIT_TEXT_MODE) system_menu_mode = SYSTEM_LOOKBACK;
         }
@@ -955,9 +957,10 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
                 current_button_state.button  = -3;
                 volatile_button_state.button = -3;
 
-                // accessibility
+#if SCREENREADER
                 extern Accessibility a_text;
                 a_text.history_output(false);
+#endif
             }
         }
 	else if (((!getcursor_flag && event->keysym.sym == SDLK_UP) ||
@@ -966,7 +969,8 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
                  event_mode & WAIT_BUTTON_MODE){
             shiftCursorOnButton(1);
 
-            // accessibility... what are these supposed to do?
+#if SCREENREADER
+            // ...what are these supposed to do?
             SDL_Event a_eventdw;
             a_eventdw.type = SDL_KEYDOWN;
             a_eventdw.key.state = SDL_PRESSED;
@@ -982,6 +986,7 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
             a_eventup.key.keysym.sym = SDLK_SPACE;
             a_eventup.key.keysym.mod = KMOD_NONE;
             SDL_PushEvent(&a_eventup);
+#endif
 
             return;
         }
@@ -991,7 +996,8 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
                  event_mode & WAIT_BUTTON_MODE){
             shiftCursorOnButton(-1);
 
-            // accessibility... what are these supposed to do?
+#if SCREENREADER
+            // ...what are these supposed to do?
             SDL_Event a_eventdw;
             a_eventdw.type = SDL_KEYDOWN;
             a_eventdw.key.state = SDL_PRESSED;
@@ -1007,6 +1013,7 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
             a_eventup.key.keysym.sym = SDLK_SPACE;
             a_eventup.key.keysym.mod = KMOD_NONE;
             SDL_PushEvent(&a_eventup);
+#endif
 
             return;
         }
