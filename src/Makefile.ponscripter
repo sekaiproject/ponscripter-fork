@@ -59,6 +59,11 @@ pclean:
 pdistclean: pclean
 	-$(RM) $(TARGET)
 
+# On OSX, we compile Accessibility.cpp under Objective-C++ mode because the APIs we need
+#   are Obj-C only
+Accessibility$(OBJSUFFIX): Accessibility.cpp
+	$(CXX) $(OBJCXX) -c $(CXXSTD) $(PSCFLAGS) $(INCS) $(DEFS) $<
+
 .cpp$(OBJSUFFIX):
 	$(CXX) -c $(CXXSTD) $(PSCFLAGS) $(INCS) $(DEFS) $<
 

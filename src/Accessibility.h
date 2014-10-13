@@ -23,6 +23,7 @@ class Accessibility
         pugi::xml_node d_translation;
         pstring lang_prefix;
     private:
+        void push_output(const pstring text);
         std::fstream fs;
         bool file_output;
         pstring last_t;

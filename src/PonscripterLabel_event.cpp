@@ -909,7 +909,7 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
         if (!useescspc_flag && event->keysym.sym == SDLK_ESCAPE) {
             current_button_state.button = -1;
 
-#if SCREENREADER
+#ifdef SCREENREADER
             extern Accessibility a_text;
             a_text.reset_currenthistoryline();
 #endif
@@ -937,7 +937,7 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
 	    current_button_state.button  = -2;
             volatile_button_state.button = -2;
 
-#if SCREENREADER
+#ifdef SCREENREADER
             extern Accessibility a_text;
             a_text.history_output(true);
 #endif
@@ -959,7 +959,7 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
                 current_button_state.button  = -3;
                 volatile_button_state.button = -3;
 
-#if SCREENREADER
+#ifdef SCREENREADER
                 extern Accessibility a_text;
                 a_text.history_output(false);
 #endif
@@ -971,7 +971,7 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
                  event_mode & WAIT_BUTTON_MODE){
             shiftCursorOnButton(1);
 
-#if SCREENREADER
+#ifdef SCREENREADER
             // ...what are these supposed to do?
             SDL_Event a_eventdw;
             a_eventdw.type = SDL_KEYDOWN;
@@ -998,7 +998,7 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
                  event_mode & WAIT_BUTTON_MODE){
             shiftCursorOnButton(-1);
 
-#if SCREENREADER
+#ifdef SCREENREADER
             // ...what are these supposed to do?
             SDL_Event a_eventdw;
             a_eventdw.type = SDL_KEYDOWN;

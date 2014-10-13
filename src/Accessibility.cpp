@@ -1,4 +1,12 @@
 #include "Accessibility.h"
+#include "bstrlib.h"
+
+#ifdef MACOSX
+#include <AppKit/NSSpeechSynthesizer.h>
+#include <Foundation/NSString.h>
+
+NSSpeechSynthesizer *ns;
+#endif
 
 Accessibility::Accessibility() : file_output(false)
 {
@@ -26,6 +34,10 @@ Accessibility::Accessibility(const pstring l_prefix, bool f_output) : file_outpu
     // initializing
     last_str = "";
     last_str_buffer = "";
+
+#ifdef MACOSX
+    ns = [[NSSpeechSynthesizer alloc] init];
+#endif
 }
 
 Accessibility::~Accessibility()
@@ -793,9 +805,32 @@ void Accessibility::output(const pstring& text, const int num)
     if (text != last_output) {
         last_output = text;
 
-         if (last_output) {
-             // output to accessibility drivers once we add those properly
-             printf("acc: [%s]\n", (const char *)last_output);
-         }
+        if (text) {
+            // do this replacing for wide characters and the like
+            //   that stuff up with os text to speech
+            pstring modded_for_output = text;
+
+            modded_for_output.findreplace("０", "0", 0);
+            modded_for_output.findreplace("１", "1", 0);
+            modded_for_output.findreplace("２", "2", 0);
+            modded_for_output.findreplace("３", "3", 0);
+            modded_for_output.findreplace("４", "4", 0);
+            modded_for_output.findreplace("５", "5", 0);
+            modded_for_output.findreplace("６", "6", 0);
+            modded_for_output.findreplace("７", "7", 0);
+            modded_for_output.findreplace("８", "8", 0);
+            modded_for_output.findreplace("９", "9", 0);
+
+            push_output(modded_for_output);
+        }
     }
 }
+
+#ifdef MACOSX
+void Accessibility::push_output(const pstring text)
+{
+    [ns stopSpeaking];
+    [ns startSpeakingString:[NSString stringWithUTF8String:text]];
+    printf("acc: [%s]\n", (const char *)text);
+}
+#endif // !MACOSX

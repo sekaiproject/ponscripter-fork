@@ -459,7 +459,7 @@ int ScriptParser::parseLine()
     }
 
     if (script_h.isText()) {
-#if SCREENREADER
+#ifdef SCREENREADER
         pstring accessible_text = a_text.get_accessible(cmd, 255, 25, "text"); // 255 - random int > 215
 
         if (accessible_text) {

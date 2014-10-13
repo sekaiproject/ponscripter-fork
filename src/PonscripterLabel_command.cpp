@@ -1666,7 +1666,7 @@ int PonscripterLabel::lspCommand(const pstring& cmd)
     si.visible(!hidden);
     si.setImageName(script_h.readStrValue());
 
-#if SCREENREADER
+#ifdef SCREENREADER
     extern Accessibility a_text;
     pstring accessible_text = a_text.get_accessible(si.image_name, 255, 25, "lsp"); // 255 - random int > 215
     if(accessible_text)
@@ -2846,7 +2846,7 @@ int PonscripterLabel::cselbtnCommand(const pstring& cmd)
     buttons[button_no] = getSelectableSentence(text, &csel_info);
     buttons[button_no].sprite_no = csel_no;
 
-#if SCREENREADER
+#ifdef SCREENREADER
     /*
         There are three, I think, types of csel-lists, which differents from each other by their size:
         8, 9 and 10 items.
@@ -3088,7 +3088,7 @@ int PonscripterLabel::btnwaitCommand(const pstring& cmd)
         event_mode = WAIT_BUTTON_MODE;
         refreshMouseOverButton();
 
-#if SCREENREADER
+#ifdef SCREENREADER
         if(current_over_button > 0 && current_over_button < 42){
             if((0 <= buttons[current_over_button].sprite_no) && (buttons[current_over_button].sprite_no < MAX_SPRITE2_NUM)){
                 extern Accessibility a_text;
@@ -3220,7 +3220,7 @@ int PonscripterLabel::btnCommand(const pstring& cmd)
     button->anim[0]->allocImage(button->image_rect.w, button->image_rect.h);
     button->anim[0]->copySurface(btndef_info.image_surface, &src_rect);
 
-#if SCREENREADER
+#ifdef SCREENREADER
     if (btndef_info.file_name && (current_over_button > 0 && current_over_button == no)) {
         extern Accessibility a_text;
         pstring accessible_text = a_text.get_accessible(btndef_info.file_name, 255, no, "");    // 255 - random int > 215
@@ -3394,7 +3394,7 @@ int PonscripterLabel::bgCommand(const pstring& cmd)
         bg_info.remove();
         bg_info.file_name = e.as_string();
 
-#if SCREENREADER
+#ifdef SCREENREADER
         extern Accessibility a_text;
         //a_text.output(bg_info.file_name, 666);
         if(bg_info.file_name){
