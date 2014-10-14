@@ -23,3 +23,11 @@
 .agignore
 /src/extlib/src/steam-sdk
 !/src/extlib/src/steam-sdk/configure
+
+# qt creator project files
+# if you import ponscripter into qt creator, name the project 'pons'
+/pons.config
+/pons.creator
+/pons.creator.user
+/pons.files
+/pons.includes
