@@ -833,4 +833,9 @@ void Accessibility::push_output(const pstring text)
     [ns startSpeakingString:[NSString stringWithUTF8String:text]];
     printf("acc: [%s]\n", (const char *)text);
 }
+#else
+void Accessibility::push_output(const pstring text)
+{
+    printf("acc: [%s]\n", (const char *)text);
+}
 #endif // !MACOSX
