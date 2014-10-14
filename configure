@@ -962,7 +962,7 @@ LIBS = $OURLIBS \\
        \$(shell $FREETYPE_CONFIG --libs)   \\
        $LINKSDL2_image $LINKjpeg $LINKpng              \\
        $LINKSDL2_mixer $LINKogg $LINKvorbis $LINKvorbisfile \\
-       $LINKbz2 -lm -framework QuickTime -framework CoreFoundation
+       $LINKbz2 -lm -framework CoreFoundation
 
 CFLAGS = -mmacosx-version-min=10.5 $CFLAGS
 CXXFLAGS = -mmacosx-version-min=10.5 $CXXFLAGS
