@@ -1298,18 +1298,7 @@ int PonscripterLabel::playCommand(const pstring& cmd)
 {
     pstring buf = script_h.readStrValue();
     if (buf[0] == '*') {
-	cd_play_loop_flag = cmd != "playonce";
-	buf.remove(0, 1);
-        int new_cd_track = buf;
-#ifdef CONTINUOUS_PLAY
-        if (current_cd_track != new_cd_track) {
-#endif
-	    stopBGM(false);
-	    current_cd_track = new_cd_track;
-	    playCDAudio();
-#ifdef CONTINUOUS_PLAY
-	}
-#endif
+	   fprintf(stderr, "playing cd tracks is no longer supported [%s]\n", (const char*) buf);
     }
     else { // play MIDI
         stopBGM(false);

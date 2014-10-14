@@ -101,9 +101,7 @@ public:
 
     // ----------------------------------------
     // start-up options
-    void enableCDAudio();
     void setDebugMode();
-    void setCDNumber(int cdrom_drive_number);
     void setRegistryFile(const char* filename);
     void setDLLFile(const char* filename);
     void setSavePath(const pstring& path);
@@ -396,7 +394,6 @@ private:
 
     // ----------------------------------------
     // start-up options
-    bool   cdaudio_flag;
     pstring registry_file;
     pstring dll_file;
     pstring getret_str;
@@ -776,9 +773,6 @@ private:
         SOUND_MIDI    = 32,
         SOUND_OTHER   = 64
     };
-    int cdrom_drive_number;
-    pstring default_cdrom_drive;
-    bool cdaudio_on_flag; // false if mute
     bool volume_on_flag; // false if mute
     SDL_AudioSpec audio_format;
     bool audio_open_flag;
@@ -790,8 +784,6 @@ private:
     pstring midi_file_name;
     Mix_Music* midi_info;
 
-    int    current_cd_track;
-    bool   cd_play_loop_flag;
     bool   music_play_loop_flag;
     bool   mp3save_flag;
     pstring music_file_name;
@@ -812,7 +804,6 @@ private:
     int playSound(const pstring& filename, int format, bool loop_flag,
                   int channel = 0);
 
-    void playCDAudio();
     int playWave(Mix_Chunk* chunk, int format, bool loop_flag, int channel);
     int playMP3();
     int playOGG(int format, unsigned char* buffer, long length, bool loop_flag,

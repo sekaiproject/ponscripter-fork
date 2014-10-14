@@ -35,7 +35,6 @@
 #define EDIT_SELECT_STRING "MP3 vol (m)  SE vol (s)  Voice vol (v)  Numeric variable (n)"
 
 static SDL_TimerID timer_id  = 0;
-SDL_TimerID timer_cdaudio_id = 0;
 
 // This block does two things: it sets up the timer id for mp3 fadeout, and it also sets up a timer id for midi looping --
 // the reason we have a separate midi loop timer id here is that on Mac OS X, looping midis via SDL will cause SDL itself
@@ -79,18 +78,6 @@ extern "C" Uint32 SDLCALL timerCallback(Uint32 interval, void* param)
 
     SDL_Event event;
     event.type = ONS_TIMER_EVENT;
-    SDL_PushEvent(&event);
-
-    return interval;
-}
-
-extern "C" Uint32 cdaudioCallback(Uint32 interval, void* param)
-{
-    SDL_RemoveTimer(timer_cdaudio_id);
-    timer_cdaudio_id = 0;
-
-    SDL_Event event;
-    event.type = ONS_CDAUDIO_EVENT;
     SDL_PushEvent(&event);
 
     return interval;
@@ -212,13 +199,10 @@ SDL_KeyboardEvent transJoystickAxis(SDL_JoyAxisEvent &jaxis)
 void PonscripterLabel::flushEventSub(SDL_Event &event)
 {
     if (event.type == ONS_SOUND_EVENT) {
-        if (music_play_loop_flag
-            || (cd_play_loop_flag && !cdaudio_flag)) {
+        if (music_play_loop_flag) {
             stopBGM(true);
             if (music_file_name)
                 playSound(music_file_name, SOUND_OGG_STREAMING | SOUND_MP3, true);
-            else
-                playCDAudio();
         }
         else {
             stopBGM(false);
@@ -249,15 +233,6 @@ void PonscripterLabel::flushEventSub(SDL_Event &event)
             event_mode &= ~WAIT_TIMER_MODE;
             stopBGM(false);
             advancePhase();
-        }
-    }
-    else if (event.type == ONS_CDAUDIO_EVENT) {
-        if (cd_play_loop_flag) {
-            stopBGM(true);
-            playCDAudio();
-        }
-        else {
-            stopBGM(false);
         }
     }
     else if (event.type == ONS_MIDI_EVENT) {
@@ -1350,7 +1325,6 @@ int PonscripterLabel::eventLoop()
             break;
 
         case ONS_SOUND_EVENT:
-        case ONS_CDAUDIO_EVENT:
         case ONS_FADE_EVENT:
         case ONS_MIDI_EVENT:
         case ONS_MUSIC_EVENT:
