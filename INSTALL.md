@@ -123,7 +123,13 @@ But the question most people want answered is "How do I bundle my game for distr
 2. Modify `Contents/info.plist` as necessary. Specifically, CFBundleName should be the name of your game, and you should make CFBundleIdentifier something like `"com.sekaiproject.narcissu2"`.
 3. Replace `Contents/Resources/icon.icns` with your game's icon.
 4. Put the rest of your game's data (`0.utf`, data folders, etc) in `Contents/Resources`.
-5. Launch the App and test it out!
+
+If you're building a Steam application, there are one or two more steps to follow afterwards:
+
+6. In `installscript_osx.vdf`, replace `Ponscripter.app` with whatever you name your application
+7. Put your game's appid in `Contents/MacOS/steam_appid.txt`
+
+And then you should be able to launch your game without issue! Keep in mind that if you run `make osxapp` again, your custom `icon.icns`, `info.plist`, `installscript_osx.vdf`, and `steam_appid.txt` files will be overwritten and set back to the defaults. (Dan will be trying to fix this very soon, and let it default to your own info if you want!)
 
 ## Building with Steam on OS X
 

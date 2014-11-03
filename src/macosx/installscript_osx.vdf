@@ -1,0 +1,13 @@
+"Installscript"
+{
+	"version"	"2"
+	"chmod"
+	{
+		"0"
+		{
+			"file"	"Ponscripter.app/Contents/MacOS/ponscr"
+			"mode"	"755"
+		}
+	}
+}
+

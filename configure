@@ -1247,8 +1247,20 @@ osxapp:
 	\$(MAKE) -C $SRC all
 	mkdir -p "Ponscripter.app/Contents/MacOS"
 	mkdir -p "Ponscripter.app/Contents/Resources"
-	cp src/macosx/info.plist "Ponscripter.app/Contents"
-	cp src/ponscr "Ponscripter.app/Contents/MacOS"
+	cp src/macosx/info.plist "Ponscripter.app/Contents/"
+	cp src/ponscr "Ponscripter.app/Contents/MacOS/"
+_EOF
+
+if $STEAM_API
+then
+cat >> Makefile <<_EOF
+	cp src/macosx/installscript_osx.vdf "Ponscripter.app/"
+	cp src/extlib/lib/libsteam_api.dylib "Ponscripter.app/Contents/MacOS/"
+	touch "Ponscripter.app/Contents/MacOS/steam_appid.txt"
+_EOF
+fi
+
+cat >> Makefile <<_EOF
 	cp src/macosx/ponscripter.icns "Ponscripter.app/Contents/Resources/icon.icns"
 	touch "Ponscripter.app/Contents/Resources/game data goes here"
 	touch "Ponscripter.app"
