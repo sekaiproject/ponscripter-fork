@@ -107,6 +107,24 @@ Here are my standard `./configure` and `make` lines, successfully building on OS
 make
 ```
 
+## Building an OS X App
+
+Building a proper application on OS X is fairly easy. Simply make sure you're in the base directory and run this:
+
+```
+make osxapp
+```
+
+This will put a Ponscripter application in the root directory. If you drag this application into a directory containing Ponscripter game files, it will run that game!
+
+But the question most people want answered is "How do I bundle my game for distribution".
+
+1. Right-click on the application and click "Show Package Contents".
+2. Modify `Contents/info.plist` as necessary. Specifically, CFBundleName should be the name of your game, and you should make CFBundleIdentifier something like `"com.sekaiproject.narcissu2"`.
+3. Replace `Contents/Resources/icon.icns` with your game's icon.
+4. Put the rest of your game's data (`0.utf`, data folders, etc) in `Contents/Resources`.
+5. Launch the App and test it out!
+
 ## Building with Steam on OS X
 
 As per above instructions, make sure the [Steamworks SDK](https://partner.steamgames.com) is in `src/extlib/src/steam-sdk`. Once this is done, simply adding the `--steam` flag to your `./configure` line should be enough, as shown:

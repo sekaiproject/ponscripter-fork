@@ -1241,6 +1241,20 @@ rpm: dist
 
 _EOF
 
+if [ "$SYS" = "MacOSX" ] ; then
+cat >> Makefile <<_EOF
+osxapp:
+	\$(MAKE) -C $SRC all
+	mkdir -p "Ponscripter.app/Contents/MacOS"
+	mkdir -p "Ponscripter.app/Contents/Resources"
+	cp src/macosx/info.plist "Ponscripter.app/Contents"
+	cp src/ponscr "Ponscripter.app/Contents/MacOS"
+	cp src/macosx/ponscripter.icns "Ponscripter.app/Contents/Resources/icon.icns"
+	touch "Ponscripter.app/Contents/Resources/game data goes here"
+	touch "Ponscripter.app"
+_EOF
+fi
+
 if [ "$SYS" = "MinGW" ]
 then cat >> Makefile <<_EOF
 .PHONY: final
