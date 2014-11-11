@@ -3,13 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleName</key>
-	<string>Ponscripter</string>
+	<string>MAC_APP_NAME</string>
 	<key>CFBundleExecutable</key>
-	<string>ponscr</string>
+	<string>TARGET</string>
 	<key>CFBundleIconFile</key>
 	<string>icon.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.company.gameid</string>
+	<string>MAC_BUNDLE_ID</string>
+	<key>CFBundleGetInfoString</key>
+	<string>MAC_INFO_STRING</string>
+	<key>CFBundleVersion</key>
+	<string>MAC_VERSION</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>LSMinimumSystemVersion</key>

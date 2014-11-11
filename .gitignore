@@ -24,6 +24,7 @@
 /src/extlib/src/steam-sdk
 !/src/extlib/src/steam-sdk/configure
 *.app
+/gamedata
 
 # qt creator project files
 # if you import ponscripter into qt creator, name the project 'pons'

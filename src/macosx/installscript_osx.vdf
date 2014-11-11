@@ -5,9 +5,8 @@
 	{
 		"0"
 		{
-			"file"	"Ponscripter.app/Contents/MacOS/ponscr"
+			"file"	"$MAC_APP_NAME.app/Contents/MacOS/$TARGET"
 			"mode"	"755"
 		}
 	}
 }
-
