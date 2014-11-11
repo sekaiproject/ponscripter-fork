@@ -119,17 +119,23 @@ This will put a Ponscripter application in the root directory. If you drag this 
 
 But the question most people want answered is "How do I bundle my game for distribution".
 
-1. Right-click on the application and click "Show Package Contents".
-2. Modify `Contents/info.plist` as necessary. Specifically, CFBundleName should be the name of your game, and you should make CFBundleIdentifier something like `"com.sekaiproject.narcissu2"`.
-3. Replace `Contents/Resources/icon.icns` with your game's icon.
-4. Put the rest of your game's data (`0.utf`, data folders, etc) in `Contents/Resources`.
+1. Copy the file `src/Makefile.game` to your own file named `src/Makefile.mygame`
+2. Look at `Makefile.narci` as an example, and replace whatever you can in your new game-specific makefile with your own information
+3. Provided you've filled it out thoroughly enough, you should be able to do something similar to this:
 
-If you're building a Steam application, there are one or two more steps to follow afterwards:
+```
+make osxapp GAME=mygame
+```
 
-6. In `installscript_osx.vdf`, replace `Ponscripter.app` with whatever you name your application
-7. Put your game's appid in `Contents/MacOS/steam_appid.txt`
+Because it will be grabbing the required information from `Makefile.mygame`, it will automatically create your App in the base Ponscripter directory.
 
-And then you should be able to launch your game without issue! Keep in mind that if you run `make osxapp` again, your custom `icon.icns`, `info.plist`, `installscript_osx.vdf`, and `steam_appid.txt` files will be overwritten and set back to the defaults. (Dan will be trying to fix this very soon, and let it default to your own info if you want!)
+Right-click on the application and click "Show Package Contents". Then, simply put the rest of your game's data (`0.utf`, data folders, etc) in `Contents/Resources`.
+
+NOTE: To set a custom icon for your application, simply create a file called `src/resources/mygame.icns`, and it will be applied at make time.
+
+If you're building a Steam application, make sure you set `STEAM_APPID` in your makefile
+
+And then you should be able to launch your game without issue!
 
 ## Building with Steam on OS X
 
