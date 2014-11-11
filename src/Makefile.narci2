@@ -37,3 +37,6 @@ NOPACK=true
 
 # Uncomment and change to add your own custom compilation flags
 PSCFLAGS := $(PSCFLAGS) -D 'DEFAULT_WM_TITLE="Narcissu Side 2nd"'
+
+# Steam AppID
+STEAM_APPID ?= 264380

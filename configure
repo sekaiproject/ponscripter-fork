@@ -1254,9 +1254,9 @@ _EOF
 if $STEAM_API
 then
 cat >> Makefile <<_EOF
-	cp src/macosx/installscript_osx.vdf "\${MAC_APP_NAME}.app/"
+	sed 's/MAC_APP_NAME/\${MAC_APP_NAME}/g;s/TARGET/\${TARGET}/g;s/MAC_BUNDLE_ID/\${MAC_BUNDLE_ID}/g;s/MAC_INFO_STRING/\${MAC_INFO_STRING}/g;s/MAC_VERSION/\${MAC_VERSION}/g' "src/macosx/installscript_osx.vdf" > "\${MAC_APP_NAME}.app/installscript_osx.vdf"
 	cp src/extlib/lib/libsteam_api.dylib "\${MAC_APP_NAME}.app/Contents/MacOS/"
-	touch "\${MAC_APP_NAME}.app/Contents/MacOS/steam_appid.txt"
+	echo "\${STEAM_APPID}" > "\${MAC_APP_NAME}.app/Contents/MacOS/steam_appid.txt"
 _EOF
 fi
 

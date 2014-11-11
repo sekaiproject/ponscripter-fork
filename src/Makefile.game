@@ -34,6 +34,9 @@ ifneq ($(GAME),)
   # Icon to use for systems other than Windows or Mac OS X
   PNG_ICON ?= resources/$(if $(wildcard resources/$(GAME).png),$(GAME).png,default.png)
 
+  # Steam AppID
+  STEAM_APPID ?=
+
 else
 
   # Default settings
@@ -60,6 +63,9 @@ else
 
   # Icon to use for systems other than Windows or Mac OS X
   PNG_ICON ?= resources/default.png
+
+  # Steam AppID
+  STEAM_APPID ?=
 
 endif
 
