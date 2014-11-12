@@ -119,9 +119,10 @@ This will put a Ponscripter application in the root directory. If you drag this 
 
 But the question most people want answered is "How do I bundle my game for distribution".
 
-1. Copy the file `src/Makefile.game` to your own file named `src/Makefile.mygame`
-2. Look at `Makefile.narci` as an example, and replace whatever you can in your new game-specific makefile with your own information
-3. Provided you've filled it out thoroughly enough, you should be able to do something similar to this:
+1. Copy the file `src/Makefile.game` to your own file named `src/Makefile.mygame`.
+2. Look at `Makefile.narci` as an example, and replace whatever you can in your new game-specific makefile with your own information.
+3. Put your game's data (`0.utf`, `*.arc`, etc) in a folder called `gamedata` in the root directory. This will be automatically copied into the created app.
+4. Provided you've filled out the game-specific Makefile thoroughly enough, you should be able to do something like this:
 
 ```
 make osxapp GAME=mygame
@@ -129,13 +130,11 @@ make osxapp GAME=mygame
 
 Because it will be grabbing the required information from `Makefile.mygame`, it will automatically create your App in the base Ponscripter directory.
 
-Right-click on the application and click "Show Package Contents". Then, simply put the rest of your game's data (`0.utf`, data folders, etc) in `Contents/Resources`.
-
-NOTE: To set a custom icon for your application, simply create a file called `src/resources/mygame.icns`, and it will be applied at make time.
+NOTE: To set a custom icon for your application, simply create a file called `src/resources/mygame.icns`, and it will be automatically applied at make time.
 
 If you're building a Steam application, make sure you set `STEAM_APPID` in your makefile
 
-And then you should be able to launch your game without issue!
+Once built as above, you should be able to launch your game without issue!
 
 ## Building with Steam on OS X
 
@@ -144,7 +143,7 @@ As per above instructions, make sure the [Steamworks SDK](https://partner.steamg
 ./configure --unsupported-compiler --with-internal-libs --steam
 ```
 
-As with Linux builds, you should ensure the `steam_api.so` file is alongside the binary and `steam_appid.txt` is present. Otherwise, it will crash when launching.
+As with Linux builds, you should ensure the `steam_api.dylib` file is alongside the binary and `steam_appid.txt` is present. Otherwise, it will crash when launching. (This is done automatically when building a .app bundle above)
 
 
 ## Build Options

@@ -1263,6 +1263,7 @@ fi
 cat >> Makefile <<_EOF
 	cp "src/\${MAC_ICON}" "\${MAC_APP_NAME}.app/Contents/Resources/icon.icns"
 	touch "\${MAC_APP_NAME}.app/Contents/Resources/game data goes here"
+	test -d "./\${GAMEDATA_FOLDER}" && cp -r \$(wildcard ./\${GAMEDATA_FOLDER}/*) "\${MAC_APP_NAME}.app/Contents/Resources/"; true
 	touch "\${MAC_APP_NAME}.app"
 _EOF
 fi

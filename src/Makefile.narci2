@@ -6,6 +6,9 @@ GAME ?= narci2
 # Game executable
 TARGET ?= $(if $(WIN32),Narcissu2.exe,narcissu2$(EXESUFFIX))
 
+# Game data folder
+GAMEDATA_FOLDER ?= gamedata
+
 # Mac App name
 MAC_APP_NAME ?= Narcissu Side 2nd
 

@@ -14,6 +14,9 @@ ifneq ($(GAME),)
   # Game executable
   TARGET ?= $(GAME)$(EXESUFFIX)
 
+  # Game data folder
+  GAMEDATA_FOLDER ?= gamedata
+
   # Mac App name
   MAC_APP_NAME ?= $(GAME)
 
@@ -34,15 +37,16 @@ ifneq ($(GAME),)
   # Icon to use for systems other than Windows or Mac OS X
   PNG_ICON ?= resources/$(if $(wildcard resources/$(GAME).png),$(GAME).png,default.png)
 
-  # Steam AppID
-  STEAM_APPID ?=
-
 else
 
   # Default settings
 
   # Game executable
   TARGET ?= ponscr$(EXESUFFIX)
+
+  # Game data folder
+  # We do this just so it doesn't include any gamedata in default Pons app build
+  GAMEDATA_FOLDER ?= no_gamedata_folder_exists
 
   # Mac App name
   MAC_APP_NAME ?= Ponscripter
@@ -64,9 +68,6 @@ else
   # Icon to use for systems other than Windows or Mac OS X
   PNG_ICON ?= resources/default.png
 
-  # Steam AppID
-  STEAM_APPID ?=
-
 endif
 
 # Dependencies for the Windows resource file
@@ -81,3 +82,6 @@ RCDEPS ?= $(WIN_ICON)
 
 # Uncomment and change to add your own custom compilation flags
 #PSCFLAGS := $(PSCFLAGS) --your-custom-flag
+
+# Steam AppID
+STEAM_APPID ?=
