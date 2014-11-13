@@ -1370,7 +1370,7 @@ int PonscripterLabel::eventLoop()
             if(SDL_PeepEvents(&tmp_event, 1, SDL_PEEKEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT) == 0) {
                 /* Safety if for rare special cases, like the first time through */
                 if(last_refresh <= current_time && refresh_delay >= (current_time - last_refresh)) {
-                    SDL_Delay(refresh_delay - (current_time - last_refresh));
+                    SDL_Delay(std::min(refresh_delay / 3, refresh_delay - (current_time - last_refresh)));
                 }
             }
             tmp_event.type = INTERNAL_REDRAW_EVENT;
