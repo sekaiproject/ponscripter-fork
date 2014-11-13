@@ -412,6 +412,9 @@ private:
     long autoclick_time;
     long remaining_time;
 
+    Uint32 timer_event_time;
+    bool timer_event_flag;
+
     bool saveon_flag;
     bool internal_saveon_flag; // to saveoff at the head of text
     int  yesno_caller;
