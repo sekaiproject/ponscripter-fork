@@ -132,7 +132,7 @@ make osxapp GAME=mygame
 
 Because it will be grabbing the required information from `Makefile.mygame`, it will automatically create your App in the base Ponscripter directory.
 
-NOTE: To set a custom icon for your application, simply create a file called `src/resources/mygame.icns`, and it will be automatically applied at make time.
+NOTE: To set a custom icon for your application, simply create a file called `src/resources/mygame.icns`, and it will be automatically applied at make time. Or put the custom icon in `gamedata/icon.icns`.
 
 If you're building a Steam application, make sure you set `STEAM_APPID` in your makefile
 
