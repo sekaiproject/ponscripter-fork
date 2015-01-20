@@ -1418,8 +1418,6 @@ void PonscripterLabel::flushDirect(SDL_Rect &rect, int refresh_mode, bool update
   if(SDL_UpdateTexture(screen_tex, NULL, screen_surface->pixels, screen_surface->pitch)) {
     fprintf(stderr,"Error updating texture: %s\n", SDL_GetError());
   }
-
-  rerender();
 }
 
 
