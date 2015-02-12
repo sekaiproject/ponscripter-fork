@@ -1,0 +1,12 @@
+"Installscript"
+{
+	"version"	"2"
+	"chmod"
+	{
+		"0"
+		{
+			"file"	"MAC_APP_NAME.app/Contents/MacOS/TARGET"
+			"mode"	"755"
+		}
+	}
+}

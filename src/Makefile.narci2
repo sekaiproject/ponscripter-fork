@@ -6,6 +6,20 @@ GAME ?= narci2
 # Game executable
 TARGET ?= $(if $(WIN32),Narcissu2.exe,narcissu2$(EXESUFFIX))
 
+# Game data folder
+GAMEDATA_FOLDER ?= gamedata
+
+# Mac App name
+MAC_APP_NAME ?= Narcissu Side 2nd
+
+# Mac icon
+MAC_ICON ?= resources/$(GAME).icns
+
+# Mac game info
+MAC_BUNDLE_ID ?= com.sekaiproject.narcissu2
+MAC_INFO_STRING ?= Game copyright (c) 2007 Stage-Nana.  Engine copyright (c) 1998-2007 Studio O.G.A, 2005-6 insani, 2006-2009 Haeleth, 2009-\@Y\@ Sonozaki.  Data portions copyright (c) 1989-1992, Bitstream Inc., 1999 (URW)++, 2007 Haeleth.
+MAC_VERSION ?= 2014 Sekai Project
+
 # Windows icon
 WIN_ICON ?= resources/$(GAME).ico
 
@@ -26,3 +40,6 @@ NOPACK=true
 
 # Uncomment and change to add your own custom compilation flags
 PSCFLAGS := $(PSCFLAGS) -D 'DEFAULT_WM_TITLE="Narcissu Side 2nd"'
+
+# Steam AppID
+STEAM_APPID ?= 264380
