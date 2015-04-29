@@ -244,13 +244,11 @@ int PonscripterLabel::loadSaveFile2(SaveFileType file_type, int file_version)
 
     midi_file_name = readStr(); // MIDI file
     wave_file_name = readStr(); // wave, waveloop
-    i = readInt();
-    if (i >= 0) current_cd_track = i;
+    readInt(); // old cd audio support
 
     // play, playonce MIDI
     if (readInt() == 1) {
 	midi_play_loop_flag = true;
-	current_cd_track = -2;
 	playSound(midi_file_name, SOUND_MIDI, midi_play_loop_flag);
     }
     else
@@ -263,10 +261,8 @@ int PonscripterLabel::loadSaveFile2(SaveFileType file_type, int file_version)
 	playSound(wave_file_name, SOUND_WAVE | SOUND_OGG,
 		  wave_play_loop_flag, MIX_WAVE_CHANNEL);
 
-    // play, playonce
-    cd_play_loop_flag = readInt() == 1;
-
-    if (current_cd_track >= 0) playCDAudio();
+    // old cd audio support
+    readInt();
 
     // bgm, mp3, mp3loop
     music_play_loop_flag = readInt() == 1;
@@ -599,14 +595,11 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
 
     writeStr(wave_file_name, output_flag); // wave, waveloop
 
-    if (current_cd_track >= 0)	// play CD
-	writeInt(current_cd_track, output_flag);
-    else
-	writeInt(-1, output_flag);
+	writeInt(-1, output_flag); // old cd audio
 
     writeInt(midi_play_loop_flag ? 1 : 0, output_flag); // play, playonce MIDI
     writeInt(wave_play_loop_flag ? 1 : 0, output_flag); // wave, waveloop
-    writeInt(cd_play_loop_flag ? 1 : 0, output_flag); // play, playonce
+    writeInt(0, output_flag); // old cdaudio
     writeInt(music_play_loop_flag ? 1 : 0, output_flag); // bgm, mp3, mp3loop
     writeInt(mp3save_flag ? 1 : 0, output_flag);
     writeStr(mp3save_flag ? music_file_name : pstring(""), output_flag);

@@ -350,11 +350,6 @@ void PonscripterLabel::initSDL()
     }
     atexit(SDL_Quit_Wrapper); // work-around for OS/2
 
-    if (cdaudio_flag) {
-        fprintf(stderr, "Couldn't initialize CD-ROM: %s\n", SDL_GetError());
-        exit(-1);
-    }
-
 #ifdef ENABLE_JOYSTICK
     if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) == 0 && SDL_GameControllerOpen(0) != 0)
         printf("Initialize GAMECONTROLLER\n");
@@ -601,8 +596,6 @@ PonscripterLabel::PonscripterLabel()
     AnimationInfo::setCpufuncs(AnimationInfo::CPUF_NONE);
 #endif
 
-    cdrom_drive_number   = 0;
-    cdaudio_flag         = false;
     disable_rescale_flag = false;
     edit_flag            = false;
     fullscreen_mode      = false;
@@ -632,19 +625,9 @@ PonscripterLabel::~PonscripterLabel()
 }
 
 
-void PonscripterLabel::enableCDAudio()
-{
-    cdaudio_flag = true;
-}
-
 void PonscripterLabel::setDebugMode()
 {
     ++debug_level;
-}
-
-void PonscripterLabel::setCDNumber(int cdrom_drive_number)
-{
-    this->cdrom_drive_number = cdrom_drive_number;
 }
 
 
@@ -1206,11 +1189,6 @@ int PonscripterLabel::init(const char* preferred_script)
 
     // ----------------------------------------
     // Sound related variables
-    this->cdaudio_flag = cdaudio_flag;
-    if (cdaudio_flag) {
-      fprintf(stderr, "CD-ROM audio depreciated\n");
-    }
-
     wave_file_name.trunc(0);
     midi_file_name.trunc(0);
     midi_info  = 0;
@@ -1304,9 +1282,7 @@ void PonscripterLabel::reset()
     wave_play_loop_flag  = false;
     midi_play_loop_flag  = false;
     music_play_loop_flag = false;
-    cd_play_loop_flag = false;
     mp3save_flag = false;
-    current_cd_track = -1;
 
     resetSub();
 
@@ -1442,8 +1418,6 @@ void PonscripterLabel::flushDirect(SDL_Rect &rect, int refresh_mode, bool update
   if(SDL_UpdateTexture(screen_tex, NULL, screen_surface->pixels, screen_surface->pitch)) {
     fprintf(stderr,"Error updating texture: %s\n", SDL_GetError());
   }
-
-  rerender();
 }
 
 
@@ -2081,8 +2055,6 @@ void PonscripterLabel::loadEnvData()
     volume_on_flag      = true;
     text_speed_no       = 1;
     draw_one_page_flag  = false;
-    cdaudio_on_flag     = true;
-    default_cdrom_drive = "";
     kidokumode_flag     = true;
     use_default_volume = true;
     fullscreen_flags    = SDL_WINDOW_FULLSCREEN_DESKTOP;
@@ -2100,9 +2072,8 @@ void PonscripterLabel::loadEnvData()
         default_env_font = readStr();
         if (!default_env_font)
             default_env_font = DEFAULT_ENV_FONT;
-        if (readInt() == 0)
-            cdaudio_on_flag = false;
-        default_cdrom_drive = readStr();
+        readInt(); // old cdrom drive support
+        readStr(); // old cdrom drive name
         voice_volume = DEFAULT_VOLUME - readInt();
         se_volume    = DEFAULT_VOLUME - readInt();
         music_volume = DEFAULT_VOLUME - readInt();
@@ -2141,8 +2112,8 @@ void PonscripterLabel::saveEnvData()
         writeInt(text_speed_no, output_flag);
         writeInt(draw_one_page_flag ? 1 : 0, output_flag);
         writeStr(default_env_font, output_flag);
-        writeInt(cdaudio_on_flag ? 1 : 0, output_flag);
-        writeStr(default_cdrom_drive, output_flag);
+        writeInt(0, output_flag); // old cdrom drive enable
+        writeStr("", output_flag); // old cdrom drive name
         writeInt(DEFAULT_VOLUME - voice_volume, output_flag);
         writeInt(DEFAULT_VOLUME - se_volume, output_flag);
         writeInt(DEFAULT_VOLUME - music_volume, output_flag);

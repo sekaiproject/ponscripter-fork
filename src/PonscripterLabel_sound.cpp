@@ -63,8 +63,6 @@ extern "C" {
 
     extern void oggcallback(void* userdata, Uint8 * stream, int len);
 
-    extern Uint32 SDLCALL cdaudioCallback(Uint32 interval, void* param);
-
 #ifdef MACOSX
     extern Uint32 SDLCALL midiSDLCallback(Uint32 interval, void* param);
 
@@ -72,8 +70,6 @@ extern "C" {
 }
 extern void midiCallback(int sig);
 extern void musicCallback(int sig);
-
-extern SDL_TimerID timer_cdaudio_id;
 
 #ifdef MACOSX
 extern SDL_TimerID timer_midi_id;
@@ -268,27 +264,6 @@ int PonscripterLabel::playSound(const pstring& filename, int format,
 }
 
 
-void PonscripterLabel::playCDAudio()
-{
-  if (cdaudio_flag) {
-    fprintf(stderr, "cdrom usage depreciated\n");
-  } else {
-    pstring filename;
-    filename.format("cd/track%2.2d.mp3", current_cd_track);
-    int ret = playSound(filename, SOUND_MP3, cd_play_loop_flag);
-    if (ret == SOUND_MP3) return;
-
-    filename.format("cd/track%2.2d.ogg", current_cd_track);
-    ret = playSound(filename, SOUND_OGG_STREAMING, cd_play_loop_flag);
-    if (ret == SOUND_OGG_STREAMING) return;
-
-    filename.format("cd/track%2.2d.wav", current_cd_track);
-    ret = playSound(filename, SOUND_WAVE, cd_play_loop_flag,
-        MIX_BGM_CHANNEL);
-  }
-}
-
-
 int PonscripterLabel::playWave(Mix_Chunk* chunk, int format, bool loop_flag,
 			       int channel)
 {
@@ -466,7 +441,6 @@ int PonscripterLabel::playMIDI(bool loop_flag)
 #else
     Mix_PlayMusic(midi_info, midi_looping);
 #endif
-    current_cd_track = -2;
 
     return 0;
 }
@@ -806,15 +780,6 @@ void PonscripterLabel::stopBGM(bool continue_flag)
 
 #endif
 
-    if (cdaudio_flag) {
-        extern SDL_TimerID timer_cdaudio_id;
-
-        if (timer_cdaudio_id) {
-            SDL_RemoveTimer(timer_cdaudio_id);
-            timer_cdaudio_id = 0;
-        }
-    }
-
     if (mp3_sample) {
         SMPEG_stop(mp3_sample);
         Mix_HookMusic(NULL, NULL);
@@ -870,8 +835,6 @@ void PonscripterLabel::stopBGM(bool continue_flag)
         Mix_FreeMusic(music_info);
         music_info = NULL;
     }
-
-    if (!continue_flag) current_cd_track = -1;
 }
 
 
