@@ -64,6 +64,7 @@ noteworthy patches and bug reports that have enhanced Ponscripter:
 * Mion of Sonozaki Futago-tachi
 * Roine Gustafsson
 * Roto
+* Schwarzstorch
 * Starchanchan
 
 Apologies to anyone not mentioned &mdash; please let me know so I can set the
