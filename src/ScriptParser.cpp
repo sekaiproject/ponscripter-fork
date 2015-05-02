@@ -46,7 +46,10 @@ namespace Carbon {
 #define DEFAULT_TEXT_SPEED_HIGHT 10
 
 #define MAX_TEXT_BUFFER 17
-Accessibility a_text("En", true);
+
+#ifdef SCREENREADER
+Accessibility a_text("En", false);
+#endif
 
 typedef int (ScriptParser::*ParserFun)(const pstring&);
 static class func_lut_t {
@@ -460,16 +463,13 @@ int ScriptParser::parseLine()
 
     if (script_h.isText()) {
 #ifdef SCREENREADER
-        pstring accessible_text = a_text.get_accessible(cmd, 255, 25, "text"); // 255 - random int > 215
+        // Text processing and output for accessible version
+        pstring accessible_text = a_text.get_accessible(cmd, 255, 25, "text");  // 255 - random int > 215
 
         if (accessible_text) {
             a_text.output(accessible_text, 888);
-            if (a_text.is_footnote()) {
-                SDL_Delay(2000); // weird stuff
-                a_text.reset_footnote();
-            }
         }
-#endif // SCREENREADER
+#endif
 
         return RET_NOMATCH;
     }

@@ -1671,6 +1671,19 @@ int PonscripterLabel::lspCommand(const pstring& cmd)
     }
     si.trans = script_h.hasMoreArgs() ? script_h.readIntValue() : 256;
 
+#ifdef SCREENREADER
+    // Here we distinguish only subtitles (see assumptions)
+    if (cmd == "lsph") {
+        // We need only "string sprites"
+        if (si.trans_mode == AnimationInfo::TRANS_STRING) {
+            extern Accessibility a_text;
+            pstring accessible_text = a_text.get_accessible(si.file_name, 255, 25, "lsph");
+            if (accessible_text)
+                a_text.output(accessible_text, 666);
+        }
+    }
+#endif
+
     parseTaggedString(&si);
     setupAnimationInfo(&si);
 
@@ -2293,6 +2306,16 @@ int PonscripterLabel::getlogCommand(const pstring& cmd)
         t_buf = t_buf->previous;
     }
     e.mutate(page_no > 0 ? pstring("") : t_buf->contents);
+
+#ifdef SCREENREADER
+    // Text processing and output for history log (lookback).
+    extern Accessibility a_text;
+    pstring accessible_text = a_text.get_accessible(t_buf->contents, 255, 25, "history");  // 255 - random int > 215
+    if (accessible_text) {
+        a_text.output(accessible_text, 123);
+    }
+#endif
+
     return RET_CONTINUE;
 }
 
@@ -2842,22 +2865,10 @@ int PonscripterLabel::cselbtnCommand(const pstring& cmd)
     */
     refreshMouseOverButton();
     if (text) {
-        if ((current_over_button - 1 >= 0 && current_over_button < 9) && select_links.size() == 8) {
+        if(((unsigned int)current_over_button - 1) < select_links.size()){
             if (select_links[current_over_button - 1].text == text) {
                 extern Accessibility a_text;
                 pstring accessible_text = a_text.get_accessible(text, 255, 25, "csel"); // 255 - random int > 215
-                a_text.output(accessible_text, current_over_button);
-            }
-        } else if ((current_over_button - 1 >= 0 && current_over_button < 10) && select_links.size() == 9) {
-            if (select_links[current_over_button - 1].text == text) {
-                extern Accessibility a_text;
-                pstring accessible_text = a_text.get_accessible(text, 255, 25, "csel"); // 1 < 25 <=25
-                a_text.output(accessible_text, current_over_button);
-            }
-        } else if ((current_over_button - 1 >= 0 && current_over_button < 11) && select_links.size() == 10) {
-            if (select_links[current_over_button - 1].text == text) {
-                extern Accessibility a_text;
-                pstring accessible_text = a_text.get_accessible(text, 255, 25, "csel");
                 a_text.output(accessible_text, current_over_button);
             }
         }
@@ -3078,18 +3089,73 @@ int PonscripterLabel::btnwaitCommand(const pstring& cmd)
         refreshMouseOverButton();
 
 #ifdef SCREENREADER
-        if(current_over_button > 0 && current_over_button < 42){
-            if((0 <= buttons[current_over_button].sprite_no) && (buttons[current_over_button].sprite_no < MAX_SPRITE2_NUM)){
+        // Output for config buttons / bars and their states
+        // Output for save/load.
+        if (current_over_button > 0 && current_over_button < 42) {
+            if ((0 <= buttons[current_over_button].sprite_no)
+                && (buttons[current_over_button].sprite_no < MAX_SPRITE2_NUM)) {
                 extern Accessibility a_text;
-                //a_text.output(sprite_info[buttons[current_over_button].sprite_no].image_name, current_over_button);
-                //a_text.output(sprite_info[buttons[current_over_button].sprite_no].image_name, buttons[current_over_button].sprite_no);
+                int sprite_id = buttons[current_over_button].sprite_no;
+                // set button states for footnotes, subtitles and display mode
+                if (sprite_id >= 175 || sprite_id <= 180) {
+                    switch (sprite_id) {
+                    case 175:
+                        if (sprite_info[176].current_cell == 1)
+                            a_text.set_config_buttons_flags(false, 1);
+                        else
+                            a_text.set_config_buttons_flags(true, 1);
+                        break;
+                    case 176:
+                        if (sprite_info[175].current_cell == 1)
+                            a_text.set_config_buttons_flags(false, 1);
+                        else
+                            a_text.set_config_buttons_flags(true, 1);
+                        break;
+                    case 177:
+                        if (sprite_info[178].current_cell == 1)
+                            a_text.set_config_buttons_flags(false, 2);
+                        else
+                            a_text.set_config_buttons_flags(true, 2);
+                        break;
+                    case 178:
+                        if (sprite_info[177].current_cell == 1)
+                            a_text.set_config_buttons_flags(false, 2);
+                        else
+                            a_text.set_config_buttons_flags(true, 2);
+                        break;
+                    case 179:
+                        if (sprite_info[180].current_cell == 1)
+                            a_text.set_config_buttons_flags(false, 3);
+                        else
+                            a_text.set_config_buttons_flags(true, 3);
+                        break;
+                    case 180:
+                        if (sprite_info[179].current_cell == 1)
+                            a_text.set_config_buttons_flags(false, 3);
+                        else
+                            a_text.set_config_buttons_flags(true, 3);
+                        break;
+                    }
+                }
                 pstring accessible_text = a_text.get_accessible(
-                        sprite_info[buttons[current_over_button].sprite_no].image_name,
-                        buttons[current_over_button].sprite_no,
-                        current_over_button,
-                        ""
-                    );
-                a_text.output(accessible_text, current_over_button);
+                    sprite_info[sprite_id].image_name,
+                    sprite_id,
+                    current_over_button,
+                    "");
+
+                // process bar values
+                int bar_no = a_text.get_bar_no();
+                pstring temp = "";
+                if (bar_no > 0) {
+                    int bar_value = bar_info[bar_no]->param;
+                    // consistent numbers
+                    if(bar_value > 100)
+                            bar_value = int(bar_value * 0.1);
+                    temp.format("%d", bar_value);
+                    temp = " (" + temp + "%%)";
+                }
+
+                a_text.output(accessible_text + temp, current_over_button);
             }
         }
 #endif
@@ -3210,6 +3276,7 @@ int PonscripterLabel::btnCommand(const pstring& cmd)
     button->anim[0]->copySurface(btndef_info.image_surface, &src_rect);
 
 #ifdef SCREENREADER
+    // Output for menu buttons
     if (btndef_info.file_name && (current_over_button > 0 && current_over_button == no)) {
         extern Accessibility a_text;
         pstring accessible_text = a_text.get_accessible(btndef_info.file_name, 255, no, "");    // 255 - random int > 215
@@ -3384,11 +3451,11 @@ int PonscripterLabel::bgCommand(const pstring& cmd)
         bg_info.file_name = e.as_string();
 
 #ifdef SCREENREADER
+        // Output for background text
         extern Accessibility a_text;
-        //a_text.output(bg_info.file_name, 666);
-        if(bg_info.file_name){
+        if (bg_info.file_name) {
             pstring accessible_text = a_text.get_accessible(bg_info.file_name, 255, 25, "bg");  // 255 - random int > 215
-            if(accessible_text)
+            if (accessible_text)
                 a_text.output(accessible_text, 666);
         }
 #endif

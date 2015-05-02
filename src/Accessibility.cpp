@@ -40,14 +40,42 @@ Accessibility::Accessibility(const pstring l_prefix, bool f_output) : file_outpu
 
 #ifdef MACOSX
     ns = [[NSSpeechSynthesizer alloc] init];
+#elif WIN32
+    tolk_lib = LoadLibrary(TEXT("Tolk.dll"));
+    if (NULL != tolk_lib) {
+        tolk_load = (TOLKVOIDTYPE)GetProcAddress(tolk_lib, "Tolk_Load");
+        tolk_unload = (TOLKVOIDTYPE)GetProcAddress(tolk_lib, "Tolk_Unload");
+        tolk_isloaded = (TOLKBOOLTYPE)GetProcAddress(tolk_lib, "Tolk_IsLoaded");
+        tolk_output = (TOLKOUTPUTTYPE)GetProcAddress(tolk_lib, "Tolk_Output");
+
+        if (NULL != tolk_load) {
+            tolk_load();
+        }
+    }
 #endif
 }
 
 Accessibility::~Accessibility()
 {
     // pugixml destroys itself while it's not in the buffer?
+
+#ifdef WIN32
+    if (tolk_unload != NULL)
+        tolk_unload();
+
+    if (tolk_lib != NULL)
+        FreeLibrary(tolk_lib);
+#endif
 }
 
+/**
+ * Main handling interface.
+ * @param pstring t text string, image name, filename
+ * @param int sprite_id ID-number of sprite-image or, e.g., 255 if none
+ * @param int button_id ID-number of button, or, e.g., 25 if none and there is no sprite_id
+ * @param pstring cmd command to handle
+ * @return sptring processed text or empty string
+ */
 const pstring Accessibility::get_accessible(
     pstring t, const int sprite_id, const int button_id, const pstring cmd)
 {
@@ -55,6 +83,11 @@ const pstring Accessibility::get_accessible(
     // char*)cmd, (const char*)t);
     if (cmd == "") {
         if (is_ok(t, sprite_id, button_id)) {
+            pstring temp;
+            if ((temp = process_saveload(t))) {
+                return temp;
+            }
+
             pugi::xml_node menu = find_menu(t);
             if (!menu.empty()) {
                 if (sprite_id != 255) {
@@ -67,15 +100,15 @@ const pstring Accessibility::get_accessible(
                 }
             }
         }
-    } else if (cmd == "lsp") {
-        pugi::xml_node subtitles = find_subtitles(t);
-        if (!subtitles.empty()) {
-            subtitles_on = true;
-            return get_subtitle_text(subtitles);
-        }
+        // } else if (cmd == "lsp") {
+        //     pugi::xml_node subtitles = find_subtitles(t);
+        //     if (!subtitles.empty()) {
+        //         subtitles_on = true;
+        //         return get_subtitle_text(subtitles);
+        //     }
+    } else if (cmd == "lsph") {
+        return strip_ponscripter_tags(t);
     } else if (cmd == "csel") {
-        // clear_history();
-        // current_historyline = 0;
         return process_csel(t);
     } else if (cmd == "bg") {
         if (last_input == t) {
@@ -101,33 +134,132 @@ const pstring Accessibility::get_accessible(
             return "";
         }
         last_input = t;
-        if (!sentence) {
-            // fs << "ingoing!!! ->" << t << '\n';
-            pstring temp = process_text_n(t);
-            // fs << "outgoing!!! <-" << temp << '\n';
-            if (temp) {
-                history.push_back(temp);
-                ++current_historyline;
-            }
-            return temp;
-        }
-        pstring temp = process_text_n(t);
-        // fs << "ingoing ->" << t << '\n';
-        if (temp) {
-            sentence = "";
-            // fs << "outgoing_inside <-" << temp << '\n';
-            history.push_back(temp);
-            ++current_historyline;
-            return temp;
-        }
-        // fs << "outgoing_outside <-" << temp << '\n';
-        return "";
+        return process_text(t);
+    } else if (cmd == "history") {
+        if (t)
+            return process_history(t);
     }
 
     return "";
 }
 
-const pstring Accessibility::get_bg_text(const pugi::xml_node &background) const
+/*
+ * Deletes simple formatting tags
+ * @param pstring t input string
+ * @see Accessibility::get_accessible()
+ * @see PonscripterLabel::lspCommand()
+ * @return pstring
+ */
+const pstring Accessibility::strip_ponscripter_tags(const pstring &t)
+{
+    pstring temp = "";
+    pstrIter it(t);
+
+    if (it.get() == file_encoding->TextMarker())
+        it.next();
+
+    if (it.get() == '~') {
+        it.next();
+
+        // delete opening formatting tag
+        while (it.get() >= 0 && it.get() != '~')
+            it.next();
+
+        if (it.get() == '~')
+            it.next();
+
+        // get current text
+        while (it.get() >= 0 && it.get() != '~') {
+            temp += it.getstr();
+            it.next();
+        }
+    } else {
+        while (it.get() >= 0) {
+            temp += it.getstr();
+            it.next();
+        }
+    }
+
+    return temp;
+}
+
+/*
+ * Processes and outputs the history log.
+ * @param pstring t input string
+ * @see Accessibility::get_accessible()
+ * @see PonscripterLabel::getlogCommand()
+ * @return pstring
+ */
+const pstring Accessibility::process_history(const pstring &t)
+{
+    pstrIter it(t);
+    pstring current_text = "";
+
+    while (it.get() >= 0) {
+        // consistent single quotes
+        if (it.get() == '`') {
+            while (it.get() == '`') {
+                it.next();
+                current_text += '\'';
+            }
+        }
+
+        // add " " for readability
+        if (it.get() == '*') {
+            it.next();
+            current_text += " * ";
+
+            continue;
+        }
+
+        if (it.get() >= 0x10 && it.get() <= 0x16) {
+            it.forward(1);
+
+            continue;
+        }
+
+        if (it.get() == 0x17 || it.get() == 0x18) {
+            it.forward(3);
+
+            continue;
+        }
+
+        if (it.get() == 0x19) {
+            it.forward(3);
+
+            continue;
+        }
+
+        if (it.get() >= 0x1A && it.get() <= 0x1E) {
+            it.forward(3);
+            while (it.get() >= 0x1A && it.get() <= 0x1E) {
+                it.forward(3);
+            }
+
+            continue;
+        }
+
+        if (it.get() == 0x1F) {
+            it.forward(2);
+
+            continue;
+        }
+
+        current_text += it.getstr();
+
+        it.next();
+    }
+
+    return current_text;
+}
+
+/*
+ * Returns text for corresponding background-sprite.
+ * @param pugi::xml_node background the background-node to be searched
+ * @see Accessibility::get_accessible()
+ * @return pstring text string or empty string
+ */
+const pstring Accessibility::get_bg_text(const pugi::xml_node &background)
 {
     pugi::xpath_node_set background_texts = background.select_nodes("content");
     if (!background_texts.empty()) {
@@ -137,7 +269,13 @@ const pstring Accessibility::get_bg_text(const pugi::xml_node &background) const
     return "";
 }
 
-const bool Accessibility::is_bg_inline(const pugi::xml_node &background) const
+/*
+ * Checks whether the background is displayed along with the text or separately.
+ * @param pugi::xml_node background the background-node to be searched
+ * @see Accessibility::get_accessible()
+ * @return bool
+ */
+const bool Accessibility::is_bg_inline(const pugi::xml_node &background)
 {
     pugi::xpath_node_set inline_bg = background.select_nodes("inline");
     if (!inline_bg.empty()) {
@@ -147,7 +285,14 @@ const bool Accessibility::is_bg_inline(const pugi::xml_node &background) const
     return false;
 }
 
-const pugi::xml_node Accessibility::find_bg(const pstring &c) const
+/*
+ * Finds background-node by given filename of the sprite.
+ * @param pstring c filename of the sprite
+ * @see Accessibility::get_accessible()
+ * @see PonscripterLabel::bgCommand()
+ * @return pugi:xml_node found background-node or empty-node
+ */
+const pugi::xml_node Accessibility::find_bg(const pstring &c)
 {
     pugi::xpath_node_set backgrounds = doc.select_nodes("//backgrounds/background/src");
     if (!backgrounds.empty()) {
@@ -165,36 +310,16 @@ const pugi::xml_node Accessibility::find_bg(const pstring &c) const
     return pugi::xml_node();
 }
 
-const pstring Accessibility::get_subtitle_text(const pugi::xml_node &subtitle) const
-{
-    pugi::xpath_node_set subtitle_text = subtitle.select_nodes("content");
-    if (!subtitle_text.empty()) {
-        return subtitle_text[0].node().text().get();
-    }
-
-    return "";
-}
-
-const pugi::xml_node Accessibility::find_subtitles(const pstring &c) const
-{
-    pugi::xpath_node_set subtitles = doc.select_nodes("//subtitles/subtitle/src");
-    if (!subtitles.empty()) {
-        pugi::xml_node parent;
-        for (pugi::xpath_node_set::const_iterator it = subtitles.begin(); it != subtitles.end();
-             ++it) {
-            pugi::xpath_node node = *it;
-            if (!strcmp(node.node().text().get(), c)) {
-                parent = node.node().parent();
-                return parent;
-            }
-        }
-    }
-
-    return pugi::xml_node();
-}
-
+/*
+ * Finds sprite-node inside given menu-node by it's ID-number.
+ * @param pugi::xml_node menu given menu-node
+ * @param int sprite_id ID-number of the sprite, that we're searching.
+ * @see Accessibility::get_accessible()
+ * @see PonscripterLabel::btnwaitCommand()
+ * @return pugi::xml_node sprite-node or empty-node
+ */
 const pugi::xml_node Accessibility::find_sprite(
-    const pugi::xml_node &menu, const int sprite_id) const
+    const pugi::xml_node &menu, const int sprite_id)
 {
     pugi::xpath_variable_set vars;
     vars.add("sprite_id", pugi::xpath_type_number);
@@ -207,7 +332,19 @@ const pugi::xml_node Accessibility::find_sprite(
     return pugi::xml_node();
 }
 
-const pstring Accessibility::get_button_text(const pugi::xml_node &menu, const int button_id) const
+/**
+ * Returns text for specified sprite button, if available.
+ * Sets the number for bar.
+ * Returns states (checked or empty string) for buttons: footnotes, subtitles, display mode.
+ * @param pugi::xml_node menu menu node
+ * @param int button_id ID-number for button
+ * @see Accessibility::get_accessible()
+ * @see Accessibility::find_menu()
+ * @see PonscripterLabel::btnwaitCommand()
+ * @see PonscripterLabel::btnCommand()
+ * @return pstring text for corresponding button or empty string
+ */
+const pstring Accessibility::get_button_text(const pugi::xml_node &menu, const int button_id)
 {
     pugi::xpath_variable_set vars;
     vars.add("button_id", pugi::xpath_type_number);
@@ -215,12 +352,49 @@ const pstring Accessibility::get_button_text(const pugi::xml_node &menu, const i
     vars.set("button_id", (double)button_id);
     pugi::xpath_node_set buttons = menu.select_nodes(query_button);
     if (!buttons.empty()) {
+        if (!buttons[0].node().attribute("bar").empty()) {
+            bar_no = buttons[0].node().attribute("bar").as_int();
+        } else {
+            bar_no = -1;
+        }
+        if (!buttons[0].node().attribute("type").empty()) {
+            // footnotes
+            if (footnotes_on_flag && buttons[0].node().attribute("type").as_int() == 1) {
+                if (!buttons[0].node().attribute("button_state_text").empty()) {
+                    return (pstring)buttons[0].node().text().get() + ' '
+                        + (pstring)buttons[0].node().attribute("button_state_text").value();
+                }
+            }
+            // subtitles
+            else if (subtitles_on_flag && buttons[0].node().attribute("type").as_int() == 2) {
+                if (!buttons[0].node().attribute("button_state_text").empty()) {
+                    return (pstring)buttons[0].node().text().get() + ' '
+                        + (pstring)buttons[0].node().attribute("button_state_text").value();
+                }
+            }
+            // display mode
+            else if (fullscreen_on_flag && buttons[0].node().attribute("type").as_int() == 3) {
+                if (!buttons[0].node().attribute("button_state_text").empty()) {
+                    return (pstring)buttons[0].node().text().get() + ' '
+                        + (pstring)buttons[0].node().attribute("button_state_text").value();
+                }
+            }
+        }
+
         return buttons[0].node().text().get();
     }
     return "";
 }
 
-pugi::xml_node Accessibility::find_menu(const pstring &c)
+/**
+ * Finds menu-node by it's image name.
+ * @param pstring c image name
+ * @see Accessibility::get_accessible()
+ * @see PonscripterLabel::btnwaitCommand()
+ * @see PonscripterLabel::btnCommand()
+ * @return pugi::xml_node xml-node of the menu
+ */
+const pugi::xml_node Accessibility::find_menu(const pstring &c)
 {
     pugi::xpath_node_set menus = d_translation.select_nodes("menus/menu/src");
     pugi::xml_node parent;
@@ -232,7 +406,7 @@ pugi::xml_node Accessibility::find_menu(const pstring &c)
         }
     }
 
-    // TO-DO lang prefix dependance
+    // XXX: lang prefix dependence?
     if (parent.empty()) {
         pugi::xpath_node_set translations = doc.select_nodes("/translations/translation[@id]");
         if (!translations.empty()) {
@@ -259,163 +433,103 @@ pugi::xml_node Accessibility::find_menu(const pstring &c)
     return parent;
 }
 
-const pstring Accessibility::make_accessible(
-    pstring t, const int line_num, const int what, const pstring cmd)
+/*
+ * sets flags for buttons inside config menu
+ * @param int type 1 - footnotes, 2 - subtitles, 3 - display mode
+ * @see PonscripterLabel::btnwaitCommand()
+ * @return void
+ */
+void Accessibility::set_config_buttons_flags(const bool flag, const int type)
 {
-    // if (cmd == "") {
-    //     // fs << "ingoing empty ->" << t << " line ->" << line_num << " what->" << what;
-    //     if (is_ok(t, line_num, what)) {
-    //         pstring temp;
-    //         if ((temp = process_saveload(t))) {
-    //             return temp;
-    //         }
-    //         if ((p = find_page(t))) {
-    //             if (p->title == "title_on2" || p->title == "title_on22"
-    //                 || p->title == "title_nar1lim") {
-    //                 if (history.size() > 0) {
-    //                     clear_history();
-    //                     current_historyline = 0;
-    //                 }
-    //             }
-    //             last_t = t;
-    //             last_what = what;
-    //             pstring tempo = locale->translate(p->title, line_num, what);
-    //             // fs << " outgoing empty ->" << tempo;
-    //             return tempo;
-    //             // return locale->translate(p->title, line_num, what);
-    //         }
-    //     }
-    // } else if (cmd == "text") {
-    //     if (last_input == t) {
-    //         return "";
-    //     }
-    //     last_input = t;
-    //     if (!sentence) {
-    //         // fs << "ingoing!!! ->" << t << '\n';
-    //         pstring temp = process_text(t);
-    //         // fs << "outgoing!!! <-" << temp << '\n';
-    //         if (temp) {
-    //             history.push_back(temp);
-    //             ++current_historyline;
-    //         }
-    //         return temp;
-    //     }
-    //     pstring temp = process_text(t);
-    //     // fs << "ingoing ->" << t << '\n';
-    //     if (temp) {
-    //         sentence = "";
-    //         // fs << "outgoing_inside <-" << temp << '\n';
-    //         history.push_back(temp);
-    //         ++current_historyline;
-    //         return temp;
-    //     }
-    //     // fs << "outgoing_outside <-" << temp << '\n';
-    //     return "";
-    // } else if (cmd == "csel") {
-    //     clear_history();
-    //     current_historyline = 0;
-    //     return process_csel(t);
-    // } else if (cmd == "bg") {
-    //     if (last_input == t) {
-    //         return "";
-    //     }
-    //     last_input = t;
-    //     pstring temp = "";
-    //     if ((temp = process_bg(t))) {
-    //         if (temp[temp.length() - 1] == '1') {  // 1 at the end symbolize need
-    //             of output a bg text need_outputbg = true;
-    //             pstring str = "";
-    //             for (int i = 0; i < temp.length() - 1; ++i) {
-    //                 str += temp[i];
-    //             }
-    //             temp = str;
-    //         } else {
-    //             need_outputbg = false;
-    //         }
-    //         if (!need_outputbg) {
-    //             background_text = background_text + '\n' + temp;
-    //             return "";
-    //         }
-    //         return temp;
-    //     }
-    //     return "";
-    // } else if (cmd == "lsp") {
-    //     if (locale->has_agskey(t)) {
-    //         subtitles_on = true;
-    //         return locale->agilis_subtitles(t);
-    //     }
-    //     return "";
-    // }
-    return "";
-}
-
-void Accessibility::history_output(bool direction)
-{
-    if (history.size() > 0) {
-        if (direction) {  // down in history
-            --current_historyline;
-            if ((unsigned int)current_historyline
-                == history.size() - 1) {  // we don't need last element
-                --current_historyline;
-            }
-            if (current_historyline > 0 && (unsigned int)current_historyline < history.size() - 1) {
-                output(history[current_historyline], 888);
-            } else {
-                current_historyline = 0;
-                output(history[current_historyline], 888);
-            }
-        }
-        if (!direction) {  // up in history
-            ++current_historyline;
-            if (current_historyline >= 0
-                && (unsigned int)current_historyline < history.size() - 1) {
-                output(history[current_historyline], 888);
-            } else {
-                current_historyline = history.size();
-            }
-        }
+    switch (type) {
+    case 1:
+        footnotes_on_flag = flag;
+        break;
+    case 2:
+        subtitles_on_flag = flag;
+        break;
+    case 3:
+        fullscreen_on_flag = flag;
     }
 }
 
-void Accessibility::reset_currenthistoryline()
+/**
+ * returns the number of bar from xml-file
+ * @param none
+ * @see PonscripterLabel::btnwaitCommand()
+ * @return int
+ */
+int Accessibility::get_bar_no()
 {
-    current_historyline = history.size();
+    return bar_no;
 }
 
-void Accessibility::clear_history()
+/**
+ * processes the text for save / load menus
+ * @param pstring t text string
+ * @see PonscripterLabel::btnwaitCommand()
+ * @see Accessibility::get_accessible()
+ * @return pstring processed string
+ * Template:
+ * :s/14,14,1;#EEFCFD#99CCFB00^ Dec^ 00:00
+ */
+const pstring Accessibility::process_saveload(const pstring &t)
 {
-    history.clear();
-}
+    // weird behaviour detected:
+    // when we click LOAD / SAVE from the menu, and after that
+    // we're landing on an existing slot, then the input text will be like
+    // :s/14,14,1;#EEFCFD#99CCFB7th Floor [a]
+    // instead of
+    // :s/14,14,1;#EEFCFD#99CCFB00^ Dec^ 00:00
+    // for all non empty slots.
+    // And if there are no empty slots, text for all of the slots,
+    // after processing, will be blank (sprite_ids < 150).
 
-pstring Accessibility::process_saveload(pstring t) const
-{
+    // save/load names are bigger than 34 symbols
     if (t.length() > 34) {
-        if (t[11] == '#' && t[24] == 'B' && t[25] != '^') {  // :s/14,14,1;#EEFCFD#99CCFB
-            pstring accessible_text = "";
-            accessible_text = accessible_text + t[25] + t[26] + ": ";  // day
-            for (int i = 29; i < t.length(); ++i) {  // skip space after day number
-                if (t[i] != '^') {  // read month name
-                    accessible_text += t[i];
-                    continue;
-                }
-                return accessible_text + ' ' + t[i + 2] + t[i + 3] + ':' + t[i + 5]
-                    + t[i + 6];  // adding time in ex. 13:54
+        pstrIter it(t);
+        // remove :s/14,14,1;#EEFCFD#99CCFB
+        // 25 symbols
+        it.forward(11);
+        if (it.get() == '#') {
+            it.forward(14);
+            // if the next symbol isn't the day number, then the slot is empty
+            if (it.get() == file_encoding->TextMarker())
+                return "Empty.";  // default return for now
+            pstring current_text = "";
+            while (it.get() >= 0) {
+                if (it.get() == file_encoding->TextMarker())
+                    it.next();
+                current_text += it.getstr();
+
+                it.next();
             }
+
+            return current_text;
         }
     }
 
     return "";
 }
 
-bool Accessibility::is_ok(const pstring &t, const int l, const int w) const
+/**
+ * Checks whether the sprite in the xml-file or not.
+ * @param pstring t text string
+ * @param int sprite_id ID-number for sprite
+ * @param int button_id ID-number for button
+ * @see Accessibility::get_accessible()
+ * @return bool
+ */
+bool Accessibility::is_ok(const pstring &t, const int sprite_id, const int button_id)
 {
     if (t) {
-        if (l == 255) {
+        if (sprite_id == 255) {
             return true;
-        } else if (l < 151 || l > 215) {  // min num in Page.line_nums is 171, max - 215
-            // 151-170 for save/load
+        } else if (sprite_id < 151
+            || sprite_id > 215) {  // min num in xml is 171, max - 215 // 151-170 for save/load
             return false;
-        } else if (w < 1 || w > 41) {  // there is no item with num = 0 or with num > 41
+        } else if (button_id < 1
+            || button_id > 41) {  // there is no item with num = 0 or with num > 41
             return false;
         }
         return true;
@@ -424,18 +538,24 @@ bool Accessibility::is_ok(const pstring &t, const int l, const int w) const
     return false;
 }
 
-bool Accessibility::is_footnote() const
+/**
+ * Sets the current displaying mode for ingame text.
+ * @param bool draw_one_page_flag flag for displaying mode (text is a whole page or not)
+ * @see PonscripterLabel::loadEnvData()
+ * @see PonscripterLabel::keyPressEvent()
+ * @return void
+ */
+void Accessibility::set_draw_one_page(const bool draw_one_page_flag)
 {
-    return footnote;
+    draw_one_page = draw_one_page_flag;
 }
 
-void Accessibility::reset_footnote()
-{
-    footnote_flag = false;
-    footnote = false;
-}
-
-// given the input line, output a decently screen-readable string
+/**
+ * given the input line, output a decently screen-readable string
+ * @param pstring t text string
+ * @see Accessibility::get_accessible()
+ * @return pstring processed text string
+ */
 const pstring Accessibility::process_text_n(pstring t)
 {
     char start_char = (unsigned char)t.data[0];
@@ -484,348 +604,375 @@ const pstring Accessibility::process_text_n(pstring t)
     return "";
 }
 
+/**
+ * processes ingame text
+ * @param pstring t text string
+ * @see Accessibility::get_accessible()
+ * @return pstring processed text string
+ */
 const pstring Accessibility::process_text(pstring t)
 {
-    if (t == " \n") {  // gp32
+    if (!t || t == "\n")
         return "";
+    pstrIter it(t);
+    while (it.get() == ' ') {
+        it.next();
     }
+    if (it.get() == '\n')
+        return "";
     pstring accessible_text = "";
-    for (int i = 0; i < t.length(); ++i) {
-        if (t[i] == '!' && t[i + 1] == 's' && t[i + 2] == 'd') {  // !sd
-            i += 3;
-            continue;
-        }
-        if (t[i] == '!' && t[i + 1] == 's'
-            && t[i + 2] == '0') {  // !s0~i %120 x-20 y-40~ (including space after) (csel
-            // heading begins here)
-            i += 13;
-            continue;
-        }
-        if (t[i] == 0x12 && t[i + 1] == 0x17 && t[i + 2] == 0xFF && t[i + 3] == 0xFF
-            && t[i + 4] == '!') {  // ~i =0~!sd\n (csel heading ends here)
-            i += 8;
-            accessible_text += ".\n";  // separate headings into sentences
-            if (!sentence) {
-                sentence = accessible_text;
-                return "";
-            }  // next time we're here on a second heading
-            sentence += accessible_text;
-            return "";
-        }
-        if (t[i] == 0x19 && t[i + 3] == '\n') {  //~%90~\n
-            i += 3;
-            continue;
-        }
-        if (t[i] == 0x19 && t[i + 3] == '*' && t[i + 7] == '/') {  // ~%90~*~=0~/
-            i += 7;
-            footnote_flag = true;
-            continue;
-        }
-        if (t[i] == 0x19 && t[i + 3] == '*') {  //~%70~* ~n~ and ~%90~*~=0~
-            i += 6;
-            continue;
-        }
-        // # chars
-        if (t[i] == '#') {
-            if (t[i + 2] == '.') {  // #1. etc 1digit
-                accessible_text += '#';
-                continue;
+    while (it.get() >= 0) {
+        // processing !sNUM, !sd, !wNUM, !dNUM
+        if (it.get() == '!') {
+            it.forward(1);
+            // deleting "character display speed" commands
+            // and processing headings
+            if (it.get() == 's') {
+                it.forward(1);
+                // delete !sNUM
+                if (it.get() >= '0' && it.get() <= '9') {
+                    while (it.get() >= '0' && it.get() <= '9') {
+                        it.forward(1);
+                    }
+                    // save heading text for later use
+                } else if (it.get() == 'd') {
+                    it.forward(1);
+                    if (accessible_text) {
+                        if (heading_text) {
+                            heading_text += accessible_text;
+                        } else {
+                            heading_text = accessible_text;
+                        }
+
+                        return "";
+                    }
+                }
+                // delete "wait" commands
+            } else if (it.get() == 'w' || it.get() == 'd') {
+                it.forward(1);
+                while (it.get() >= '0' && it.get() <= '9') {
+                    it.forward(1);
+                }
             }
-            if (t[i + 2] == ' ' || t[i + 3] == ' ') {  // #1 etc 1-2digits
-                accessible_text += '#';
-                continue;
+
+            continue;
+        }
+
+        // processing ponscripter "formatting tag value":
+        // d, r, i, t, b, f, s
+        if (it.get() >= 0x10 && it.get() <= 0x16) {
+            it.forward(1);
+
+            continue;
+        }
+
+        // processing ponscripter "formatting tag value":
+        // =NUM, +NUM, -NUM
+        if (it.get() == 0x17 || it.get() == 0x18) {
+            it.forward(3);
+
+            continue;
+        }
+
+        // footnote sign check
+        // and processing ponscripter "formatting tag value":
+        // %NUM
+        if (it.get() == 0x19) {
+            it.forward(3);
+            while (it.get() == ' ') {
+                it.forward(1);
             }
-            if (t[i + 7] == '/') {
-                i += 7;
-                if (footnote_flag) {
+            if (it.get() == '*') {
+                accessible_text += it.getstr();
+                it.forward(1);
+                while (it.get() == ' ') {
+                    it.forward(1);
+                }
+                if (it.get() == 0x17) {
+                    it.forward(3);
                     footnote = true;
                 }
-                continue;
             }
-            i += 6;  // ffaaff
+
             continue;
         }
 
-        // ~=0~^@^  //TO-DO
-        if (t[i] == 0x2E && t[i + 1] == 0x2E && t[i + 2] == 0x16
-            && t[i + 3] == '\n') {  // ~s~^\n   gp32 on runtime look here
-            if (!sentence) {
-                sentence = accessible_text + ". \n";
-                return "";
+        // processing ponscripter "formatting tag value":
+        // x+NUM, x-NUM, xNUM, y+NUM, y-NUM, yNUM, cNUM
+        if (it.get() >= 0x1A && it.get() <= 0x1E) {
+            it.forward(3);
+            while (it.get() >= 0x1A && it.get() <= 0x1E) {
+                it.forward(3);
             }
-            sentence += accessible_text;
-            return "";
-        }
-        if (t[i] >= 0x10 && t[i] < 0x20) {  // ~i~ etc.
+
             continue;
         }
 
-        // ! commands
-        if (t[i] == '!') {
-            // !s commands
-            if (t[i + 1] == 's') {
-                if (t[i + 2] == '8') {  // !s80 !s85
-                    i += 4;
-                    continue;
-                }
-                if (t[i + 2] == '9') {  // !s90
-                    i += 4;
-                    continue;
-                }
-                if (t[i + 2] == '7') {  // !s75  !s70
-                    i += 4;
-                    continue;
-                }
-                if (t[i + 2] == '1') {  // !s100 !s120 !s140
-                    i += 5;
-                    continue;
-                }
-                if (t[i + 2] == '6') {  //!s65
-                    i += 4;
-                    continue;
-                }
-                if (t[i + 2] == '2') {  // !s20
-                    i += 4;
-                    continue;
-                }
-                if (t[i + 2] == '3') {  // !s35
-                    i += 4;
-                    continue;
-                }
-            }
-            // !w commands
-            if (t[i + 1] == 'w') {
-                if (t[i + 2] == '1' && t[i + 3] == '5') {  // !w1500
-                    i += 6;
-                    continue;
-                }
-                if (t[i + 2] == '1' && t[i + 3] == '0' && t[i + 4] == '0'
-                    && t[i + 5] != '0') {  // !w100
-                    i += 5;
-                    continue;
-                }
-                if (t[i + 2] == '1' && t[i + 3] == '0' && t[i + 4] == '0'
-                    && t[i + 5] == '0') {  // !w1000
-                    i += 6;
-                    continue;
-                }
-                if (t[i + 2] == '2' && t[i + 3] == '5') {  // !w2500
-                    i += 6;
-                    continue;
-                }
-                if (t[i + 2] == '2' && t[i + 3] == '0' && t[i + 4] == '0'
-                    && t[i + 5] != '0') {  // !w200
-                    i += 5;
-                    continue;
-                }
-                if (t[i + 2] == '2' && t[i + 3] == '0' && t[i + 4] == '0'
-                    && t[i + 5] == '0') {  // !w2000
-                    i += 6;
-                    continue;
-                }
-                if (t[i + 2] == '3' && t[i + 3] == '5') {  // !w3500
-                    i += 6;
-                    continue;
-                }
-                if (t[i + 2] == '3' && t[i + 3] == '0') {  // !w300
-                    i += 5;
-                    continue;
-                }
-                if (t[i + 2] == '4' && t[i + 3] == '0') {  // !w400
-                    i += 5;
-                    continue;
-                }
-                if (t[i + 2] == '5' && t[i + 3] == '0') {  // !w500
-                    i += 5;
-                    continue;
-                }
-                if (t[i + 2] == '6' && t[i + 3] == '0') {  // !w600
-                    i += 5;
-                    continue;
-                }
-                if (t[i + 2] == '7' && t[i + 3] == '0') {  // !w700
-                    i += 5;
-                    continue;
-                }
-                if (t[i + 2] == '8' && t[i + 3] == '0') {  // !w800
-                    i += 5;
-                    continue;
-                }
-            }
-        }
-        if (t[i] == '.' && t[i + 1] == '\n') {  // .\n
-            if (!sentence) {
-                sentence = accessible_text + ". \n";
-                return "";
-            }
-            sentence = sentence + accessible_text + ". ";
-            return "";
-        }
-        if (t[i] == '.' && t[i + 1] == ' ' && t[i + 2] == '\n') {  // . \n
-            if (!sentence) {
-                sentence = accessible_text + ". \n";
-                return "";
-            }
-            sentence = sentence + accessible_text + ". ";
-            return "";
-        }
-        if (t[i] == '`' && t[i + 1] == '|' && t[i + 2] == '`') {  // `|`
-            i += 3;
-            accessible_text += '\'';
-            continue;
-        }
-        if (t[i] == '\'' && t[i + 1] == '|' && t[i + 2] == '\'') {  // '|'
-            i += 3;
-            accessible_text += '\'';
-            continue;
-        }
-        if (t[i] == '\'' && t[i + 1] == '\'' && t[i + 2] == '\n') {  // ''\n
-            if (!sentence) {
-                sentence = accessible_text + ". \n";
-                return "";
-            }
-            sentence += accessible_text;
-            return "";
-        }
-        if (t[i] == '\'' && t[i + 1] == '\n') {  // '\n
-            if (!sentence) {
-                sentence = accessible_text + ". \n";
-                return "";
-            }
-            sentence += accessible_text;
-            return "";
-        }
-        if (t[i] == '*' && t[i + 1] == '\n') {  // *\n
-            if (!sentence) {
-                sentence = accessible_text + ". \n";
-                return "";
-            }
-            sentence += accessible_text;
-            return "";
-        }
-        if (t[i] == '?' && t[i + 1] == '\n') {  // ?\n
-            if (!sentence) {
-                sentence = accessible_text + ". \n";
-                return "";
-            }
-            sentence += accessible_text;
-            return "";
-        }
+        // check if current text is a footnote.
+        // processing ponscripter "formatting tag value":
+        // n, u
+        if (it.get() == 0x1F) {
+            it.forward(1);
+            if (it.get() == 0x10)
+                it.forward(1);
+            else if (it.get() == 0x11) {
+                if (footnote) {
+                    footnote = false;
+                    footnote_text = accessible_text;
 
-        if (t[i] == 0xE2 && t[i + 1] == 0x96
-            && t[i + 2] == 0xA0) {  // black square ? vertical line ? gp32
-            i += 1;
-            accessible_text += ". ";
+                    return "";
+                }
+
+                it.forward(1);
+            }
+
             continue;
         }
 
-        if (t[i] == ',' && t[i + 1] == '\n') {  // ,\n  gp32
-            if (!sentence) {
-                sentence = accessible_text + ". \n";
-                return "";
+        // consistent single quotes for readability
+        if (it.get() == '`') {
+            while (it.get() == '`') {
+                it.forward(1);
+                accessible_text += '\'';
             }
-            sentence += accessible_text;
-            return "";
+
+            continue;
         }
 
-        if (t[i] == ':' && t[i + 1] == '\n') {  // :\n  gp32
-            if (!sentence) {
-                sentence = accessible_text + ". \n";
-                return "";
-            }
-            sentence += accessible_text;
-            return "";
+        // delete ZWNJ builtin shortcut
+        if (it.get() == '|') {
+            it.forward(2);
+
+            continue;
         }
 
-        if (t[i] == 'f' && t[i + 1] == '\n') {  // f\n      going down///////// gp32
-            if (!sentence) {
-                sentence = accessible_text + " \n";
-                return "";
-            }
-            sentence += accessible_text;
-            return "";
-        }
-        if (t[i] == 't' && t[i + 1] == '\n') {  // t\n      going down///////// gp32
-            if (!sentence) {
-                sentence = accessible_text + " \n";
-                return "";
-            }
-            sentence += accessible_text;
-            return "";
-        }
-        if (t[i] == 'd' && t[i + 1] == '\n') {  // d\n      going down///////// gp32
-            if (!sentence) {
-                sentence = accessible_text + ", \n";
-                return "";
-            }
-            sentence += accessible_text;
-            return "";
-        }
-        if (t[i] == 'e' && t[i + 1] == '\n') {  // e\n      going down///////// gp32
-            if (!sentence) {
-                sentence = accessible_text + ", \n";
-                return "";
-            }
-            sentence += accessible_text;
-            return "";
+        // delete black square for readability
+        if (it.getstr() == "\u25A0") {
+            it.forward(3);
+
+            continue;
         }
 
-        // TO_DO: add consistent double quotes check??????//
-
-        switch (t[i]) {
-        case '\\':  // new page and output for background_text
-            if (sentence) {
-                sentence += accessible_text;
-                return sentence;
+        // delete "hexadecimal color codes"
+        if (it.get() == '#') {
+            it.forward(1);
+            int i = 1;
+            pstring temp = "#";
+            while ((it.get() >= '0' && it.get() <= '9') || (it.get() >= 'a' && it.get() <= 'f')
+                || (it.get() >= 'A' && it.get() <= 'F')) {
+                temp += it.getstr();
+                it.forward(1);
+                ++i;
             }
-            if (background_text) {
-                accessible_text += background_text;
-                background_text = "";
+
+            if (i != 7)
+                accessible_text += temp;
+
+            continue;
+        }
+
+        // delete "ignore new line" command
+        // and process forward slash for readability
+        if (it.get() == '/') {
+            it.forward(1);
+            while (it.get() == ' ') {
+                it.forward(1);
+            }
+            if (it.get() != '\n') {
+                accessible_text += " / ";
+            } else {
+                if (accessible_text) {
+                    // add " " for readability
+                    if (sentence) {
+                        sentence = sentence + ' ' + accessible_text;
+                    } else {
+                        sentence = accessible_text + ' ';
+                    }
+                }
+
+                return "";
+            }
+
+            continue;
+        }
+
+        // process "click wait state"
+        if (it.get() == '@') {
+            // If we're drawing the entire page,
+            // then there is no need to process "click wait state"
+            if (!draw_one_page) {
+                if (heading_text) {
+                    // add ".\n" for readability
+                    if (sentence) {
+                        accessible_text = heading_text + ".\n" + sentence + accessible_text;
+                        sentence = "";
+                    } else {
+                        accessible_text = heading_text + ".\n" + accessible_text;
+                    }
+
+                    heading_text = "";
+                } else {
+                    // add " " for readability
+                    if (sentence) {
+                        accessible_text = sentence + ' ' + accessible_text;
+                        sentence = "";
+                    }
+                }
+
                 return accessible_text;
+            } else {
+                // for "click wait state" different from ^@^
+                // (e.g. sentence.@)
+                if (accessible_text) {
+                    if (sentence) {
+                        // add " " for readability
+                        sentence = sentence + ' ' + accessible_text;
+                    } else {
+                        sentence = accessible_text + ' ';
+                    }
+                }
+
+                return "";
             }
-            continue;
-        case '/':
-            if (t[i + 1] == '\n')
-                continue;
-            accessible_text += " / ";
-            break;
-        case '`':  // consistent single quotes
-            accessible_text += '\'';
-            break;
-        case '@':  // looking where line stops outputing
-            if (sentence) {
-                return sentence;
+        }
+
+        // process "end-of-page wait state"
+        if (it.get() == '\\') {
+            if (heading_text) {
+                // add ".\n" for readability
+                if (sentence) {
+                    accessible_text = heading_text + ".\n" + sentence + ' ' + accessible_text;
+                    sentence = "";
+                } else {
+                    accessible_text = heading_text + ".\n" + accessible_text;
+                }
+
+                heading_text = "";
+            } else if (footnote_text) {
+                // add ".\n" for readability
+                if (sentence) {
+                    accessible_text = sentence + accessible_text + ".\n" + footnote_text;
+                    sentence = "";
+                } else {
+                    accessible_text = accessible_text + ".\n" + footnote_text;
+                }
+
+                footnote_text = "";
+            } else {
+                // add " " for readability
+                if (sentence) {
+                    accessible_text = sentence + ' ' + accessible_text;
+                    sentence = "";
+                }
             }
-            continue;
-        case '\n':
-            continue;
-        default:
-            accessible_text += t[i];
-            break;
+
+            // Output for background text
+            if (background_text) {
+                // add ".\n" for readability
+                accessible_text = background_text + ".\n" + accessible_text;
+                background_text = "";
+            }
+
+            return accessible_text;
+        }
+
+        accessible_text += it.getstr();
+
+        it.next();
+    }
+
+    if (accessible_text) {
+        if (sentence) {
+            // add " " for readability
+            sentence = sentence + ' ' + accessible_text;
+        } else {
+            sentence = accessible_text + ' ';
         }
     }
 
-    if (!sentence)
-        return accessible_text;
-    sentence += accessible_text;
     return "";
 }
 
-const pstring Accessibility::process_csel(const pstring &csel_text) const
+/*
+ * Processes lists text.
+ * @param pstring csel_text text string
+ * @see Accessibility::get_accessible()
+ * @see PonscripterLabel::cselbtnCommand()
+ * @return pstring processed text string
+ */
+const pstring Accessibility::process_csel(const pstring &csel_text)
 {
+    pstrIter it(csel_text);
+    if (it.get() == file_encoding->TextMarker())
+        it.next();
+
     pstring accessible_text = "";
-    for (int i = 0; i < csel_text.length(); ++i) {
-        if (csel_text[i] == '^' && csel_text[i + 1] == '*') {  // ^**%.
-            i += 4;
+    while (it.get() >= 0) {
+        if (it.get() == '*') {
+            while (it.get() == '*')
+                it.next();
+
+            if (it.get() == '%') {
+                it.next();
+                if (it.get() == '.') {
+                    it.next();
+                }
+            }
+
+            continue;
+            // delete "black circle"
+        } else if (it.getstr() == "\u25CF") {
+            it.next();
+
             continue;
         }
-        if (csel_text[i] >= 0x10 && csel_text[i] < 0x20)  // ~i~ etc.
+
+        if (it.get() >= 0x10 && it.get() <= 0x16) {
+            it.forward(1);
+
             continue;
-        accessible_text += csel_text[i];
+        }
+
+        if (it.get() == 0x17 || it.get() == 0x18) {
+            it.forward(3);
+
+            continue;
+        }
+
+        if (it.get() == 0x19) {
+            it.forward(3);
+
+            continue;
+        }
+
+        if (it.get() >= 0x1A && it.get() <= 0x1E) {
+            it.forward(3);
+            while (it.get() >= 0x1A && it.get() <= 0x1E) {
+                it.forward(3);
+            }
+
+            continue;
+        }
+
+        if (it.get() == 0x1F) {
+            it.forward(2);
+
+            continue;
+        }
+
+        accessible_text += it.getstr();
+
+        it.next();
     }
+
     return accessible_text;
 }
 
+/**
+ * Output text to our screen-reader
+ * @param pstring what text string to output
+ * @param int num some integer to output
+ */
 void Accessibility::output(const pstring &text, const int num)
 {
     // don't duplicate output
@@ -858,6 +1005,19 @@ void Accessibility::push_output(const pstring text)
 {
     [ns stopSpeaking];
     [ns startSpeakingString:[NSString stringWithUTF8String:text]];
+    printf("acc: [%s]\n", (const char *)text);
+}
+#elif WIN32
+void Accessibility::push_output(const pstring text)
+{
+    if (NULL != tolk_output) {
+        wchar_t *buffer;
+        int buffer_size = MultiByteToWideChar(CP_UTF8, 0, (const char *)last_output, -1, NULL, 0);
+        buffer = new wchar_t[buffer_size];
+        MultiByteToWideChar(CP_UTF8, 0, (const char *)last_output, -1, buffer, buffer_size);
+
+        tolk_output(buffer, true);  // true - interrupt
+    }
     printf("acc: [%s]\n", (const char *)text);
 }
 #else
