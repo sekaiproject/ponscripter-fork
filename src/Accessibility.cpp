@@ -40,7 +40,7 @@ Accessibility::Accessibility(const pstring l_prefix, bool f_output) : file_outpu
 
 #ifdef MACOSX
     ns = [[NSSpeechSynthesizer alloc] init];
-    loaded = true
+    loaded = true;
 #elif WIN32
     // load sapi
     if (FAILED(::CoInitialize(NULL)))
@@ -49,14 +49,14 @@ Accessibility::Accessibility(const pstring l_prefix, bool f_output) : file_outpu
         // load voices
         HRESULT hr = CoCreateInstance(CLSID_SpVoice, NULL, CLSCTX_ALL, IID_ISpVoice, (void **)&pVoice;);
         if (SUCCEEDED(hr)) {
-            loaded = true
+            loaded = true;
         }
         else {
             ::CoUninitialize();
-            loaded = false
+            loaded = false;
         }
 #else
-    loaded = false
+    loaded = false;
 #endif
 }
 
