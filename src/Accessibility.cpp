@@ -40,18 +40,23 @@ Accessibility::Accessibility(const pstring l_prefix, bool f_output) : file_outpu
 
 #ifdef MACOSX
     ns = [[NSSpeechSynthesizer alloc] init];
+    loaded = true
 #elif WIN32
-    tolk_lib = LoadLibrary(TEXT("Tolk.dll"));
-    if (NULL != tolk_lib) {
-        tolk_load = (TOLKVOIDTYPE)GetProcAddress(tolk_lib, "Tolk_Load");
-        tolk_unload = (TOLKVOIDTYPE)GetProcAddress(tolk_lib, "Tolk_Unload");
-        tolk_isloaded = (TOLKBOOLTYPE)GetProcAddress(tolk_lib, "Tolk_IsLoaded");
-        tolk_output = (TOLKOUTPUTTYPE)GetProcAddress(tolk_lib, "Tolk_Output");
-
-        if (NULL != tolk_load) {
-            tolk_load();
+    // load sapi
+    if (FAILED(::CoInitialize(NULL)))
+        loaded = false;
+    else
+        // load voices
+        HRESULT hr = CoCreateInstance(CLSID_SpVoice, NULL, CLSCTX_ALL, IID_ISpVoice, (void **)&pVoice;);
+        if (SUCCEEDED(hr)) {
+            loaded = true
         }
-    }
+        else {
+            ::CoUninitialize();
+            loaded = false
+        }
+#else
+    loaded = false
 #endif
 }
 
@@ -60,11 +65,12 @@ Accessibility::~Accessibility()
     // pugixml destroys itself while it's not in the buffer?
 
 #ifdef WIN32
-    if (tolk_unload != NULL)
-        tolk_unload();
+    if (loaded) {
+        pVoice->Release();
+        pVoice = NULL;
 
-    if (tolk_lib != NULL)
-        FreeLibrary(tolk_lib);
+        ::CoUninitialize();
+    }
 #endif
 }
 
@@ -995,6 +1001,13 @@ void Accessibility::output(const pstring &text, const int num)
             modded_for_output.findreplace("８", "8", 0);
             modded_for_output.findreplace("９", "9", 0);
 
+#ifdef MACOSX
+            // these cause problems for VoiceOver
+            // so only replace them for OSX (unless they also cause problems for other OSes)
+            modded_for_output.findreplace("''...", "...");
+            modded_for_output.findreplace("(...", "...");
+#endif
+
             push_output(modded_for_output);
         }
     }
@@ -1010,13 +1023,13 @@ void Accessibility::push_output(const pstring text)
 #elif WIN32
 void Accessibility::push_output(const pstring text)
 {
-    if (NULL != tolk_output) {
+    if (loaded) {
         wchar_t *buffer;
         int buffer_size = MultiByteToWideChar(CP_UTF8, 0, (const char *)last_output, -1, NULL, 0);
         buffer = new wchar_t[buffer_size];
         MultiByteToWideChar(CP_UTF8, 0, (const char *)last_output, -1, buffer, buffer_size);
 
-        tolk_output(buffer, true);  // true - interrupt
+        pVoice->Speak(buffer, 0, NULL);
     }
     printf("acc: [%s]\n", (const char *)text);
 }

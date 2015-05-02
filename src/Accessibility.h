@@ -7,10 +7,13 @@
 
 #ifdef WIN32
 #include <windows.h>
-
-typedef void(__cdecl *TOLKVOIDTYPE)();
-typedef bool(__cdecl *TOLKBOOLTYPE)();
-typedef bool(__cdecl *TOLKOUTPUTTYPE)(LPWSTR, BOOL);
+#define _ATL_APARTMENT_THREADED
+#include <atlbase.h>
+//You may derive a class from CComModule and use it if you want to override something,
+//but do not change the name of _Module
+extern CComModule _Module;
+#include <atlcom.h>
+#include <sapi.h>
 #endif
 
 class Accessibility
@@ -52,12 +55,9 @@ private:
     bool draw_one_page;
     bool need_outputbg;
     bool clipboard_output;
+    bool loaded;
 #ifdef WIN32
-    HINSTANCE tolk_lib;
-    TOLKVOIDTYPE tolk_load;
-    TOLKVOIDTYPE tolk_unload;
-    TOLKBOOLTYPE tolk_isloaded;
-    TOLKOUTPUTTYPE tolk_output;
+    ISpVoice *pVoice = NULL;
 #endif
 
     const pugi::xml_node find_menu(const pstring &c);
