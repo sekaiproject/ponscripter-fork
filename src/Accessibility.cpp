@@ -89,11 +89,6 @@ const pstring Accessibility::get_accessible(
     // char*)cmd, (const char*)t);
     if (cmd == "") {
         if (is_ok(t, sprite_id, button_id)) {
-            pstring temp;
-            if ((temp = process_saveload(t))) {
-                return temp;
-            }
-
             pugi::xml_node menu = find_menu(t);
             if (!menu.empty()) {
                 if (sprite_id != 255) {
@@ -144,7 +139,10 @@ const pstring Accessibility::get_accessible(
     } else if (cmd == "history") {
         if (t)
             return process_history(t);
-    }
+    } else if (cmd == "saveload") {
+        if (is_ok(t, sprite_id, button_id))
+            return process_saveload(t);
+	}
 
     return "";
 }
@@ -476,46 +474,26 @@ int Accessibility::get_bar_no()
  * @see PonscripterLabel::btnwaitCommand()
  * @see Accessibility::get_accessible()
  * @return pstring processed string
- * Template:
- * :s/14,14,1;#EEFCFD#99CCFB00^ Dec^ 00:00
+ * Template: 32^ Dec^ 00:00
  */
 const pstring Accessibility::process_saveload(const pstring &t)
 {
-    // weird behaviour detected:
-    // when we click LOAD / SAVE from the menu, and after that
-    // we're landing on an existing slot, then the input text will be like
-    // :s/14,14,1;#EEFCFD#99CCFB7th Floor [a]
-    // instead of
-    // :s/14,14,1;#EEFCFD#99CCFB00^ Dec^ 00:00
-    // for all non empty slots.
-    // And if there are no empty slots, text for all of the slots,
-    // after processing, will be blank (sprite_ids < 150).
+    pstrIter it(t);
+    // if the next symbol isn't the day number, then the slot is empty
+    if (it.get() == file_encoding->TextMarker())
+        return "Empty.";	// default return for now
 
-    // save/load names are bigger than 34 symbols
-    if (t.length() > 34) {
-        pstrIter it(t);
-        // remove :s/14,14,1;#EEFCFD#99CCFB
-        // 25 symbols
-        it.forward(11);
-        if (it.get() == '#') {
-            it.forward(14);
-            // if the next symbol isn't the day number, then the slot is empty
-            if (it.get() == file_encoding->TextMarker())
-                return "Empty.";  // default return for now
-            pstring current_text = "";
-            while (it.get() >= 0) {
-                if (it.get() == file_encoding->TextMarker())
-                    it.next();
-                current_text += it.getstr();
+    pstring current_text = "";
+    while(it.get() >= 0) {
+    if (it.get() == file_encoding->TextMarker())
+        it.next();
 
-                it.next();
-            }
+        current_text += it.getstr();
 
-            return current_text;
-        }
+        it.next();
     }
-
-    return "";
+	
+    return current_text;
 }
 
 /**
@@ -1030,6 +1008,8 @@ void Accessibility::push_output(const pstring text)
         MultiByteToWideChar(CP_UTF8, 0, (const char *)last_output, -1, buffer, buffer_size);
 
         pVoice->Speak(buffer, 0, NULL);
+		
+        delete buffer;
     }
     printf("acc: [%s]\n", (const char *)text);
 }
