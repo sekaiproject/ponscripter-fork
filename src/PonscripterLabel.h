@@ -878,7 +878,7 @@ private:
 
     /* ---------------------------------------- */
     /* Image processing */
-    SDL_Surface* loadImage(const pstring& file_name, bool* has_alpha = NULL);
+    SDL_Surface* loadImage(const pstring& file_name, bool* has_alpha = NULL, bool twox = false);
     SDL_Surface *createRectangleSurface(const pstring& filename);
     SDL_Surface *createSurfaceFromFile(const pstring& filename, int *location);
 

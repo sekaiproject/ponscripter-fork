@@ -774,24 +774,29 @@ void PonscripterLabel::DoSetwindow(PonscripterLabel::WindowDef& def)
 
 void PonscripterLabel::setwindowCore()
 {
+    int res_multiplier = 1;
+    #ifdef USE_2X_MODE
+    res_multiplier = 2;
+    #endif
+
     WindowDef wind;
-    wind.left      = script_h.readIntValue();
-    wind.top       = script_h.readIntValue();
-    wind.width     = script_h.readIntValue();
-    wind.height    = script_h.readIntValue();
+    wind.left      = script_h.readIntValue() * res_multiplier;
+    wind.top       = script_h.readIntValue() * res_multiplier;
+    wind.width     = script_h.readIntValue() * res_multiplier;
+    wind.height    = script_h.readIntValue() * res_multiplier;
     int size_1     = script_h.readIntValue();
     int size_2     = script_h.readIntValue();
-    wind.font_size = size_1 > size_2 ? size_1 : size_2;
-    wind.pitch_x   = script_h.readIntValue();
-    wind.pitch_y   = script_h.readIntValue();
+    wind.font_size = size_1 > size_2 ? size_1 * res_multiplier : size_2 * res_multiplier;
+    wind.pitch_x   = script_h.readIntValue() * res_multiplier;
+    wind.pitch_y   = script_h.readIntValue() * res_multiplier;
     wind.speed     = script_h.readIntValue();
     wind.bold      = script_h.readIntValue();
     wind.shadow    = script_h.readIntValue();
     wind.backdrop  = script_h.readStrValue();
-    wind.w_left    = script_h.readIntValue();
-    wind.w_top     = script_h.readIntValue(); 
-    wind.w_right   = script_h.hasMoreArgs() ? script_h.readIntValue() : 0;
-    wind.w_bottom  = script_h.hasMoreArgs() ? script_h.readIntValue() : 0;
+    wind.w_left    = script_h.readIntValue() * res_multiplier;
+    wind.w_top     = script_h.readIntValue() * res_multiplier; 
+    wind.w_right   = script_h.hasMoreArgs() ? script_h.readIntValue() * res_multiplier : 0;
+    wind.w_bottom  = script_h.hasMoreArgs() ? script_h.readIntValue() * res_multiplier : 0;
   
     // Window size is defined in characters
     // (this used to be just for non-Ponscripter games, but as of
@@ -1338,6 +1343,10 @@ int PonscripterLabel::mspCommand(const pstring& cmd)
     int ret = leaveTextDisplayMode();
     if (ret != RET_NOMATCH) return ret;
 
+    int res_multiplier = 1;
+    #ifdef USE_2X_MODE
+    res_multiplier = 2;
+    #endif
     // Haeleth extension: the form `msp NUM,NUM,NUM[,NUM]' is augmented
     // by the form `msp NUM,NUM' which modifies only the transparency.
     // Likewise `msp2 NUM,NUM,NUM,NUM,NUM,NUM[,NUM]' is augmented by
@@ -1351,8 +1360,8 @@ int PonscripterLabel::mspCommand(const pstring& cmd)
     AnimationInfo& si = sprite2 ? sprite2_info[no] : sprite_info[no];
     if (script_h.hasMoreArgs()) {
         dirty_rect.add(sprite2 ? si.bounding_rect : si.pos);
-        x = val * screen_ratio1 / screen_ratio2;
-        y = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+        x = val * screen_ratio1 / screen_ratio2 * res_multiplier;
+        y = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
         if (sprite2) {
             modsp2 = true;
             sx = script_h.readIntValue();
@@ -1643,6 +1652,11 @@ int PonscripterLabel::lspCommand(const pstring& cmd)
     int ret = leaveTextDisplayMode();
     if (ret != RET_NOMATCH) return ret;
 
+    int res_multiplier = 1;
+    #ifdef USE_2X_MODE
+    res_multiplier = 2;
+    #endif
+
     bool sprite2 = cmd == "lsp2" || cmd == "lsph2";
     bool hidden = cmd == "lsph" || cmd == "lsph2";
     
@@ -1653,12 +1667,12 @@ int PonscripterLabel::lspCommand(const pstring& cmd)
 
     si.visible(!hidden);
     si.setImageName(script_h.readStrValue());
-    si.pos.x = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    si.pos.y = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    si.pos.x = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    si.pos.y = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
     if (sprite2) {
-	si.scale_x = script_h.readIntValue();
-	si.scale_y = script_h.readIntValue();
-	si.rot     = script_h.readIntValue();
+    si.scale_x = script_h.readIntValue();
+    si.scale_y = script_h.readIntValue();
+    si.rot     = script_h.readIntValue();
     }
     si.trans = script_h.hasMoreArgs() ? script_h.readIntValue() : 256;
 
@@ -1666,7 +1680,7 @@ int PonscripterLabel::lspCommand(const pstring& cmd)
     setupAnimationInfo(&si);
 
     if (sprite2) {
-	si.calcAffineMatrix();
+    si.calcAffineMatrix();
     }
     
     if (si.showing()) dirty_rect.add(sprite2 ? si.bounding_rect : si.pos);
@@ -2311,8 +2325,12 @@ int PonscripterLabel::getenterCommand(const pstring& cmd)
 
 int PonscripterLabel::getcursorposCommand(const pstring& cmd)
 {
-    script_h.readIntExpr().mutate(int(floor(sentence_font.GetX())));
-    script_h.readIntExpr().mutate(sentence_font.GetY());
+    int res_divider = 1;
+    #ifdef USE_2X_MODE
+    res_divider = 2;
+    #endif
+    script_h.readIntExpr().mutate(int(floor(sentence_font.GetX() / res_divider)));
+    script_h.readIntExpr().mutate(sentence_font.GetY() / res_divider);
     return RET_CONTINUE;
 }
 
@@ -3189,15 +3207,21 @@ int PonscripterLabel::bltCommand(const pstring& cmd)
   fprintf(stderr, "bltCommand used, but not updated to SDL2 properly\n");
     int dx, dy, dw, dh;
     int sx, sy, sw, sh;
+    int multiplier = 2;
 
-    dx = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    dy = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    dw = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    dh = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    sx = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    sy = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    sw = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    sh = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    int res_multiplier = 1;
+    #ifdef USE_2X_MODE
+    res_multiplier = 2;
+    #endif
+
+    dx = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    dy = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    dw = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    dh = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    sx = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    sy = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    sw = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    sh = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
 
     if (btndef_info.image_surface == NULL) return RET_CONTINUE;
 
