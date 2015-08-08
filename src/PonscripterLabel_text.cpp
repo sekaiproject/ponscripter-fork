@@ -43,8 +43,8 @@ PonscripterLabel::renderGlyph(Font* font, Uint16 text, int size,
 void
 PonscripterLabel::drawGlyph(SDL_Surface* dst_surface, Fontinfo* info,
         SDL_Color &color, unsigned short unicode, float x, int y,
-	bool shadow_flag, AnimationInfo* cache_info, SDL_Rect* clip,
-	SDL_Rect &dst_rect)
+    bool shadow_flag, AnimationInfo* cache_info, SDL_Rect* clip,
+    SDL_Rect &dst_rect)
 {
     float minx, maxy;
 
@@ -53,12 +53,12 @@ PonscripterLabel::drawGlyph(SDL_Surface* dst_surface, Fontinfo* info,
     info->font()->get_metrics(unicode, &minx, NULL, NULL, &maxy);
 
     Glyph g = renderGlyph(info->font(), unicode, sz,
-			  x + minx - floor(x + minx));
+              x + minx - floor(x + minx));
     bool rotate_flag = false;
 
     if (g.bitmap) {
-	minx = g.left;
-	maxy = g.top;
+    minx = g.left;
+    maxy = g.top;
     }
     
     dst_rect.x = int(floor(x + minx));
@@ -100,7 +100,7 @@ PonscripterLabel::drawGlyph(SDL_Surface* dst_surface, Fontinfo* info,
 int
 PonscripterLabel::drawChar(const char* text, Fontinfo* info, bool flush_flag,
         bool lookback_flag, SDL_Surface* surface, AnimationInfo* cache_info,
-	SDL_Rect* clip)
+    SDL_Rect* clip)
 {
     int bytes;
     wchar unicode = file_encoding->DecodeWithLigatures(text, *info, bytes);
@@ -126,16 +126,16 @@ PonscripterLabel::drawChar(const char* text, Fontinfo* info, bool flush_flag,
         if (info->is_shadow) {
             color.r = color.g = color.b = 0;
             drawGlyph(surface, info, color, unicode, x, y, true, cache_info,
-		      clip, dst_rect);
+              clip, dst_rect);
         }
 
         color.r = info->color.r;
         color.g = info->color.g;
-        color.b = info->color.b;	
+        color.b = info->color.b;    
         drawGlyph(surface, info, color, unicode, x, y, false, cache_info,
-		  clip, dst_rect);
+          clip, dst_rect);
 
-	info->addShadeArea(dst_rect, shade_distance);
+    info->addShadeArea(dst_rect, shade_distance);
         if (surface == accumulation_surface && !flush_flag
             && (!clip || AnimationInfo::doClipping(&dst_rect, clip) == 0)) {
             dirty_rect.add(dst_rect);
@@ -151,11 +151,18 @@ PonscripterLabel::drawChar(const char* text, Fontinfo* info, bool flush_flag,
         info->advanceBy(adv);
     }
 
-    if (lookback_flag) {
-	current_text_buffer->addBytes(text, bytes);
-        if (text[0] == '~') current_text_buffer->addBytes(text, bytes);
-//TextBuffer_dumpstate(1);
+    // textbufferchange
+    int j;
+    for (j = 0; j < 2; j++) {
+        if (current_read_language == j || current_read_language == -1) {
+            if (lookback_flag) {
+            current_text_buffer[j]->addBytes(text, bytes);
+                if (text[0] == '~') current_text_buffer[j]->addBytes(text, bytes);
+        
+            }
+        }
     }
+    TextBuffer_dumpstate(1);
     return bytes;
 }
 
@@ -192,9 +199,9 @@ PonscripterLabel::drawString(const char* str, rgb_t color, Fontinfo* info,
         }
         else {
             str += drawChar(str, info, false, false, surface, cache_info);
-/**/	    if (info->GetXOffset() > max_x) max_x = info->GetXOffset();
-/**/	    if (info->GetYOffset() + info->line_space() > max_y)
-/**/		max_y = info->GetYOffset() + info->line_space();
+/**/        if (info->GetXOffset() > max_x) max_x = info->GetXOffset();
+/**/        if (info->GetYOffset() + info->line_space() > max_y)
+/**/        max_y = info->GetYOffset() + info->line_space();
         }
     }
     info->color = org_color;
@@ -202,9 +209,9 @@ PonscripterLabel::drawString(const char* str, rgb_t color, Fontinfo* info,
     /* ---------------------------------------- */
     /* Calculate the area of selection */
 //  SDL_Rect clipped_rect = info->calcUpdatedArea(start_x, start_y,
-//						  screen_ratio1, screen_ratio2);
+//                        screen_ratio1, screen_ratio2);
 /**/SDL_Rect clipped_rect = { int(start_x), start_y,
-			      int(max_x - start_x), max_y - start_y };
+                  int(max_x - start_x), max_y - start_y };
     info->addShadeArea(clipped_rect, shade_distance);
 
     if (flush_flag)
@@ -220,8 +227,8 @@ void PonscripterLabel::restoreTextBuffer()
 
     Fontinfo f_info = sentence_font;
     f_info.clear();
-    const char* buffer = current_text_buffer->contents;
-    int buffer_count = current_text_buffer->contents.length();
+    const char* buffer = current_text_buffer[current_language]->contents;
+    int buffer_count = current_text_buffer[current_language]->contents.length();
 
     const wchar first_ch = file_encoding->DecodeWithLigatures(buffer, f_info);
     if (is_indent_char(first_ch)) f_info.SetIndent(first_ch);
@@ -230,7 +237,7 @@ void PonscripterLabel::restoreTextBuffer()
     while (i < buffer_count) {
         if (buffer[i] == 0x0a) {
             f_info.newLine();
-	    ++i;
+        ++i;
         }
         else {
             i += drawChar(buffer + i, &f_info, false, false, NULL, &text_info);
@@ -242,7 +249,7 @@ void PonscripterLabel::restoreTextBuffer()
 int PonscripterLabel::enterTextDisplayMode(bool text_flag)
 {
     if (line_enter_status <= 1 && saveon_flag && internal_saveon_flag &&
-	text_flag && current_read_language == 1) {
+    text_flag && current_read_language == 1) {
         saveSaveFile(-1);
         internal_saveon_flag = false;
     }
@@ -628,7 +635,7 @@ int PonscripterLabel::processText()
         bool flush_flag = !(skip_flag || draw_one_page_flag ||
                             skip_to_wait || ctrl_pressed_status ||
                             (sentence_font.wait_time == 0) ||
-                            (current_read_language != -1 && current_read_language != current_language));
+                             (current_read_language != -1 && current_read_language != current_language));
 
         drawChar(script_h.getStrBuf(string_buffer_offset), &sentence_font,
                  flush_flag, true, accumulation_surface, &text_info);
