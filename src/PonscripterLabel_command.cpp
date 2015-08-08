@@ -1647,6 +1647,70 @@ int PonscripterLabel::menu_automodeCommand(const pstring& cmd)
 }
 
 
+int PonscripterLabel::getreadlangCommand(const pstring& cmd)
+{
+    script_h.readIntExpr().mutate(current_read_language);
+    return RET_CONTINUE;
+}
+
+int PonscripterLabel::showlangenCommand(const pstring& cmd)
+{
+    current_language = 0;
+    //loadSaveFile(15);
+    text_info.fill(0, 0, 0, 0);
+    flush(refreshMode(), &sentence_font_info.pos);
+
+    printf("en [");
+    print_escaped(current_text_buffer[0]->contents);
+    puts("]");
+    printf("jp [");
+    print_escaped(current_text_buffer[1]->contents);
+    puts("]");
+
+    return RET_CONTINUE;
+}
+
+int PonscripterLabel::showlangjpCommand(const pstring& cmd)
+{
+    current_language = 1;
+    //loadSaveFile(15);
+    text_info.fill(0, 0, 0, 0);
+    flush(refreshMode(), &sentence_font_info.pos);
+
+    printf("en [");
+    print_escaped(current_text_buffer[0]->contents);
+    puts("]");
+    printf("jp [");
+    print_escaped(current_text_buffer[1]->contents);
+    puts("]");
+    return RET_CONTINUE;
+}
+
+int PonscripterLabel::langenCommand(const pstring& cmd)
+{
+    current_read_language = 0;
+    print_escaped(cmd);
+    puts("nanu");
+    return RET_CONTINUE;
+}
+
+int PonscripterLabel::langjpCommand(const pstring& cmd)
+{
+    //if (current_read_language != 1) {
+    //    saveSaveFile(15);
+    //}
+    current_read_language = 1;
+
+    return RET_CONTINUE;
+}
+
+int PonscripterLabel::langallCommand(const pstring& cmd)
+{
+    current_read_language = -1;
+
+    return RET_CONTINUE;
+}
+
 int PonscripterLabel::lspCommand(const pstring& cmd)
 {
     int ret = leaveTextDisplayMode();

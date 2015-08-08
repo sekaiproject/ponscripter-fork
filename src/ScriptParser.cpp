@@ -263,10 +263,14 @@ void ScriptParser::reset()
     default_text_speed[2] = DEFAULT_TEXT_SPEED_HIGHT;
     max_text_buffer = MAX_TEXT_BUFFER;
     num_chars_in_sentence = 0;
+    current_read_language = -1;
+
     if (text_buffer) {
         delete[] text_buffer;
         text_buffer = NULL;
     }
+    current_language = 0;
+    current_read_language = -1;
 
     current_text_buffer = start_text_buffer = NULL;
 

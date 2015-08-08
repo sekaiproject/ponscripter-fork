@@ -180,6 +180,12 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["gettextextent"]    = &PonscripterLabel::haeleth_text_extentCommand;
     dict["gettextheight"]    = &PonscripterLabel::haeleth_text_heightCommand;
     dict["gettextspeed"]     = &PonscripterLabel::gettextspeedCommand;
+    dict["langjp"]           = &PonscripterLabel::langjpCommand;
+    dict["langen"]           = &PonscripterLabel::langenCommand;
+    dict["langall"]          = &PonscripterLabel::langallCommand;
+    dict["getreadlang"]      = &PonscripterLabel::getreadlangCommand;
+    dict["showlangen"]       = &PonscripterLabel::showlangenCommand;
+    dict["showlangjp"]       = &PonscripterLabel::showlangjpCommand;
     dict["gettimer"]         = &PonscripterLabel::gettimerCommand;
     dict["getversion"]       = &PonscripterLabel::getversionCommand;
     dict["getvoicevol"]      = &PonscripterLabel::getvoicevolCommand;

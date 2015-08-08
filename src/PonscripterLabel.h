@@ -157,6 +157,12 @@ public:
     int haeleth_ligate_controlCommand(const pstring& cmd);
     int haeleth_sayCommand(const pstring& cmd);
     int gettextspeedCommand(const pstring& cmd);
+    int getreadlangCommand(const pstring& cmd);
+    int showlangenCommand(const pstring& cmd);
+    int showlangjpCommand(const pstring& cmd);
+    int langenCommand(const pstring& cmd);
+    int langjpCommand(const pstring& cmd);
+    int langallCommand(const pstring& cmd);
     int vsp_whenCommand(const pstring& cmd);
 
     //Mion: locale support

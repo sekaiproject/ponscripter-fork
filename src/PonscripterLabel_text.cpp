@@ -240,7 +240,7 @@ void PonscripterLabel::restoreTextBuffer()
 int PonscripterLabel::enterTextDisplayMode(bool text_flag)
 {
     if (line_enter_status <= 1 && saveon_flag && internal_saveon_flag &&
-	text_flag) {
+	text_flag && current_read_language == 1) {
         saveSaveFile(-1);
         internal_saveon_flag = false;
     }
@@ -625,7 +625,8 @@ int PonscripterLabel::processText()
 
         bool flush_flag = !(skip_flag || draw_one_page_flag ||
                             skip_to_wait || ctrl_pressed_status ||
-                            (sentence_font.wait_time == 0));
+                            (sentence_font.wait_time == 0) ||
+                            (current_read_language != -1 && current_read_language != current_language));
 
         drawChar(script_h.getStrBuf(string_buffer_offset), &sentence_font,
                  flush_flag, true, accumulation_surface, &text_info);
