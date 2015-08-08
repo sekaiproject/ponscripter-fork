@@ -106,7 +106,9 @@ PonscripterLabel::drawChar(const char* text, Fontinfo* info, bool flush_flag,
     wchar unicode = file_encoding->DecodeWithLigatures(text, *info, bytes);
 
     bool code = info->processCode(text);
-    if (!code) {
+    bool hidden_language = (current_read_language != -1 && current_read_language != current_language);
+
+    if (!code && !hidden_language) {
         // info->doSize() called in GlyphAdvance
         wchar next = file_encoding->DecodeWithLigatures(text + bytes, *info);
         float adv = info->GlyphAdvance(unicode, next);
