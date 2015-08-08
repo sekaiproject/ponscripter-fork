@@ -1651,13 +1651,6 @@ int PonscripterLabel::showlangenCommand(const pstring& cmd)
     text_info.fill(0, 0, 0, 0);
     flush(refreshMode(), &sentence_font_info.pos);
 
-    printf("en [");
-    print_escaped(current_text_buffer[0]->contents);
-    puts("]");
-    printf("jp [");
-    print_escaped(current_text_buffer[1]->contents);
-    puts("]");
-
     return RET_CONTINUE;
 }
 
@@ -1668,12 +1661,6 @@ int PonscripterLabel::showlangjpCommand(const pstring& cmd)
     text_info.fill(0, 0, 0, 0);
     flush(refreshMode(), &sentence_font_info.pos);
 
-    printf("en [");
-    print_escaped(current_text_buffer[0]->contents);
-    puts("]");
-    printf("jp [");
-    print_escaped(current_text_buffer[1]->contents);
-    puts("]");
     return RET_CONTINUE;
 }
 
