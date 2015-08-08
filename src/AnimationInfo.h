@@ -36,6 +36,8 @@
 #include "defs.h"
 #include "BaseReader.h"
 
+#define USE_2X_MODE
+
 #if defined (USE_X86_GFX) && !defined(MACOSX)
 #include <cpuid.h>
 #endif
@@ -88,6 +90,7 @@ public:
     bool is_ruby_drawable;
     bool skip_whitespace;
     bool is_centered_text;
+    bool twox;
 
 #ifndef NO_LAYER_EFFECTS
     int layer_no; //Mion: for Layer effects

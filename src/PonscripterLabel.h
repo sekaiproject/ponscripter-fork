@@ -244,6 +244,7 @@ public:
     int logspCommand(const pstring& cmd);
     int locateCommand(const pstring& cmd);
     int loadgameCommand(const pstring& cmd);
+    int tachistateCommand(const pstring& cmd);
     int ldCommand(const pstring& cmd);
     int jumpfCommand(const pstring& cmd);
     int jumpbCommand(const pstring& cmd);
@@ -885,7 +886,7 @@ private:
 
     /* ---------------------------------------- */
     /* Image processing */
-    SDL_Surface* loadImage(const pstring& file_name, bool* has_alpha = NULL);
+    SDL_Surface* loadImage(const pstring& file_name, bool* has_alpha = NULL, bool twox = false);
     SDL_Surface *createRectangleSurface(const pstring& filename);
     SDL_Surface *createSurfaceFromFile(const pstring& filename, int *location);
 

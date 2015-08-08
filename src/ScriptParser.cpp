@@ -374,6 +374,10 @@ int ScriptParser::open(const char* preferred_script)
         screen_height = 480 * screen_ratio1 / screen_ratio2;
         break;
     }
+#ifdef USE_2X_MODE
+    screen_width  *= 2;
+    screen_height *= 2;
+#endif
 
     return 0;
 }
