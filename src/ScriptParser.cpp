@@ -183,10 +183,9 @@ ScriptParser::ScriptParser()
     save_data_len   = 0;
 
     text_buffer = NULL;
-    // textbufferchange
+
     current_language = 0;
     current_read_language = -1;
-
     syscall_dict["skip"]        = SYSTEM_SKIP;
     syscall_dict["reset"]       = SYSTEM_RESET;
     syscall_dict["save"]        = SYSTEM_SAVE;
