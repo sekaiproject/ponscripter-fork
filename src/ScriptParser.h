@@ -363,6 +363,9 @@ protected:
         bool empty() { return !contents; }
 	void dumpstate(int = -1);
     } *text_buffer, *start_text_buffer, *current_text_buffer; // ring buffer
+    int current_language;
+    int current_read_language;
+
     void TextBuffer_dumpstate(int = 0);
     int max_text_buffer;
     int clickstr_line;
