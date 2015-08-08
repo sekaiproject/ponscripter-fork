@@ -1932,7 +1932,13 @@ int PonscripterLabel::loadgameCommand(const pstring& cmd)
     }
 }
 
-
+int PonscripterLabel::tachistateCommand(const pstring& cmd)
+{
+    script_h.readIntExpr().mutate((tachi_info[0].showing() && tachi_info[0].file_name != "") ? 1 : 0);
+    script_h.readIntExpr().mutate((tachi_info[1].showing() && tachi_info[1].file_name != "") ? 1 : 0);
+    script_h.readIntExpr().mutate((tachi_info[2].showing() && tachi_info[2].file_name != "") ? 1 : 0);
+    return RET_CONTINUE;
+}
 int PonscripterLabel::ldCommand(const pstring& cmd)
 {
     int ret = leaveTextDisplayMode();

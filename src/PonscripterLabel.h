@@ -244,6 +244,7 @@ public:
     int logspCommand(const pstring& cmd);
     int locateCommand(const pstring& cmd);
     int loadgameCommand(const pstring& cmd);
+    int tachistateCommand(const pstring& cmd);
     int ldCommand(const pstring& cmd);
     int jumpfCommand(const pstring& cmd);
     int jumpbCommand(const pstring& cmd);

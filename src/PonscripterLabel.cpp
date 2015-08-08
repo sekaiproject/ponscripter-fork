@@ -213,6 +213,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["isskip"]           = &PonscripterLabel::isskipCommand;
     dict["jumpb"]            = &PonscripterLabel::jumpbCommand;
     dict["jumpf"]            = &PonscripterLabel::jumpfCommand;
+    dict["tachistate"]       = &PonscripterLabel::tachistateCommand;
     dict["ld"]               = &PonscripterLabel::ldCommand;
     dict["loadgame"]         = &PonscripterLabel::loadgameCommand;
     dict["localestring"]     = &PonscripterLabel::localestringCommand;
