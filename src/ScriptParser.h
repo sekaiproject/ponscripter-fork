@@ -361,8 +361,11 @@ protected:
 	void addBytes(const char* c, int num) { contents.add(c, num);}
         void clear() { contents.trunc(0); }
         bool empty() { return !contents; }
-	void dumpstate(int = -1);
-    } *text_buffer, *start_text_buffer, *current_text_buffer; // ring buffer
+	void dumpstate(int = -1, int = 0);
+    }; // ring buffer
+    // textbufferchange
+    TextBuffer **text_buffer;
+    TextBuffer *start_text_buffer[2], *current_text_buffer[2];
     int current_language;
     int current_read_language;
 

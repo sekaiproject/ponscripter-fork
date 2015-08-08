@@ -164,7 +164,6 @@ int PonscripterLabel::loadSaveFile2(SaveFileType file_type, int file_version)
 	    sprite_info[i].trans = trans;
 	}
     }
-
     readVariables(0, script_h.global_variable_border);
 
     // nested info
@@ -419,16 +418,18 @@ int PonscripterLabel::loadSaveFile2(SaveFileType file_type, int file_version)
 	readInt();
     }
     
-    int text_num = readInt();
-    start_text_buffer = current_text_buffer;
-    for (i = 0; i < text_num; i++) {
-	clearCurrentTextBuffer();
-	char c;
-	while ((c = readChar())) current_text_buffer->addBuffer(c);
-	if (file_version == 203) readChar();
-	current_text_buffer = current_text_buffer->next;
+    for (j = 0; j < 2; j++) {
+        int text_num = readInt();
+        start_text_buffer[j] = current_text_buffer[j];
+        for (i = 0; i < text_num; i++) {
+    	clearCurrentTextBuffer(j);
+    	char c;
+    	while ((c = readChar())) current_text_buffer[j]->addBuffer(c);
+    	if (file_version == 203) readChar();
+    	current_text_buffer[j] = current_text_buffer[j]->next;
+        }
+        clearCurrentTextBuffer(j);
     }
-    clearCurrentTextBuffer();
 
     if (file_version >= 204) { readInt(); readInt(); }
     
@@ -457,7 +458,7 @@ int PonscripterLabel::loadSaveFile2(SaveFileType file_type, int file_version)
 
 void PonscripterLabel::saveSaveFile2(bool output_flag)
 {
-    int i;
+    int i, j;
 
     writeInt(1, output_flag);
 
@@ -708,19 +709,21 @@ void PonscripterLabel::saveSaveFile2(bool output_flag)
     writeInt(0, output_flag);
     writeInt(0, output_flag);
 
-    TextBuffer* tb = current_text_buffer;
-    int text_num = 0;
-    while (tb != start_text_buffer) {
-	tb = tb->previous;
-	text_num++;
-    }
-    writeInt(text_num, output_flag);
+    for (j = 0; j < 2; j++) {
+        TextBuffer* tb = current_text_buffer[j];
+        int text_num = 0;
+        while (tb != start_text_buffer[j]) {
+    	tb = tb->previous;
+    	text_num++;
+        }
+        writeInt(text_num, output_flag);
 
-    for (i = 0; i < text_num; i++) {
-	const char* buf = tb->contents;
-	while (*buf) writeChar(*buf++, output_flag);
-	writeChar(0, output_flag);
-	tb = tb->next;
+        for (i = 0; i < text_num; i++) {
+    	const char* buf = tb->contents;
+    	while (*buf) writeChar(*buf++, output_flag);
+    	writeChar(0, output_flag);
+    	tb = tb->next;
+        }
     }
 
     writeInt(0, output_flag);

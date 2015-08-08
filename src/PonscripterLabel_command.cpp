@@ -256,6 +256,7 @@ int PonscripterLabel::textclearCommand(const pstring& cmd)
 
 int PonscripterLabel::texecCommand(const pstring& cmd)
 {
+    int j;
     if (textgosub_clickstr_state == CLICK_NEWPAGE) {
         newPage(true);
         clickstr_state = CLICK_NONE;
@@ -264,7 +265,11 @@ int PonscripterLabel::texecCommand(const pstring& cmd)
         if (!sentence_font.isLineEmpty() && !new_line_skip_flag) {
             indent_offset = 0;
             line_enter_status = 0;
-            current_text_buffer->addBuffer(0x0a);
+            for (j = 0; j < 2; j++) {
+                if (current_read_language == j || current_read_language == -1) {
+                    current_text_buffer[j]->addBuffer(0x0a);
+                }
+            }
             sentence_font.newLine();
         }
     }
@@ -1131,7 +1136,7 @@ int PonscripterLabel::resettimerCommand(const pstring& cmd)
 int PonscripterLabel::resetCommand(const pstring& cmd)
 {
     resetSub();
-    clearCurrentTextBuffer();
+    clearAllCurrentTextBuffers();
     string_buffer_offset = 0;
 
     setCurrentLabel("start");
@@ -1194,7 +1199,7 @@ int PonscripterLabel::quakeCommand(const pstring& cmd)
 
 int PonscripterLabel::puttextCommand(const pstring& cmd)
 {
-    int ret = enterTextDisplayMode(false);
+    int ret = enterTextDisplayMode(false), j;
     if (ret != RET_NOMATCH) return ret;
 
     pstring s = script_h.readStrValue() + "\n";
@@ -1205,7 +1210,11 @@ int PonscripterLabel::puttextCommand(const pstring& cmd)
     if (script_h.readStrBuf(string_buffer_offset) == 0x0a) {
         ret = RET_CONTINUE; // suppress RET_CONTINUE | RET_NOREAD
         if (!sentence_font.isLineEmpty() && !new_line_skip_flag) {
-            current_text_buffer->addBuffer(0x0a);
+            for (j = 0; j < 2; j++) {
+                if (current_read_language == j || current_read_language == -1) {
+                    current_text_buffer[j]->addBuffer(0x0a);
+                }
+            }
             sentence_font.newLine();
         }
     }
@@ -1762,14 +1771,19 @@ int PonscripterLabel::loopbgmCommand(const pstring& cmd)
 
 int PonscripterLabel::lookbackflushCommand(const pstring& cmd)
 {
-    current_text_buffer = current_text_buffer->next;
-    for (int i = 0; i < max_text_buffer - 1; i++) {
-        current_text_buffer->clear();
-        current_text_buffer = current_text_buffer->next;
-    }
+    int j;
+    for (j = 0; j < 2; j++) {
+        if (current_read_language == j || current_read_language == -1) {
+            current_text_buffer[j] = current_text_buffer[j]->next;
+            for (int i = 0; i < max_text_buffer - 1; i++) {
+                current_text_buffer[j]->clear();
+                current_text_buffer[j] = current_text_buffer[j]->next;
+            }
 
-    clearCurrentTextBuffer();
-    start_text_buffer = current_text_buffer;
+            clearCurrentTextBuffer(j);
+            start_text_buffer[j] = current_text_buffer[j];
+        }
+    }
 
     return RET_CONTINUE;
 }
@@ -1859,17 +1873,21 @@ int PonscripterLabel::locateCommand(const pstring& cmd)
     // command name "h_locate", not with a UTF-8 script.
     //if (!script_h.is_ponscripter) {
     if (cmd == "locate") {
-	x *= sentence_font.size() + sentence_font.pitch_x;
-	y *= sentence_font.line_space() + sentence_font.pitch_y;
+    x *= sentence_font.size() + sentence_font.pitch_x;
+    y *= sentence_font.line_space() + sentence_font.pitch_y;
     }
     else {
-	// For h_locate only, store new location in backlog.
-	pstring tag;
-	int phony;
-	tag.format("x%d", x);
-	current_text_buffer->addBuffer(file_encoding->TranslateTag(tag, phony));
-	tag.format("y%d", y);
-	current_text_buffer->addBuffer(file_encoding->TranslateTag(tag, phony));
+    // For h_locate only, store new location in backlog.
+    pstring tag;
+    int phony, i;
+    for (i = 0; i < 2; i++) {
+        if (current_read_language == i || current_read_language == -1) {
+            tag.format("x%d", x);
+            current_text_buffer[i]->addBuffer(file_encoding->TranslateTag(tag, phony));
+            tag.format("y%d", y);
+            current_text_buffer[i]->addBuffer(file_encoding->TranslateTag(tag, phony));
+        }
+    }
     }
     sentence_font.SetXY(x, y);
     return RET_CONTINUE;
@@ -2104,7 +2122,7 @@ int PonscripterLabel::gettimerCommand(const pstring& cmd)
 
 int PonscripterLabel::gettextCommand(const pstring& cmd)
 {
-    pstring buf = current_text_buffer->contents;
+    pstring buf = current_text_buffer[current_language]->contents;
     buf.findreplace("\x0a", "");
     script_h.readStrExpr(true).mutate(buf);
     return RET_CONTINUE;
@@ -2329,8 +2347,8 @@ int PonscripterLabel::getlogCommand(const pstring& cmd)
 {
     Expression e = script_h.readStrExpr();
     int page_no = script_h.readIntValue();
-    TextBuffer* t_buf = current_text_buffer;
-    while (t_buf != start_text_buffer && page_no > 0) {
+    TextBuffer* t_buf = current_text_buffer[current_language];
+    while (t_buf != start_text_buffer[current_language] && page_no > 0) {
         page_no--;
         t_buf = t_buf->previous;
     }
@@ -2395,7 +2413,7 @@ int PonscripterLabel::getcselnumCommand(const pstring& cmd)
 
 int PonscripterLabel::gameCommand(const pstring& cmd)
 {
-    int i;
+    int i, j;
     current_mode = NORMAL_MODE;
 
     /* ---------------------------------------- */
@@ -2430,17 +2448,21 @@ int PonscripterLabel::gameCommand(const pstring& cmd)
 
     /* ---------------------------------------- */
     /* Initialize text buffer */
-    text_buffer = new TextBuffer[max_text_buffer];
-    for (i = 0; i < max_text_buffer - 1; i++) {
-        text_buffer[i].next = &text_buffer[i + 1];
-        text_buffer[i + 1].previous = &text_buffer[i];
+    // textbufferchange
+    text_buffer = new TextBuffer*[2];
+    for (j = 0; j < 2; j++) {
+        text_buffer[j] = new TextBuffer[max_text_buffer];
+        for (i = 0; i < max_text_buffer - 1; i++) {
+            text_buffer[j][i].next = &text_buffer[j][i + 1];
+            text_buffer[j][i + 1].previous = &text_buffer[j][i];
+        }
+
+        text_buffer[j][0].previous = &text_buffer[j][max_text_buffer - 1];
+        text_buffer[j][max_text_buffer - 1].next = &text_buffer[j][0];
+        start_text_buffer[j] = current_text_buffer[j] = &text_buffer[j][0];
+
+        clearCurrentTextBuffer(j);
     }
-
-    text_buffer[0].previous = &text_buffer[max_text_buffer - 1];
-    text_buffer[max_text_buffer - 1].next = &text_buffer[0];
-    start_text_buffer = current_text_buffer = &text_buffer[0];
-
-    clearCurrentTextBuffer();
 
     /* ---------------------------------------- */
     /* Initialize local variables */
@@ -2949,8 +2971,8 @@ int PonscripterLabel::checkpageCommand(const pstring& cmd)
 {
     Expression e = script_h.readIntExpr();
     int page_no = script_h.readIntValue();
-    TextBuffer* t_buf = current_text_buffer;
-    while (t_buf != start_text_buffer && page_no > 0) {
+    TextBuffer* t_buf = current_text_buffer[current_language];
+    while (t_buf != start_text_buffer[current_language] && page_no > 0) {
         page_no--;
         t_buf = t_buf->previous;
     }
@@ -3212,24 +3234,30 @@ int PonscripterLabel::btnCommand(const pstring& cmd)
 int PonscripterLabel::brCommand(const pstring& cmd)
 {
     int delta = cmd == "br2" ? script_h.readIntValue()
-	                     : (script_h.is_ponscripter ? 50 : 100);
+                         : (script_h.is_ponscripter ? 50 : 100);
 
-    int ret = enterTextDisplayMode();
+    int ret = enterTextDisplayMode(), i;
     if (ret != RET_NOMATCH) return ret;
 
     int cs = sentence_font.mod_size(),
-	ns = sentence_font.base_size() * delta / 100;
+    ns = sentence_font.base_size() * delta / 100;
     sentence_font.set_mod_size(ns);
     sentence_font.newLine();
     sentence_font.set_mod_size(cs);
 
     int ignored;
     pstring tag;
-    tag.format("=%d", ns);
-    current_text_buffer->addBuffer(file_encoding->TranslateTag(tag, ignored));
-    current_text_buffer->addBuffer(0x0a);
-    tag.format("=%d", cs);
-    current_text_buffer->addBuffer(file_encoding->TranslateTag(tag, ignored));
+
+    // textbufferchange
+    for (i = 0; i < 2; i++) {
+        if (current_read_language == i || current_read_language == -1) {
+            tag.format("=%d", ns);
+            current_text_buffer[i]->addBuffer(file_encoding->TranslateTag(tag, ignored));
+            current_text_buffer[i]->addBuffer(0x0a);
+            tag.format("=%d", cs);
+            current_text_buffer[i]->addBuffer(file_encoding->TranslateTag(tag, ignored));
+        }
+    }
 
     return RET_CONTINUE;
 }

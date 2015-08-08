@@ -846,7 +846,8 @@ private:
     int  text_speed_no;
 
     void shadowTextDisplay(SDL_Surface* surface, SDL_Rect &clip);
-    void clearCurrentTextBuffer();
+    void clearCurrentTextBuffer(int j);
+    void clearAllCurrentTextBuffers();
     void newPage(bool next_flag);
 
     void rerender();
@@ -910,7 +911,7 @@ private:
     int  shelter_event_mode;
     int  shelter_display_mode;
     bool shelter_draw_cursor_flag;
-    TextBuffer* cached_text_buffer;
+    TextBuffer* cached_text_buffer[2];
 
     void enterSystemCall();
     void leaveSystemCall(bool restore_flag = true);

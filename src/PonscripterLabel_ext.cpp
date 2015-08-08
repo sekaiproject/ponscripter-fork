@@ -87,7 +87,7 @@ int PonscripterLabel::haeleth_usewindowCommand(const pstring& cmd)
         lookbackflushCommand("lookbackflush");
     }
     else /* h_usewindow3 */ {
-        clearCurrentTextBuffer();
+        clearAllCurrentTextBuffers();
     }
     indent_offset = 0;
     line_enter_status = 0;

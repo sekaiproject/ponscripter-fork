@@ -1703,7 +1703,7 @@ int PonscripterLabel::parseLine()
 
 //--------LINE BREAKING ROUTINE-------------------------------------------------
 
-    int lf;
+    int lf, j;
     Fontinfo f = sentence_font;
     const wchar first_ch =
         file_encoding->DecodeWithLigatures(script_h.getStrBuf(string_buffer_offset),
@@ -1783,7 +1783,11 @@ int PonscripterLabel::parseLine()
             if (len < minlen) len = minlen;
         }
         if (len > 0 && f.isNoRoomFor(len)) {
-            current_text_buffer->addBuffer(0x0a);
+            for (j = 0; j < 2; j++) {
+                if (current_read_language == j || current_read_language == -1) {
+                    current_text_buffer[j]->addBuffer(0x0a);
+                }
+            }
             sentence_font.newLine();
             f.newLine();
         }
@@ -1793,7 +1797,11 @@ int PonscripterLabel::parseLine()
     if (script_h.readStrBuf(string_buffer_offset) == 0x0a) {
         ret = RET_CONTINUE; // suppress RET_CONTINUE | RET_NOREAD
         if (!sentence_font.isLineEmpty() && !new_line_skip_flag) {
-            current_text_buffer->addBuffer(0x0a);
+            for (j = 0; j < 2; j++) {
+                if (current_read_language == j || current_read_language == -1) {
+                    current_text_buffer[j]->addBuffer(0x0a);
+                }
+            }
             sentence_font.newLine();
         }
         //event_mode = IDLE_EVENT_MODE;
@@ -1849,17 +1857,29 @@ void PonscripterLabel::warpMouse(int x, int y) {
 }
 
 
-void PonscripterLabel::clearCurrentTextBuffer()
+void PonscripterLabel::clearCurrentTextBuffer(int j)
 {
-    sentence_font.clear();
+    if (current_read_language == -1 || current_read_language == current_language) {
+        sentence_font.clear();
+    }
 
-    current_text_buffer->clear();
+    current_text_buffer[j]->clear();
 
     num_chars_in_sentence = 0;
     internal_saveon_flag  = true;
 
-    text_info.fill(0, 0, 0, 0);
-    cached_text_buffer = current_text_buffer;
+    if (current_read_language == -1 || current_read_language == current_language) {
+        text_info.fill(0, 0, 0, 0);
+    }
+    cached_text_buffer[j] = current_text_buffer[j];
+}
+
+void PonscripterLabel::clearAllCurrentTextBuffers()
+{
+    int j;
+    for (j = 0; j < 2; j++) {
+        clearCurrentTextBuffer(j);
+    }
 }
 
 
@@ -1903,20 +1923,24 @@ void PonscripterLabel::shadowTextDisplay(SDL_Surface* surface, SDL_Rect &clip)
 
 void PonscripterLabel::newPage(bool next_flag)
 {
+    int j;
     /* ---------------------------------------- */
     /* Set forward the text buffer */
-    if (!current_text_buffer->empty()) {
-        current_text_buffer = current_text_buffer->next;
-        if (start_text_buffer == current_text_buffer)
-            start_text_buffer = start_text_buffer->next;
-    }
+    for (j = 0; j < 2; j++) {
+        if (current_read_language == j || current_read_language == -1) {
+            if (!current_text_buffer[j]->empty()) {
+                current_text_buffer[j] = current_text_buffer[j]->next;
+                if (start_text_buffer[j] == current_text_buffer[j])
+                    start_text_buffer[j] = start_text_buffer[j]->next;
+            }
 
-    if (next_flag) {
-        indent_offset = 0;
-        //line_enter_status = 0;
+            if (next_flag) {
+                indent_offset = 0;
+                //line_enter_status = 0;
+            }
+            clearCurrentTextBuffer(j);
+        }
     }
-
-    clearCurrentTextBuffer();
 
     flush(refreshMode(), &sentence_font_info.pos);
 //TextBuffer_dumpstate();
