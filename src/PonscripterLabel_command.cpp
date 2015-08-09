@@ -1685,8 +1685,7 @@ int PonscripterLabel::showlangjpCommand(const pstring& cmd)
 int PonscripterLabel::langenCommand(const pstring& cmd)
 {
     current_read_language = 0;
-    print_escaped(cmd);
-    puts("nanu");
+
     return RET_CONTINUE;
 }
 
@@ -2367,8 +2366,8 @@ int PonscripterLabel::getlogCommand(const pstring& cmd)
 {
     Expression e = script_h.readStrExpr();
     int page_no = script_h.readIntValue();
-    TextBuffer* t_buf = current_text_buffer[current_language];
-    while (t_buf != start_text_buffer[current_language] && page_no > 0) {
+    TextBuffer* t_buf = current_text_buffer[current_read_language];
+    while (t_buf != start_text_buffer[current_read_language] && page_no > 0) {
         page_no--;
         t_buf = t_buf->previous;
     }
