@@ -7,13 +7,15 @@
     way by Peter Jolly, 2006-11-22
 */
 
-
+//Mion: ifdef wrapper to allow compiling on my poor 32-bit MinGW
+#ifdef _LARGEFILE64_SOURCE
 #ifndef off64_t
 # ifdef _off64_t
 #    define off64_t _off64_t
 #  else
 #    define off64_t long int
 #  endif
+#endif
 #endif
 
 #include <stdio.h>
