@@ -442,7 +442,6 @@ void PonscripterLabel::drawEffect(SDL_Rect* dst_rect, SDL_Rect* src_rect, SDL_Su
     }
 
     SDL_BlitSurface(surface, src_rect, accumulation_surface, dst_rect);
-    flush(refreshMode());
 }
 
 
