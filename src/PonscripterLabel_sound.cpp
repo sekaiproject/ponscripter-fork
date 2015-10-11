@@ -693,7 +693,9 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
               // use some specialized variation of the video_texture
               // and/or the SDL_Rect for RenderCopy to handle pos&size args)
               SDL_Rect r2;
-              r2.x = 0; r2.y = 0; r2.w = r.w * 2; r2.h = r.h * 2;
+              // chronotrig: Bumping the video 2px down and to the right to 
+              // hide unsightly green line, should probably be cleaned up
+              r2.x = 2; r2.y = 2; r2.w = r.w * 2; r2.h = r.h * 2;
               SDL_RenderCopy(renderer, video_texture, &r, &r2);
 #else
               SDL_RenderCopy(renderer, video_texture, &r, &r);
