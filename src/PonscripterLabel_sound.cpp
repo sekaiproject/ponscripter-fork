@@ -603,6 +603,8 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
                 }
                 case SDL_QUIT:
                     ret = 1;
+                    done_flag = true;
+                    break;
                 case SDL_MOUSEBUTTONDOWN:
                     done_click_down = true;
                     break;
