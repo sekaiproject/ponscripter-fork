@@ -417,11 +417,36 @@ void PonscripterLabel::initSDL()
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 
+
+    /* chronotrig: don't show a window taller than 90% of the shortest display */
+    SDL_DisplayMode current;
+    int minH = 99999, i;
+
+    // Get current display mode of all displays.
+    for(i = 0; i < SDL_GetNumVideoDisplays(); ++i) {
+        SDL_GetCurrentDisplayMode(i, &current);
+        if (minH > current.h) {
+            minH = current.h;
+        }
+    }
+
+    
+    minH = minH * 0.9;
+    int dispW = screen_width;
+    int dispH = screen_height;
+    if (minH < screen_height) {
+        dispW = (minH * screen_width) / screen_height;
+        dispH = minH;
+    }
+
     screen = SDL_CreateWindow(wm_title_string,
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
-        screen_width, screen_height,
+        dispW, dispH,
         (fullscreen_mode ? fullscreen_flags : 0) | SDL_WINDOW_RESIZABLE);
+
+    /* end chronotrig */
+
     renderer = SDL_CreateRenderer(screen, -1, SDL_RENDERER_PRESENTVSYNC);
     if(renderer == NULL) {
       fprintf(stderr, "Couldn't create SDL renderer: %s\n", SDL_GetError());
