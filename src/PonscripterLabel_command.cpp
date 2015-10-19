@@ -365,6 +365,11 @@ int PonscripterLabel::strspCommand(const pstring& cmd)
     fi.pitch_y   = script_h.readIntValue();
     fi.is_bold   = script_h.readIntValue();
     fi.is_shadow = script_h.readIntValue();
+    // When "setwindow" got reverted to define width/height in characters
+    // instead of pixels, this really should have been too.
+    // Rectifying; may need to provide an alternate pixel-based cmd -- Mion
+    fi.area_x *= s1 + fi.pitch_x;
+    fi.area_y *= s2 + fi.pitch_y;
 
     if (script_h.hasMoreArgs()) {
 	ai->color_list.clear();
@@ -382,6 +387,7 @@ int PonscripterLabel::strspCommand(const pstring& cmd)
     ai->visible(true);
     ai->is_single_line  = false;
     ai->is_tight_region = false;
+    ai->skip_whitespace = false;
     setupAnimationInfo(ai, &fi);
     return RET_CONTINUE;
 }

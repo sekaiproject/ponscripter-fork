@@ -1228,10 +1228,10 @@ int PonscripterLabel::init(const char* preferred_script)
     for (i = 0; i < MAX_PARAM_NUM; i++)
         bar_info[i] = prnum_info[i] = 0;
 
+    loadEnvData();
+
     defineresetCommand("definereset");
     readToken();
-
-    loadEnvData();
 
     InitialiseFontSystem(&archive_path);
 
@@ -1296,8 +1296,11 @@ void PonscripterLabel::reset()
 
     /* ---------------------------------------- */
     /* Load global variables if available */
-    if (loadFileIOBuf("global.sav") == 0)
+    if ((loadFileIOBuf("gloval.sav") == 0) ||
+        (loadFileIOBuf("global.sav") == 0)) {
         readVariables(script_h.global_variable_border, VARIABLE_RANGE);
+        printf("Read global variables file\n");
+    }
 }
 
 
@@ -2066,6 +2069,7 @@ void PonscripterLabel::loadEnvData()
     kidokumode_flag     = true;
     use_default_volume = true;
     fullscreen_flags    = SDL_WINDOW_FULLSCREEN_DESKTOP;
+    savedir = "";
 
     if (loadFileIOBuf("envdata") == 0) {
         use_default_volume = false;
@@ -2075,6 +2079,9 @@ void PonscripterLabel::loadEnvData()
         if (readInt() == 0)
             volume_on_flag = false;
         text_speed_no = readInt();
+        if (text_speed_no < 0 || text_speed_no > 2) {
+            text_speed_no = 1;
+        }
         if (readInt() == 1)
             draw_one_page_flag = true;
         default_env_font = readStr();
@@ -2087,9 +2094,11 @@ void PonscripterLabel::loadEnvData()
         music_volume = DEFAULT_VOLUME - readInt();
         if (readInt() == 0)
             kidokumode_flag = false;
-        readInt();  // 0  //Mion: added from onscripter
-        readChar(); // 0
-        int dummy = readInt();  // 1000
+        readInt();  // 0  //Mion: added from onscripter; bgmdownmode_flag
+        savedir = readStr();
+        if (savedir)
+            script_h.setSavedir(savedir);
+        int dummy = readInt();  // 1000 - automode_time in onscripter
         if (dummy == 1000)
             dummy = readInt(); //Mion: in case it's an older envdata
         if (dummy == 0x534e4f50) {
@@ -2126,9 +2135,9 @@ void PonscripterLabel::saveEnvData()
         writeInt(DEFAULT_VOLUME - se_volume, output_flag);
         writeInt(DEFAULT_VOLUME - music_volume, output_flag);
         writeInt(kidokumode_flag ? 1 : 0, output_flag);
-        writeInt(0, output_flag);
-        writeChar(0, output_flag); // ?
-        writeInt(1000, output_flag);
+        writeInt(0, output_flag); //bgmdownmode
+        writeStr(savedir, output_flag);
+        writeInt(1000, output_flag); //automode_time
 
         // Ponscripter extras
         writeInt(0x534e4f50, output_flag);
