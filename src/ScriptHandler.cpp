@@ -27,6 +27,8 @@
 #include "PonscripterMessage.h"
 #include "Fontinfo.h"
 #include <ctype.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #ifdef WIN32
 #include <direct.h>
 #include <windows.h>
