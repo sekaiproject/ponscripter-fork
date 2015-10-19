@@ -254,6 +254,24 @@ int ScriptParser::savenameCommand(const pstring& cmd)
 }
 
 
+int ScriptParser::savedirCommand(const pstring& cmd)
+{
+    if (current_mode != DEFINE_MODE)
+	errorAndExit("savedir: not in the define section");
+
+    pstring dir = script_h.readStrValue();
+
+    // Only allow setting the savedir once, no empty path
+    if (dir && !savedir) {
+        // Note that savedir is relative to save_path
+        savedir = dir;
+        script_h.setSavedir(dir);
+    }
+
+    return RET_CONTINUE;
+}
+
+
 int ScriptParser::rubyonCommand(const pstring& cmd)
 {
     // disabled

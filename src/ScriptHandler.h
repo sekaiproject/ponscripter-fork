@@ -107,9 +107,11 @@ public:
     ~ScriptHandler();
 
     void reset();
-    FILE *fileopen(pstring path, const char *mode, const bool save = false);
-    FILE *fileopen(pstring root, pstring path, const char *mode);
+    FILE *fileopen(const pstring& path, const char *mode, const bool save = false, const bool usesavedir = false);
+    FILE *fileopen(const pstring& root, const pstring& path, const char *mode);
     void setKeyTable(const unsigned char* key_table);
+
+    void setSavedir(const pstring& dir);
 
     // basic parser function
     const char* readToken(bool no_kidoku = false);
@@ -286,6 +288,9 @@ public:
 
     pstring game_identifier;
     pstring save_path;
+    //Mion: savedir is set by savedirCommand, stores save files
+    // and main stored gamedata files except envdata
+    pstring savedir;
     pstring script_path;
 
     static BaseReader* cBR;

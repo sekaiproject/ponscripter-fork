@@ -27,6 +27,10 @@
 #include "PonscripterMessage.h"
 #include "Fontinfo.h"
 #include <ctype.h>
+#ifdef WIN32
+#include <direct.h>
+#include <windows.h>
+#endif
 
 #ifdef MACOSX
 #include <CoreFoundation/CoreFoundation.h>
@@ -116,13 +120,19 @@ void ScriptHandler::reset()
 }
 
 
-FILE *ScriptHandler::fileopen(pstring path, const char *mode, const bool save)
+FILE *ScriptHandler::fileopen(const pstring& path, const char *mode, const bool save, const bool usesavedir)
 {
     pstring root = "";
     pstring file_name = "";
     FILE *fp = NULL;
 
-    if (save) {
+    if (usesavedir && savedir) {
+        root = savedir;
+        file_name = root + path;
+        //printf("handler:fopen(\"%s\")\n", file_name);
+
+        fp = fopen(file_name, mode);
+    } else if (save) {
         root = save_path;
         file_name = root + path;
 //printf("SHandler::fileopen(save): about to try '" + file_name + "'\n");
@@ -143,7 +153,7 @@ FILE *ScriptHandler::fileopen(pstring path, const char *mode, const bool save)
 }
 
 
-FILE *ScriptHandler::fileopen(pstring root, pstring path, const char *mode)
+FILE *ScriptHandler::fileopen(const pstring& root, const pstring& path, const char *mode)
 {
     pstring file_name = "";
     FILE *fp = NULL;
@@ -168,6 +178,17 @@ void ScriptHandler::setKeyTable(const unsigned char* key_table)
         key_table_flag = false;
         for (i = 0; i < 256; i++) this->key_table[i] = i;
     }
+}
+
+
+void ScriptHandler::setSavedir(const pstring& dir)
+{
+    savedir = save_path + dir + DELIMITER;
+    mkdir(savedir
+#ifndef WIN32
+          , 0755
+#endif
+         );
 }
 
 
@@ -630,7 +651,7 @@ void ScriptHandler::saveKidokuData()
 {
     FILE* fp;
     pstring fnam = "kidoku.dat";
-    if ((fp = fileopen(fnam, "wb", true)) == NULL) {
+    if ((fp = fileopen(fnam, "wb", true, true)) == NULL) {
         fprintf(stderr, "can't write kidoku.dat\n");
         return;
     }
@@ -648,7 +669,7 @@ void ScriptHandler::loadKidokuData()
     kidoku_buffer = new char[script_buffer_length / 8 + 1];
     memset(kidoku_buffer, 0, script_buffer_length / 8 + 1);
 
-    if ((fp = fileopen(fnam, "rb", true)) != NULL) {
+    if ((fp = fileopen(fnam, "rb", true, true)) != NULL) {
         fread(kidoku_buffer, 1, script_buffer_length / 8, fp);
         fclose(fp);
     }

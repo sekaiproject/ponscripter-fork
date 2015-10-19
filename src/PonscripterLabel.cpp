@@ -1113,6 +1113,14 @@ int PonscripterLabel::init(const char* preferred_script)
     // behaviour of putting saved games in the archive path.
     if (!script_h.save_path) script_h.save_path = archive_path.get_path(0);
 
+    if (script_h.save_path != archive_path.get_path(0)) {
+        // insert save_path onto the front of archive_path
+        DirPaths new_path;
+        new_path.add(script_h.save_path);
+        new_path.add(archive_path.get_all_paths());
+        archive_path = new_path;
+    }
+
 #ifdef WIN32
     if (debug_level > 0) {
         // to make it easier to debug user issues on Windows, open
