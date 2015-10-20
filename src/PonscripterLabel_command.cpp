@@ -26,6 +26,9 @@
 #include "PonscripterLabel.h"
 #include "version.h"
 
+#include <sys/stat.h>
+#include <sys/types.h>
+
 #ifdef WIN32
 #include <direct.h>
 #include <windows.h>
@@ -1055,6 +1058,21 @@ int PonscripterLabel::savescreenshotCommand(const pstring& cmd)
 	filename = script_h.save_path + filename;
 	replace_ascii(filename, '/', DELIMITER[0]);
 	replace_ascii(filename, '\\', DELIMITER[0]);
+        int last_delim = filename.reversefind(DELIMITER[0], filename.length());
+        if (last_delim > 0) {
+            pstring ssdir = filename.midstr(0, last_delim);
+            //create the directory if need be [Mion]
+            mkdir(ssdir
+#ifndef WIN32
+                  , 0755
+#endif
+                 );
+        }
+        if (screenshot_surface == NULL) {
+            printf("savescreenshot: no screenshot buffer, creating a blank 1x1 surface.\n");
+            screenshot_surface = SDL_CreateRGBSurface(0, 1, 1, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+        }
+
         SDL_SaveBMP(screenshot_surface, filename);
     }
     else
