@@ -209,9 +209,6 @@ int ScriptParser::sinCommand(const pstring& cmd)
 
 int ScriptParser::shadedistanceCommand(const pstring& cmd)
 {
-    if (current_mode != DEFINE_MODE)
-	errorAndExit("shadedistance: not in the define section");
-
     shade_distance[0] = script_h.readIntValue();
     shade_distance[1] = script_h.readIntValue();
 
@@ -253,6 +250,24 @@ int ScriptParser::savenameCommand(const pstring& cmd)
     save_menu_name = script_h.readStrValue();
     load_menu_name = script_h.readStrValue();
     save_item_name = script_h.readStrValue();
+    return RET_CONTINUE;
+}
+
+
+int ScriptParser::savedirCommand(const pstring& cmd)
+{
+    if (current_mode != DEFINE_MODE)
+	errorAndExit("savedir: not in the define section");
+
+    pstring dir = script_h.readStrValue();
+
+    // Only allow setting the savedir once, no empty path
+    if (dir && !savedir) {
+        // Note that savedir is relative to save_path
+        savedir = dir;
+        script_h.setSavedir(dir);
+    }
+
     return RET_CONTINUE;
 }
 
@@ -739,6 +754,7 @@ int ScriptParser::incCommand(const pstring& cmd)
 
 int ScriptParser::ifCommand(const pstring& cmd)
 {
+    int condition_status = 0; // 0 ... none, 1 ... and, 2 ... or
     bool condition_flag = true, f = false;
     bool if_flag = cmd != "notif";
 
@@ -788,12 +804,29 @@ int ScriptParser::ifCommand(const pstring& cmd)
 	    else if (op_buf[0] == '=') f = comp_val == 0;
         }
 
-        condition_flag &= if_flag ? f : !f;
+        f = if_flag ? f : !f;
+        condition_flag |= f;
 
         const char* op_buf = script_h.getNext();
-        if (op_buf[0] == '&') {
-            while (*op_buf == '&') op_buf++;
+        if ( op_buf[0] == '|' ){
+            if (condition_status == 1)
+                errorAndExit( "if: using & and | at the same time is not supported.");
+            while(*op_buf == '|') op_buf++;
             script_h.setCurrent(op_buf);
+            condition_status = 2;
+            continue;
+        }
+
+        if ( (condition_status == 2 && !condition_flag) || 
+             (condition_status != 2 && !f) )
+            return RET_SKIP_LINE;
+
+        if (op_buf[0] == '&') {
+            if (condition_status == 2)
+                errorAndExit( "if: using & and | at the same time is not supported.");
+            while(*op_buf == '&') op_buf++;
+            script_h.setCurrent(op_buf);
+            condition_status = 1;
             continue;
         }
 
@@ -802,8 +835,7 @@ int ScriptParser::ifCommand(const pstring& cmd)
     ;
 
     /* Execute command */
-    if (condition_flag) return RET_CONTINUE;
-    else return RET_SKIP_LINE;
+    return RET_CONTINUE;
 }
 
 

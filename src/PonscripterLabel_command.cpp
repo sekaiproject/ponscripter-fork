@@ -26,6 +26,9 @@
 #include "PonscripterLabel.h"
 #include "version.h"
 
+#include <sys/stat.h>
+#include <sys/types.h>
+
 #ifdef WIN32
 #include <direct.h>
 #include <windows.h>
@@ -370,6 +373,11 @@ int PonscripterLabel::strspCommand(const pstring& cmd)
     fi.pitch_y   = script_h.readIntValue();
     fi.is_bold   = script_h.readIntValue();
     fi.is_shadow = script_h.readIntValue();
+    // When "setwindow" got reverted to define width/height in characters
+    // instead of pixels, this really should have been too.
+    // Rectifying; may need to provide an alternate pixel-based cmd -- Mion
+    fi.area_x *= s1 + fi.pitch_x;
+    fi.area_y *= s2 + fi.pitch_y;
 
     if (script_h.hasMoreArgs()) {
 	ai->color_list.clear();
@@ -387,6 +395,7 @@ int PonscripterLabel::strspCommand(const pstring& cmd)
     ai->visible(true);
     ai->is_single_line  = false;
     ai->is_tight_region = false;
+    ai->skip_whitespace = false;
     setupAnimationInfo(ai, &fi);
     return RET_CONTINUE;
 }
@@ -1049,6 +1058,21 @@ int PonscripterLabel::savescreenshotCommand(const pstring& cmd)
 	filename = script_h.save_path + filename;
 	replace_ascii(filename, '/', DELIMITER[0]);
 	replace_ascii(filename, '\\', DELIMITER[0]);
+        int last_delim = filename.reversefind(DELIMITER[0], filename.length());
+        if (last_delim > 0) {
+            pstring ssdir = filename.midstr(0, last_delim);
+            //create the directory if need be [Mion]
+            mkdir(ssdir
+#ifndef WIN32
+                  , 0755
+#endif
+                 );
+        }
+        if (screenshot_surface == NULL) {
+            printf("savescreenshot: no screenshot buffer, creating a blank 1x1 surface.\n");
+            screenshot_surface = SDL_CreateRGBSurface(0, 1, 1, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+        }
+
         SDL_SaveBMP(screenshot_surface, filename);
     }
     else

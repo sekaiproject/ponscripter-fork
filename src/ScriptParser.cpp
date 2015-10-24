@@ -138,6 +138,7 @@ func_lut_t::func_lut_t() {
     dict["rubyoff"]         = &ScriptParser::rubyoffCommand;
     dict["rubyon"]          = &ScriptParser::rubyonCommand;
     dict["sar"]             = &ScriptParser::nsaCommand;
+    dict["savedir"]         = &ScriptParser::savedirCommand;
     dict["savename"]        = &ScriptParser::savenameCommand;
     dict["savenumber"]      = &ScriptParser::savenumberCommand;
     dict["selectcolor"]     = &ScriptParser::selectcolorCommand;
@@ -561,10 +562,25 @@ int ScriptParser::saveFileIOBuf(const pstring& filename, int offset,
                                 const char* savestr)
 {
     FILE* fp;
-    if ((fp = fopen(script_h.save_path + filename, "wb")) == NULL)
+    size_t ret = 0;
+    bool usesavedir = true;
+    // all files except envdata go in savedir
+    if (filename == "envdata")
+        usesavedir = false;
+
+    //Mion: create a temporary file, to avoid overwriting valid files
+    // (if an error occurs)
+    pstring root = script_h.save_path;
+    if (usesavedir && script_h.savedir)
+        root = script_h.savedir;
+
+    pstring fullname = root + filename;
+    pstring tmp = fullname + ".tmpfile";
+
+    if ((fp = fopen(tmp, "wb")) == NULL)
 	return -1;
 
-    size_t ret = fwrite(file_io_buf + offset, 1, file_io_buf_ptr - offset, fp);
+    ret = fwrite(file_io_buf + offset, 1, file_io_buf_ptr - offset, fp);
 
     if (savestr){
         size_t savelen = strlen(savestr);
@@ -578,6 +594,11 @@ int ScriptParser::saveFileIOBuf(const pstring& filename, int offset,
 
     if (ret != file_io_buf_ptr - offset) return -2;
 
+    //now rename the tmp file and see if errors occur
+    //(using "ret =" to avoid compiler warnings about unused return values)
+    ret = remove(fullname); //ignore errors (like if fullname doesn't exist)
+    if (rename(tmp, fullname)) return -1;
+
     return 0;
 }
 
@@ -585,17 +606,22 @@ int ScriptParser::saveFileIOBuf(const pstring& filename, int offset,
 int ScriptParser::loadFileIOBuf(const pstring& filename)
 {
     FILE* fp;
-    if ((fp = fopen(script_h.save_path + filename, "rb")) == NULL)
+    bool usesavedir = true;
+    if (filename == "envdata")
+        usesavedir = false;
+
+    if ((fp = fileopen(filename, "rb", true, usesavedir)) == NULL)
         return -1;
 
     fseek(fp, 0, SEEK_END);
     size_t len = ftell(fp);
-    file_io_buf_ptr = len;
+    file_io_buf_ptr = len + 1;
     allocFileIOBuf();
 
     fseek(fp, 0, SEEK_SET);
     size_t ret = fread(file_io_buf, 1, len, fp);
     fclose(fp);
+    file_io_buf[len] = 0;
 
     if (ret != len) return -2;
 
@@ -813,6 +839,39 @@ ScriptParser::Effect& ScriptParser::parseEffect(bool init_flag)
 
     fprintf(stderr, "Effect No. %d is not found.\n", tmp_effect.effect);
     exit(-1);
+}
+
+
+FILE *ScriptParser::fileopen(const pstring& path, const char *mode, const bool save, const bool usesavedir)
+{
+    pstring root = "";
+    pstring file_name = "";
+    FILE *fp = NULL;
+
+    if (usesavedir && script_h.savedir) {
+        root = script_h.savedir;
+        file_name = root + path;
+        //printf("parser:fopen(\"%s\")\n", file_name);
+
+        fp = fopen(file_name, mode);
+    } else if (save) {
+        root = script_h.save_path;
+        file_name = root + path;
+//printf("parser::fileopen(save): about to try '" + file_name + "'\n");
+
+        fp = fopen(file_name, mode);
+    } else {
+        // search within archive_path(s)
+        for (int n=0; n<archive_path.get_num_paths(); n++) {
+            root = archive_path.get_path(n);
+//printf("root: '" + root + "'\n");
+            file_name = root + path;
+//printf("SHandler::fileopen: about to try '" + file_name + "'\n");
+            fp = fopen(file_name, mode);
+            if (fp != NULL) break;
+        }
+    }
+    return fp;
 }
 
 

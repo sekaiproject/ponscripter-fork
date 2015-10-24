@@ -88,7 +88,10 @@ public:
     int open(const char* preferred_script);
     int parseLine();
 
+    FILE *fileopen(const pstring& path, const char *mode, const bool save = false, const bool usesavedir = false);
     void saveGlobalData();
+    void setArchivePath(const pstring& path);
+    void setSavePath(const pstring& path);
     void setNsaOffset(const char *off);
 
 #ifdef MACOSX
@@ -121,6 +124,7 @@ public:
     int selectcolorCommand(const pstring& cmd);
     int savenumberCommand(const pstring& cmd);
     int savenameCommand(const pstring& cmd);
+    int savedirCommand(const pstring& cmd);
     int rubyonCommand(const pstring& cmd);
     int rubyoffCommand(const pstring& cmd);
     int roffCommand(const pstring& cmd);
