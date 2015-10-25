@@ -356,7 +356,9 @@ int PonscripterLabel::clickWait(bool display_char)
         return RET_CONTINUE | RET_NOREAD;
     }
     else {
-        clickstr_state   = CLICK_WAIT;
+        if (current_read_language == -1 || current_read_language == current_language) {
+            clickstr_state   = CLICK_WAIT;
+        }
         if (skip_to_wait || (sentence_font.wait_time == 0)) {
             skip_to_wait = 0;
             flush(refreshMode());
@@ -394,7 +396,9 @@ int PonscripterLabel::clickNewPage(bool display_char)
 {
     const char* c = script_h.getStrBuf(string_buffer_offset);
 
-    clickstr_state = CLICK_NEWPAGE;
+    if (current_read_language != -1 && current_read_language != current_language) {
+        clickstr_state = CLICK_NEWPAGE;
+    }
 
     if (display_char) {
         drawChar(c, &sentence_font, true, true, accumulation_surface,
@@ -511,6 +515,55 @@ int PonscripterLabel::processText()
     new_line_skip_flag = false;
 
     char ch = script_h.readStrBuf(string_buffer_offset);
+
+    // Chronotrig, multilang inline command hack, ignore ! and # commands when current language isn't being read
+    if (current_read_language != -1 && current_read_language != current_language) {
+        int startingChar = string_buffer_offset;
+        if (ch == '!') {
+            string_buffer_offset++;
+            if (script_h.readStrBuf(string_buffer_offset) == 'w' ||
+                script_h.readStrBuf(string_buffer_offset) == 'd') {
+                ++string_buffer_offset;
+                while (script_h.isadigit(script_h.readStrBuf(string_buffer_offset))) {
+                    ++string_buffer_offset;
+                }
+                while (script_h.isawspace(script_h.readStrBuf(string_buffer_offset)))
+                    ++string_buffer_offset;
+
+            } else if (script_h.readStrBuf(string_buffer_offset) == 's') {
+                string_buffer_offset++;
+                if (script_h.readStrBuf(string_buffer_offset) == 'd') {
+                    string_buffer_offset++;
+                } else {
+                    while (script_h.isadigit(script_h.readStrBuf(string_buffer_offset))) {
+                        ++string_buffer_offset;
+                    }
+                    while (script_h.isawspace(script_h.readStrBuf(string_buffer_offset)))
+                        ++string_buffer_offset;
+                }
+            }
+            if (string_buffer_offset - startingChar > 3) {
+                fprintf(stderr,"first ga");
+                return RET_CONTINUE;
+            } else {
+                fprintf(stderr,"second ga");
+                string_buffer_offset = startingChar;
+            }
+        } else if (ch == '#') {
+            char hexchecker;
+            bool isValidHex = true;
+            for (int i = 0; i <= 5; ++i) {
+                hexchecker = script_h.readStrBuf(string_buffer_offset + i + 1);
+                if (!script_h.isaxdigit(hexchecker)) {
+                    isValidHex = false;
+                }
+            }
+            if (isValidHex) {
+                string_buffer_offset += 7;
+                return RET_CONTINUE;
+            }
+        }
+    }
 
     if (ch == '@') { // wait for click
         return clickWait(false);
