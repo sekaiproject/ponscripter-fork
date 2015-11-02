@@ -18,5 +18,7 @@
 	<string>APPL</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>10.5</string>
+	<key>NSHighResolutionCapable</key>
+	<string>Yes</string>
 </dict>
 </plist>
