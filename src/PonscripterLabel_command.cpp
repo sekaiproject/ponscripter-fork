@@ -273,7 +273,9 @@ int PonscripterLabel::texecCommand(const pstring& cmd)
                     current_text_buffer[j]->addBuffer(0x0a);
                 }
             }
-            sentence_font.newLine();
+            if (current_read_language == current_language || current_read_language == -1) {
+                sentence_font.newLine();
+            }
         }
     }
 

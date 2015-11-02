@@ -473,7 +473,19 @@ int PonscripterLabel::processText()
     }
     if (event_mode & (WAIT_INPUT_MODE | WAIT_SLEEP_MODE)) {
         draw_cursor_flag = false;
-        if (clickstr_state == CLICK_WAIT) {
+        if (script_h.readStrBuf(string_buffer_offset) == '!') {
+            string_buffer_offset++;
+            if (script_h.readStrBuf(string_buffer_offset) == 'w' ||
+                script_h.readStrBuf(string_buffer_offset) == 'd') {
+                ++string_buffer_offset;
+                while (script_h.isadigit(script_h.readStrBuf(string_buffer_offset))) {
+                    ++string_buffer_offset;
+                }
+                while (script_h.isawspace(script_h.readStrBuf(string_buffer_offset)))
+                    ++string_buffer_offset;
+            }
+        }
+        else if (clickstr_state == CLICK_WAIT) {
             string_buffer_offset += file_encoding->NextCharSizeWithLigatures
                 (script_h.getStrBuf(string_buffer_offset), &sentence_font);
             clickstr_state = CLICK_NONE;
@@ -485,18 +497,6 @@ int PonscripterLabel::processText()
             newPage(true);
             clickstr_state = CLICK_NONE;
             return RET_CONTINUE | RET_NOREAD;
-        }
-        else if (script_h.readStrBuf(string_buffer_offset) == '!') {
-            string_buffer_offset++;
-            if (script_h.readStrBuf(string_buffer_offset) == 'w' ||
-                script_h.readStrBuf(string_buffer_offset) == 'd') {
-                ++string_buffer_offset;
-                while (script_h.isadigit(script_h.readStrBuf(string_buffer_offset))) {
-                    ++string_buffer_offset;
-                }
-                while (script_h.isawspace(script_h.readStrBuf(string_buffer_offset)))
-                    ++string_buffer_offset;
-            }
         }
         else
             string_buffer_offset +=
@@ -543,10 +543,8 @@ int PonscripterLabel::processText()
                 }
             }
             if (string_buffer_offset - startingChar > 3) {
-                fprintf(stderr,"first ga");
                 return RET_CONTINUE;
             } else {
-                fprintf(stderr,"second ga");
                 string_buffer_offset = startingChar;
             }
         } else if (ch == '#') {
