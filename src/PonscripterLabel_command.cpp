@@ -2282,8 +2282,7 @@ int PonscripterLabel::getscreenshotCommand(const pstring& cmd)
 
     if (screenshot_surface == NULL)
         screenshot_surface =
-	    SDL_CreateRGBSurface(0, w, h, 32, 0x00ff0000,
-				 0x0000ff00, 0x000000ff, 0xff000000);
+	    SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
 
     SDL_Surface* surface =
 	SDL_ConvertSurface(screen_surface,image_surface->format, SDL_SWSURFACE);
