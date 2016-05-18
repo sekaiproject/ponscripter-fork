@@ -1111,7 +1111,9 @@ void PonscripterLabel::timerEvent(void)
     }
     else if (event_mode & EFFECT_EVENT_MODE) {
         const char* current = script_h.getCurrent();
-        ret = this->parseLine();
+        int ret = ScriptParser::parseLine();
+        if ( ret == RET_NOMATCH ) ret = this->parseLine();
+        //ret = this->parseLine();
 
         if (ret & RET_CONTINUE) {
             if (ret == RET_CONTINUE) {
