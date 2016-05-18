@@ -2704,8 +2704,14 @@ int PonscripterLabel::drawsp3Command(const pstring& cmd)
     int sprite_no = script_h.readIntValue();
     int cell_no   = script_h.readIntValue();
     int alpha     = script_h.readIntValue();
-    int x         = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    int y         = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+
+    int res_multiplier = 1;
+    #ifdef USE_2X_MODE
+    res_multiplier = 2;
+    #endif
+
+    int x         = script_h.readIntValue() * screen_ratio1 * res_multiplier / screen_ratio2;
+    int y         = script_h.readIntValue() * screen_ratio1 * res_multiplier / screen_ratio2;
 
     AnimationInfo &si = sprite_info[sprite_no];
     int old_cell_no = si.current_cell;
@@ -2741,9 +2747,14 @@ int PonscripterLabel::drawsp2Command(const pstring& cmd)
     int cell_no   = script_h.readIntValue();
     int alpha     = script_h.readIntValue();
 
+    int res_multiplier = 1;
+    #ifdef USE_2X_MODE
+    res_multiplier = 2;
+    #endif
+
     AnimationInfo &si = sprite_info[sprite_no];
-    si.pos.x   = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    si.pos.y   = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    si.pos.x   = script_h.readIntValue() * screen_ratio1 * res_multiplier / screen_ratio2;
+    si.pos.y   = script_h.readIntValue() * screen_ratio1 * res_multiplier / screen_ratio2;
     si.scale_x = script_h.readIntValue();
     si.scale_y = script_h.readIntValue();
     si.rot     = script_h.readIntValue();
@@ -2765,8 +2776,14 @@ int PonscripterLabel::drawspCommand(const pstring& cmd)
     int sprite_no = script_h.readIntValue();
     int cell_no   = script_h.readIntValue();
     int alpha     = script_h.readIntValue();
-    int x         = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    int y         = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+
+    int res_multiplier = 1;
+    #ifdef USE_2X_MODE
+    res_multiplier = 2;
+    #endif
+
+    int x         = script_h.readIntValue() * screen_ratio1 * res_multiplier / screen_ratio2;
+    int y         = script_h.readIntValue() * screen_ratio1 * res_multiplier / screen_ratio2;
 
     AnimationInfo &si = sprite_info[sprite_no];
     int old_cell_no = si.current_cell;
