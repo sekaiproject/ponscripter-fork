@@ -1618,7 +1618,7 @@ int PonscripterLabel::monocroCommand(const pstring& cmd)
         }
     }
     dirty_rect.fill(screen_width, screen_height);
-    flush(refreshMode());
+    //flush(refreshMode());
     return RET_CONTINUE;
 }
 
