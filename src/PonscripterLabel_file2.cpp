@@ -123,6 +123,7 @@ int PonscripterLabel::loadSaveFile2(SaveFileType file_type, int file_version)
 	if (tachi_info[i].image_name) {
 	    parseTaggedString(&tachi_info[i]);
 	    setupAnimationInfo(&tachi_info[i]);
+        tachi_info[i].visible(true);
 	}
     }
 

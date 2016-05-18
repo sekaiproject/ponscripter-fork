@@ -1618,7 +1618,7 @@ int PonscripterLabel::monocroCommand(const pstring& cmd)
         }
     }
     dirty_rect.fill(screen_width, screen_height);
-    flush(refreshMode());
+    //flush(refreshMode());
     return RET_CONTINUE;
 }
 
@@ -2282,8 +2282,7 @@ int PonscripterLabel::getscreenshotCommand(const pstring& cmd)
 
     if (screenshot_surface == NULL)
         screenshot_surface =
-	    SDL_CreateRGBSurface(0, w, h, 32, 0x00ff0000,
-				 0x0000ff00, 0x000000ff, 0xff000000);
+	    SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
 
     SDL_Surface* surface =
 	SDL_ConvertSurface(screen_surface,image_surface->format, SDL_SWSURFACE);
@@ -2705,8 +2704,14 @@ int PonscripterLabel::drawsp3Command(const pstring& cmd)
     int sprite_no = script_h.readIntValue();
     int cell_no   = script_h.readIntValue();
     int alpha     = script_h.readIntValue();
-    int x         = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    int y         = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+
+    int res_multiplier = 1;
+    #ifdef USE_2X_MODE
+    res_multiplier = 2;
+    #endif
+
+    int x         = script_h.readIntValue() * screen_ratio1 * res_multiplier / screen_ratio2;
+    int y         = script_h.readIntValue() * screen_ratio1 * res_multiplier / screen_ratio2;
 
     AnimationInfo &si = sprite_info[sprite_no];
     int old_cell_no = si.current_cell;
@@ -2742,9 +2747,14 @@ int PonscripterLabel::drawsp2Command(const pstring& cmd)
     int cell_no   = script_h.readIntValue();
     int alpha     = script_h.readIntValue();
 
+    int res_multiplier = 1;
+    #ifdef USE_2X_MODE
+    res_multiplier = 2;
+    #endif
+
     AnimationInfo &si = sprite_info[sprite_no];
-    si.pos.x   = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    si.pos.y   = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    si.pos.x   = script_h.readIntValue() * screen_ratio1 * res_multiplier / screen_ratio2;
+    si.pos.y   = script_h.readIntValue() * screen_ratio1 * res_multiplier / screen_ratio2;
     si.scale_x = script_h.readIntValue();
     si.scale_y = script_h.readIntValue();
     si.rot     = script_h.readIntValue();
@@ -2766,8 +2776,14 @@ int PonscripterLabel::drawspCommand(const pstring& cmd)
     int sprite_no = script_h.readIntValue();
     int cell_no   = script_h.readIntValue();
     int alpha     = script_h.readIntValue();
-    int x         = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    int y         = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+
+    int res_multiplier = 1;
+    #ifdef USE_2X_MODE
+    res_multiplier = 2;
+    #endif
+
+    int x         = script_h.readIntValue() * screen_ratio1 * res_multiplier / screen_ratio2;
+    int y         = script_h.readIntValue() * screen_ratio1 * res_multiplier / screen_ratio2;
 
     AnimationInfo &si = sprite_info[sprite_no];
     int old_cell_no = si.current_cell;
