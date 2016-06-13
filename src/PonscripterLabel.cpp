@@ -106,6 +106,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["bgmvol"]           = &PonscripterLabel::mp3volCommand;
     dict["bidirect"]         = &PonscripterLabel::bidirectCommand;
     dict["blt"]              = &PonscripterLabel::bltCommand;
+    dict["endroll"]          = &PonscripterLabel::endrollCommand;
     dict["br"]               = &PonscripterLabel::brCommand;
     dict["br2"]              = &PonscripterLabel::brCommand;
     dict["btn"]              = &PonscripterLabel::btnCommand;
@@ -2130,7 +2131,7 @@ void PonscripterLabel::loadEnvData()
     if (loadFileIOBuf("envdata") == 0) {
         use_default_volume = false;
         bool do_fullscreen = false;
-        if (readInt() == 1 && window_mode == false)
+        if (readInt() == 1 && window_mode == false && false)
             do_fullscreen = true;
         if (readInt() == 0)
             volume_on_flag = false;

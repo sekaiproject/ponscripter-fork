@@ -319,6 +319,7 @@ public:
     int btnCommand(const pstring& cmd);
     int brCommand(const pstring& cmd);
     int bltCommand(const pstring& cmd);
+    int endrollCommand(const pstring& cmd);
     int bidirectCommand(const pstring& cmd);
     int bgcopyCommand(const pstring& cmd);
     int bgCommand(const pstring& cmd);

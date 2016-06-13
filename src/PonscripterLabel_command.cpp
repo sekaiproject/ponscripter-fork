@@ -3424,6 +3424,157 @@ int PonscripterLabel::bltCommand(const pstring& cmd)
     return RET_CONTINUE;
 }
 
+int PonscripterLabel::endrollCommand(const pstring& cmd)
+{
+    int dx, dy, dw, dh;
+    int sx, sy, sw, sh;
+    int interval, dist, count, multiplier = 2, timecounter = 0, amountcounter = 0;
+    unsigned int lasttime, nexttime, starttime;
+
+    int res_multiplier = 1;
+    #ifdef USE_2X_MODE
+    res_multiplier = 2;
+    #endif
+
+    dx = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    dy = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    dw = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    dh = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    sx = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    sy = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    sw = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    sh = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    dist = script_h.readIntValue();
+    interval = script_h.readIntValue() * dist;
+    count = script_h.readIntValue() / dist;
+
+    dist = dist * res_multiplier;
+
+    int ret = 0;
+    bool done_flag = false;
+    bool interrupted_redraw = false;
+    bool done_click_down = false;
+
+    if (btndef_info.image_surface == NULL) return RET_CONTINUE;
+
+    if (dw == 0 || dh == 0 || sw == 0 || sh == 0) return RET_CONTINUE;
+
+    if (sw == dw && sw > 0 && sh == dh && sh > 0) {
+        starttime = SDL_GetTicks();
+        for (int index = 0; index <= count && !done_flag; index++) {
+            SDL_Event event, tmp_event;
+            while (SDL_PollEvent(&event)) {
+                switch (event.type) {
+                case SDL_KEYUP: {
+                    int s = ((SDL_KeyboardEvent*) &event)->keysym.sym;
+                    if (s == SDLK_f) {
+                        if (fullscreen_mode) menu_windowCommand("menu_window");
+                        else menu_fullCommand("menu_full");
+                    }
+                    break;
+                }
+                case SDL_QUIT:
+                    ret = 1;
+                    done_flag = true;
+                    break;
+                case SDL_WINDOWEVENT:
+                    switch(event.window.event) {
+                        case SDL_WINDOWEVENT_MAXIMIZED:
+                        case SDL_WINDOWEVENT_RESIZED:
+                            SDL_PumpEvents();
+                            SDL_PeepEvents(&tmp_event, 1, SDL_GETEVENT, SDL_MOUSEBUTTONDOWN, SDL_MOUSEBUTTONDOWN);
+                            done_click_down = false;
+                            break;
+                    }
+                default:
+                    break;
+                }
+            }
+
+            timecounter += interval;
+            amountcounter += dist;
+            SDL_Rect src_rect = { sx, sy + amountcounter, sw, sh };
+            SDL_Rect dst_rect = { dx, dy, dw, dh };
+            SDL_BlitSurface(btndef_info.image_surface, &src_rect, screen_surface, &dst_rect);
+            //TODO, fix this. haven't found it used yet
+            //SDL_UpdateRect(screen_surface, dst_rect.x, dst_rect.y, dst_rect.w, dst_rect.h);
+            SDL_UpdateTexture(screen_tex, NULL, screen_surface->pixels, screen_surface->pitch);
+            SDL_RenderClear(renderer);
+            SDL_RenderCopy(renderer, screen_tex, NULL, NULL);
+            SDL_RenderPresent(renderer);
+            //dirty_rect.clear();
+
+            nexttime = SDL_GetTicks();
+            int startamount = (nexttime - starttime);
+            int diff = (timecounter / 10) - startamount;
+            if (diff > 0) {
+                SDL_Delay(diff);
+            }
+            // wait until timecounter
+        }
+
+        if (ret == 1) {
+            endCommand("end");
+        }
+    }
+    else {
+        SDL_LockSurface(accumulation_surface);
+        SDL_LockSurface(btndef_info.image_surface);
+        ONSBuf* dst_buf = (ONSBuf*) accumulation_surface->pixels;
+        ONSBuf* src_buf = (ONSBuf*) btndef_info.image_surface->pixels;
+#ifdef BPP16
+        int dst_width = accumulation_surface->pitch / 2;
+        int src_width = btndef_info.image_surface->pitch / 2;
+#else
+        int dst_width = accumulation_surface->pitch / 4;
+        int src_width = btndef_info.image_surface->pitch / 4;
+#endif
+
+        int start_y = dy, end_y = dy + dh;
+        if (dh < 0) {
+            start_y = dy + dh;
+            end_y = dy;
+        }
+
+        if (start_y < 0) start_y = 0;
+
+        if (end_y > screen_height) end_y = screen_height;
+
+        int start_x = dx, end_x = dx + dw;
+        if (dw < 0) {
+            start_x = dx + dw;
+            end_x = dx;
+        }
+
+        if (start_x < 0) start_x = 0;
+
+        if (end_x >= screen_width) end_x = screen_width;
+
+        dst_buf += start_y * dst_width;
+        for (int i = start_y; i < end_y; i++) {
+            int y = sy + sh * (i - dy) / dh;
+            for (int j = start_x; j < end_x; j++) {
+                int x = sx + sw * (j - dx) / dw;
+                if (x < 0 || x >= btndef_info.image_surface->w
+                    || y < 0 || y >= btndef_info.image_surface->h)
+                    *(dst_buf + j) = 0;
+                else
+                    *(dst_buf + j) = *(src_buf + y * src_width + x);
+            }
+
+            dst_buf += dst_width;
+        }
+
+        SDL_UnlockSurface(btndef_info.image_surface);
+        SDL_UnlockSurface(accumulation_surface);
+
+        SDL_Rect dst_rect = { start_x, start_y, end_x - start_x, end_y - start_y };
+        flushDirect(dst_rect, REFRESH_NONE_MODE);
+    }
+
+    return RET_CONTINUE;
+}
+
 
 int PonscripterLabel::bidirectCommand(const pstring& cmd)
 {
