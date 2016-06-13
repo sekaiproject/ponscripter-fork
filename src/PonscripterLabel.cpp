@@ -106,6 +106,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["bgmvol"]           = &PonscripterLabel::mp3volCommand;
     dict["bidirect"]         = &PonscripterLabel::bidirectCommand;
     dict["blt"]              = &PonscripterLabel::bltCommand;
+    dict["endroll"]          = &PonscripterLabel::endrollCommand;
     dict["br"]               = &PonscripterLabel::brCommand;
     dict["br2"]              = &PonscripterLabel::brCommand;
     dict["btn"]              = &PonscripterLabel::btnCommand;
