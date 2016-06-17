@@ -4,7 +4,7 @@ ONSCRICON ICON @I@
 
 1 VERSIONINFO
 FILEVERSION @Y@, @M@, @D@, 0
-PRODUCTVERSION @Y@, 7, @D@, 0
+PRODUCTVERSION @Y@, @M@, @D@, 0
 FILEFLAGS 32
 FILEOS 4
 FILETYPE 1
@@ -14,12 +14,12 @@ FILETYPE 1
        BLOCK "040904B0" {
            VALUE "FileDescription", "Proportional ONScripter"
            VALUE "OriginalFilename", "ponscr.exe"
-           VALUE "CompanyName", "Studio OGA/insani/Haeleth/Sonozaki"
-           VALUE "FileVersion", "@Y@-@M@-@D@"
-           VALUE "LegalCopyright", "Copyright (c) 1998-2007 Studio O.G.A, 2005-6 insani, 2006-2009 Haeleth, 2009-2010 Sonozaki."
+           VALUE "CompanyName", "Studio OGA/insani/Haeleth/Sonozaki(UncleMion)"
+           VALUE "FileVersion", "@Y@-@M@-@D@+WH"
+           VALUE "LegalCopyright", "Copyright (c) 1998-2007 Studio O.G.A, 2005-6 insani, 2006-2009 Haeleth, 2009-2010 Sonozaki (2011-2016 UncleMion)."
            VALUE "ProductName", "Ponscripter"
-           VALUE "ProductVersion", "@Y@-@M@-@D@"
-           VALUE "SpecialBuild", "A fork of ONScripter with enhanced support for international text."
+           VALUE "ProductVersion", "@Y@-@M@-@D@+WH"
+           VALUE "SpecialBuild", "A fork of ONScripter with enhanced support for international text. This build contains special functionality for Witch Hunt's bilingual Umineko release."
            VALUE "Comments", "Ponscripter is a fork of Ogapee's ONScripter. It's licensed under the GNU General Public License: see GPL.txt for details."
        }
    }

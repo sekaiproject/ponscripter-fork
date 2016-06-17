@@ -1008,6 +1008,7 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
             stopAnimation(clickstr_state);
             advancePhase();
         }
+/*      //disabling 'o' for page-mode since it's currently broken for Umineko
         else if (event->keysym.sym == SDLK_o) {
             draw_one_page_flag = !draw_one_page_flag;
             //printf("toggle draw one page flag to %s\n", (draw_one_page_flag ? "true" : "false"));
@@ -1016,6 +1017,7 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
                 advancePhase();
             }
         }
+*/
         else if (event->keysym.sym == SDLK_a && mode_ext_flag &&
                  !automode_flag)
         {

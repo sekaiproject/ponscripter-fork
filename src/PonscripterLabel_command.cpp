@@ -1368,7 +1368,7 @@ int PonscripterLabel::negaCommand(const pstring& cmd)
 {
     nega_mode = script_h.readIntValue();
     dirty_rect.fill(screen_width, screen_height);
-    flush(refreshMode());
+
     return RET_CONTINUE;
 }
 
@@ -1618,7 +1618,7 @@ int PonscripterLabel::monocroCommand(const pstring& cmd)
         }
     }
     dirty_rect.fill(screen_width, screen_height);
-    //flush(refreshMode());
+
     return RET_CONTINUE;
 }
 
@@ -1734,6 +1734,7 @@ int PonscripterLabel::langallCommand(const pstring& cmd)
 
 int PonscripterLabel::lspCommand(const pstring& cmd)
 {
+//TODO: add support for "lsp2add" etc.
     int ret = leaveTextDisplayMode();
     if (ret != RET_NOMATCH) return ret;
 

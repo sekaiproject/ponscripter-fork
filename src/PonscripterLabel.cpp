@@ -106,7 +106,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["bgmvol"]           = &PonscripterLabel::mp3volCommand;
     dict["bidirect"]         = &PonscripterLabel::bidirectCommand;
     dict["blt"]              = &PonscripterLabel::bltCommand;
-    dict["endroll"]          = &PonscripterLabel::endrollCommand;
+    dict["endroll"]          = &PonscripterLabel::endrollCommand; //for Umineko
     dict["br"]               = &PonscripterLabel::brCommand;
     dict["br2"]              = &PonscripterLabel::brCommand;
     dict["btn"]              = &PonscripterLabel::btnCommand;
@@ -181,6 +181,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["gettextextent"]    = &PonscripterLabel::haeleth_text_extentCommand;
     dict["gettextheight"]    = &PonscripterLabel::haeleth_text_heightCommand;
     dict["gettextspeed"]     = &PonscripterLabel::gettextspeedCommand;
+    //these "lang" cmds are for bilingual support for Umineko
     dict["langjp"]           = &PonscripterLabel::langjpCommand;
     dict["langen"]           = &PonscripterLabel::langenCommand;
     dict["langall"]          = &PonscripterLabel::langallCommand;
@@ -2131,7 +2132,7 @@ void PonscripterLabel::loadEnvData()
     if (loadFileIOBuf("envdata") == 0) {
         use_default_volume = false;
         bool do_fullscreen = false;
-        if (readInt() == 1 && window_mode == false && false)
+        if (readInt() == 1 && window_mode == false && false) //disabled due to fullscreen crashing on recent OSX
             do_fullscreen = true;
         if (readInt() == 0)
             volume_on_flag = false;
@@ -2139,7 +2140,7 @@ void PonscripterLabel::loadEnvData()
         if (text_speed_no < 0 || text_speed_no > 2) {
             text_speed_no = 1;
         }
-        if (readInt() == 1)
+        if (readInt() == 1 && false) //disabled since page-mode broken on Umineko
             draw_one_page_flag = true;
         default_env_font = readStr();
         if (!default_env_font)
