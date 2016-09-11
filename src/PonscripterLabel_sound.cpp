@@ -697,7 +697,7 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
               // hide unsightly green line, should probably be cleaned up
               // chronotrig again: now this is causing trouble for windows only
               // Removing the old change to see if it fixes anything
-              r2.x = 0; r2.y = 0; r2.w = r.w * 2; r2.h = r.h * 2;
+              r2.x = -2; r2.y = -2; r2.w = r.w * 2 + 4; r2.h = r.h * 2 + 4;
               SDL_RenderCopy(renderer, video_texture, &r, &r2);
 #else
               SDL_RenderCopy(renderer, video_texture, &r, &r);
