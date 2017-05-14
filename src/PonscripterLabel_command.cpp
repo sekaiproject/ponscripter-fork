@@ -3587,13 +3587,28 @@ int PonscripterLabel::bidirectCommand(const pstring& cmd)
 int PonscripterLabel::bgcopyCommand(const pstring& cmd)
 {
     SDL_BlitSurface(screen_surface, NULL, accumulation_surface, NULL);
-    fprintf(stderr, "Likely not-updated command used bgcopyCommand\n");
+    fprintf(stderr, "Likely partially-updated command used bgcopyCommand\n");
 
     bg_info.num_of_cells = 1;
     bg_info.trans_mode = AnimationInfo::TRANS_COPY;
     bg_info.pos.x = 0;
     bg_info.pos.y = 0;
     bg_info.copySurface(accumulation_surface, NULL);
+    
+    /* chronotrig's hacky fix for transparent background */
+    ONSBuf* dst_buffer = (ONSBuf*) bg_info.image_surface->pixels;
+    #if SDL_BYTEORDER == SDL_LIL_ENDIAN
+        unsigned char *alphap = (unsigned char *)dst_buffer + 3;
+    #else
+        unsigned char *alphap = (unsigned char *)dst_buffer;
+    #endif
+        for (int i=0 ; i < bg_info.image_surface->h; i++) {
+            for (int j=0 ; j < bg_info.image_surface->w; j++) {
+                *alphap = 255;
+                alphap += 4;
+            }
+        }
+    /* end of hack */
 
     return RET_CONTINUE;
 }
