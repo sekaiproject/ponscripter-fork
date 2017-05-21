@@ -674,6 +674,10 @@ void PonscripterLabel::variableEditMode(SDL_KeyboardEvent* event)
 
 void PonscripterLabel::shiftCursorOnButton(int diff)
 {
+    // TODO Chronotrig did this, I'm so sorry, I'll fix it later
+    if (true) {
+        return;
+    }
     if (buttons.size() < 2)
 	shortcut_mouse_line = buttons.begin();
     else if (diff > 0) {
