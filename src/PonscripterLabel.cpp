@@ -320,6 +320,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["texton"]           = &PonscripterLabel::textonCommand;
     dict["textshow"]         = &PonscripterLabel::textshowCommand;
     dict["textspeed"]        = &PonscripterLabel::textspeedCommand;
+    dict["transbtn"]         = &PonscripterLabel::transbtnCommand;
     dict["trap"]             = &PonscripterLabel::trapCommand;
     dict["voicevol"]         = &PonscripterLabel::voicevolCommand;
     dict["vsp"]              = &PonscripterLabel::vspCommand;
@@ -1476,7 +1477,7 @@ void PonscripterLabel::mouseOverCheck(int x, int y)
     /* ---------------------------------------- */
     /* Check button */
     int button = 0;
-    bool have_buttons = false;
+    bool have_buttons = false, in_button = false;
 
     // We seek buttons in reverse order in order to preserve an
     // NScripter behaviour: if buttons overlap, it uses whichever was
@@ -1487,8 +1488,24 @@ void PonscripterLabel::mouseOverCheck(int x, int y)
         const SDL_Rect& r = it->second.select_rect;
         have_buttons = true;
         if (x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h) {
-            button = it->first;
-            break;
+            in_button = true;
+            if (transbtn_flag) {
+                in_button = false;
+                AnimationInfo *anim = NULL;
+                if ( it->second.button_type == ButtonElt::SPRITE_BUTTON ||
+                     it->second.button_type == ButtonElt::EX_SPRITE_BUTTON )
+                    anim = &sprite_info[ it->second.sprite_no ];
+                else
+                    anim = it->second.anim[0];
+                int alpha = anim->getPixelAlpha(x - it->second.select_rect.x,
+                                                y - it->second.select_rect.y);
+                if (alpha > TRANSBTN_CUTOFF)
+                    in_button = true;
+            }
+            if (in_button) {
+                button = it->first;
+                break;
+            }
         }
     }
 
@@ -2238,6 +2255,8 @@ void PonscripterLabel::quit()
 void PonscripterLabel::disableGetButtonFlag()
 {
     btndown_flag     = false;
+    transbtn_flag = false;
+
     getzxc_flag      = false;
     gettab_flag      = false;
     getpageup_flag   = false;

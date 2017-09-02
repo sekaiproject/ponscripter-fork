@@ -190,6 +190,12 @@ int PonscripterLabel::trapCommand(const pstring& cmd)
     return RET_CONTINUE;
 }
 
+int PonscripterLabel::transbtnCommand(const pstring& cmd)
+{
+    transbtn_flag = true;
+
+    return RET_CONTINUE;
+}
 
 int PonscripterLabel::textspeedCommand(const pstring& cmd)
 {

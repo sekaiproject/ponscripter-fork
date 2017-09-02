@@ -178,6 +178,7 @@ public:
     int voicevolCommand(const pstring& cmd);
     int vCommand(const pstring& cmd);
     int trapCommand(const pstring& cmd);
+    int transbtnCommand(const pstring& cmd);
     int textspeedCommand(const pstring& cmd);
     int textshowCommand(const pstring& cmd);
     int textonCommand(const pstring& cmd);
@@ -457,6 +458,7 @@ private:
     long internal_button_timer;
     long btnwait_time;
     bool btndown_flag;
+    bool transbtn_flag;
 
     void quit();
 
