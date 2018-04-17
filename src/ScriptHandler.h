@@ -283,7 +283,8 @@ public:
     enum { SCREEN_SIZE_640x480 = 0,
            SCREEN_SIZE_800x600 = 1,
            SCREEN_SIZE_400x300 = 2,
-           SCREEN_SIZE_320x240 = 3 };
+           SCREEN_SIZE_320x240 = 3,
+           SCREEN_SIZE_960x600 = 4 };
     int global_variable_border;
 
     pstring game_identifier;

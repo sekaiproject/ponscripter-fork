@@ -324,6 +324,17 @@ int ScriptParser::open(const char* preferred_script)
     if (script_h.readScript(&archive_path, preferred_script)) return -1;
 
     switch (script_h.screen_size) {
+    case ScriptHandler::SCREEN_SIZE_960x600:
+#ifdef PDA
+        screen_ratio1 = 2;
+        screen_ratio2 = 5;
+#else
+        screen_ratio1 = 1;
+        screen_ratio2 = 1;
+#endif
+        screen_width  = 960 * screen_ratio1 / screen_ratio2;
+        screen_height = 600 * screen_ratio1 / screen_ratio2;
+        break;
     case ScriptHandler::SCREEN_SIZE_800x600:
 #ifdef PDA
         screen_ratio1 = 2;
