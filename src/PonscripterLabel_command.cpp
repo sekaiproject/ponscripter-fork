@@ -190,6 +190,12 @@ int PonscripterLabel::trapCommand(const pstring& cmd)
     return RET_CONTINUE;
 }
 
+int PonscripterLabel::transbtnCommand(const pstring& cmd)
+{
+    transbtn_flag = true;
+
+    return RET_CONTINUE;
+}
 
 int PonscripterLabel::textspeedCommand(const pstring& cmd)
 {
@@ -259,6 +265,7 @@ int PonscripterLabel::textclearCommand(const pstring& cmd)
 
 int PonscripterLabel::texecCommand(const pstring& cmd)
 {
+    int j;
     if (textgosub_clickstr_state == CLICK_NEWPAGE) {
         newPage(true);
         clickstr_state = CLICK_NONE;
@@ -267,8 +274,14 @@ int PonscripterLabel::texecCommand(const pstring& cmd)
         if (!sentence_font.isLineEmpty() && !new_line_skip_flag) {
             indent_offset = 0;
             line_enter_status = 0;
-            current_text_buffer->addBuffer(0x0a);
-            sentence_font.newLine();
+            for (j = 0; j < 2; j++) {
+                if (current_read_language == j || current_read_language == -1) {
+                    current_text_buffer[j]->addBuffer(0x0a);
+                }
+            }
+            if (current_read_language == current_language || current_read_language == -1) {
+                sentence_font.newLine();
+            }
         }
     }
 
@@ -783,24 +796,29 @@ void PonscripterLabel::DoSetwindow(PonscripterLabel::WindowDef& def)
 
 void PonscripterLabel::setwindowCore()
 {
+    int res_multiplier = 1;
+    #ifdef USE_2X_MODE
+    res_multiplier = 2;
+    #endif
+
     WindowDef wind;
-    wind.left      = script_h.readIntValue();
-    wind.top       = script_h.readIntValue();
-    wind.width     = script_h.readIntValue();
-    wind.height    = script_h.readIntValue();
+    wind.left      = script_h.readIntValue() * res_multiplier;
+    wind.top       = script_h.readIntValue() * res_multiplier;
+    wind.width     = script_h.readIntValue() * res_multiplier;
+    wind.height    = script_h.readIntValue() * res_multiplier;
     int size_1     = script_h.readIntValue();
     int size_2     = script_h.readIntValue();
-    wind.font_size = size_1 > size_2 ? size_1 : size_2;
-    wind.pitch_x   = script_h.readIntValue();
-    wind.pitch_y   = script_h.readIntValue();
+    wind.font_size = size_1 > size_2 ? size_1 * res_multiplier : size_2 * res_multiplier;
+    wind.pitch_x   = script_h.readIntValue() * res_multiplier;
+    wind.pitch_y   = script_h.readIntValue() * res_multiplier;
     wind.speed     = script_h.readIntValue();
     wind.bold      = script_h.readIntValue();
     wind.shadow    = script_h.readIntValue();
     wind.backdrop  = script_h.readStrValue();
-    wind.w_left    = script_h.readIntValue();
-    wind.w_top     = script_h.readIntValue(); 
-    wind.w_right   = script_h.hasMoreArgs() ? script_h.readIntValue() : 0;
-    wind.w_bottom  = script_h.hasMoreArgs() ? script_h.readIntValue() : 0;
+    wind.w_left    = script_h.readIntValue() * res_multiplier;
+    wind.w_top     = script_h.readIntValue() * res_multiplier; 
+    wind.w_right   = script_h.hasMoreArgs() ? script_h.readIntValue() * res_multiplier : 0;
+    wind.w_bottom  = script_h.hasMoreArgs() ? script_h.readIntValue() * res_multiplier : 0;
   
     // Window size is defined in characters
     // (this used to be just for non-Ponscripter games, but as of
@@ -1155,7 +1173,7 @@ int PonscripterLabel::resettimerCommand(const pstring& cmd)
 int PonscripterLabel::resetCommand(const pstring& cmd)
 {
     resetSub();
-    clearCurrentTextBuffer();
+    clearAllCurrentTextBuffers();
     string_buffer_offset = 0;
 
     setCurrentLabel("start");
@@ -1218,7 +1236,7 @@ int PonscripterLabel::quakeCommand(const pstring& cmd)
 
 int PonscripterLabel::puttextCommand(const pstring& cmd)
 {
-    int ret = enterTextDisplayMode(false);
+    int ret = enterTextDisplayMode(false), j;
     if (ret != RET_NOMATCH) return ret;
 
     pstring s = script_h.readStrValue() + "\n";
@@ -1229,7 +1247,11 @@ int PonscripterLabel::puttextCommand(const pstring& cmd)
     if (script_h.readStrBuf(string_buffer_offset) == 0x0a) {
         ret = RET_CONTINUE; // suppress RET_CONTINUE | RET_NOREAD
         if (!sentence_font.isLineEmpty() && !new_line_skip_flag) {
-            current_text_buffer->addBuffer(0x0a);
+            for (j = 0; j < 2; j++) {
+                if (current_read_language == j || current_read_language == -1) {
+                    current_text_buffer[j]->addBuffer(0x0a);
+                }
+            }
             sentence_font.newLine();
         }
     }
@@ -1352,7 +1374,7 @@ int PonscripterLabel::negaCommand(const pstring& cmd)
 {
     nega_mode = script_h.readIntValue();
     dirty_rect.fill(screen_width, screen_height);
-    flush(refreshMode());
+
     return RET_CONTINUE;
 }
 
@@ -1362,6 +1384,10 @@ int PonscripterLabel::mspCommand(const pstring& cmd)
     int ret = leaveTextDisplayMode();
     if (ret != RET_NOMATCH) return ret;
 
+    int res_multiplier = 1;
+    #ifdef USE_2X_MODE
+    res_multiplier = 2;
+    #endif
     // Haeleth extension: the form `msp NUM,NUM,NUM[,NUM]' is augmented
     // by the form `msp NUM,NUM' which modifies only the transparency.
     // Likewise `msp2 NUM,NUM,NUM,NUM,NUM,NUM[,NUM]' is augmented by
@@ -1375,8 +1401,8 @@ int PonscripterLabel::mspCommand(const pstring& cmd)
     AnimationInfo& si = sprite2 ? sprite2_info[no] : sprite_info[no];
     if (script_h.hasMoreArgs()) {
         dirty_rect.add(sprite2 ? si.bounding_rect : si.pos);
-        x = val * screen_ratio1 / screen_ratio2;
-        y = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+        x = val * screen_ratio1 / screen_ratio2 * res_multiplier;
+        y = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
         if (sprite2) {
             modsp2 = true;
             sx = script_h.readIntValue();
@@ -1598,7 +1624,7 @@ int PonscripterLabel::monocroCommand(const pstring& cmd)
         }
     }
     dirty_rect.fill(screen_width, screen_height);
-    flush(refreshMode());
+
     return RET_CONTINUE;
 }
 
@@ -1662,10 +1688,66 @@ int PonscripterLabel::menu_automodeCommand(const pstring& cmd)
 }
 
 
+int PonscripterLabel::getreadlangCommand(const pstring& cmd)
+{
+    script_h.readIntExpr().mutate(current_read_language);
+    return RET_CONTINUE;
+}
+
+int PonscripterLabel::showlangenCommand(const pstring& cmd)
+{
+    current_language = 0;
+    //loadSaveFile(15);
+    text_info.fill(0, 0, 0, 0);
+    flush(refreshMode(), &sentence_font_info.pos);
+
+    return RET_CONTINUE;
+}
+
+int PonscripterLabel::showlangjpCommand(const pstring& cmd)
+{
+    current_language = 1;
+    //loadSaveFile(15);
+    text_info.fill(0, 0, 0, 0);
+    flush(refreshMode(), &sentence_font_info.pos);
+
+    return RET_CONTINUE;
+}
+
+int PonscripterLabel::langenCommand(const pstring& cmd)
+{
+    current_read_language = 0;
+
+    return RET_CONTINUE;
+}
+
+int PonscripterLabel::langjpCommand(const pstring& cmd)
+{
+    //if (current_read_language != 1) {
+    //    saveSaveFile(15);
+    //}
+    current_read_language = 1;
+
+    return RET_CONTINUE;
+}
+
+int PonscripterLabel::langallCommand(const pstring& cmd)
+{
+    current_read_language = -1;
+
+    return RET_CONTINUE;
+}
+
 int PonscripterLabel::lspCommand(const pstring& cmd)
 {
+//TODO: add support for "lsp2add" etc.
     int ret = leaveTextDisplayMode();
     if (ret != RET_NOMATCH) return ret;
+
+    int res_multiplier = 1;
+    #ifdef USE_2X_MODE
+    res_multiplier = 2;
+    #endif
 
     bool sprite2 = cmd == "lsp2" || cmd == "lsph2";
     bool hidden = cmd == "lsph" || cmd == "lsph2";
@@ -1677,12 +1759,12 @@ int PonscripterLabel::lspCommand(const pstring& cmd)
 
     si.visible(!hidden);
     si.setImageName(script_h.readStrValue());
-    si.pos.x = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    si.pos.y = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    si.pos.x = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    si.pos.y = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
     if (sprite2) {
-	si.scale_x = script_h.readIntValue();
-	si.scale_y = script_h.readIntValue();
-	si.rot     = script_h.readIntValue();
+    si.scale_x = script_h.readIntValue();
+    si.scale_y = script_h.readIntValue();
+    si.rot     = script_h.readIntValue();
     }
     si.trans = script_h.hasMoreArgs() ? script_h.readIntValue() : 256;
 
@@ -1690,7 +1772,7 @@ int PonscripterLabel::lspCommand(const pstring& cmd)
     setupAnimationInfo(&si);
 
     if (sprite2) {
-	si.calcAffineMatrix();
+    si.calcAffineMatrix();
     }
     
     if (si.showing()) dirty_rect.add(sprite2 ? si.bounding_rect : si.pos);
@@ -1735,14 +1817,19 @@ int PonscripterLabel::loopbgmCommand(const pstring& cmd)
 
 int PonscripterLabel::lookbackflushCommand(const pstring& cmd)
 {
-    current_text_buffer = current_text_buffer->next;
-    for (int i = 0; i < max_text_buffer - 1; i++) {
-        current_text_buffer->clear();
-        current_text_buffer = current_text_buffer->next;
-    }
+    int j;
+    for (j = 0; j < 2; j++) {
+        if (current_read_language == j || current_read_language == -1) {
+            current_text_buffer[j] = current_text_buffer[j]->next;
+            for (int i = 0; i < max_text_buffer - 1; i++) {
+                current_text_buffer[j]->clear();
+                current_text_buffer[j] = current_text_buffer[j]->next;
+            }
 
-    clearCurrentTextBuffer();
-    start_text_buffer = current_text_buffer;
+            clearCurrentTextBuffer(j);
+            start_text_buffer[j] = current_text_buffer[j];
+        }
+    }
 
     return RET_CONTINUE;
 }
@@ -1832,17 +1919,21 @@ int PonscripterLabel::locateCommand(const pstring& cmd)
     // command name "h_locate", not with a UTF-8 script.
     //if (!script_h.is_ponscripter) {
     if (cmd == "locate") {
-	x *= sentence_font.size() + sentence_font.pitch_x;
-	y *= sentence_font.line_space() + sentence_font.pitch_y;
+    x *= sentence_font.size() + sentence_font.pitch_x;
+    y *= sentence_font.line_space() + sentence_font.pitch_y;
     }
     else {
-	// For h_locate only, store new location in backlog.
-	pstring tag;
-	int phony;
-	tag.format("x%d", x);
-	current_text_buffer->addBuffer(file_encoding->TranslateTag(tag, phony));
-	tag.format("y%d", y);
-	current_text_buffer->addBuffer(file_encoding->TranslateTag(tag, phony));
+    // For h_locate only, store new location in backlog.
+    pstring tag;
+    int phony, i;
+    for (i = 0; i < 2; i++) {
+        if (current_read_language == i || current_read_language == -1) {
+            tag.format("x%d", x);
+            current_text_buffer[i]->addBuffer(file_encoding->TranslateTag(tag, phony));
+            tag.format("y%d", y);
+            current_text_buffer[i]->addBuffer(file_encoding->TranslateTag(tag, phony));
+        }
+    }
     }
     sentence_font.SetXY(x, y);
     return RET_CONTINUE;
@@ -1891,7 +1982,13 @@ int PonscripterLabel::loadgameCommand(const pstring& cmd)
     }
 }
 
-
+int PonscripterLabel::tachistateCommand(const pstring& cmd)
+{
+    script_h.readIntExpr().mutate((tachi_info[0].showing() && tachi_info[0].file_name != "") ? 1 : 0);
+    script_h.readIntExpr().mutate((tachi_info[1].showing() && tachi_info[1].file_name != "") ? 1 : 0);
+    script_h.readIntExpr().mutate((tachi_info[2].showing() && tachi_info[2].file_name != "") ? 1 : 0);
+    return RET_CONTINUE;
+}
 int PonscripterLabel::ldCommand(const pstring& cmd)
 {
     int ret = leaveTextDisplayMode();
@@ -2077,7 +2174,7 @@ int PonscripterLabel::gettimerCommand(const pstring& cmd)
 
 int PonscripterLabel::gettextCommand(const pstring& cmd)
 {
-    pstring buf = current_text_buffer->contents;
+    pstring buf = current_text_buffer[current_language]->contents;
     buf.findreplace("\x0a", "");
     script_h.readStrExpr(true).mutate(buf);
     return RET_CONTINUE;
@@ -2192,8 +2289,7 @@ int PonscripterLabel::getscreenshotCommand(const pstring& cmd)
 
     if (screenshot_surface == NULL)
         screenshot_surface =
-	    SDL_CreateRGBSurface(0, w, h, 32, 0x00ff0000,
-				 0x0000ff00, 0x000000ff, 0xff000000);
+	    SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
 
     SDL_Surface* surface =
 	SDL_ConvertSurface(screen_surface,image_surface->format, SDL_SWSURFACE);
@@ -2302,8 +2398,8 @@ int PonscripterLabel::getlogCommand(const pstring& cmd)
 {
     Expression e = script_h.readStrExpr();
     int page_no = script_h.readIntValue();
-    TextBuffer* t_buf = current_text_buffer;
-    while (t_buf != start_text_buffer && page_no > 0) {
+    TextBuffer* t_buf = current_text_buffer[current_read_language];
+    while (t_buf != start_text_buffer[current_read_language] && page_no > 0) {
         page_no--;
         t_buf = t_buf->previous;
     }
@@ -2335,8 +2431,12 @@ int PonscripterLabel::getenterCommand(const pstring& cmd)
 
 int PonscripterLabel::getcursorposCommand(const pstring& cmd)
 {
-    script_h.readIntExpr().mutate(int(floor(sentence_font.GetX())));
-    script_h.readIntExpr().mutate(sentence_font.GetY());
+    int res_divider = 1;
+    #ifdef USE_2X_MODE
+    res_divider = 2;
+    #endif
+    script_h.readIntExpr().mutate(int(floor(sentence_font.GetX() / res_divider)));
+    script_h.readIntExpr().mutate(sentence_font.GetY() / res_divider);
     return RET_CONTINUE;
 }
 
@@ -2368,7 +2468,7 @@ int PonscripterLabel::getcselnumCommand(const pstring& cmd)
 
 int PonscripterLabel::gameCommand(const pstring& cmd)
 {
-    int i;
+    int i, j;
     current_mode = NORMAL_MODE;
 
     /* ---------------------------------------- */
@@ -2403,17 +2503,21 @@ int PonscripterLabel::gameCommand(const pstring& cmd)
 
     /* ---------------------------------------- */
     /* Initialize text buffer */
-    text_buffer = new TextBuffer[max_text_buffer];
-    for (i = 0; i < max_text_buffer - 1; i++) {
-        text_buffer[i].next = &text_buffer[i + 1];
-        text_buffer[i + 1].previous = &text_buffer[i];
+    // textbufferchange
+    text_buffer = new TextBuffer*[2];
+    for (j = 0; j < 2; j++) {
+        text_buffer[j] = new TextBuffer[max_text_buffer];
+        for (i = 0; i < max_text_buffer - 1; i++) {
+            text_buffer[j][i].next = &text_buffer[j][i + 1];
+            text_buffer[j][i + 1].previous = &text_buffer[j][i];
+        }
+
+        text_buffer[j][0].previous = &text_buffer[j][max_text_buffer - 1];
+        text_buffer[j][max_text_buffer - 1].next = &text_buffer[j][0];
+        start_text_buffer[j] = current_text_buffer[j] = &text_buffer[j][0];
+
+        clearCurrentTextBuffer(j);
     }
-
-    text_buffer[0].previous = &text_buffer[max_text_buffer - 1];
-    text_buffer[max_text_buffer - 1].next = &text_buffer[0];
-    start_text_buffer = current_text_buffer = &text_buffer[0];
-
-    clearCurrentTextBuffer();
 
     /* ---------------------------------------- */
     /* Initialize local variables */
@@ -2607,8 +2711,14 @@ int PonscripterLabel::drawsp3Command(const pstring& cmd)
     int sprite_no = script_h.readIntValue();
     int cell_no   = script_h.readIntValue();
     int alpha     = script_h.readIntValue();
-    int x         = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    int y         = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+
+    int res_multiplier = 1;
+    #ifdef USE_2X_MODE
+    res_multiplier = 2;
+    #endif
+
+    int x         = script_h.readIntValue() * screen_ratio1 * res_multiplier / screen_ratio2;
+    int y         = script_h.readIntValue() * screen_ratio1 * res_multiplier / screen_ratio2;
 
     AnimationInfo &si = sprite_info[sprite_no];
     int old_cell_no = si.current_cell;
@@ -2644,9 +2754,14 @@ int PonscripterLabel::drawsp2Command(const pstring& cmd)
     int cell_no   = script_h.readIntValue();
     int alpha     = script_h.readIntValue();
 
+    int res_multiplier = 1;
+    #ifdef USE_2X_MODE
+    res_multiplier = 2;
+    #endif
+
     AnimationInfo &si = sprite_info[sprite_no];
-    si.pos.x   = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    si.pos.y   = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    si.pos.x   = script_h.readIntValue() * screen_ratio1 * res_multiplier / screen_ratio2;
+    si.pos.y   = script_h.readIntValue() * screen_ratio1 * res_multiplier / screen_ratio2;
     si.scale_x = script_h.readIntValue();
     si.scale_y = script_h.readIntValue();
     si.rot     = script_h.readIntValue();
@@ -2668,8 +2783,14 @@ int PonscripterLabel::drawspCommand(const pstring& cmd)
     int sprite_no = script_h.readIntValue();
     int cell_no   = script_h.readIntValue();
     int alpha     = script_h.readIntValue();
-    int x         = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    int y         = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+
+    int res_multiplier = 1;
+    #ifdef USE_2X_MODE
+    res_multiplier = 2;
+    #endif
+
+    int x         = script_h.readIntValue() * screen_ratio1 * res_multiplier / screen_ratio2;
+    int y         = script_h.readIntValue() * screen_ratio1 * res_multiplier / screen_ratio2;
 
     AnimationInfo &si = sprite_info[sprite_no];
     int old_cell_no = si.current_cell;
@@ -2922,8 +3043,8 @@ int PonscripterLabel::checkpageCommand(const pstring& cmd)
 {
     Expression e = script_h.readIntExpr();
     int page_no = script_h.readIntValue();
-    TextBuffer* t_buf = current_text_buffer;
-    while (t_buf != start_text_buffer && page_no > 0) {
+    TextBuffer* t_buf = current_text_buffer[current_language];
+    while (t_buf != start_text_buffer[current_language] && page_no > 0) {
         page_no--;
         t_buf = t_buf->previous;
     }
@@ -3185,24 +3306,30 @@ int PonscripterLabel::btnCommand(const pstring& cmd)
 int PonscripterLabel::brCommand(const pstring& cmd)
 {
     int delta = cmd == "br2" ? script_h.readIntValue()
-	                     : (script_h.is_ponscripter ? 50 : 100);
+                         : (script_h.is_ponscripter ? 50 : 100);
 
-    int ret = enterTextDisplayMode();
+    int ret = enterTextDisplayMode(), i;
     if (ret != RET_NOMATCH) return ret;
 
     int cs = sentence_font.mod_size(),
-	ns = sentence_font.base_size() * delta / 100;
+    ns = sentence_font.base_size() * delta / 100;
     sentence_font.set_mod_size(ns);
     sentence_font.newLine();
     sentence_font.set_mod_size(cs);
 
     int ignored;
     pstring tag;
-    tag.format("=%d", ns);
-    current_text_buffer->addBuffer(file_encoding->TranslateTag(tag, ignored));
-    current_text_buffer->addBuffer(0x0a);
-    tag.format("=%d", cs);
-    current_text_buffer->addBuffer(file_encoding->TranslateTag(tag, ignored));
+
+    // textbufferchange
+    for (i = 0; i < 2; i++) {
+        if (current_read_language == i || current_read_language == -1) {
+            tag.format("=%d", ns);
+            current_text_buffer[i]->addBuffer(file_encoding->TranslateTag(tag, ignored));
+            current_text_buffer[i]->addBuffer(0x0a);
+            tag.format("=%d", cs);
+            current_text_buffer[i]->addBuffer(file_encoding->TranslateTag(tag, ignored));
+        }
+    }
 
     return RET_CONTINUE;
 }
@@ -3213,15 +3340,21 @@ int PonscripterLabel::bltCommand(const pstring& cmd)
   fprintf(stderr, "bltCommand used, but not updated to SDL2 properly\n");
     int dx, dy, dw, dh;
     int sx, sy, sw, sh;
+    int multiplier = 2;
 
-    dx = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    dy = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    dw = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    dh = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    sx = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    sy = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    sw = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
-    sh = script_h.readIntValue() * screen_ratio1 / screen_ratio2;
+    int res_multiplier = 1;
+    #ifdef USE_2X_MODE
+    res_multiplier = 2;
+    #endif
+
+    dx = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    dy = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    dw = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    dh = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    sx = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    sy = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    sw = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    sh = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
 
     if (btndef_info.image_surface == NULL) return RET_CONTINUE;
 
@@ -3298,6 +3431,157 @@ int PonscripterLabel::bltCommand(const pstring& cmd)
     return RET_CONTINUE;
 }
 
+int PonscripterLabel::endrollCommand(const pstring& cmd)
+{
+    int dx, dy, dw, dh;
+    int sx, sy, sw, sh;
+    int interval, dist, count, multiplier = 2, timecounter = 0, amountcounter = 0;
+    unsigned int lasttime, nexttime, starttime;
+
+    int res_multiplier = 1;
+    #ifdef USE_2X_MODE
+    res_multiplier = 2;
+    #endif
+
+    dx = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    dy = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    dw = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    dh = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    sx = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    sy = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    sw = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    sh = script_h.readIntValue() * screen_ratio1 / screen_ratio2 * res_multiplier;
+    dist = script_h.readIntValue();
+    interval = script_h.readIntValue() * dist;
+    count = script_h.readIntValue() / dist;
+
+    dist = dist * res_multiplier;
+
+    int ret = 0;
+    bool done_flag = false;
+    bool interrupted_redraw = false;
+    bool done_click_down = false;
+
+    if (btndef_info.image_surface == NULL) return RET_CONTINUE;
+
+    if (dw == 0 || dh == 0 || sw == 0 || sh == 0) return RET_CONTINUE;
+
+    if (sw == dw && sw > 0 && sh == dh && sh > 0) {
+        starttime = SDL_GetTicks();
+        for (int index = 0; index <= count && !done_flag; index++) {
+            SDL_Event event, tmp_event;
+            while (SDL_PollEvent(&event)) {
+                switch (event.type) {
+                case SDL_KEYUP: {
+                    int s = ((SDL_KeyboardEvent*) &event)->keysym.sym;
+                    if (s == SDLK_f) {
+                        if (fullscreen_mode) menu_windowCommand("menu_window");
+                        else menu_fullCommand("menu_full");
+                    }
+                    break;
+                }
+                case SDL_QUIT:
+                    ret = 1;
+                    done_flag = true;
+                    break;
+                case SDL_WINDOWEVENT:
+                    switch(event.window.event) {
+                        case SDL_WINDOWEVENT_MAXIMIZED:
+                        case SDL_WINDOWEVENT_RESIZED:
+                            SDL_PumpEvents();
+                            SDL_PeepEvents(&tmp_event, 1, SDL_GETEVENT, SDL_MOUSEBUTTONDOWN, SDL_MOUSEBUTTONDOWN);
+                            done_click_down = false;
+                            break;
+                    }
+                default:
+                    break;
+                }
+            }
+
+            timecounter += interval;
+            amountcounter += dist;
+            SDL_Rect src_rect = { sx, sy + amountcounter, sw, sh };
+            SDL_Rect dst_rect = { dx, dy, dw, dh };
+            SDL_BlitSurface(btndef_info.image_surface, &src_rect, screen_surface, &dst_rect);
+            //TODO, fix this. haven't found it used yet
+            //SDL_UpdateRect(screen_surface, dst_rect.x, dst_rect.y, dst_rect.w, dst_rect.h);
+            SDL_UpdateTexture(screen_tex, NULL, screen_surface->pixels, screen_surface->pitch);
+            SDL_RenderClear(renderer);
+            SDL_RenderCopy(renderer, screen_tex, NULL, NULL);
+            SDL_RenderPresent(renderer);
+            //dirty_rect.clear();
+
+            nexttime = SDL_GetTicks();
+            int startamount = (nexttime - starttime);
+            int diff = (timecounter / 10) - startamount;
+            if (diff > 0) {
+                SDL_Delay(diff);
+            }
+            // wait until timecounter
+        }
+
+        if (ret == 1) {
+            endCommand("end");
+        }
+    }
+    else {
+        SDL_LockSurface(accumulation_surface);
+        SDL_LockSurface(btndef_info.image_surface);
+        ONSBuf* dst_buf = (ONSBuf*) accumulation_surface->pixels;
+        ONSBuf* src_buf = (ONSBuf*) btndef_info.image_surface->pixels;
+#ifdef BPP16
+        int dst_width = accumulation_surface->pitch / 2;
+        int src_width = btndef_info.image_surface->pitch / 2;
+#else
+        int dst_width = accumulation_surface->pitch / 4;
+        int src_width = btndef_info.image_surface->pitch / 4;
+#endif
+
+        int start_y = dy, end_y = dy + dh;
+        if (dh < 0) {
+            start_y = dy + dh;
+            end_y = dy;
+        }
+
+        if (start_y < 0) start_y = 0;
+
+        if (end_y > screen_height) end_y = screen_height;
+
+        int start_x = dx, end_x = dx + dw;
+        if (dw < 0) {
+            start_x = dx + dw;
+            end_x = dx;
+        }
+
+        if (start_x < 0) start_x = 0;
+
+        if (end_x >= screen_width) end_x = screen_width;
+
+        dst_buf += start_y * dst_width;
+        for (int i = start_y; i < end_y; i++) {
+            int y = sy + sh * (i - dy) / dh;
+            for (int j = start_x; j < end_x; j++) {
+                int x = sx + sw * (j - dx) / dw;
+                if (x < 0 || x >= btndef_info.image_surface->w
+                    || y < 0 || y >= btndef_info.image_surface->h)
+                    *(dst_buf + j) = 0;
+                else
+                    *(dst_buf + j) = *(src_buf + y * src_width + x);
+            }
+
+            dst_buf += dst_width;
+        }
+
+        SDL_UnlockSurface(btndef_info.image_surface);
+        SDL_UnlockSurface(accumulation_surface);
+
+        SDL_Rect dst_rect = { start_x, start_y, end_x - start_x, end_y - start_y };
+        flushDirect(dst_rect, REFRESH_NONE_MODE);
+    }
+
+    return RET_CONTINUE;
+}
+
 
 int PonscripterLabel::bidirectCommand(const pstring& cmd)
 {
@@ -3309,13 +3593,28 @@ int PonscripterLabel::bidirectCommand(const pstring& cmd)
 int PonscripterLabel::bgcopyCommand(const pstring& cmd)
 {
     SDL_BlitSurface(screen_surface, NULL, accumulation_surface, NULL);
-    fprintf(stderr, "Likely not-updated command used bgcopyCommand\n");
+    fprintf(stderr, "Likely partially-updated command used bgcopyCommand\n");
 
     bg_info.num_of_cells = 1;
     bg_info.trans_mode = AnimationInfo::TRANS_COPY;
     bg_info.pos.x = 0;
     bg_info.pos.y = 0;
     bg_info.copySurface(accumulation_surface, NULL);
+    
+    /* chronotrig's hacky fix for transparent background */
+    ONSBuf* dst_buffer = (ONSBuf*) bg_info.image_surface->pixels;
+    #if SDL_BYTEORDER == SDL_LIL_ENDIAN
+        unsigned char *alphap = (unsigned char *)dst_buffer + 3;
+    #else
+        unsigned char *alphap = (unsigned char *)dst_buffer;
+    #endif
+        for (int i=0 ; i < bg_info.image_surface->h; i++) {
+            for (int j=0 ; j < bg_info.image_surface->w; j++) {
+                *alphap = 255;
+                alphap += 4;
+            }
+        }
+    /* end of hack */
 
     return RET_CONTINUE;
 }

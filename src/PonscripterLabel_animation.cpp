@@ -255,11 +255,11 @@ void PonscripterLabel::setupAnimationInfo(AnimationInfo* anim, Fontinfo* info)
     }
     else {
         bool has_alpha;
-        SDL_Surface *surface = loadImage( anim->file_name, &has_alpha );
+        SDL_Surface *surface = loadImage( anim->file_name, &has_alpha, anim->twox );
 
         SDL_Surface *surface_m = NULL;
         if (anim->trans_mode == AnimationInfo::TRANS_MASK)
-            surface_m = loadImage( anim->mask_file_name );
+            surface_m = loadImage( anim->mask_file_name, NULL, anim->twox);
 
         anim->setupImage(surface, surface_m, has_alpha);
         if (surface)   SDL_FreeSurface(surface);
@@ -282,8 +282,13 @@ void PonscripterLabel::parseTaggedString(AnimationInfo* anim, bool is_mask)
     //use COPY as default trans_mode for masks
     if (is_mask) anim->trans_mode = AnimationInfo::TRANS_COPY;
 
+    anim->twox = false;
     if (buffer[0] == ':') {
         while (*++buffer == ' ') ;
+        if (buffer[0] == 'b') {
+            anim->twox = true;
+            buffer++;
+        }
 
         if (buffer[0] == 'a') {
             anim->trans_mode = AnimationInfo::TRANS_ALPHA;

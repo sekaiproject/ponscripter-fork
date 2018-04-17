@@ -278,7 +278,7 @@ readTokenTop:
         }
         while (ch != 0x0a && ch != '\0' && loop_flag &&
                ch != file_encoding->TextMarker()) /*nop*/;
-        if (loop_flag && ch == 0x0a && !(textgosub_flag && linepage_flag)) {
+        if (ch == 0x0a && !(textgosub_flag && linepage_flag)) {
             string_buffer += ch;
             if (!no_kidoku) markAsKidoku(buf++);
         }

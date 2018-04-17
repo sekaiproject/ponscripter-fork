@@ -157,6 +157,12 @@ public:
     int haeleth_ligate_controlCommand(const pstring& cmd);
     int haeleth_sayCommand(const pstring& cmd);
     int gettextspeedCommand(const pstring& cmd);
+    int getreadlangCommand(const pstring& cmd);
+    int showlangenCommand(const pstring& cmd);
+    int showlangjpCommand(const pstring& cmd);
+    int langenCommand(const pstring& cmd);
+    int langjpCommand(const pstring& cmd);
+    int langallCommand(const pstring& cmd);
     int vsp_whenCommand(const pstring& cmd);
 
     //Mion: locale support
@@ -172,6 +178,7 @@ public:
     int voicevolCommand(const pstring& cmd);
     int vCommand(const pstring& cmd);
     int trapCommand(const pstring& cmd);
+    int transbtnCommand(const pstring& cmd);
     int textspeedCommand(const pstring& cmd);
     int textshowCommand(const pstring& cmd);
     int textonCommand(const pstring& cmd);
@@ -238,6 +245,7 @@ public:
     int logspCommand(const pstring& cmd);
     int locateCommand(const pstring& cmd);
     int loadgameCommand(const pstring& cmd);
+    int tachistateCommand(const pstring& cmd);
     int ldCommand(const pstring& cmd);
     int jumpfCommand(const pstring& cmd);
     int jumpbCommand(const pstring& cmd);
@@ -312,6 +320,7 @@ public:
     int btnCommand(const pstring& cmd);
     int brCommand(const pstring& cmd);
     int bltCommand(const pstring& cmd);
+    int endrollCommand(const pstring& cmd);
     int bidirectCommand(const pstring& cmd);
     int bgcopyCommand(const pstring& cmd);
     int bgCommand(const pstring& cmd);
@@ -449,6 +458,7 @@ private:
     long internal_button_timer;
     long btnwait_time;
     bool btndown_flag;
+    bool transbtn_flag;
 
     void quit();
 
@@ -840,7 +850,8 @@ private:
     int  text_speed_no;
 
     void shadowTextDisplay(SDL_Surface* surface, SDL_Rect &clip);
-    void clearCurrentTextBuffer();
+    void clearCurrentTextBuffer(int j);
+    void clearAllCurrentTextBuffers();
     void newPage(bool next_flag);
 
     void rerender();
@@ -878,7 +889,7 @@ private:
 
     /* ---------------------------------------- */
     /* Image processing */
-    SDL_Surface* loadImage(const pstring& file_name, bool* has_alpha = NULL);
+    SDL_Surface* loadImage(const pstring& file_name, bool* has_alpha = NULL, bool twox = false);
     SDL_Surface *createRectangleSurface(const pstring& filename);
     SDL_Surface *createSurfaceFromFile(const pstring& filename, int *location);
 
@@ -904,7 +915,7 @@ private:
     int  shelter_event_mode;
     int  shelter_display_mode;
     bool shelter_draw_cursor_flag;
-    TextBuffer* cached_text_buffer;
+    TextBuffer* cached_text_buffer[2];
 
     void enterSystemCall();
     void leaveSystemCall(bool restore_flag = true);

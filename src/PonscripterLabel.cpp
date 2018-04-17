@@ -106,6 +106,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["bgmvol"]           = &PonscripterLabel::mp3volCommand;
     dict["bidirect"]         = &PonscripterLabel::bidirectCommand;
     dict["blt"]              = &PonscripterLabel::bltCommand;
+    dict["endroll"]          = &PonscripterLabel::endrollCommand; //for Umineko
     dict["br"]               = &PonscripterLabel::brCommand;
     dict["br2"]              = &PonscripterLabel::brCommand;
     dict["btn"]              = &PonscripterLabel::btnCommand;
@@ -180,6 +181,13 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["gettextextent"]    = &PonscripterLabel::haeleth_text_extentCommand;
     dict["gettextheight"]    = &PonscripterLabel::haeleth_text_heightCommand;
     dict["gettextspeed"]     = &PonscripterLabel::gettextspeedCommand;
+    //these "lang" cmds are for bilingual support for Umineko
+    dict["langjp"]           = &PonscripterLabel::langjpCommand;
+    dict["langen"]           = &PonscripterLabel::langenCommand;
+    dict["langall"]          = &PonscripterLabel::langallCommand;
+    dict["getreadlang"]      = &PonscripterLabel::getreadlangCommand;
+    dict["showlangen"]       = &PonscripterLabel::showlangenCommand;
+    dict["showlangjp"]       = &PonscripterLabel::showlangjpCommand;
     dict["gettimer"]         = &PonscripterLabel::gettimerCommand;
     dict["getversion"]       = &PonscripterLabel::getversionCommand;
     dict["getvoicevol"]      = &PonscripterLabel::getvoicevolCommand;
@@ -207,6 +215,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["isskip"]           = &PonscripterLabel::isskipCommand;
     dict["jumpb"]            = &PonscripterLabel::jumpbCommand;
     dict["jumpf"]            = &PonscripterLabel::jumpfCommand;
+    dict["tachistate"]       = &PonscripterLabel::tachistateCommand;
     dict["ld"]               = &PonscripterLabel::ldCommand;
     dict["loadgame"]         = &PonscripterLabel::loadgameCommand;
     dict["localestring"]     = &PonscripterLabel::localestringCommand;
@@ -311,6 +320,7 @@ sfunc_lut_t::sfunc_lut_t() {
     dict["texton"]           = &PonscripterLabel::textonCommand;
     dict["textshow"]         = &PonscripterLabel::textshowCommand;
     dict["textspeed"]        = &PonscripterLabel::textspeedCommand;
+    dict["transbtn"]         = &PonscripterLabel::transbtnCommand;
     dict["trap"]             = &PonscripterLabel::trapCommand;
     dict["voicevol"]         = &PonscripterLabel::voicevolCommand;
     dict["vsp"]              = &PonscripterLabel::vspCommand;
@@ -410,11 +420,36 @@ void PonscripterLabel::initSDL()
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 
+
+    /* chronotrig: don't show a window taller than 90% of the shortest display */
+    SDL_DisplayMode current;
+    int minH = 99999, i;
+
+    // Get current display mode of all displays.
+    for(i = 0; i < SDL_GetNumVideoDisplays(); ++i) {
+        SDL_GetCurrentDisplayMode(i, &current);
+        if (minH > current.h) {
+            minH = current.h;
+        }
+    }
+
+    
+    minH = minH * 0.9;
+    int dispW = screen_width;
+    int dispH = screen_height;
+    if (minH < screen_height) {
+        dispW = (minH * screen_width) / screen_height;
+        dispH = minH;
+    }
+
     screen = SDL_CreateWindow(wm_title_string,
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
-        screen_width, screen_height,
+        dispW, dispH,
         (fullscreen_mode ? fullscreen_flags : 0) | SDL_WINDOW_RESIZABLE);
+
+    /* end chronotrig */
+
     renderer = SDL_CreateRenderer(screen, -1, SDL_RENDERER_PRESENTVSYNC);
     if(renderer == NULL) {
       fprintf(stderr, "Couldn't create SDL renderer: %s\n", SDL_GetError());
@@ -1442,7 +1477,7 @@ void PonscripterLabel::mouseOverCheck(int x, int y)
     /* ---------------------------------------- */
     /* Check button */
     int button = 0;
-    bool have_buttons = false;
+    bool have_buttons = false, in_button = false;
 
     // We seek buttons in reverse order in order to preserve an
     // NScripter behaviour: if buttons overlap, it uses whichever was
@@ -1453,8 +1488,24 @@ void PonscripterLabel::mouseOverCheck(int x, int y)
         const SDL_Rect& r = it->second.select_rect;
         have_buttons = true;
         if (x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h) {
-            button = it->first;
-            break;
+            in_button = true;
+            if (transbtn_flag) {
+                in_button = false;
+                AnimationInfo *anim = NULL;
+                if ( it->second.button_type == ButtonElt::SPRITE_BUTTON ||
+                     it->second.button_type == ButtonElt::EX_SPRITE_BUTTON )
+                    anim = &sprite_info[ it->second.sprite_no ];
+                else
+                    anim = it->second.anim[0];
+                int alpha = anim->getPixelAlpha(x - it->second.select_rect.x,
+                                                y - it->second.select_rect.y);
+                if (alpha > TRANSBTN_CUTOFF)
+                    in_button = true;
+            }
+            if (in_button) {
+                button = it->first;
+                break;
+            }
         }
     }
 
@@ -1708,7 +1759,7 @@ int PonscripterLabel::parseLine()
 
 //--------LINE BREAKING ROUTINE-------------------------------------------------
 
-    int lf;
+    int lf, j;
     Fontinfo f = sentence_font;
     const wchar first_ch =
         file_encoding->DecodeWithLigatures(script_h.getStrBuf(string_buffer_offset),
@@ -1788,7 +1839,11 @@ int PonscripterLabel::parseLine()
             if (len < minlen) len = minlen;
         }
         if (len > 0 && f.isNoRoomFor(len)) {
-            current_text_buffer->addBuffer(0x0a);
+            for (j = 0; j < 2; j++) {
+                if (current_read_language == j || current_read_language == -1) {
+                    current_text_buffer[j]->addBuffer(0x0a);
+                }
+            }
             sentence_font.newLine();
             f.newLine();
         }
@@ -1798,7 +1853,11 @@ int PonscripterLabel::parseLine()
     if (script_h.readStrBuf(string_buffer_offset) == 0x0a) {
         ret = RET_CONTINUE; // suppress RET_CONTINUE | RET_NOREAD
         if (!sentence_font.isLineEmpty() && !new_line_skip_flag) {
-            current_text_buffer->addBuffer(0x0a);
+            for (j = 0; j < 2; j++) {
+                if (current_read_language == j || current_read_language == -1) {
+                    current_text_buffer[j]->addBuffer(0x0a);
+                }
+            }
             sentence_font.newLine();
         }
         //event_mode = IDLE_EVENT_MODE;
@@ -1854,17 +1913,29 @@ void PonscripterLabel::warpMouse(int x, int y) {
 }
 
 
-void PonscripterLabel::clearCurrentTextBuffer()
+void PonscripterLabel::clearCurrentTextBuffer(int j)
 {
-    sentence_font.clear();
+    if (current_read_language == -1 || current_read_language == current_language) {
+        sentence_font.clear();
+    }
 
-    current_text_buffer->clear();
+    current_text_buffer[j]->clear();
 
     num_chars_in_sentence = 0;
     internal_saveon_flag  = true;
 
-    text_info.fill(0, 0, 0, 0);
-    cached_text_buffer = current_text_buffer;
+    if (current_read_language == -1 || current_read_language == current_language) {
+        text_info.fill(0, 0, 0, 0);
+    }
+    cached_text_buffer[j] = current_text_buffer[j];
+}
+
+void PonscripterLabel::clearAllCurrentTextBuffers()
+{
+    int j;
+    for (j = 0; j < 2; j++) {
+        clearCurrentTextBuffer(j);
+    }
 }
 
 
@@ -1908,20 +1979,24 @@ void PonscripterLabel::shadowTextDisplay(SDL_Surface* surface, SDL_Rect &clip)
 
 void PonscripterLabel::newPage(bool next_flag)
 {
+    int j;
     /* ---------------------------------------- */
     /* Set forward the text buffer */
-    if (!current_text_buffer->empty()) {
-        current_text_buffer = current_text_buffer->next;
-        if (start_text_buffer == current_text_buffer)
-            start_text_buffer = start_text_buffer->next;
-    }
+    for (j = 0; j < 2; j++) {
+        if (current_read_language == j || current_read_language == -1) {
+            if (!current_text_buffer[j]->empty()) {
+                current_text_buffer[j] = current_text_buffer[j]->next;
+                if (start_text_buffer[j] == current_text_buffer[j])
+                    start_text_buffer[j] = start_text_buffer[j]->next;
+            }
 
-    if (next_flag) {
-        indent_offset = 0;
-        //line_enter_status = 0;
+            if (next_flag) {
+                indent_offset = 0;
+                //line_enter_status = 0;
+            }
+            clearCurrentTextBuffer(j);
+        }
     }
-
-    clearCurrentTextBuffer();
 
     flush(refreshMode(), &sentence_font_info.pos);
 //TextBuffer_dumpstate();
@@ -2074,7 +2149,7 @@ void PonscripterLabel::loadEnvData()
     if (loadFileIOBuf("envdata") == 0) {
         use_default_volume = false;
         bool do_fullscreen = false;
-        if (readInt() == 1 && window_mode == false)
+        if (readInt() == 1 && window_mode == false && false) //disabled due to fullscreen crashing on recent OSX
             do_fullscreen = true;
         if (readInt() == 0)
             volume_on_flag = false;
@@ -2082,7 +2157,7 @@ void PonscripterLabel::loadEnvData()
         if (text_speed_no < 0 || text_speed_no > 2) {
             text_speed_no = 1;
         }
-        if (readInt() == 1)
+        if (readInt() == 1 && false) //disabled since page-mode broken on Umineko
             draw_one_page_flag = true;
         default_env_font = readStr();
         if (!default_env_font)
@@ -2180,6 +2255,8 @@ void PonscripterLabel::quit()
 void PonscripterLabel::disableGetButtonFlag()
 {
     btndown_flag     = false;
+    transbtn_flag = false;
+
     getzxc_flag      = false;
     gettab_flag      = false;
     getpageup_flag   = false;

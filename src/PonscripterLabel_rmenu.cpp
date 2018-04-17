@@ -46,6 +46,7 @@ void PonscripterLabel::enterSystemCall()
 
 void PonscripterLabel::leaveSystemCall(bool restore_flag)
 {
+    int i;
     current_font = &sentence_font;
     display_mode = shelter_display_mode;
     system_menu_mode = SYSTEM_NULL;
@@ -53,8 +54,11 @@ void PonscripterLabel::leaveSystemCall(bool restore_flag)
     yesno_caller = SYSTEM_NULL;
     key_pressed_flag = false;
 
+    // textbufferchange
     if (restore_flag) {
-        current_text_buffer = cached_text_buffer;
+        for (i = 0; i < 2; i++) {
+            current_text_buffer[i] = cached_text_buffer[i];
+        }
         restoreTextBuffer();
 	buttons.swap(shelter_buttons);
 	shelter_buttons.clear();
@@ -537,8 +541,8 @@ void PonscripterLabel::setupLookbackButton()
 
     /* ---------------------------------------- */
     /* Previous button check */
-    if (current_text_buffer->previous
-        && current_text_buffer != start_text_buffer) {
+    if (current_text_buffer[current_language]->previous
+        && current_text_buffer[current_language] != start_text_buffer[current_language]) {
 	ButtonElt* button = &buttons[1];
 
         button->select_rect.x = sentence_font_info.pos.x;
@@ -573,7 +577,7 @@ void PonscripterLabel::setupLookbackButton()
 
     /* ---------------------------------------- */
     /* Next button check */
-    if (current_text_buffer->next != cached_text_buffer) {
+    if (current_text_buffer[current_language]->next != cached_text_buffer[current_language]) {
 	ButtonElt* button = &buttons[2];
 
         button->select_rect.x = sentence_font_info.pos.x;
@@ -616,13 +620,13 @@ void PonscripterLabel::executeSystemLookback()
     current_font = &sentence_font;
     if (event_mode & WAIT_BUTTON_MODE) {
         if (current_button_state.button == 0
-            || (current_text_buffer == start_text_buffer
+            || (current_text_buffer[current_language] == start_text_buffer[current_language]
                 && current_button_state.button == -2))
             return;
 
         if (current_button_state.button == -1
             || (current_button_state.button == -3
-                && current_text_buffer->next == cached_text_buffer)
+                && current_text_buffer[current_language]->next == cached_text_buffer[current_language])
             || current_button_state.button <= -4) {
             event_mode = IDLE_EVENT_MODE;
             deleteButtons();
@@ -638,14 +642,14 @@ void PonscripterLabel::executeSystemLookback()
 
         if (current_button_state.button == 1
             || current_button_state.button == -2) {
-            current_text_buffer = current_text_buffer->previous;
+            current_text_buffer[current_language] = current_text_buffer[current_language]->previous;
         }
         else
-            current_text_buffer = current_text_buffer->next;
+            current_text_buffer[current_language] = current_text_buffer[current_language]->next;
     }
     else {
-        current_text_buffer = current_text_buffer->previous;
-        if (current_text_buffer->empty()) {
+        current_text_buffer[current_language] = current_text_buffer[current_language]->previous;
+        if (current_text_buffer[current_language]->empty()) {
             if (lookback_sp[0] >= 0)
                 sprite_info[lookback_sp[0]].visible(false);
 

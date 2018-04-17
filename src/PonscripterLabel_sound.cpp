@@ -687,7 +687,21 @@ int PonscripterLabel::playMPEG(const pstring& filename, bool click_flag,
               SDL_Rect r;
               r.x = 0; r.y = 0; r.w = c.frame->image_width; r.h = c.frame->image_height;
               SDL_UpdateTexture(video_texture, &r, c.frame->image, c.frame->image_width);
+#ifdef USE_2X_MODE
+              //Mion: so 2X Umineko will play its video correctly
+              // (note: when adding proper "movie" cmd support, will probably
+              // use some specialized variation of the video_texture
+              // and/or the SDL_Rect for RenderCopy to handle pos&size args)
+              SDL_Rect r2;
+              // chronotrig: Bumping the video 2px down and to the right to 
+              // hide unsightly green line, should probably be cleaned up
+              // chronotrig again: now this is causing trouble for windows only
+              // Removing the old change to see if it fixes anything
+              r2.x = -2; r2.y = -2; r2.w = r.w * 2 + 4; r2.h = r.h * 2 + 4;
+              SDL_RenderCopy(renderer, video_texture, &r, &r2);
+#else
               SDL_RenderCopy(renderer, video_texture, &r, &r);
+#endif
 
               if(subtitles) {
                 /* render any subs onto the screen */

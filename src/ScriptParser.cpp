@@ -185,6 +185,8 @@ ScriptParser::ScriptParser()
 
     text_buffer = NULL;
 
+    current_language = 0;
+    current_read_language = -1;
     syscall_dict["skip"]        = SYSTEM_SKIP;
     syscall_dict["reset"]       = SYSTEM_RESET;
     syscall_dict["save"]        = SYSTEM_SAVE;
@@ -264,12 +266,21 @@ void ScriptParser::reset()
     default_text_speed[2] = DEFAULT_TEXT_SPEED_HIGHT;
     max_text_buffer = MAX_TEXT_BUFFER;
     num_chars_in_sentence = 0;
+    current_read_language = -1;
+
+    // textbufferchange
+    int i;
+    for (i = 0; i < 2; i++) {
+        if (text_buffer && text_buffer[i]) {
+            delete[] text_buffer[i];
+        }
+
+        current_text_buffer[i] = start_text_buffer[i] = NULL;
+    }
     if (text_buffer) {
         delete[] text_buffer;
         text_buffer = NULL;
     }
-
-    current_text_buffer = start_text_buffer = NULL;
 
     clickstr_line  = 0;
     clickstr_state = CLICK_NONE;
@@ -277,7 +288,6 @@ void ScriptParser::reset()
 
     /* ---------------------------------------- */
     /* Sound related variables */
-    int i;
     for (i = 0; i < CLICKVOICE_NUM; i++)
 	clickvoice_file_name[i].trunc(0);
     for (i = 0; i < SELECTVOICE_NUM; i++)
@@ -376,6 +386,10 @@ int ScriptParser::open(const char* preferred_script)
         screen_height = 480 * screen_ratio1 / screen_ratio2;
         break;
     }
+#ifdef USE_2X_MODE
+    screen_width  *= 2;
+    screen_height *= 2;
+#endif
 
     return 0;
 }
@@ -926,24 +940,43 @@ void ScriptParser::createKeyTable(const pstring& key_exe)
 
 void ScriptParser::TextBuffer_dumpstate(int num)
 {
+    return;
     if (num == 0) num = MAX_INT;
-    TextBuffer* t_buf = current_text_buffer;
-    int n = 0;
-    while (t_buf != start_text_buffer) {
+    int i, n, lang;
+    lang = current_read_language;
+    // textbufferchange
+    TextBuffer* t_buf = current_text_buffer[0];
+    n = 0;
+    while (t_buf != start_text_buffer[0]) {
         t_buf = t_buf->previous;
-	++n;
+    ++n;
     }
-    puts("Text buffer status:");
+    puts("Text buffer status en:");
     t_buf = 0;
-    while (t_buf != start_text_buffer && num--) {
-        t_buf = t_buf ? t_buf->previous : current_text_buffer;
-	t_buf->dumpstate(n--);
+    while (t_buf != start_text_buffer[0] && num--) {
+        t_buf = t_buf ? t_buf->previous : current_text_buffer[0];
+    t_buf->dumpstate(n--, lang);
+    }
+
+
+    t_buf = current_text_buffer[1];
+    n = 0;
+    while (t_buf != start_text_buffer[1]) {
+        t_buf = t_buf->previous;
+    ++n;
+    }
+    puts("Text buffer status jp:");
+    t_buf = 0;
+    while (t_buf != start_text_buffer[1] && num--) {
+        t_buf = t_buf ? t_buf->previous : current_text_buffer[1];
+    t_buf->dumpstate(n--, lang);
     }
 }
 
-void ScriptParser::TextBuffer::dumpstate(int n)
+void ScriptParser::TextBuffer::dumpstate(int n, int lang)
 {
     if (n >= 0) printf(" %d:", n);
+    printf("%d ", lang);
     printf("%3d [", contents.length());
     print_escaped(contents);
     puts("]");

@@ -674,6 +674,10 @@ void PonscripterLabel::variableEditMode(SDL_KeyboardEvent* event)
 
 void PonscripterLabel::shiftCursorOnButton(int diff)
 {
+    // TODO Chronotrig did this, I'm so sorry, I'll fix it later
+    if (true) {
+        return;
+    }
     if (buttons.size() < 2)
 	shortcut_mouse_line = buttons.begin();
     else if (diff > 0) {
@@ -1008,6 +1012,7 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
             stopAnimation(clickstr_state);
             advancePhase();
         }
+/*      //disabling 'o' for page-mode since it's currently broken for Umineko
         else if (event->keysym.sym == SDLK_o) {
             draw_one_page_flag = !draw_one_page_flag;
             //printf("toggle draw one page flag to %s\n", (draw_one_page_flag ? "true" : "false"));
@@ -1016,6 +1021,7 @@ void PonscripterLabel::keyPressEvent(SDL_KeyboardEvent* event)
                 advancePhase();
             }
         }
+*/
         else if (event->keysym.sym == SDLK_a && mode_ext_flag &&
                  !automode_flag)
         {
@@ -1111,7 +1117,9 @@ void PonscripterLabel::timerEvent(void)
     }
     else if (event_mode & EFFECT_EVENT_MODE) {
         const char* current = script_h.getCurrent();
-        ret = this->parseLine();
+        int ret = ScriptParser::parseLine();
+        if ( ret == RET_NOMATCH ) ret = this->parseLine();
+        //ret = this->parseLine();
 
         if (ret & RET_CONTINUE) {
             if (ret == RET_CONTINUE) {
