@@ -430,7 +430,7 @@ then
              CFLAGSEXTRA="$CFLAGSEXTRA -DUSE_X86_GFX"
              echo "     Compiling with x86 MMX/SSE2 custom graphics routines";;
     xppc)    USE_PPC_GFX=true
-             GFX_MALTIVEC_FLAGS="-maltivec -DUSE_PPC_GFX"
+             GFX_ALTIVEC_FLAGS="-maltivec -DUSE_PPC_GFX"
              GFX_EXT_OBJS="graphics_altivec.o"
              CFLAGSEXTRA="$CFLAGSEXTRA -DUSE_PPC_GFX"
              echo "     Compiling with PPC custom graphics routines";;
@@ -1148,7 +1148,7 @@ then
 cat >> $MAKEFILE <<_EOF
 
 graphics_altivec.o: graphics_altivec.cpp  graphics_altivec.h graphics_common.h
-	\$(CXX) \$(CXXSTD) \$(PSCFLAGS) \$(INCS) \$(DEFS) $GFX_MALTIVEC_FLAGS -c \$< -o \$@
+	\$(CXX) \$(CXXSTD) \$(PSCFLAGS) \$(INCS) \$(DEFS) $GFX_ALTIVEC_FLAGS -c \$< -o \$@
 _EOF
 fi
 
