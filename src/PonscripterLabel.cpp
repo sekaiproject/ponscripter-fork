@@ -28,6 +28,22 @@
 #include "resources.h"
 #include <ctype.h>
 
+#if defined(USE_PPC_GFX)
+# if defined(__linux__) || (defined(__FreeBSD__) && __FreeBSD__ >= 12)
+#  ifdef __linux__
+#include <asm/cputable.h>
+#  else
+#include <machine/cpu.h>
+#  endif
+#include <sys/auxv.h>
+# elif defined(MACOSX) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#  if defined(__NetBSD__) || defined(__OpenBSD__)
+#include <machine/cpu.h>
+#  endif
+#include <sys/sysctl.h>
+# endif
+#endif
+
 #ifdef MACOSX
 namespace Carbon {
 #include <sys/stat.h>
@@ -607,14 +623,39 @@ PonscripterLabel::PonscripterLabel()
         }
         AnimationInfo::setCpufuncs(func);
     }
-#elif defined(USE_PPC_GFX) && defined(MACOSX)
+#elif defined(USE_PPC_GFX) && (defined(__linux__) || (defined(__FreeBSD__) && __FreeBSD__ >= 12))
+    // Determine if this PPC CPU supports AltiVec
+    {
+        unsigned int func = AnimationInfo::CPUF_NONE;
+        unsigned long hwcap = 0;
+#ifdef __linux__
+        hwcap = getauxval(AT_HWCAP);
+#else
+        elf_aux_info(AT_HWCAP, &hwcap, sizeof(hwcap));
+#endif
+        if (hwcap & PPC_FEATURE_HAS_ALTIVEC) {
+            func |= AnimationInfo::CPUF_PPC_ALTIVEC;
+            printf("System info: PowerPC CPU, supports altivec\n");
+        } else {
+            printf("System info: PowerPC CPU, DOES NOT support altivec\n");
+        }
+        AnimationInfo::setCpufuncs(func);
+    }
+#elif defined(USE_PPC_GFX) && (defined(MACOSX) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__))
     // Determine if this PPC CPU supports AltiVec (Roto)
     {
         unsigned int func = AnimationInfo::CPUF_NONE;
         int altivec_present = 0;
 
         size_t length = sizeof(altivec_present);
+#if defined(MACOSX)
         int error = sysctlbyname("hw.optional.altivec", &altivec_present, &length, NULL, 0);
+#elif defined(__FreeBSD__)
+        int error = sysctlbyname("hw.altivec", &altivec_present, &length, NULL, 0);
+#else
+        int mib[] = { CTL_MACHDEP, CPU_ALTIVEC };
+        int error = sysctl(mib, sizeof(mib)/sizeof(mib[0]), &altivec_present, &length, NULL, 0);
+#endif
         if(error) {
             AnimationInfo::setCpufuncs(AnimationInfo::CPUF_NONE);
             return;
