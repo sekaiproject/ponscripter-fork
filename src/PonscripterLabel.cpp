@@ -462,7 +462,7 @@ void PonscripterLabel::initSDL()
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
         dispW, dispH,
-        (fullscreen_mode ? fullscreen_flags : 0) | SDL_WINDOW_RESIZABLE);
+        (fullscreen_mode ? fullscreen_flags : 0) | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
 
     /* end chronotrig */
 
