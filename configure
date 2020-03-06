@@ -904,6 +904,8 @@ INTERNAL_LIBPNG=\$(findstring true,$INTERNAL_LIBPNG)
 INTERNAL_LIBJPEG=\$(findstring true,$INTERNAL_LIBJPEG)
 INTERNAL_OGGLIBS=\$(findstring true,$INTERNAL_OGGLIBS)
 SDL_CONFIG=$SDL_CONFIG
+export PKG_CONFIG_PATH := \$(shell pwd)/extlib/lib/pkgconfig:\$(PKG_CONFIG_PATH)
+SHELLENV = PKG_CONFIG_PATH=\$(PKG_CONFIG_PATH)
 
 export CC      := $CC
 export CXX     := $CXX
@@ -914,9 +916,9 @@ export RANLIB  := $RANLIB
 
 # Ponscripter variables
 PSCFLAGS = $CFLAGSEXTRA
-INCS = $OURINCS \$(shell \$(SDL_CONFIG) --cflags)      \\
-                \$(shell $SMPEG_CONFIG --cflags)    \\
-                \$(shell $FREETYPE_CONFIG --cflags)
+INCS = $OURINCS \$(shell \$(SHELLENV) \$(SDL_CONFIG) --cflags)      \\
+                \$(shell \$(SHELLENV) $SMPEG_CONFIG --cflags)    \\
+                \$(shell \$(SHELLENV) $FREETYPE_CONFIG --cflags)
 _EOF
 case "$SYS" in 
 MinGW)
@@ -932,9 +934,9 @@ fi
 
 if $INTERNAL_SDL
 then
-  MY_SDL_LIBS="\$(filter-out -lSDL2main,\$(shell \$(SDL_CONFIG) --static-libs))"
+  MY_SDL_LIBS="\$(filter-out -lSDL2main,\$(shell \$(SHELLENV) \$(SDL_CONFIG) --static-libs))"
 else
-  MY_SDL_LIBS="\$(shell \$(SDL_CONFIG) --static-libs)"
+  MY_SDL_LIBS="\$(shell \$(SHELLENV) \$(SDL_CONFIG) --static-libs)"
 fi
 
 cat >> $MAKEFILE <<_EOF
@@ -944,7 +946,7 @@ LIBS = $OURLIBS \\
        $NOTIFYLIBS $GTKLIBS\\
        -static -Wl,--start-group \\
        $MY_SDL_LIBS \\
-       \$(shell $SMPEG_CONFIG --libs) \$(shell $FREETYPE_CONFIG --libs) \\
+       \$(shell \$(SHELLENV) $SMPEG_CONFIG --libs) \$(shell \$(SHELLENV) $FREETYPE_CONFIG --libs) \\
        $LINKSDL2_image $LINKjpeg $LINKpng $LINKz \\
        $LINKSDL2_mixer $LINKogg $LINKvorbis $LINKvorbisfile \\
        $LINKbz2 -Wl,--end-group
@@ -957,9 +959,9 @@ MacOSX)
 cat >> $MAKEFILE <<_EOF
 
 LIBS = $OURLIBS \\
-       \$(shell $SDL_CONFIG --static-libs) \\
-       \$(shell $SMPEG_CONFIG --libs)      \\
-       \$(shell $FREETYPE_CONFIG --libs)   \\
+       \$(shell \$(SHELLENV) $SDL_CONFIG --static-libs) \\
+       \$(shell \$(SHELLENV) $SMPEG_CONFIG --libs)      \\
+       \$(shell \$(SHELLENV) $FREETYPE_CONFIG --libs)   \\
        $LINKSDL2_image $LINKjpeg $LINKpng              \\
        $LINKSDL2_mixer $LINKogg $LINKvorbis $LINKvorbisfile \\
        $LINKbz2 -lm -framework CoreFoundation
@@ -1003,9 +1005,9 @@ cat >> $MAKEFILE <<_EOF
 LIBS = $OURLIBS \\
        $LINKSDL2_image \$(if \$(findstring true,$INTERNAL_SDL_IMAGE),$LINKjpeg $LINKpng $LINKz) \\
        $LINKSDL2_mixer \$(if  \$(findstring true,$INTERNAL_SDL_MIXER$EXPLICIT_OGGLIBS),$LINKvorbisfile $LINKvorbis $LINKogg) \\
-       \$(shell $SDL_CONFIG --libs)      \\
-       \$(shell $SMPEG_CONFIG --libs)    \\
-       \$(shell $FREETYPE_CONFIG --libs) \\
+       \$(shell \$(SHELLENV) $SDL_CONFIG --libs)      \\
+       \$(shell \$(SHELLENV) $SMPEG_CONFIG --libs)    \\
+       \$(shell \$(SHELLENV) $FREETYPE_CONFIG --libs) \\
        $LINKbz2 \$(if \$(findstring true,$INTERNAL_SDL),$INTERNAL_LDFLAGS)
 
 DEFS = -DLINUX -DUSE_OGG_VORBIS $EXTRA_DEPS $OURDEFS

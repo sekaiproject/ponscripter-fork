@@ -107,8 +107,6 @@ Here are my standard `./configure` and `make` lines, successfully building on OS
 make
 ```
 
-**note**: If you *have* the ``sdl2`` kegs installed via [Homebrew](http://brew.sh/), it will fail to build. This is likely an issue we should fix with our Makefiles and all.
-
 ## Building an OS X App
 
 Building a proper application on OS X is fairly easy. Simply make sure you're in the base directory and run this:
