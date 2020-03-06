@@ -48,7 +48,7 @@ SCRIPTER_H = PonscripterLabel.h PonscripterMessage.h $(PARSER_H) DirtyRect.h
 
 TARGET ?= ponscr$(EXESUFFIX)
 $(TARGET): $(PONSCR_OBJS)
-	$(CXX) -o $@ $(PONSCR_OBJS) $(LIBS)
+	$(CXX) -o $@ $(PONSCR_OBJS) $(LIBS) $(LDFLAGS)
 
 pclean:
 	-$(RM) *$(OBJSUFFIX) $(CLEANUP) $(RCCLEAN)
@@ -58,10 +58,10 @@ pdistclean: pclean
 	-$(RM) $(TARGET)
 
 .cpp$(OBJSUFFIX):
-	$(CXX) -c $(CXXSTD) $(PSCFLAGS) $(INCS) $(DEFS) $<
+	$(CXX) -c $(CXXSTD) $(PSCFLAGS) $(CXXFLAGS) $(INCS) $(DEFS) $<
 
 bstrlib$(OBJSUFFIX): bstrlib.c
-	$(CC) -c $(CSTD) $(PSCFLAGS) $(INCS) $(DEFS) $<
+	$(CC) -c $(CSTD) $(PSCFLAGS) $(CFLAGS) $(INCS) $(DEFS) $<
 
 AnimationInfo$(OBJSUFFIX): $(EXTRADEPS) AnimationInfo.h 
 AVIWrapper$(OBJSUFFIX): $(EXTRADEPS) AVIWrapper.h
