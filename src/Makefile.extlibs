@@ -90,7 +90,7 @@ $(SDLISRC)/Makefile: $(if $(INTERNAL_SDL),$(EB)/sdl2-config) \
 	@echo Configuring internal SDL_image...
 	@cd $(SDLISRC) && ./autogen.sh && \
 	./configure --prefix="$(LPREFIX)" $(OTHERCONFIG) \
-	    $(addprefix --disable-,shared lbm pcx pnm tga xcf xv tif \
+	    $(addprefix --disable-,shared lbm pcx pnm tga xcf xv tif webp \
 	    	                   $(if $(INTERNAL_LIBPNG),png-shared) \
                                    $(if $(INTERNAL_LIBJPEG),jpg-shared)) \
 	    $(REDIR)
