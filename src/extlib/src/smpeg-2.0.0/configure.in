@@ -212,9 +212,7 @@ CFLAGS="$CFLAGS -I.. -DNOCONTROLS"
 CFLAGS="$CFLAGS -I\$(top_srcdir) -I\$(top_srcdir)/audio -I\$(top_srcdir)/video"
 CXXFLAGS="$CFLAGS"
 
-
-dnl C++ flags are the same as the C flags
-CXXFLAGS="$CFLAGS"
+CXXFLAGS="-std=c++03 $CFLAGS"
 if test x$GCC = xyes; then
     # Check to see if options -fno-rtti -fno-exceptions are supported
     AC_MSG_CHECKING(if $CXX supports -fno-rtti -fno-exceptions)
