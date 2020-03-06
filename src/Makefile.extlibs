@@ -177,7 +177,7 @@ $(OGGSRC)/Makefile:
 $(EL)/libogg$(LIBSUFFIX): $(OGGSRC)/Makefile
 	@echo Building internal libogg...
 	@$(MAKE) -C $(OGGSRC) $(REDSO)
-	@$(MAKE) -C $(OGGSRC) install $(REDSO)
+	@$(MAKE) -C $(OGGSRC) install -j1 $(REDSO)
 
 $(VORBSRC)/Makefile:
 	@echo Configuring internal libvorbis...
@@ -244,6 +244,7 @@ clean_bzip2:
 	rm -f $(EL)/libbz2$(LIBSUFFIX) $(EI)/bzlib.h $(BZSRC)/*$(OBJSUFFIX)
 
 $(EL)/libbz2$(LIBSUFFIX): $(foreach fn,$(BZOBJS),$(BZSRC)/$(fn)$(OBJSUFFIX))
+	mkdir -p $(EL)
 	rm -f $@
 	$(AR) cq $@ $^
 	@if [ -f "$(RANLIB)" -o -f /usr/bin/ranlib -o \
@@ -252,6 +253,7 @@ $(EL)/libbz2$(LIBSUFFIX): $(foreach fn,$(BZOBJS),$(BZSRC)/$(fn)$(OBJSUFFIX))
 	fi
 
 $(EI)/bzlib.h: $(BZSRC)/bzlib.h
+	mkdir -p $(EI)
 	cp $< $@
 
 #-- steam-sdk

@@ -1181,8 +1181,11 @@ export CSTD     := -std=c99
 export CXXSTD   := $CXXSTD
 
 
-all: $DEFAULTDOC
+all: $DEFAULTDOC SRC
+
+SRC:
 	\$(MAKE) -C $SRC all
+.PHONY: SRC
 
 ifdef GAME
   include src/Makefile.\$(if \$(wildcard src/Makefile.\$(GAME)),\$(GAME),game)

@@ -98,7 +98,7 @@ SarReader$(OBJSUFFIX): SarReader.h DirectReader.h BaseReader.h $(ENCODING_H)
 ScriptHandler$(OBJSUFFIX): $(HANDLER_H)
 ScriptParser_command$(OBJSUFFIX): $(PARSER_H)
 ScriptParser$(OBJSUFFIX): $(PARSER_H)
-prng$(OBJSUFFIX): defs.h
+prng$(OBJSUFFIX): $(EXTRADEPS) defs.h
 
 resources$(OBJSUFFIX): $(EXTRADEPS) $(RC_HDRS)
 
