@@ -106,5 +106,5 @@ resources.cpp: embed$(EXESUFFIX) $(filter-out =%,$(RESOURCES))
 	./embed$(EXESUFFIX) $(patsubst =%,%,$(RESOURCES)) > $@
 
 embed$(EXESUFFIX): embed.cpp
-	$(CXX) $(CXXSTD) $(PSCFLAGS) $< -o $@
+	$(CXX) $(CXXSTD) $(PSCFLAGS) $(CXXFLAGS) $< -o $@
 

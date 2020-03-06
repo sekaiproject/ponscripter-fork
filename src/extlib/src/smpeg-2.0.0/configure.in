@@ -61,6 +61,11 @@ AC_PROG_INSTALL
 dnl Work around the lack of certain typedefs.
 AC_TYPE_SOCKLEN_T
 
+dnl The script previously overwrote CXXFLAGS with CFLAGS, but that's not always okay
+dnl Save CFLAGS here, then clear it, and finally use it to append to both
+save_CFLAGS="$CFLAGS"
+CFLAGS=""
+
 dnl The alpha architecture needs special flags for binary portability
 case "$target" in
     alpha*-*-linux*)
@@ -210,9 +215,11 @@ CFLAGS="$CFLAGS -Wall"
 dnl Add the source include directories
 CFLAGS="$CFLAGS -I.. -DNOCONTROLS"
 CFLAGS="$CFLAGS -I\$(top_srcdir) -I\$(top_srcdir)/audio -I\$(top_srcdir)/video"
-CXXFLAGS="$CFLAGS"
 
-CXXFLAGS="-std=c++03 $CFLAGS"
+
+CXXFLAGS="$CXXFLAGS -std=c++03 $CFLAGS"
+dnl Restore pre-save CFLAGS (see above comment on creation of save_CFLAGS)
+CFLAGS="$save_CFLAGS $CFLAGS"
 if test x$GCC = xyes; then
     # Check to see if options -fno-rtti -fno-exceptions are supported
     AC_MSG_CHECKING(if $CXX supports -fno-rtti -fno-exceptions)

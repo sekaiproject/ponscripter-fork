@@ -964,7 +964,15 @@ LIBS = $OURLIBS \\
        $LINKSDL2_mixer $LINKogg $LINKvorbis $LINKvorbisfile \\
        $LINKbz2 -lm -framework CoreFoundation
 
-export MACOSX_DEPLOYMENT_TARGET=10.5
+export MACOSX_DEPLOYMENT_TARGET=10.7
+# On 10.7 and 10.8 libc++ is available but not default
+# Newer compilers no longer ship with libstdc++ so we will prefer libc++ if possible
+ifeq (\$(MACOSX_DEPLOYMENT_TARGET),\$(filter \$(MACOSX_DEPLOYMENT_TARGET),10.7 10.8))
+  ifeq (,\$(filter --stdlib=%,\$(CXXFLAGS)))
+    export CXXFLAGS += --stdlib=libc++
+    export LDFLAGS  += --stdlib=libc++
+  endif
+endif
 
 SDLOTHERCONFIG = --enable-video-opengl --enable-video-opengles $SDLOTHERCONFIG
 DEFS = -DMACOSX -DUTF8_CAPTION -DUTF8_FILESYSTEM -DUSE_OGG_VORBIS $OURDEFS
