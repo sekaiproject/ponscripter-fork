@@ -964,8 +964,7 @@ LIBS = $OURLIBS \\
        $LINKSDL2_mixer $LINKogg $LINKvorbis $LINKvorbisfile \\
        $LINKbz2 -lm -framework CoreFoundation
 
-CFLAGS = -mmacosx-version-min=10.5 $CFLAGS
-CXXFLAGS = -mmacosx-version-min=10.5 $CXXFLAGS
+export MACOSX_DEPLOYMENT_TARGET=10.5
 
 SDLOTHERCONFIG = --enable-video-opengl --enable-video-opengles $SDLOTHERCONFIG
 DEFS = -DMACOSX -DUTF8_CAPTION -DUTF8_FILESYSTEM -DUSE_OGG_VORBIS $OURDEFS
