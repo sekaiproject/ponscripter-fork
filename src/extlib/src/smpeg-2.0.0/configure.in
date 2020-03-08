@@ -217,7 +217,7 @@ CFLAGS="$CFLAGS -I.. -DNOCONTROLS"
 CFLAGS="$CFLAGS -I\$(top_srcdir) -I\$(top_srcdir)/audio -I\$(top_srcdir)/video"
 
 
-CXXFLAGS="$CXXFLAGS -std=c++03 $CFLAGS"
+CXXFLAGS="$CXXFLAGS -Wno-narrowing $CFLAGS"
 dnl Restore pre-save CFLAGS (see above comment on creation of save_CFLAGS)
 CFLAGS="$save_CFLAGS $CFLAGS"
 if test x$GCC = xyes; then
