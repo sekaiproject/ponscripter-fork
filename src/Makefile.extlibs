@@ -63,6 +63,10 @@ $(EB)/sdl2-config: $(SDLSRC)/Makefile
 	fi # Fix for annoying Windows breakage
 	@chmod +x $(EB)/sdl2-config # for some reason this isn't happening when
 	@                          # cross-compiling to MinGW
+	@ # We only make a static lib which means things using pkg-config will get it even if they think they're linking to a dynamic lib, breaking their ldflags
+	@ # Fix this by replacing `Libs: $libs\nLibs.static $staticonly` with `Libs: $libs $staticonly` in the pc file
+	@ # Note: This assumes Libs.private immediately follows Libs if it exists, which seems to be the case in most pc files that have it but isn't actually a requirement.
+	@sed -i '' -e ':a' -e 'N' -e '$$!ba' -e 's/\nLibs.private: //g' $(EL)/pkgconfig/sdl2.pc
 
 #-- SDL_image -----------------------------------------------------------------
 
@@ -88,9 +92,9 @@ $(SDLISRC)/Makefile: $(if $(INTERNAL_SDL),$(EB)/sdl2-config) \
                      $(if $(INTERNAL_LIBPNG),$(EL)/libpng$(LIBSUFFIX)) \
                      $(if $(INTERNAL_LIBJPEG),$(EL)/libjpeg$(LIBSUFFIX))
 	@echo Configuring internal SDL_image...
-	@cd $(SDLISRC) && \
+	@cd $(SDLISRC) && ./autogen.sh && \
 	./configure --prefix="$(LPREFIX)" $(OTHERCONFIG) \
-	    $(addprefix --disable-,shared lbm pcx pnm tga xcf xv tif \
+	    $(addprefix --disable-,shared lbm pcx pnm tga xcf xv tif webp \
 	    	                   $(if $(INTERNAL_LIBPNG),png-shared) \
                                    $(if $(INTERNAL_LIBJPEG),jpg-shared)) \
 	    $(REDIR)
@@ -177,9 +181,9 @@ $(OGGSRC)/Makefile:
 $(EL)/libogg$(LIBSUFFIX): $(OGGSRC)/Makefile
 	@echo Building internal libogg...
 	@$(MAKE) -C $(OGGSRC) $(REDSO)
-	@$(MAKE) -C $(OGGSRC) install $(REDSO)
+	@$(MAKE) -C $(OGGSRC) install -j1 $(REDSO)
 
-$(VORBSRC)/Makefile:
+$(VORBSRC)/Makefile: $(if $(INTERNAL_OGGLIBS),$(EL)/libogg$(LIBSUFFIX))
 	@echo Configuring internal libvorbis...
 	@cd $(VORBSRC) && \
 	./configure --prefix="$(LPREFIX)" $(addprefix --disable-,shared dependency-tracking docs) $(OTHERCONFIG) $(REDIR)
@@ -244,6 +248,7 @@ clean_bzip2:
 	rm -f $(EL)/libbz2$(LIBSUFFIX) $(EI)/bzlib.h $(BZSRC)/*$(OBJSUFFIX)
 
 $(EL)/libbz2$(LIBSUFFIX): $(foreach fn,$(BZOBJS),$(BZSRC)/$(fn)$(OBJSUFFIX))
+	mkdir -p $(EL)
 	rm -f $@
 	$(AR) cq $@ $^
 	@if [ -f "$(RANLIB)" -o -f /usr/bin/ranlib -o \
@@ -252,6 +257,7 @@ $(EL)/libbz2$(LIBSUFFIX): $(foreach fn,$(BZOBJS),$(BZSRC)/$(fn)$(OBJSUFFIX))
 	fi
 
 $(EI)/bzlib.h: $(BZSRC)/bzlib.h
+	mkdir -p $(EI)
 	cp $< $@
 
 #-- steam-sdk

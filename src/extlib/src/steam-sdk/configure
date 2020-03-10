@@ -57,8 +57,13 @@ esac
 
 $echo_n "Writing Makefile... ${nobr}"
 
+case "x$STEAM_RUNTIME_TARGET_ARCH" in
+xamd64) LINUXARCH=linux64 ;;
+*)      LINUXARCH=linux32 ;;
+esac
+
 case "$SYS" in
-Posix)  LIB=linux32/libsteam_api.so ;;
+Posix)  LIB=$LINUXARCH/libsteam_api.so ;;
 MacOSX) LIB=osx32/libsteam_api.dylib ;;
 MinGW)  LIB=steam_api.dll ;;
 *) echo "error: unsupported system";
