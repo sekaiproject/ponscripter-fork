@@ -66,7 +66,8 @@ $(EB)/sdl2-config: $(SDLSRC)/Makefile
 	@ # We only make a static lib which means things using pkg-config will get it even if they think they're linking to a dynamic lib, breaking their ldflags
 	@ # Fix this by replacing `Libs: $libs\nLibs.static $staticonly` with `Libs: $libs $staticonly` in the pc file
 	@ # Note: This assumes Libs.private immediately follows Libs if it exists, which seems to be the case in most pc files that have it but isn't actually a requirement.
-	@sed -i '' -e ':a' -e 'N' -e '$$!ba' -e 's/\nLibs.private: //g' $(EL)/pkgconfig/sdl2.pc
+	@sed -e ':a' -e 'N' -e '$$!ba' -e 's/\nLibs.private: / /g' $(EL)/pkgconfig/sdl2.pc > $(EL)/pkgconfig/sdl2.pc.new
+	@mv $(EL)/pkgconfig/sdl2.pc.new $(EL)/pkgconfig/sdl2.pc
 
 #-- SDL_image -----------------------------------------------------------------
 
