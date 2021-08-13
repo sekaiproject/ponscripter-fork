@@ -65,7 +65,7 @@ typedef HRESULT (WINAPI * GETFOLDERPATH)(HWND, int, HANDLE, DWORD, LPTSTR);
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <linux/limits.h>
+#include <limits.h>
 #include <pwd.h>
 #endif
 
